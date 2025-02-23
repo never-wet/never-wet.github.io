@@ -10,7 +10,9 @@
     font-weight: normal;
     font-style: normal;
 }
-
+html {
+    scroll-behavior: smooth; /* Enable smooth scrolling */
+}
 body {
     background-color: #222;
     color: #fcb420;
@@ -55,7 +57,7 @@ h1 {
     bottom: 0;
     left: 50%;
     transform: translateX(-50%);
-    margin-bottom: 600px;
+    margin-bottom: 80vh;
 }
 
 /* #go-to-brawlers {
@@ -77,22 +79,67 @@ h1 {
     align-content: center;
     justify-content: center;
     display: flex;
-
     background-color: gray;
     border: gray 1px solid;
     border-radius: 3px;
     padding-bottom: 40px;
     padding-top: 40px;
-    padding-left: 150px;
-    padding-right: 150px;
-    margin-top: 100px; /* Set margin to 16px to position below #title */
+    margin-top: 16px; /* Set margin to 16px to position below #title
     position: absolute; /* Changed to relative */
     left: 50%;
     transform: translate(-50%, 50%); /* Center horizontally */
+    width: 100%;
 }
 
 #go-to-brawlers h1{
     width: fit-content;
     height: fit-content;
     margin: 0 auto;
+}
+
+#go-to-brawlers h1 a{
+    text-decoration: none; 
+    color: #fcb420;
+}
+
+.add {
+    border: 1px solid #fcb420;
+    text-align: center;
+    align-items: center;
+    justify-content: center;
+    margin-top: 300px; /* Ensure it is below #go-to-brawlers */
+    transform: translateX(50%); /* Center horizontally */
+    width: 100%; /* Ensure add takes full width */
+    display: flex;
+    flex-direction: column;
+    height: 50vh; /* Ensure it takes full height */
+    justify-content: center; /* Center vertically */
+}
+.add h1{
+    width: fit-content;
+    height: fit-content;
+    margin: 0 auto;
+}
+
+#brawler {
+    width: 100%; /* Ensure brawler takes full width */
+    margin-top: 100vh; /* Push to the bottom */
+    padding: 20px;
+    text-align: center;
+    background-color: #333;
+}
+
+
+#brawler h1 {
+    font-size: 2rem;
+    margin: 0;
+    padding: 0;
+}
+a {
+    text-decoration: none; /* Remove underline from all hyperlinks */
+    color: #fcb420; /* Set the color of the hyperlink text */
+}
+
+section {
+    width: 100%;
 }
