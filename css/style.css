@@ -1,55 +1,59 @@
-* {
-    scroll-behavior: smooth;
+
+@import url('https://fonts.googleapis.com/css2?family=Aldrich&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap');
+
+@font-face {
+    font-family: 'Chakra-Petch-Medium';
+    src:url('fonts/Chakra-Petch-Medium.ttf.woff') format('woff'),
+        url('fonts/Chakra-Petch-Medium.ttf.svg#Chakra-Petch-Medium') format('svg'),
+        url('fonts/Chakra-Petch-Medium.ttf.eot'),
+        url('fonts/Chakra-Petch-Medium.ttf.eot?#iefix') format('embedded-opentype'); 
+    font-weight: normal;
+    font-style: normal;
 }
 
 body {
-    background: #222;
+    background-color: #222;
+    color: #fcb420;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    height: 100vh;
+    position: relative;
 }
 
-div {
+#title {
+    text-align: center;
+    margin-top: 0;
+    margin-bottom: 16px;
+    padding-top: 20px; /* Adjust padding as needed */
     position: absolute;
-    width: 100%;
-    height: 50%;
-    color: #eee;
-    
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
 }
 
-div h1 {
-    padding-left: 150px;
+.title h1 {
+    font-family: "Aldrich", serif;
+    font-weight: 400;
+    font-style: normal;
+    font-size: 50rem !important; /* Adjusted font size */
+    margin-bottom: 16px;
+}
+h1 {
+    font-family: 'Chakra-Petch-Medium';
     font-weight: 800;
-    color: #eee;
+    font-style: normal;
+    font-size: 2rem;
+    margin: 0; 
+    padding: 0;
 }
 
-a {
-    color: #eee;
-    text-decoration: none;
-}
-
-#menu {
+#go-to-brawlers {
     position: absolute;
-    display: inline;
-}
-
-#menudiv {
-    position: fixed;
-    width: 50px;
-    height: 100%;
-    border: #eee;
-}
-
-ul {
-    position: relative;
-    color: #eee;
-    padding-top: 50px;
-}
-
-ul li {
-    position: relative;
-    padding-top: 90px;
-}
-
-
-#discord {
-    position: absolute;
-    
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-bottom: 600px;
 }
