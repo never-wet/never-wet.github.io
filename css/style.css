@@ -1,28 +1,30 @@
-
 @import url('https://fonts.googleapis.com/css2?family=Aldrich&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap');
 
 @font-face {
     font-family: 'Chakra-Petch-Medium';
-    src:url('fonts/Chakra-Petch-Medium.ttf.woff') format('woff'),
-        url('fonts/Chakra-Petch-Medium.ttf.svg#Chakra-Petch-Medium') format('svg'),
-        url('fonts/Chakra-Petch-Medium.ttf.eot'),
-        url('fonts/Chakra-Petch-Medium.ttf.eot?#iefix') format('embedded-opentype'); 
+    src: url('fonts/Chakra-Petch-Medium.ttf.woff') format('woff'),
+         url('fonts/Chakra-Petch-Medium.ttf.svg#Chakra-Petch-Medium') format('svg'),
+         url('fonts/Chakra-Petch-Medium.ttf.eot'),
+         url('fonts/Chakra-Petch-Medium.ttf.eot?#iefix') format('embedded-opentype');
     font-weight: normal;
     font-style: normal;
 }
+
 html {
     scroll-behavior: smooth; /* Enable smooth scrolling */
 }
+
 body {
     background-color: #222;
     color: #fcb420;
-    margin: 10px;
+    margin: 0;
     padding: 0;
     display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    height: 100vh;
-    position: relative;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    min-height: 200vh; /* Ensure enough height for scrolling */
+    width: 100%; /* Ensure body takes full width */
 }
 
 #title {
@@ -30,75 +32,38 @@ body {
     margin-top: 0;
     margin-bottom: 16px;
     padding-top: 20px; /* Adjust padding as needed */
-    position: absolute;
-    top: 0;
-    left: 50%;
-    transform: translateX(-50%);
+    width: 100%; /* Ensure title takes full width */
 }
 
-.title h1 {
+#title h1 {
     font-family: "Aldrich", serif;
     font-weight: 400;
     font-style: normal;
-    font-size: 50rem !important; /* Adjusted font size */
+    font-size: 5rem !important; /* Adjusted font size */
     margin-bottom: 16px;
 }
-h1 {
-    font-family: 'Chakra-Petch-Medium';
-    font-weight: 800;
-    font-style: normal;
-    font-size: 2rem;
-    margin: 0; 
-    padding: 0;
-}
-
-#go-to-brawlers {
-    position: absolute;
-    bottom: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    margin-bottom: 80vh;
-}
-
-/* #go-to-brawlers {
-    background-color:gray;
-    border: gray 1px solid;
-    border-radius: 3px;
-    padding-bottom: 40px;
-    padding-top: 40px;
-    padding-left: 150px;
-    padding-right: 150px;
-    bottom: 0;
-    left: 10vh;
-    transform: translatey(20vh);
-} */
 
 #go-to-brawlers {
     text-align: center;
     align-items: center;
-    align-content: center;
     justify-content: center;
     display: flex;
     background-color: gray;
     border: gray 1px solid;
     border-radius: 3px;
-    padding-bottom: 40px;
-    padding-top: 40px;
-    margin-top: 16px; /* Set margin to 16px to position below #title
-    position: absolute; /* Changed to relative */
-    left: 50%;
-    transform: translate(-50%, 50%); /* Center horizontally */
-    width: 100%;
+    padding: 40px 150px;
+    margin-top: 16px;
+    width: 100%; /* Ensure go-to-brawlers takes full width */
 }
 
-#go-to-brawlers h1{
+#go-to-brawlers h1 {
     width: fit-content;
     height: fit-content;
     margin: 0 auto;
 }
 
-#go-to-brawlers h1 a{
-    text-decoration: none; 
+#go-to-brawlers h1 a {
+    text-decoration: none;
     color: #fcb420;
 }
 
@@ -108,14 +73,14 @@ h1 {
     align-items: center;
     justify-content: center;
     margin-top: 300px; /* Ensure it is below #go-to-brawlers */
-    transform: translateX(50%); /* Center horizontally */
     width: 100%; /* Ensure add takes full width */
     display: flex;
     flex-direction: column;
     height: 50vh; /* Ensure it takes full height */
     justify-content: center; /* Center vertically */
 }
-.add h1{
+
+.add h1 {
     width: fit-content;
     height: fit-content;
     margin: 0 auto;
@@ -129,17 +94,21 @@ h1 {
     background-color: #333;
 }
 
-
 #brawler h1 {
     font-size: 2rem;
     margin: 0;
     padding: 0;
 }
+
 a {
     text-decoration: none; /* Remove underline from all hyperlinks */
     color: #fcb420; /* Set the color of the hyperlink text */
 }
 
 section {
+    width: 100%;
+}
+
+div {
     width: 100%;
 }
