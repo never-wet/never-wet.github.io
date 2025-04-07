@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Random Triangles</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+        }
+        svg {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <svg id="triangleCanvas" xmlns="http://www.w3.org/2000/svg"></svg>
+
+    <script>
+        const svg = document.getElementById('triangleCanvas');
+        const width = window.innerWidth;
+        const height = window.innerHeight;
+
+        svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+        svg.setAttribute('width', width);
+        svg.setAttribute('height', height);
+
+        function getRandomInt(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        function createRandomTriangle() {
+            const x1 = getRandomInt(0, width);
+            const y1 = getRandomInt(0, height);
+            const x2 = getRandomInt(0, width);
+            const y2 = getRandomInt(0, height);
+            const x3 = getRandomInt(0, width);
+            const y3 = getRandomInt(0, height);
+
+            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            path.setAttribute('d', `M${x1},${y1} L${x2},${y2} L${x3},${y3} Z`);
+            path.setAttribute('fill', `hsl(${getRandomInt(0, 360)}, 70%, 70%)`);
+            path.setAttribute('stroke', 'black');
+            path.setAttribute('stroke-width', '1');
+            return path;
+        }
+
+        function generateTriangles(count) {
+            for (let i = 0; i < count; i++) {
+                const triangle = createRandomTriangle();
+                svg.appendChild(triangle);
+            }
+        }
+
+        generateTriangles(50); // 원하는 삼각형 개수
+    </script>
+</body>
+</html>
