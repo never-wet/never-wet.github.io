@@ -8,52 +8,26 @@
       height: 100%;
       margin: 0;
       padding: 0;
-      background-color: black;
+      background-color: #fff; /* 배경을 흰색으로 설정 */
       display: flex;
       justify-content: center;
       align-items: center;
     }
 
     svg {
-      width: 100vw;  /* 화면 가로 크기에 맞추기 */
-      height: 100vh; /* 화면 세로 크기에 맞추기 */
+      width: 50vw; /* 화면 가로의 50% 크기 */
+      height: auto; /* 비율 유지 */
       display: block;
-    }
-
-    /* 빨간 애니메이션 선만 이 클래스 사용 */
-    .animate-path {
-      fill: none;
-      stroke: red;
-      stroke-width: 2; /* 선을 얇게 설정 */
-      stroke-dasharray: 4000; /* 선의 길이를 설정 (길게) */
-      stroke-dashoffset: 4000;
-      animation: draw 5s ease-in-out infinite;
-    }
-
-    /* 태두리를 따라 그려지는 애니메이션 */
-    @keyframes draw {
-      0% {
-        stroke-dashoffset: 4000;
-      }
-      100% {
-        stroke-dashoffset: 0;
-      }
     }
   </style>
 </head>
 <body>
-  <svg viewBox="0 0 1600 400" xmlns="http://www.w3.org/2000/svg">
-    <!-- < -->
-    <path d="M150,80 L50,160 L150,240" class="animate-path"/>
-    <!-- > -->
-    <path d="M250,80 L350,160 L250,240" class="animate-path"/>
-    <!-- / -->
-    <path d="M400,240 L450,80" class="animate-path"/>
-    <!-- _ -->
-    <path d="M500,240 L600,240" class="animate-path"/>
-    <!-- + -->
-    <path d="M650,160 L700,160" class="animate-path"/>
-    <path d="M675,120 L675,200" class="animate-path"/>
+  <!-- logo.svg 파일의 내용을 직접 삽입 -->
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+    <path d="M10 10 L50 90 L90 10 Z" fill="hsl(0, 70%, 70%)" stroke="black" stroke-width="1" />
+    <path d="M20 20 L50 80 L80 20 Z" fill="hsl(120, 70%, 70%)" stroke="black" stroke-width="1" />
+    <path d="M30 30 L50 70 L70 30 Z" fill="hsl(240, 70%, 70%)" stroke="black" stroke-width="1" />
+    
   </svg>
 </body>
 </html>
