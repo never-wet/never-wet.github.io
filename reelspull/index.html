@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<style>
+.carousel-container {
+    width: 80%;
+    margin: 0 auto;
+    overflow: hidden;
+    position: relative;
+    /* 슬라이딩 영역을 벗어나는 부분을 숨깁니다. */
+}
+
+.carousel {
+    display: flex; /* 아이템들을 가로로 나열합니다. */
+    transition: transform 5s cubic-bezier(0.25, 0.1, 0.25, 1);
+    /* 부드러운 감속 효과를 위한 transition 설정 */
+}
+
+.item {
+    flex-shrink: 0; /* 아이템이 줄어들지 않게 합니다. */
+    width: 200px; /* 아이템의 너비 */
+    height: 200px; /* 아이템의 높이 */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.item img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain; /* 이미지 비율을 유지하면서 컨테이너에 맞춥니다. */
+}
+
+/* 선택된 아이템을 위한 스타일 */
+.selected {
+    transform: scale(1.2); /* 선택 시 1.2배로 확대 */
+}
+
+/* slider-track에 가로 스크롤 적용 */
+.slider-track {
+  display: flex;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  cursor: grab;
+}
+.slider-track.active {
+  cursor: grabbing;
+}
+.slide {
+  flex: 0 0 auto;
+  width: 200px;
+  height: 200px;
+  margin-right: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.slide img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+</style>
+<body>
+
+    <!-- The selected GIF will appear here -->
+  </div>
+</div>
+<div class="carousel-container">
+  <div class="slider-track" id="sliderTrack">
+    <div class="slide"><img src="gif/absmal.gif" alt="Absmal"></div>
+    <div class="slide"><img src="gif/common.gif" alt="Common"></div>
+    <div class="slide"><img src="gif/uncommon.gif" alt="Uncommon"></div>
+    <div class="slide"><img src="gif/rare.gif" alt="Rare"></div>
+    <div class="slide"><img src="gif/exotic.gif" alt="Exotic"></div>
+    <div class="slide"><img src="gif/epic.gif" alt="Epic"></div>
+    <div class="slide"><img src="gif/mythic.gif" alt="Mythic"></div>
+    <div class="slide"><img src="gif/legendary.gif" alt="Legendary"></div>
+    <div class="slide"><img src="gif/unreal.gif" alt="Unreal"></div>
+    <div class="slide"><img src="gif/insane.gif" alt="Insane"></div>
+    <div class="slide"><img src="gif/godlike.gif" alt="Godlike"></div>
+  </div>
+</div>
+<button id="spinBtn">Spin</button>
+
+<script>
+const spinBtn = document.getElementById('spinBtn');
+const sliderTrack = document.getElementById('sliderTrack');
+const slides = sliderTrack.querySelectorAll('.slide');
+
+spinBtn.addEventListener('click', () => {
+  const slideWidth = slides[0].offsetWidth + 16; // slide width + margin-right
+  const totalSlides = slides.length;
+  const totalScroll = slideWidth * totalSlides;
+  const scrollTimes = 5;
+  const startScroll = sliderTrack.scrollLeft;
+  const targetScroll = startScroll + totalScroll * scrollTimes;
+
+  let start = null;
+  const duration = 2500; // 2.5초 동안 5바퀴
+
+  function animateScroll(timestamp) {
+    if (!start) start = timestamp;
+    const elapsed = timestamp - start;
+    const progress = Math.min(elapsed / duration, 1);
+    // ease-in-out
+    const ease = 0.5 - Math.cos(progress * Math.PI) / 2;
+    sliderTrack.scrollLeft = startScroll + (targetScroll - startScroll) * ease;
+
+    if (progress < 1) {
+      requestAnimationFrame(animateScroll);
+    } else {
+      // 마지막에 원래 위치로 돌아오도록 보정
+      sliderTrack.scrollLeft = startScroll;
+    }
+  }
+
+  requestAnimationFrame(animateScroll);
+});
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- <script>
+const track = document.getElementById('sliderTrack');
+const slides = Array.from(track.children);
+const containerWidth = window.innerWidth;
+
+// Find center slide index
+const centerIndex = Math.floor(slides.length / 2);
+
+// Calculate slide width including margin
+const slideWidth = slides[0].offsetWidth + 20;
+const targetX = (containerWidth / 2) - (slideWidth * (centerIndex + 0.5));
+
+// Initial position (offscreen to the right)
+track.style.transform = `translateX(${containerWidth}px)`;
+
+// Start animation after a small delay
+setTimeout(() => {
+  track.style.transform = `translateX(${targetX}px)`;
+}, 50);
+
+// When animation finishes, highlight center GIF
+track.addEventListener('transitionend', () => {
+  slides.forEach(slide => slide.classList.remove('selected'));
+  slides[centerIndex].classList.add('selected');
+  console.log(`Centered GIF index: ${centerIndex}`);
+});
+</script> -->
+
+
+
+<!-- <script>
+const track = document.getElementById('sliderTrack');
+const slides = Array.from(track.children);
+const containerWidth = window.innerWidth;
+
+// Determine center slide index (middle of array)
+const centerIndex = Math.floor(slides.length / 2);
+
+// Slide total width (element width + margin)
+const slideWidth = slides[0].offsetWidth + 20;
+const targetX = (containerWidth / 2) - (slideWidth * (centerIndex + 0.5));
+
+// Initial position: right offscreen
+track.style.transform = `translateX(${containerWidth}px)`;
+
+// Small delay to trigger CSS transition
+setTimeout(() => {
+  track.style.transform = `translateX(${targetX}px)`;
+}, 50);
+
+// When animation ends, highlight center image
+track.addEventListener('transitionend', () => {
+  slides.forEach(slide => slide.classList.remove('selected'));
+  slides[centerIndex].classList.add('selected');
+  console.log(`Centered image index: ${centerIndex}`);
+});
+</script> -->
+</body>
+</html>
