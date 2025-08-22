@@ -94,6 +94,68 @@ const sliderTrack = document.getElementById('sliderTrack');
 const slides = sliderTrack.querySelectorAll('.slide');
 
 spinBtn.addEventListener('click', () => {
+  slides.forEach(slide => slide.classList.remove('selected'));
+
+  const slideWidth = slides[0].offsetWidth + 16;
+  const totalSlides = slides.length;
+  const totalScroll = slideWidth * totalSlides;
+  const rounds = 5; // Number of full rounds
+  const duration = 2500; // Animation duration in ms
+
+  // Randomly select a slide to land in the center
+  const selectedIndex = Math.floor(Math.random() * totalSlides);
+  const centerOffset = sliderTrack.offsetWidth / 2 - slideWidth / 2;
+  const finalScroll = slideWidth * selectedIndex - centerOffset + totalScroll * rounds;
+
+  let start = null;
+  const initialScroll = sliderTrack.scrollLeft;
+
+  function animateScroll(timestamp) {
+    if (!start) start = timestamp;
+    const elapsed = timestamp - start;
+    const progress = Math.min(elapsed / duration, 1);
+    // ease-out
+    const ease = 1 - Math.pow(1 - progress, 3);
+    sliderTrack.scrollLeft = initialScroll + (finalScroll - initialScroll) * ease;
+    if (progress < 1) {
+      requestAnimationFrame(animateScroll);
+    } else {
+      // Snap to final position and highlight
+      sliderTrack.scrollLeft = slideWidth * selectedIndex - centerOffset;
+      slides[selectedIndex].classList.add('selected');
+    }
+  }
+  requestAnimationFrame(animateScroll);
+});
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- <script>
+const spinBtn = document.getElementById('spinBtn');
+const sliderTrack = document.getElementById('sliderTrack');
+const slides = sliderTrack.querySelectorAll('.slide');
+
+spinBtn.addEventListener('click', () => {
   const slideWidth = slides[0].offsetWidth + 16; // slide width + margin-right
   const totalSlides = slides.length;
   const totalScroll = slideWidth * totalSlides;
@@ -122,7 +184,8 @@ spinBtn.addEventListener('click', () => {
 
   requestAnimationFrame(animateScroll);
 });
-</script>
+
+</script> -->
 
 
 
