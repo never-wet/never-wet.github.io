@@ -3,262 +3,361 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>GIF 뽑기 게임</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .game-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            text-align: center;
+        }
+
+        h1 {
+            color: white;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .slot-container {
+            width: 600px;
+            height: 120px;
+            border: 4px solid #fff;
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+            background: rgba(0, 0, 0, 0.2);
+            margin-bottom: 30px;
+            box-shadow: inset 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .slot-strip {
+            display: flex;
+            height: 100%;
+            position: relative;
+            transition: transform 0.1s linear;
+        }
+
+        .slot-strip.stopping {
+            transition: transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .gif-item {
+            min-width: 120px;
+            height: 112px;
+            background: #f0f0f0;
+            border-right: 2px solid #ddd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            color: #666;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .gif-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .gif-item.spinning img {
+            animation-play-state: paused;
+            opacity: 0.8;
+        }
+
+        .center-highlight {
+            position: absolute;
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 120px;
+            transform: translateX(-50%);
+            border: 3px solid #ffd700;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .spin-button {
+            background: linear-gradient(145deg, #ff6b6b, #ee5a52);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .spin-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(255, 107, 107, 0.6);
+        }
+
+        .spin-button:disabled {
+            background: #666;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .result-container {
+            margin-top: 30px;
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .winner-gif {
+            max-width: 300px;
+            max-height: 200px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            transform: scale(0);
+            animation: popIn 0.5s ease-out forwards;
+        }
+
+        @keyframes popIn {
+            0% {
+                transform: scale(0) rotate(180deg);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.1) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(1) rotate(0deg);
+                opacity: 1;
+            }
+        }
+
+        .winner-text {
+            color: #ffd700;
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from {
+                text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5), 0 0 10px #ffd700;
+            }
+            to {
+                text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5), 0 0 20px #ffd700, 0 0 30px #ffd700;
+            }
+        }
+
+        .placeholder-gif {
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #f9ca24, #f0932b);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+            text-align: center;
+        }
+    </style>
 </head>
-<style>
-.carousel-container {
-    width: 80%;
-    margin: 0 auto;
-    overflow: hidden;
-    position: relative;
-    /* 슬라이딩 영역을 벗어나는 부분을 숨깁니다. */
-}
-
-.carousel {
-    display: flex; /* 아이템들을 가로로 나열합니다. */
-    transition: transform 5s cubic-bezier(0.25, 0.1, 0.25, 1);
-    /* 부드러운 감속 효과를 위한 transition 설정 */
-}
-
-.item {
-    flex-shrink: 0; /* 아이템이 줄어들지 않게 합니다. */
-    width: 200px; /* 아이템의 너비 */
-    height: 200px; /* 아이템의 높이 */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.item img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain; /* 이미지 비율을 유지하면서 컨테이너에 맞춥니다. */
-}
-
-/* 선택된 아이템을 위한 스타일 */
-.selected {
-    transform: scale(1.2); /* 선택 시 1.2배로 확대 */
-}
-
-/* slider-track에 가로 스크롤 적용 */
-.slider-track {
-  display: flex;
-  overflow-x: auto;
-  scroll-behavior: smooth;
-  -webkit-overflow-scrolling: touch;
-  cursor: grab;
-}
-.slider-track.active {
-  cursor: grabbing;
-}
-.slide {
-  flex: 0 0 auto;
-  width: 200px;
-  height: 200px;
-  margin-right: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.slide img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-}
-</style>
 <body>
-
-    <!-- The selected GIF will appear here -->
-  </div>
-</div>
-<div class="carousel-container">
-  <div class="slider-track" id="sliderTrack">
-    <div class="slide"><img src="gif/absmal.gif" alt="Absmal"></div>
-    <div class="slide"><img src="gif/common.gif" alt="Common"></div>
-    <div class="slide"><img src="gif/uncommon.gif" alt="Uncommon"></div>
-    <div class="slide"><img src="gif/rare.gif" alt="Rare"></div>
-    <div class="slide"><img src="gif/exotic.gif" alt="Exotic"></div>
-    <div class="slide"><img src="gif/epic.gif" alt="Epic"></div>
-    <div class="slide"><img src="gif/mythic.gif" alt="Mythic"></div>
-    <div class="slide"><img src="gif/legendary.gif" alt="Legendary"></div>
-    <div class="slide"><img src="gif/unreal.gif" alt="Unreal"></div>
-    <div class="slide"><img src="gif/insane.gif" alt="Insane"></div>
-    <div class="slide"><img src="gif/godlike.gif" alt="Godlike"></div>
-  </div>
-</div>
-<button id="spinBtn">Spin</button>
-
-<script>
-const spinBtn = document.getElementById('spinBtn');
-const sliderTrack = document.getElementById('sliderTrack');
-const slides = sliderTrack.querySelectorAll('.slide');
-
-spinBtn.addEventListener('click', () => {
-  slides.forEach(slide => slide.classList.remove('selected'));
-
-  const slideWidth = slides[0].offsetWidth + 16;
-  const totalSlides = slides.length;
-  const totalScroll = slideWidth * totalSlides;
-  const rounds = 5; // Number of full rounds
-  const duration = 2500; // Animation duration in ms
-
-  // Randomly select a slide to land in the center
-  const selectedIndex = Math.floor(Math.random() * totalSlides);
-  const centerOffset = sliderTrack.offsetWidth / 2 - slideWidth / 2;
-  const finalScroll = slideWidth * selectedIndex - centerOffset + totalScroll * rounds;
-
-  let start = null;
-  const initialScroll = sliderTrack.scrollLeft;
-
-  function animateScroll(timestamp) {
-    if (!start) start = timestamp;
-    const elapsed = timestamp - start;
-    const progress = Math.min(elapsed / duration, 1);
-    // ease-out
-    const ease = 1 - Math.pow(1 - progress, 3);
-    sliderTrack.scrollLeft = initialScroll + (finalScroll - initialScroll) * ease;
-    if (progress < 1) {
-      requestAnimationFrame(animateScroll);
-    } else {
-      // Snap to final position and highlight
-      sliderTrack.scrollLeft = slideWidth * selectedIndex - centerOffset;
-      slides[selectedIndex].classList.add('selected');
-    }
-  }
-  requestAnimationFrame(animateScroll);
-});
-</script>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<!-- <script>
-const spinBtn = document.getElementById('spinBtn');
-const sliderTrack = document.getElementById('sliderTrack');
-const slides = sliderTrack.querySelectorAll('.slide');
-
-spinBtn.addEventListener('click', () => {
-  const slideWidth = slides[0].offsetWidth + 16; // slide width + margin-right
-  const totalSlides = slides.length;
-  const totalScroll = slideWidth * totalSlides;
-  const scrollTimes = 5;
-  const startScroll = sliderTrack.scrollLeft;
-  const targetScroll = startScroll + totalScroll * scrollTimes;
-
-  let start = null;
-  const duration = 2500; // 2.5초 동안 5바퀴
-
-  function animateScroll(timestamp) {
-    if (!start) start = timestamp;
-    const elapsed = timestamp - start;
-    const progress = Math.min(elapsed / duration, 1);
-    // ease-in-out
-    const ease = 0.5 - Math.cos(progress * Math.PI) / 2;
-    sliderTrack.scrollLeft = startScroll + (targetScroll - startScroll) * ease;
-
-    if (progress < 1) {
-      requestAnimationFrame(animateScroll);
-    } else {
-      // 마지막에 원래 위치로 돌아오도록 보정
-      sliderTrack.scrollLeft = startScroll;
-    }
-  }
-
-  requestAnimationFrame(animateScroll);
-});
-
-</script> -->
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<!-- <script>
-const track = document.getElementById('sliderTrack');
-const slides = Array.from(track.children);
-const containerWidth = window.innerWidth;
-
-// Find center slide index
-const centerIndex = Math.floor(slides.length / 2);
-
-// Calculate slide width including margin
-const slideWidth = slides[0].offsetWidth + 20;
-const targetX = (containerWidth / 2) - (slideWidth * (centerIndex + 0.5));
-
-// Initial position (offscreen to the right)
-track.style.transform = `translateX(${containerWidth}px)`;
-
-// Start animation after a small delay
-setTimeout(() => {
-  track.style.transform = `translateX(${targetX}px)`;
-}, 50);
-
-// When animation finishes, highlight center GIF
-track.addEventListener('transitionend', () => {
-  slides.forEach(slide => slide.classList.remove('selected'));
-  slides[centerIndex].classList.add('selected');
-  console.log(`Centered GIF index: ${centerIndex}`);
-});
-</script> -->
-
-
-
-<!-- <script>
-const track = document.getElementById('sliderTrack');
-const slides = Array.from(track.children);
-const containerWidth = window.innerWidth;
-
-// Determine center slide index (middle of array)
-const centerIndex = Math.floor(slides.length / 2);
-
-// Slide total width (element width + margin)
-const slideWidth = slides[0].offsetWidth + 20;
-const targetX = (containerWidth / 2) - (slideWidth * (centerIndex + 0.5));
-
-// Initial position: right offscreen
-track.style.transform = `translateX(${containerWidth}px)`;
-
-// Small delay to trigger CSS transition
-setTimeout(() => {
-  track.style.transform = `translateX(${targetX}px)`;
-}, 50);
-
-// When animation ends, highlight center image
-track.addEventListener('transitionend', () => {
-  slides.forEach(slide => slide.classList.remove('selected'));
-  slides[centerIndex].classList.add('selected');
-  console.log(`Centered image index: ${centerIndex}`);
-});
-</script> -->
+    <div class="game-container">
+        <h1>🎰 GIF 뽑기 게임</h1>
+
+        <div class="slot-container">
+            <div class="slot-strip" id="slotStrip">
+                <!-- GIF items will be dynamically added here -->
+            </div>
+            <div class="center-highlight"></div>
+            
+        </div>
+        
+
+        <button class="spin-button" id="spinButton">🎰 SPIN!</button>
+
+        <div class="result-container" id="resultContainer">
+            <div style="color: white; opacity: 0.7;">SPIN 버튼을 눌러서 GIF를 뽑아보세요!</div>
+        </div>
+    </div>
+
+    <script>
+        // 기본 샘플 이미지들 (실제로는 여기에 GIF URL들을 넣으시면 됩니다)
+        const sampleGifs = [
+            { name: "고양이", color: "#ff6b6b", emoji: "🐱" },
+            { name: "강아지", color: "#4ecdc4", emoji: "🐶" },
+            { name: "햄스터", color: "#45b7d1", emoji: "🐹" },
+            { name: "토끼", color: "#f9ca24", emoji: "🐰" },
+            { name: "여우", color: "#f0932b", emoji: "🦊" },
+            { name: "판다", color: "#eb4d4b", emoji: "🐼" },
+            { name: "사자", color: "#6c5ce7", emoji: "🦁" },
+            { name: "호랑이", color: "#fd79a8", emoji: "🐯" },
+            { name: "코알라", color: "#00b894", emoji: "🐨" },
+            { name: "원숭이", color: "#e17055", emoji: "🐵" }
+        ];
+
+        let isSpinning = false;
+        let spinInterval;
+        let currentOffset = 0;
+        let spinSpeed = 12; // 초기 속도
+        let spinTime = 0; // 스핀 시간 추적
+        const itemWidth = 120;
+
+        const slotStrip = document.getElementById('slotStrip');
+        const spinButton = document.getElementById('spinButton');
+        const resultContainer = document.getElementById('resultContainer');
+
+        spinButton.addEventListener('click', startSpin);
+
+        function setupSlots() {
+            slotStrip.innerHTML = '';
+            
+            // 충분한 개수의 아이템들을 생성 (5번 반복으로 늘림)
+            const totalItems = sampleGifs.length * 5;
+            
+            for (let i = 0; i < totalItems; i++) {
+                const gifItem = document.createElement('div');
+                gifItem.className = 'gif-item';
+                
+                const gif = sampleGifs[i % sampleGifs.length];
+                
+                // 플레이스홀더 div 생성
+                const placeholder = document.createElement('div');
+                placeholder.className = 'placeholder-gif';
+                placeholder.style.background = gif.color;
+                placeholder.innerHTML = `${gif.emoji}<br>${gif.name}`;
+                
+                gifItem.appendChild(placeholder);
+                gifItem.dataset.gifIndex = i % sampleGifs.length;
+                slotStrip.appendChild(gifItem);
+            }
+        }
+
+        function startSpin() {
+            if (isSpinning) return;
+            
+            isSpinning = true;
+            spinButton.disabled = true;
+            resultContainer.innerHTML = '';
+            
+            // 초기 설정 - 매번 랜덤한 시작 위치로 다양성 확보
+            currentOffset = Math.random() * -600 - 120; // -720 ~ -120 사이의 랜덤 시작
+            spinSpeed = 35;
+            spinTime = 0;
+            
+            // 모든 아이템에 spinning 클래스 관리
+            const allItems = slotStrip.querySelectorAll('.gif-item');
+            allItems.forEach(item => item.classList.remove('spinning'));
+            setTimeout(() => {
+                allItems.forEach(item => item.classList.add('spinning'));
+            }, 10);
+            
+            // 부드러운 스피닝 시작
+            spinInterval = setInterval(() => {
+                spinTime += 16;
+                
+                if (spinTime < 1200) {
+                    spinSpeed = 35;
+                } else if (spinTime < 2500) {
+                    const decayFactor = (spinTime - 1200) / 1300;
+                    spinSpeed = 35 * (1 - decayFactor * 0.8);
+                } else if (spinTime < 3800) {
+                    const decayFactor = (spinTime - 2500) / 1300;
+                    spinSpeed = 7 * (1 - decayFactor * 0.7);
+                } else {
+                    spinSpeed = Math.max(0.3, spinSpeed * 0.90);
+                    
+                    if (spinSpeed < 2) {
+                        // 정확한 가운데 위치 계산 (슬롯 컨테이너 중심: 300px, GIF 중심: 60px)
+                        const centerPosition = -currentOffset + 300;
+                        const nearestItemIndex = Math.round(centerPosition / itemWidth);
+                        const targetOffset = 325 - 60 - (nearestItemIndex * itemWidth); // GIF 중심이 하이라이트 중심에 오도록
+                        
+                        const distance = targetOffset - currentOffset;
+                        
+                        if (Math.abs(distance) < 2) {
+                            currentOffset = targetOffset;
+                            slotStrip.style.transform = `translateX(${currentOffset}px)`;
+                            clearInterval(spinInterval);
+                            
+                            setTimeout(() => {
+                                // 실제 가운데 있는 GIF 찾기
+                                showWinner();
+                                
+                                const allItems = slotStrip.querySelectorAll('.gif-item');
+                                allItems.forEach(item => item.classList.remove('spinning'));
+                                
+                                isSpinning = false;
+                                spinButton.disabled = false;
+                            }, 200);
+                            return;
+                        } else {
+                            spinSpeed = Math.min(1.5, Math.abs(distance) * 0.3);
+                            if (distance < 1) spinSpeed = -spinSpeed;
+                            currentOffset += spinSpeed;
+                            slotStrip.style.transform = `translateX(${currentOffset}px)`;
+                            return;
+                        }
+                    }
+                }
+                
+                currentOffset -= spinSpeed;
+                slotStrip.style.transform = `translateX(${currentOffset}px)`;
+            }, 16);
+        }
+
+        function stopSpin() {
+            // 이 함수는 더 이상 사용하지 않음 (startSpin에서 모든 로직 처리)
+        }
+
+        function showWinner() {
+            // 정확한 가운데 위치 계산 (하이라이트 상자 중심: 300px)
+            const centerPosition = -currentOffset + 100;
+            const centerItemIndex = Math.round(centerPosition / itemWidth);
+            
+            // 음수 처리 및 배열 범위 내로 조정
+            const normalizedIndex = ((centerItemIndex % sampleGifs.length) + sampleGifs.length) % sampleGifs.length;
+            const actualWinnerGif = sampleGifs[normalizedIndex];
+            
+            console.log(`Center position: ${centerPosition}, Item index: ${centerItemIndex}, Normalized: ${normalizedIndex}, Winner: ${actualWinnerGif.name}`);
+            
+            resultContainer.innerHTML = `
+                <div class="winner-text">🎉 축하합니다! 🎉</div>
+                <div class="placeholder-gif winner-gif" style="background: ${actualWinnerGif.color}">
+                    ${actualWinnerGif.emoji}<br>${actualWinnerGif.name}
+                </div>
+            `;
+        }
+
+        // 초기 설정
+        setupSlots();
+    </script>
 </body>
 </html>
