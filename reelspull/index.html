@@ -124,7 +124,7 @@
 
         .result-container {
             margin-top: 30px;
-            min-height: 200px;
+            min-height: 100px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -132,8 +132,8 @@
         }
 
         .winner-gif {
-            max-width: 300px;
-            max-height: 200px;
+            max-width: 150px;
+            max-height: 100px;
             border-radius: 15px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
             transform: scale(0);
@@ -186,6 +186,38 @@
             font-size: 14px;
             text-align: center;
         }
+
+        .big-winner-overlay {
+            position: fixed;
+            left: 0; top: 0; right: 0; bottom: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            background: rgba(0,0,0,0.5);
+            animation: fadeIn 0.5s;
+        }
+        .big-winner-img {
+            width: 320px;
+            height: 320px;
+            border-radius: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            background: white;
+            animation: popInBig 0.5s;
+        }
+        @keyframes popInBig {
+            0% { transform: scale(0.2) rotate(-30deg); opacity: 0; }
+            60% { transform: scale(1.1) rotate(0deg); opacity: 1; }
+            100% { transform: scale(1) rotate(0deg); opacity: 1; }
+        }
+        @keyframes fadeOutBig {
+            0% { opacity: 1; transform: scale(1);}
+            100% { opacity: 0; transform: scale(0.7);}
+        }
+        @keyframes fadeIn {
+            0% { opacity: 0;}
+            100% { opacity: 1;}
+        }
     </style>
 </head>
 <body>
@@ -210,17 +242,31 @@
 
     <script>
         // 기본 샘플 이미지들 (실제로는 여기에 GIF URL들을 넣으시면 됩니다)
+        // sampleGifs에 firstFrame 속성 추가 예시
         const sampleGifs = [
-            { name: "고양이", color: "#ff6b6b", emoji: "🐱" },
-            { name: "강아지", color: "#4ecdc4", emoji: "🐶" },
-            { name: "햄스터", color: "#45b7d1", emoji: "🐹" },
-            { name: "토끼", color: "#f9ca24", emoji: "🐰" },
-            { name: "여우", color: "#f0932b", emoji: "🦊" },
-            { name: "판다", color: "#eb4d4b", emoji: "🐼" },
-            { name: "사자", color: "#6c5ce7", emoji: "🦁" },
-            { name: "호랑이", color: "#fd79a8", emoji: "🐯" },
-            { name: "코알라", color: "#00b894", emoji: "🐨" },
-            { name: "원숭이", color: "#e17055", emoji: "🐵" }
+            { name: "고양이", color: "#ff6b6b", emoji: "gif/absmal.gif", firstFrame: "gif/absmal_firstframe.png" },
+            { name: "강아지", color: "#4ecdc4", emoji: "gif/common.gif", firstFrame: "gif/common_firstframe.png" },
+            { name: "햄스터", color: "#45b7d1", emoji: "gif/uncommon.gif", firstFrame: "gif/uncommon_firstframe.png" },
+            { name: "토끼", color: "#f9ca24", emoji: "gif/rare.gif", firstFrame: "gif/rare_firstframe.png" },
+            { name: "여우", color: "#f0932b", emoji: "gif/exotic.gif", firstFrame: "gif/exotic_firstframe.png" },
+            { name: "판다", color: "#eb4d4b", emoji: "gif/mythic.gif", firstFrame: "gif/mythic_firstframe.png" },
+            { name: "사자", color: "#6c5ce7", emoji: "gif/legendary.gif", firstFrame: "gif/legendary_firstframe.png" },
+            { name: "호랑이", color: "#fd79a8", emoji: "gif/unreal.gif", firstFrame: "gif/unreal_firstframe.png" },
+            { name: "코알라", color: "#00b894", emoji: "gif/insane.gif", firstFrame: "gif/insane_firstframe.png" },
+            { name: "원숭이", color: "#e17055", emoji: "gif/godlike.gif", firstFrame: "gif/godlike_firstframe.png" }
+        ];
+
+        const sampleGifsoverlay = [
+            { name: "고양이", color: "#ff6b6b", emoji: "gif/phone reel gif 1frame.png.svg" },
+        //     { name: "강아지", color: "#4ecdc4", emoji: "gif/phone reel gif 1frame.png.svg" },
+        //     { name: "햄스터", color: "#45b7d1", emoji: "gif/phone reel gif 1frame.png.svg" },
+        //     { name: "토끼", color: "#f9ca24", emoji: "gif/phone reel gif 1frame.png.svg" },
+        //     { name: "여우", color: "#f0932b", emoji: "gif/phone reel gif 1frame.png.svg" },
+        //     { name: "판다", color: "#eb4d4b", emoji: "gif/phone reel gif 1frame.png.svg" },
+        //     { name: "사자", color: "#6c5ce7", emoji: "gif/phone reel gif 1frame.png.svg" },
+        //     { name: "호랑이", color: "#fd79a8", emoji: "gif/phone reel gif 1frame.png.svg" },
+        //     { name: "코알라", color: "#00b894", emoji: "gif/phone reel gif 1frame.png.svg" },
+        //     { name: "원숭이", color: "#e17055", emoji: "gif/phone reel gif 1frame.png.svg" }
         ];
 
         let isSpinning = false;
@@ -247,12 +293,26 @@
                 gifItem.className = 'gif-item';
                 
                 const gif = sampleGifs[i % sampleGifs.length];
-                
                 // 플레이스홀더 div 생성
                 const placeholder = document.createElement('div');
                 placeholder.className = 'placeholder-gif';
                 placeholder.style.background = gif.color;
-                placeholder.innerHTML = `${gif.emoji}<br>${gif.name}`;
+                placeholder.innerHTML = `<img src="${gif.emoji}">`;
+
+                // overlay 추가
+                if (sampleGifsoverlay.length > 0) {
+                    const overlay = document.createElement('img');
+                    overlay.src = sampleGifsoverlay[0].emoji;
+                    overlay.style.position = 'absolute';
+                    overlay.style.top = '0';
+                    overlay.style.left = '0';
+                    overlay.style.width = '100%';
+                    overlay.style.height = '100%';
+                    overlay.style.pointerEvents = 'none';
+                    overlay.style.opacity = '1'; // 투명도 조절
+                    placeholder.style.position = 'relative';
+                    placeholder.appendChild(overlay);
+                }
                 
                 gifItem.appendChild(placeholder);
                 gifItem.dataset.gifIndex = i % sampleGifs.length;
@@ -298,7 +358,7 @@
                         // 정확한 가운데 위치 계산 (슬롯 컨테이너 중심: 300px, GIF 중심: 60px)
                         const centerPosition = -currentOffset + 300;
                         const nearestItemIndex = Math.round(centerPosition / itemWidth);
-                        const targetOffset = 325 - 60 - (nearestItemIndex * itemWidth); // GIF 중심이 하이라이트 중심에 오도록
+                        const targetOffset = 325 - 55 - (nearestItemIndex * itemWidth); // GIF 중심이 하이라이트 중심에 오도록
                         
                         const distance = targetOffset - currentOffset;
                         
@@ -338,22 +398,46 @@
         }
 
         function showWinner() {
-            // 정확한 가운데 위치 계산 (하이라이트 상자 중심: 300px)
-            const centerPosition = -currentOffset + 100;
-            const centerItemIndex = Math.round(centerPosition / itemWidth);
-            
-            // 음수 처리 및 배열 범위 내로 조정
-            const normalizedIndex = ((centerItemIndex % sampleGifs.length) + sampleGifs.length) % sampleGifs.length;
-            const actualWinnerGif = sampleGifs[normalizedIndex];
-            
-            console.log(`Center position: ${centerPosition}, Item index: ${centerItemIndex}, Normalized: ${normalizedIndex}, Winner: ${actualWinnerGif.name}`);
-            
+            // 가운데에 위치한 GIF index 계산
+            const centerPosition = -currentOffset + 300;
+            const nearestItemIndex = Math.round(centerPosition / itemWidth);
+            const actualIndex = nearestItemIndex % sampleGifs.length;
+            const actualWinnerGif = sampleGifs[actualIndex];
+
             resultContainer.innerHTML = `
                 <div class="winner-text">🎉 축하합니다! 🎉</div>
-                <div class="placeholder-gif winner-gif" style="background: ${actualWinnerGif.color}">
-                    ${actualWinnerGif.emoji}<br>${actualWinnerGif.name}
-                </div>
             `;
+
+            setTimeout(() => {
+                const overlay = document.createElement('div');
+                overlay.className = 'big-winner-overlay';
+                // 처음엔 첫 프레임 이미지를 보여줌
+                overlay.innerHTML = `
+                    <img class="big-winner-img" id="bigWinnerGif" src="${actualWinnerGif.firstFrame || actualWinnerGif.emoji}">
+                `;
+                document.body.appendChild(overlay);
+
+                // popIn 애니메이션(0.5초) 후 GIF로 src 변경해서 항상 첫 프레임부터 플레이
+                setTimeout(() => {
+                    const bigWinnerGif = document.getElementById('bigWinnerGif');
+                    bigWinnerGif.src = '';
+                    setTimeout(() => {
+                        bigWinnerGif.src = actualWinnerGif.emoji;
+                    }, 50);
+                }, 500);
+
+                // 1초 후 클릭 이벤트 활성화
+                setTimeout(() => {
+                    function removeOverlay() {
+                        overlay.style.animation = 'fadeOutBig 0.5s forwards';
+                        setTimeout(() => {
+                            if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+                            document.removeEventListener('mousedown', removeOverlay);
+                        }, 500);
+                    }
+                    document.addEventListener('mousedown', removeOverlay);
+                }, 1000);
+            }, 500);
         }
 
         // 초기 설정
