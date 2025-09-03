@@ -197,6 +197,16 @@
             background: rgba(0,0,0,0.5);
             animation: fadeIn 0.5s;
         }
+
+        @keyframes play-once {
+          from {
+            background-position: 0 0;
+          }
+          to {
+            background-position: 100% 0;
+          }
+        }
+
         .big-winner-img {
             width: 320px;
             height: 320px;
@@ -204,6 +214,10 @@
             box-shadow: 0 10px 40px rgba(0,0,0,0.5);
             background: white;
             animation: popInBig 0.5s;
+            animation-name: play-once;
+            animation-duration: 2s;
+            animation-iteration-count: 1;
+
         }
         @keyframes popInBig {
             0% { transform: scale(0.2) rotate(-30deg); opacity: 0; }
@@ -244,30 +258,19 @@
         // 기본 샘플 이미지들 (실제로는 여기에 GIF URL들을 넣으시면 됩니다)
         // sampleGifs에 firstFrame 속성 추가 예시
         const sampleGifs = [
-            { name: "고양이", color: "#ff6b6b", emoji: "gif/absmal.gif", firstFrame: "gif/absmal_firstframe.png" },
-            { name: "강아지", color: "#4ecdc4", emoji: "gif/common.gif", firstFrame: "gif/common_firstframe.png" },
-            { name: "햄스터", color: "#45b7d1", emoji: "gif/uncommon.gif", firstFrame: "gif/uncommon_firstframe.png" },
-            { name: "토끼", color: "#f9ca24", emoji: "gif/rare.gif", firstFrame: "gif/rare_firstframe.png" },
-            { name: "여우", color: "#f0932b", emoji: "gif/exotic.gif", firstFrame: "gif/exotic_firstframe.png" },
-            { name: "판다", color: "#eb4d4b", emoji: "gif/mythic.gif", firstFrame: "gif/mythic_firstframe.png" },
-            { name: "사자", color: "#6c5ce7", emoji: "gif/legendary.gif", firstFrame: "gif/legendary_firstframe.png" },
-            { name: "호랑이", color: "#fd79a8", emoji: "gif/unreal.gif", firstFrame: "gif/unreal_firstframe.png" },
-            { name: "코알라", color: "#00b894", emoji: "gif/insane.gif", firstFrame: "gif/insane_firstframe.png" },
-            { name: "원숭이", color: "#e17055", emoji: "gif/godlike.gif", firstFrame: "gif/godlike_firstframe.png" }
+            { emoji: "gif/absmal.gif", firstFrame: "gif/absmal_firstframe.png" },
+            { emoji: "gif/common.gif", firstFrame: "gif/common_firstframe.png" },
+            { emoji: "gif/uncommon.gif", firstFrame: "gif/uncommon_firstframe.png" },
+            { emoji: "gif/rare.gif", firstFrame: "gif/rare_firstframe.png" },
+            { emoji: "gif/exotic.gif", firstFrame: "gif/exotic_firstframe.png" },
+            { emoji: "gif/mythic.gif", firstFrame: "gif/mythic_firstframe.png" },
+            { emoji: "gif/legendary.gif", firstFrame: "gif/legendary_firstframe.png" },
+            { emoji: "gif/unreal.gif", firstFrame: "gif/unreal_firstframe.png" },
+            { emoji: "gif/insane.gif", firstFrame: "gif/insane_firstframe.png" },
+            { emoji: "gif/godlike.gif", firstFrame: "gif/godlike_firstframe.png" }
         ];
 
-        const sampleGifsoverlay = [
-            { name: "고양이", color: "#ff6b6b", emoji: "gif/phone reel gif 1frame.png.svg" },
-        //     { name: "강아지", color: "#4ecdc4", emoji: "gif/phone reel gif 1frame.png.svg" },
-        //     { name: "햄스터", color: "#45b7d1", emoji: "gif/phone reel gif 1frame.png.svg" },
-        //     { name: "토끼", color: "#f9ca24", emoji: "gif/phone reel gif 1frame.png.svg" },
-        //     { name: "여우", color: "#f0932b", emoji: "gif/phone reel gif 1frame.png.svg" },
-        //     { name: "판다", color: "#eb4d4b", emoji: "gif/phone reel gif 1frame.png.svg" },
-        //     { name: "사자", color: "#6c5ce7", emoji: "gif/phone reel gif 1frame.png.svg" },
-        //     { name: "호랑이", color: "#fd79a8", emoji: "gif/phone reel gif 1frame.png.svg" },
-        //     { name: "코알라", color: "#00b894", emoji: "gif/phone reel gif 1frame.png.svg" },
-        //     { name: "원숭이", color: "#e17055", emoji: "gif/phone reel gif 1frame.png.svg" }
-        ];
+        const reelPicUrl = "gif/phone reel gif 1frame.png.svg"
 
         let isSpinning = false;
         let spinInterval;
@@ -296,23 +299,7 @@
                 // 플레이스홀더 div 생성
                 const placeholder = document.createElement('div');
                 placeholder.className = 'placeholder-gif';
-                placeholder.style.background = gif.color;
-                placeholder.innerHTML = `<img src="${gif.emoji}">`;
-
-                // overlay 추가
-                if (sampleGifsoverlay.length > 0) {
-                    const overlay = document.createElement('img');
-                    overlay.src = sampleGifsoverlay[0].emoji;
-                    overlay.style.position = 'absolute';
-                    overlay.style.top = '0';
-                    overlay.style.left = '0';
-                    overlay.style.width = '100%';
-                    overlay.style.height = '100%';
-                    overlay.style.pointerEvents = 'none';
-                    overlay.style.opacity = '1'; // 투명도 조절
-                    placeholder.style.position = 'relative';
-                    placeholder.appendChild(overlay);
-                }
+                placeholder.innerHTML = `<img src="${reelPicUrl}" class="position ='0' top='0' left='0' width='100%' height='100%' pointer-events='none' opacity='1'">`;
                 
                 gifItem.appendChild(placeholder);
                 gifItem.dataset.gifIndex = i % sampleGifs.length;
@@ -367,16 +354,14 @@
                             slotStrip.style.transform = `translateX(${currentOffset}px)`;
                             clearInterval(spinInterval);
                             
-                            setTimeout(() => {
-                                // 실제 가운데 있는 GIF 찾기
-                                showWinner();
-                                
-                                const allItems = slotStrip.querySelectorAll('.gif-item');
-                                allItems.forEach(item => item.classList.remove('spinning'));
-                                
-                                isSpinning = false;
-                                spinButton.disabled = false;
-                            }, 200);
+                            showWinner();
+                            
+                            const allItems = slotStrip.querySelectorAll('.gif-item');
+                            allItems.forEach(item => item.classList.remove('spinning'));
+                            
+                            isSpinning = false;
+                            spinButton.disabled = false;
+
                             return;
                         } else {
                             spinSpeed = Math.min(1.5, Math.abs(distance) * 0.3);
@@ -413,18 +398,13 @@
                 overlay.className = 'big-winner-overlay';
                 // 처음엔 첫 프레임 이미지를 보여줌
                 overlay.innerHTML = `
-                    <img class="big-winner-img" id="bigWinnerGif" src="${actualWinnerGif.firstFrame || actualWinnerGif.emoji}">
+                    <img class="big-winner-img" id="bigWinnerGif" src="${actualWinnerGif.emoji}">
                 `;
                 document.body.appendChild(overlay);
 
-                // popIn 애니메이션(0.5초) 후 GIF로 src 변경해서 항상 첫 프레임부터 플레이
-                setTimeout(() => {
-                    const bigWinnerGif = document.getElementById('bigWinnerGif');
-                    bigWinnerGif.src = '';
-                    setTimeout(() => {
-                        bigWinnerGif.src = actualWinnerGif.emoji;
-                    }, 50);
-                }, 500);
+                const myGif = document.getElementById('bigWinnerGif');
+                const gifDuration = 3000;
+
 
                 // 1초 후 클릭 이벤트 활성화
                 setTimeout(() => {
@@ -433,10 +413,14 @@
                         setTimeout(() => {
                             if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
                             document.removeEventListener('mousedown', removeOverlay);
-                        }, 500);
+                        }, 1000);
                     }
                     document.addEventListener('mousedown', removeOverlay);
                 }, 1000);
+
+                setTimeout( () => {
+                    myGif.src = "gif/phone reel gif 1frame.png.svg";
+                }, gifDuration);
             }, 500);
         }
 
