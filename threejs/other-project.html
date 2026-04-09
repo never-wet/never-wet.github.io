@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Infinite Void To Shrine</title>
+    <link rel="stylesheet" href="./other-project.css" />
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "./three.js-master/build/three.module.js"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <div class="intro-shell" id="intro-shell">
+      <canvas id="void-canvas"></canvas>
+      <div class="mist"></div>
+
+      <nav class="topbar">
+        <a class="toplink" href="./index.html">Back To Nova Bloom</a>
+      </nav>
+
+      <main class="overlay">
+        <p class="eyebrow">Scroll Driven Three.js</p>
+        <h1>Infinite Void</h1>
+        <p class="lede">
+          Scroll to collapse the entire void into the center. Rings, shards, and stars
+          all contract inward, then a glowing black sphere replaces everything.
+        </p>
+      </main>
+
+      <aside class="hud">
+        <div class="hud-label">Progress</div>
+        <div class="progress-track">
+          <div class="progress-fill" id="progress-fill"></div>
+        </div>
+        <div class="hud-value" id="progress-text">0%</div>
+        <p class="hud-note">Page scrolling stays locked until the intro reaches 100%.</p>
+      </aside>
+
+      <div class="notice" id="notice">Scroll to drive the collapse.</div>
+    </div>
+
+    <section class="shrine-page" id="shrine-page">
+      <canvas id="shrine-canvas"></canvas>
+
+      <main class="overlay overlay-shrine">
+        <p class="eyebrow eyebrow-crimson">Ruin Domain</p>
+        <h1>Malevolent Shrine</h1>
+        <p class="lede">
+          The collapse unlocks the next scene: a shrine domain under a blood-red sky
+          with ember storms, ritual rings, broken sanctum forms, and floating rubble.
+        </p>
+      </main>
+
+      <section class="legend legend-shrine">
+        <article class="card card-crimson">
+          <span>Crimson sky</span>
+          <strong>Heat haze, embers, and a looming moon behind the shrine</strong>
+        </article>
+        <article class="card card-crimson">
+          <span>Broken sanctum</span>
+          <strong>Layered temple silhouettes and floating rubble</strong>
+        </article>
+        <article class="card card-crimson">
+          <span>Ritual field</span>
+          <strong>Rotating cursed rings and drifting sparks around the altar</strong>
+        </article>
+      </section>
+    </section>
+
+    <script type="module" src="./other-project.js"></script>
+  </body>
+</html>

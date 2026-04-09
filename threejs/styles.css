@@ -38,6 +38,34 @@ body {
   display: block;
 }
 
+.topbar {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 3;
+}
+
+.toplink {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 18px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+  background: rgba(2, 6, 23, 0.48);
+  backdrop-filter: blur(18px);
+  color: var(--text);
+  text-decoration: none;
+  font: 600 0.88rem/1 "Trebuchet MS", "Segoe UI", sans-serif;
+  transition: transform 180ms ease, background 180ms ease, border-color 180ms ease;
+}
+
+.toplink:hover {
+  transform: translateY(-2px);
+  background: rgba(15, 23, 42, 0.76);
+  border-color: rgba(103, 232, 249, 0.45);
+}
+
 .grain {
   position: fixed;
   inset: 0;

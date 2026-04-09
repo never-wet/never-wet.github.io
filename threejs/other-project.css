@@ -1,0 +1,264 @@
+:root {
+  --bg: #020611;
+  --bg-soft: #0f1d34;
+  --text: #edf6ff;
+  --muted: rgba(221, 235, 255, 0.76);
+  --line: rgba(130, 182, 255, 0.22);
+  --cyan: #8ed8ff;
+  --crimson: #fca5a5;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  width: 100%;
+  min-height: 100%;
+  overflow-x: hidden;
+  overflow-y: hidden;
+  color: var(--text);
+  background: #01030a;
+  font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+}
+
+body.release-scroll {
+  overflow-y: auto;
+}
+
+.intro-shell {
+  position: fixed;
+  inset: 0;
+  z-index: 5;
+}
+
+body.release-scroll .intro-shell {
+  pointer-events: none;
+}
+
+#void-canvas,
+#shrine-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.mist {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(142, 216, 255, 0.08), transparent 24%),
+    radial-gradient(circle at 50% 50%, rgba(91, 156, 255, 0.09), transparent 42%);
+  mix-blend-mode: screen;
+}
+
+.topbar {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 6;
+}
+
+.toplink {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 18px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(2, 6, 23, 0.5);
+  backdrop-filter: blur(18px);
+  color: var(--text);
+  text-decoration: none;
+  font: 600 0.88rem/1 "Trebuchet MS", "Segoe UI", sans-serif;
+}
+
+.overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 6;
+  max-width: 700px;
+  padding: 9vh 7vw;
+}
+
+.overlay-shrine {
+  left: auto;
+  right: 0;
+  width: min(620px, calc(100vw - 44px));
+  text-align: right;
+}
+
+.eyebrow {
+  margin: 0 0 12px;
+  color: var(--cyan);
+  font-size: 0.8rem;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+}
+
+.eyebrow-crimson {
+  color: var(--crimson);
+}
+
+h1 {
+  margin: 0;
+  font: 400 clamp(3.8rem, 11vw, 8rem)/0.9 Georgia, "Times New Roman", serif;
+  letter-spacing: -0.05em;
+  text-wrap: balance;
+}
+
+.overlay-shrine h1 {
+  font-size: clamp(3rem, 8.2vw, 6.2rem);
+}
+
+.lede {
+  max-width: 560px;
+  margin: 18px 0 0;
+  color: var(--muted);
+  font-size: clamp(1rem, 2vw, 1.2rem);
+  line-height: 1.75;
+}
+
+.hud,
+.legend {
+  position: absolute;
+  right: 24px;
+  bottom: 24px;
+  z-index: 6;
+  width: min(360px, calc(100vw - 48px));
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background: rgba(2, 6, 23, 0.44);
+  backdrop-filter: blur(20px);
+}
+
+.legend {
+  display: grid;
+  gap: 12px;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  backdrop-filter: none;
+}
+
+.legend-shrine {
+  right: auto;
+  left: 24px;
+}
+
+.hud-label,
+.card span {
+  color: var(--cyan);
+  font-size: 0.78rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.progress-track {
+  height: 10px;
+  margin-top: 14px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.progress-fill {
+  width: 0%;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #8ed8ff, #d8f2ff);
+  box-shadow: 0 0 20px rgba(142, 216, 255, 0.5);
+}
+
+.hud-value {
+  margin-top: 12px;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.hud-note,
+.card strong {
+  margin: 10px 0 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.card {
+  padding: 16px 18px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: rgba(2, 6, 23, 0.38);
+  backdrop-filter: blur(16px);
+}
+
+.card strong {
+  display: block;
+  margin-top: 8px;
+  color: var(--text);
+}
+
+.card-crimson {
+  border-color: rgba(248, 113, 113, 0.22);
+  background: rgba(24, 5, 5, 0.4);
+}
+
+.card-crimson span {
+  color: rgba(252, 165, 165, 0.84);
+}
+
+.notice {
+  position: absolute;
+  left: 18px;
+  bottom: 18px;
+  z-index: 6;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: rgba(2, 6, 23, 0.68);
+  backdrop-filter: blur(16px);
+  color: #dbeafe;
+}
+
+.shrine-page {
+  position: relative;
+  min-height: 100vh;
+  margin-top: 100vh;
+  background:
+    radial-gradient(circle at 50% 18%, rgba(239, 68, 68, 0.26), transparent 24%),
+    radial-gradient(circle at 50% 60%, rgba(127, 29, 29, 0.18), transparent 42%),
+    linear-gradient(180deg, #090202, #150404 45%, #050202);
+}
+
+@media (max-width: 900px) {
+  .hud,
+  .legend {
+    left: 22px;
+    right: 22px;
+    width: auto;
+  }
+
+  .overlay-shrine {
+    left: 0;
+    right: auto;
+    width: auto;
+    text-align: left;
+  }
+}
+
+@media (max-width: 640px) {
+  .overlay {
+    padding: 86px 22px 22px;
+  }
+
+  .hud,
+  .legend {
+    bottom: 22px;
+  }
+}
