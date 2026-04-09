@@ -620,6 +620,55 @@ function setupShrineScene() {
   );
   scene.add(ash);
 
+  const slashLayer = new THREE.Group();
+  scene.add(slashLayer);
+
+  const slashes = [];
+  function respawnSlash(slash) {
+    slash.length = 0.5 + Math.random() * 2.05;
+    slash.mesh.scale.set(slash.length, 1, 1);
+    slash.mesh.position.set(
+      (Math.random() - 0.5) * 18,
+      -1 + Math.random() * 12,
+      (Math.random() - 0.5) * 18
+    );
+    slash.mesh.rotation.set(
+      (Math.random() - 0.5) * 1.4,
+      (Math.random() - 0.5) * 1.1,
+      (Math.random() - 0.5) * 1.2
+    );
+    slash.mesh.material.opacity = 0;
+    slash.life = Math.random() * 0.2;
+    slash.duration = 0.08 + Math.random() * 0.14;
+    slash.cooldown = 0.02 + Math.random() * 0.12;
+    slash.active = true;
+  }
+
+  for (let i = 0; i < 64; i += 1) {
+    const slash = new THREE.Mesh(
+      new THREE.PlaneGeometry(1, 0.028),
+      new THREE.MeshBasicMaterial({
+        color: 0xffffff,
+        transparent: true,
+        opacity: 0,
+        side: THREE.DoubleSide,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+      })
+    );
+    slashLayer.add(slash);
+    const slashState = {
+      mesh: slash,
+      length: 0.5,
+      life: 0,
+      duration: 0.25,
+      cooldown: 0.15,
+      active: true,
+    };
+    respawnSlash(slashState);
+    slashes.push(slashState);
+  }
+
   return {
     updatePointer(x, y) {
       pointer.set(x, y);
@@ -652,6 +701,28 @@ function setupShrineScene() {
       embers.rotation.y = elapsed * 0.04;
       embers.position.y = Math.sin(elapsed * 0.4) * 0.3;
       ash.rotation.y = -elapsed * 0.01;
+
+      slashes.forEach((slash, index) => {
+        if (slash.active) {
+          slash.life += 0.03;
+          const t = Math.min(slash.life / slash.duration, 1);
+          const flash = Math.sin(t * Math.PI);
+          slash.mesh.material.opacity = flash * 0.95;
+          slash.mesh.scale.x = slash.length * (0.78 + flash * 0.45);
+          slash.mesh.position.z += Math.sin(elapsed * 3.4 + index) * 0.002;
+
+          if (slash.life >= slash.duration) {
+            slash.active = false;
+            slash.life = 0;
+          }
+        } else {
+          slash.life += 0.03;
+          slash.mesh.material.opacity = 0;
+          if (slash.life >= slash.cooldown) {
+            respawnSlash(slash);
+          }
+        }
+      });
 
       shrineRoof.position.y = 4.2 + Math.sin(elapsed * 1.3) * 0.06;
       gate.rotation.y = Math.sin(elapsed * 0.6) * 0.06;
