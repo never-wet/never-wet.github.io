@@ -1,0 +1,324 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Three.js Space Scene</title>
+    <style>
+      :root {
+        --bg-1: #020617;
+        --bg-2: #0f172a;
+        --panel: rgba(2, 6, 23, 0.66);
+        --line: rgba(148, 163, 184, 0.22);
+        --text: #e2e8f0;
+        --accent: #67e8f9;
+        --accent-2: #f472b6;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+        color: var(--text);
+        background:
+          radial-gradient(circle at top, rgba(103, 232, 249, 0.14), transparent 30%),
+          radial-gradient(circle at bottom, rgba(244, 114, 182, 0.12), transparent 25%),
+          linear-gradient(180deg, var(--bg-1), var(--bg-2));
+      }
+
+      canvas {
+        display: block;
+      }
+
+      .hud {
+        position: fixed;
+        top: 18px;
+        left: 18px;
+        z-index: 2;
+        max-width: 320px;
+        padding: 16px 18px;
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        background: var(--panel);
+        backdrop-filter: blur(14px);
+        box-shadow: 0 12px 50px rgba(0, 0, 0, 0.28);
+      }
+
+      .eyebrow {
+        margin: 0 0 6px;
+        font-size: 0.78rem;
+        letter-spacing: 0.24em;
+        text-transform: uppercase;
+        color: var(--accent);
+      }
+
+      h1 {
+        margin: 0;
+        font-size: clamp(1.4rem, 3vw, 2.2rem);
+        line-height: 1.05;
+      }
+
+      p {
+        margin: 10px 0 0;
+        line-height: 1.55;
+        color: rgba(226, 232, 240, 0.84);
+      }
+
+      .hint {
+        margin-top: 12px;
+        color: rgba(226, 232, 240, 0.62);
+        font-size: 0.9rem;
+      }
+
+      .fallback {
+        position: fixed;
+        inset: auto 18px 18px 18px;
+        z-index: 3;
+        display: block;
+        padding: 14px 16px;
+        border-radius: 14px;
+        background: rgba(15, 23, 42, 0.92);
+        color: #cbd5e1;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="hud">
+      <div class="eyebrow">Three.js Demo</div>
+      <h1>Floating Neon Orb</h1>
+      <p>
+        A more advanced scene with a glowing core, orbiting rings, star particles,
+        moving lights, and mouse-based camera motion.
+      </p>
+      <p class="hint">Move your mouse to shift the camera.</p>
+    </div>
+    <div class="fallback" id="fallback">Loading Three.js scene...</div>
+
+    <script src="./vendor/three.min.js"></script>
+    <script>
+      (function () {
+        const fallback = document.getElementById("fallback");
+
+        function showMessage(message, isError) {
+          fallback.textContent = message;
+          fallback.style.background = isError
+            ? "rgba(127, 29, 29, 0.92)"
+            : "rgba(15, 23, 42, 0.92)";
+          fallback.style.color = isError ? "#fee2e2" : "#cbd5e1";
+        }
+
+        if (!window.THREE) {
+          showMessage("Three.js failed to load from the local file. Open the browser console and I can help fix the exact error.", true);
+          return;
+        }
+
+        const scene = new THREE.Scene();
+        scene.fog = new THREE.Fog(0x020617, 12, 34);
+
+        const camera = new THREE.PerspectiveCamera(
+          60,
+          window.innerWidth / window.innerHeight,
+          0.1,
+          100
+        );
+        camera.position.set(0, 1.5, 8);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        document.body.appendChild(renderer.domElement);
+
+        const group = new THREE.Group();
+        scene.add(group);
+
+        const ambient = new THREE.AmbientLight(0xffffff, 0.75);
+        scene.add(ambient);
+
+        const pinkLight = new THREE.PointLight(0xf472b6, 25, 30, 2);
+        pinkLight.position.set(4, 3, 3);
+        scene.add(pinkLight);
+
+        const cyanLight = new THREE.PointLight(0x67e8f9, 30, 30, 2);
+        cyanLight.position.set(-4, -1, 5);
+        scene.add(cyanLight);
+
+        const rimLight = new THREE.DirectionalLight(0xffffff, 1.4);
+        rimLight.position.set(2, 4, 6);
+        scene.add(rimLight);
+
+        const core = new THREE.Mesh(
+          new THREE.IcosahedronGeometry(1.8, 8),
+          new THREE.MeshPhysicalMaterial({
+            color: 0x67e8f9,
+            emissive: 0x1d4ed8,
+            emissiveIntensity: 0.95,
+            roughness: 0.08,
+            metalness: 0.22,
+            clearcoat: 1,
+            clearcoatRoughness: 0.08,
+          })
+        );
+        group.add(core);
+
+        const aura = new THREE.Mesh(
+          new THREE.SphereGeometry(2.5, 64, 64),
+          new THREE.MeshBasicMaterial({
+            color: 0x67e8f9,
+            transparent: true,
+            opacity: 0.13,
+          })
+        );
+        group.add(aura);
+
+        const ringMaterial = new THREE.MeshStandardMaterial({
+          color: 0xf8fafc,
+          emissive: 0x7c3aed,
+          emissiveIntensity: 0.2,
+          metalness: 0.65,
+          roughness: 0.28,
+        });
+
+        const ring1 = new THREE.Mesh(
+          new THREE.TorusGeometry(3.1, 0.08, 20, 220),
+          ringMaterial
+        );
+        ring1.rotation.x = Math.PI / 2.9;
+        group.add(ring1);
+
+        const ring2 = new THREE.Mesh(
+          new THREE.TorusGeometry(3.8, 0.05, 20, 220),
+          ringMaterial.clone()
+        );
+        ring2.material.color.setHex(0x67e8f9);
+        ring2.rotation.set(Math.PI / 3.8, 0.2, 0.7);
+        group.add(ring2);
+
+        const satellites = [];
+        const satelliteGeometry = new THREE.SphereGeometry(0.12, 18, 18);
+
+        for (let i = 0; i < 18; i += 1) {
+          const satellite = new THREE.Mesh(
+            satelliteGeometry,
+            new THREE.MeshStandardMaterial({
+              color: i % 2 === 0 ? 0x67e8f9 : 0xf472b6,
+              emissive: i % 2 === 0 ? 0x164e63 : 0x831843,
+              emissiveIntensity: 0.65,
+              roughness: 0.35,
+              metalness: 0.2,
+            })
+          );
+          scene.add(satellite);
+          satellites.push({
+            mesh: satellite,
+            radius: 3.4 + Math.random() * 2.6,
+            speed: 0.25 + Math.random() * 0.55,
+            offset: Math.random() * Math.PI * 2,
+            lift: (Math.random() - 0.5) * 1.8,
+          });
+        }
+
+        const starCount = 2600;
+        const starPositions = new Float32Array(starCount * 3);
+
+        for (let i = 0; i < starCount; i += 1) {
+          const i3 = i * 3;
+          starPositions[i3] = (Math.random() - 0.5) * 70;
+          starPositions[i3 + 1] = (Math.random() - 0.5) * 50;
+          starPositions[i3 + 2] = (Math.random() - 0.5) * 70;
+        }
+
+        const stars = new THREE.BufferGeometry();
+        stars.setAttribute("position", new THREE.BufferAttribute(starPositions, 3));
+
+        const starField = new THREE.Points(
+          stars,
+          new THREE.PointsMaterial({
+            color: 0xffffff,
+            size: 0.08,
+            transparent: true,
+            opacity: 0.9,
+          })
+        );
+        scene.add(starField);
+
+        const grid = new THREE.Mesh(
+          new THREE.CircleGeometry(15, 96),
+          new THREE.MeshBasicMaterial({
+            color: 0x0f172a,
+            transparent: true,
+            opacity: 0.42,
+          })
+        );
+        grid.rotation.x = -Math.PI / 2;
+        grid.position.y = -3.2;
+        scene.add(grid);
+
+        const mouse = { x: 0, y: 0 };
+        const clock = new THREE.Clock();
+
+        window.addEventListener("mousemove", function (event) {
+          mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+          mouse.y = (event.clientY / window.innerHeight) * 2 - 1;
+        });
+
+        window.addEventListener("resize", function () {
+          camera.aspect = window.innerWidth / window.innerHeight;
+          camera.updateProjectionMatrix();
+          renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        function animate() {
+          const t = clock.getElapsedTime();
+
+          if (fallback.style.display !== "none") {
+            fallback.style.display = "none";
+          }
+
+          core.rotation.x = t * 0.35;
+          core.rotation.y = t * 0.5;
+
+          aura.scale.setScalar(1 + Math.sin(t * 1.8) * 0.04);
+
+          group.rotation.y = t * 0.25;
+          group.rotation.z = Math.sin(t * 0.35) * 0.08;
+          group.position.y = Math.sin(t * 1.3) * 0.22;
+
+          ring1.rotation.z = t * 0.45;
+          ring2.rotation.y = t * 0.3;
+
+          pinkLight.position.x = Math.cos(t * 1.1) * 5;
+          pinkLight.position.z = Math.sin(t * 1.1) * 5;
+          cyanLight.position.x = Math.cos(-t * 0.85) * 6;
+          cyanLight.position.y = Math.sin(t * 1.2) * 2;
+
+          for (let i = 0; i < satellites.length; i += 1) {
+            const sat = satellites[i];
+            const angle = t * sat.speed + sat.offset;
+            sat.mesh.position.set(
+              Math.cos(angle) * sat.radius,
+              Math.sin(angle * 1.5) * 0.65 + sat.lift,
+              Math.sin(angle) * sat.radius
+            );
+          }
+
+          starField.rotation.y = t * 0.02;
+          camera.position.x += ((mouse.x * 1.8) - camera.position.x) * 0.035;
+          camera.position.y += ((mouse.y * -1.1 + 1.5) - camera.position.y) * 0.035;
+          camera.lookAt(0, 0, 0);
+
+          renderer.render(scene, camera);
+          requestAnimationFrame(animate);
+        }
+
+        animate();
+      })();
+    </script>
+  </body>
+</html>
