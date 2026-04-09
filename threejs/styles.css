@@ -1,0 +1,205 @@
+:root {
+  --bg: #030712;
+  --bg-soft: #111827;
+  --text: #f8fafc;
+  --muted: rgba(226, 232, 240, 0.78);
+  --line: rgba(255, 255, 255, 0.12);
+  --glass: rgba(3, 7, 18, 0.36);
+  --cyan: #67e8f9;
+  --rose: #fb7185;
+  --gold: #fbbf24;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+  background:
+    radial-gradient(circle at top, rgba(103, 232, 249, 0.12), transparent 25%),
+    radial-gradient(circle at 20% 80%, rgba(251, 113, 133, 0.12), transparent 20%),
+    linear-gradient(180deg, #020617, #0b1120 60%, #020617);
+  color: var(--text);
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+#webgl {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.grain {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.18;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 4px 4px;
+  mix-blend-mode: soft-light;
+}
+
+.hero {
+  position: relative;
+  z-index: 2;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 18px;
+  max-width: 680px;
+  padding: 10vh 7vw 20vh;
+}
+
+.eyebrow {
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.28em;
+  font: 600 0.82rem/1.2 "Trebuchet MS", "Segoe UI", sans-serif;
+  color: var(--cyan);
+}
+
+h1 {
+  margin: 0;
+  font-size: clamp(4rem, 12vw, 8.8rem);
+  line-height: 0.88;
+  letter-spacing: -0.05em;
+  text-wrap: balance;
+}
+
+.lede {
+  margin: 0;
+  max-width: 620px;
+  font: 400 clamp(1.05rem, 2vw, 1.35rem)/1.7 "Trebuchet MS", "Segoe UI", sans-serif;
+  color: var(--muted);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 148px;
+  padding: 14px 20px;
+  border-radius: 999px;
+  text-decoration: none;
+  font: 600 0.95rem/1 "Trebuchet MS", "Segoe UI", sans-serif;
+  transition: transform 180ms ease, border-color 180ms ease, background 180ms ease;
+}
+
+.button:hover {
+  transform: translateY(-2px);
+}
+
+.button-primary {
+  color: #04121f;
+  background: linear-gradient(135deg, var(--cyan), #a5f3fc);
+}
+
+.button-secondary {
+  color: var(--text);
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(18px);
+}
+
+.details {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  padding: 0 7vw 10vh;
+}
+
+.panel {
+  padding: 22px;
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  background: var(--glass);
+  backdrop-filter: blur(20px);
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.18);
+}
+
+.panel-kicker {
+  display: inline-block;
+  margin-bottom: 12px;
+  color: var(--gold);
+  font: 600 0.8rem/1.2 "Trebuchet MS", "Segoe UI", sans-serif;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.panel h2 {
+  margin: 0 0 10px;
+  font-size: 1.45rem;
+  line-height: 1.1;
+}
+
+.panel p,
+.panel code {
+  font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+}
+
+.panel p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.65;
+}
+
+.notice {
+  position: fixed;
+  left: 18px;
+  bottom: 18px;
+  z-index: 3;
+  padding: 12px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 16px;
+  background: rgba(15, 23, 42, 0.8);
+  backdrop-filter: blur(14px);
+  color: #dbeafe;
+  font: 500 0.92rem/1.4 "Trebuchet MS", "Segoe UI", sans-serif;
+}
+
+@media (max-width: 920px) {
+  .details {
+    grid-template-columns: 1fr;
+  }
+
+  .hero {
+    padding-top: 14vh;
+  }
+}
+
+@media (max-width: 640px) {
+  h1 {
+    font-size: clamp(3.2rem, 20vw, 5.4rem);
+  }
+
+  .hero,
+  .details {
+    padding-left: 22px;
+    padding-right: 22px;
+  }
+
+  .panel {
+    border-radius: 20px;
+  }
+}
