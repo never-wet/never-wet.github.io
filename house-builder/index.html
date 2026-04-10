@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>House Lab 3D</title>
+    <link rel="stylesheet" href="./styles.css" />
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "../threejs/three.js-master/build/three.module.js"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="hero">
+        <div class="hero-copy">
+          <p class="eyebrow">Spatial Design Playground</p>
+          <h1>House Lab 3D</h1>
+          <p class="lede">
+            A concept website for designing simple house forms in 3D. Pick pieces,
+            place them on the grid, rotate them, and build a little architectural idea.
+          </p>
+        </div>
+        <div class="hero-stats">
+          <article class="stat-card">
+            <span>Pieces</span>
+            <strong id="piece-count">0</strong>
+          </article>
+          <article class="stat-card">
+            <span>Current Level</span>
+            <strong id="level-readout">1</strong>
+          </article>
+          <article class="stat-card">
+            <span>Rotation</span>
+            <strong id="rotation-readout">0deg</strong>
+          </article>
+        </div>
+      </header>
+
+      <main class="workspace">
+        <aside class="panel sidebar">
+          <div class="panel-head">
+            <p class="panel-kicker">Palette</p>
+            <h2>Build Parts</h2>
+          </div>
+
+          <div class="tool-grid" id="tool-grid">
+            <button class="tool-card is-active" data-part="floor">
+              <span class="tool-name">Floor Tile</span>
+              <span class="tool-note">Base surface</span>
+            </button>
+            <button class="tool-card" data-part="wall">
+              <span class="tool-name">Wall</span>
+              <span class="tool-note">Solid structure</span>
+            </button>
+            <button class="tool-card" data-part="window">
+              <span class="tool-name">Window</span>
+              <span class="tool-note">Light opening</span>
+            </button>
+            <button class="tool-card" data-part="door">
+              <span class="tool-name">Door</span>
+              <span class="tool-note">Entry point</span>
+            </button>
+            <button class="tool-card" data-part="column">
+              <span class="tool-name">Column</span>
+              <span class="tool-note">Vertical accent</span>
+            </button>
+            <button class="tool-card" data-part="roof">
+              <span class="tool-name">Roof</span>
+              <span class="tool-note">Top cap</span>
+            </button>
+          </div>
+
+          <div class="controls">
+            <div class="control-group">
+              <p class="group-label">Build Controls</p>
+              <button class="control-button" id="rotate-button" type="button">Rotate Piece</button>
+              <button class="control-button" id="erase-button" type="button">Erase Mode</button>
+              <button class="control-button danger" id="reset-button" type="button">Clear Scene</button>
+            </div>
+
+            <div class="control-group">
+              <p class="group-label">Story Level</p>
+              <div class="stepper">
+                <button class="step-button" id="level-down" type="button">-</button>
+                <span id="level-text">Level 1</span>
+                <button class="step-button" id="level-up" type="button">+</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="legend">
+            <p class="panel-kicker">Quick Tips</p>
+            <p>Click on the grid to place pieces.</p>
+            <p>Use <kbd>R</kbd> to rotate and <kbd>E</kbd> / <kbd>Q</kbd> to move levels.</p>
+            <p>Drag to orbit the camera and scroll to zoom.</p>
+          </div>
+        </aside>
+
+        <section class="stage panel">
+          <div class="stage-copy">
+            <p class="panel-kicker">3D Workspace</p>
+            <h2>Sketch a house like a block model</h2>
+            <p>
+              This is a visual concept for learning graphic design and spatial composition,
+              with a playful builder instead of a plain portfolio page.
+            </p>
+          </div>
+          <canvas id="scene"></canvas>
+          <div class="stage-footer">
+            <span id="status-pill">Floor Tile selected</span>
+            <a href="../threejs/">Older Three.js experiments</a>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script type="module" src="./scene.js"></script>
+  </body>
+</html>
