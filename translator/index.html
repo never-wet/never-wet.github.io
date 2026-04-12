@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Morse Code Translator</title>
+    <meta
+      name="description"
+      content="Translate plain text to Morse code and decode Morse back into text."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="page-shell">
+      <section class="hero-card">
+        <p class="eyebrow">Signal Lab</p>
+        <h1>Morse Code Translator</h1>
+        <p class="lede">
+          Convert text into dots and dashes, or decode Morse back into readable
+          text in real time.
+        </p>
+
+        <div class="mode-switch" role="group" aria-label="Translation mode">
+          <button class="mode-btn is-active" data-mode="text-to-morse" type="button">
+            Text to Morse
+          </button>
+          <button class="mode-btn" data-mode="morse-to-text" type="button">
+            Morse to Text
+          </button>
+        </div>
+
+        <div class="translator-grid">
+          <label class="panel">
+            <span class="panel-title" id="inputLabel">Plain Text</span>
+            <textarea
+              id="inputText"
+              spellcheck="false"
+              placeholder="Type a message like HELLO WORLD"
+              aria-labelledby="inputLabel"
+            ></textarea>
+          </label>
+
+          <label class="panel">
+            <span class="panel-title" id="outputLabel">Morse Code</span>
+            <textarea
+              id="outputText"
+              readonly
+              spellcheck="false"
+              placeholder=".... . .-.. .-.. --- / .-- --- .-. .-.. -.."
+              aria-labelledby="outputLabel"
+            ></textarea>
+          </label>
+        </div>
+
+        <div class="actions">
+          <button id="swapBtn" class="ghost-btn" type="button">Swap Direction</button>
+          <button id="copyBtn" class="ghost-btn" type="button">Copy Output</button>
+          <button id="playBtn" class="ghost-btn" type="button">Play Morse</button>
+          <button id="clearBtn" class="ghost-btn" type="button">Clear</button>
+        </div>
+
+        <div class="status-row">
+          <p id="statusText" class="status-text" aria-live="polite">
+            Ready to translate.
+          </p>
+          <p class="hint">Use spaces between letters and <code>/</code> between words.</p>
+        </div>
+      </section>
+
+      <section class="reference-card">
+        <div>
+          <p class="eyebrow">Cheat Sheet</p>
+          <h2>Common Morse Symbols</h2>
+        </div>
+        <div class="reference-grid" id="referenceGrid"></div>
+      </section>
+    </main>
+
+    <script src="./script.js"></script>
+  </body>
+</html>
