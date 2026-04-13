@@ -1053,8 +1053,31 @@ function pointerToStagePoint(e) {
 }
 function pointsToPath(points) {
   if (!points.length) return "";
-  if (points.length === 1) return `M ${points[0].x} ${points[0].y}`;
-  return points.map((point, index) => `${index === 0 ? "M" : "L"} ${Math.round(point.x * 10) / 10} ${Math.round(point.y * 10) / 10}`).join(" ");
+  if (points.length === 1) {
+    const x = roundPoint(points[0].x);
+    const y = roundPoint(points[0].y);
+    return `M ${x} ${y} L ${x + 0.01} ${y + 0.01}`;
+  }
+  if (points.length === 2) {
+    return `M ${roundPoint(points[0].x)} ${roundPoint(points[0].y)} L ${roundPoint(points[1].x)} ${roundPoint(points[1].y)}`;
+  }
+
+  let path = `M ${roundPoint(points[0].x)} ${roundPoint(points[0].y)}`;
+  for (let i = 1; i < points.length - 1; i += 1) {
+    const current = points[i];
+    const next = points[i + 1];
+    const midX = (current.x + next.x) / 2;
+    const midY = (current.y + next.y) / 2;
+    path += ` Q ${roundPoint(current.x)} ${roundPoint(current.y)} ${roundPoint(midX)} ${roundPoint(midY)}`;
+  }
+
+  const penultimate = points[points.length - 2];
+  const last = points[points.length - 1];
+  path += ` Q ${roundPoint(penultimate.x)} ${roundPoint(penultimate.y)} ${roundPoint(last.x)} ${roundPoint(last.y)}`;
+  return path;
+}
+function roundPoint(value) {
+  return Math.round(value * 10) / 10;
 }
 function normalizeHex(value) {
   const raw = String(value || "").trim().replace(/^#/, "");
