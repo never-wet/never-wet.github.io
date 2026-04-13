@@ -53,6 +53,7 @@
           <button class="icon-button" aria-label="More" id="moreButton" type="button">
             <span class="material-symbols-outlined">more_vert</span>
           </button>
+          <div class="live-pill" id="liveBadge">Live room</div>
           <div class="avatar-ring" aria-hidden="true">
             <img src="../img/junha.png" alt="Workspace profile" />
           </div>
@@ -108,7 +109,8 @@
       <section class="sidebar-panel" id="sidebarPanel">
         <div class="panel-copy" data-panel-copy="documents">
           <h2>Documents</h2>
-          <p>Creative brief, motion references, and notes are pinned across the board.</p>
+          <p id="roomSummary">Creative brief, motion references, and notes are pinned across the board.</p>
+          <div class="presence-strip" id="presenceList"></div>
         </div>
         <div class="panel-copy is-hidden" data-panel-copy="layers">
           <h2>Layers</h2>
@@ -156,55 +158,7 @@
         aria-label="Infinite canvas"
       >
         <div class="canvas-stage" id="canvasStage">
-          <article class="canvas-card sticky-note draggable" data-layer-name="Project Brainstorm" style="left: 360px; top: 220px;">
-            <div>
-              <h2>Project Brainstorm</h2>
-              <p>Add ideas for the new ethereal workshop interface here...</p>
-            </div>
-            <div class="pin-row">
-              <span class="material-symbols-outlined">push_pin</span>
-            </div>
-          </article>
-
-          <div class="shape-circle draggable" data-layer-name="Orbit Circle" style="left: 760px; top: 180px;"></div>
-          <div class="shape-blob draggable" data-layer-name="Glass Blob" style="left: 850px; top: 310px;"></div>
-
-          <article class="media-card draggable" data-layer-name="Creative Reference #42" style="left: 470px; top: 560px;">
-            <div class="media-frame">
-              <img src="../img/code2.png" alt="Creative reference artwork" />
-              <div class="media-overlay">
-                <span class="material-symbols-outlined">zoom_in</span>
-              </div>
-            </div>
-            <div class="media-copy">
-              <h3>Creative Reference #42</h3>
-              <p>Inspired by ethereal workshop concept</p>
-            </div>
-          </article>
-
-          <div class="hero-type draggable" data-layer-name="Ethereal Workspace" style="left: 1010px; top: 470px;">
-            ETHEREAL WORKSPACE
-          </div>
-
-          <article class="sprint-card draggable" data-layer-name="Design Sprint" style="left: 1130px; top: 170px;">
-            <div class="sprint-head">
-              <div class="spark-badge">
-                <span class="material-symbols-outlined">auto_awesome</span>
-              </div>
-              <span class="status-pill">Active</span>
-            </div>
-            <h3>Design Sprint</h3>
-            <div class="team-stack" aria-hidden="true">
-              <span></span>
-              <span></span>
-              <span></span>
-              <span class="team-more">+5</span>
-            </div>
-            <div class="sprint-meta">
-              <span>Due in 2 days</span>
-              <span class="material-symbols-outlined">arrow_forward_ios</span>
-            </div>
-          </article>
+          <div class="cursor-layer" id="cursorLayer" aria-hidden="true"></div>
         </div>
       </section>
     </main>
@@ -238,6 +192,6 @@
 
     <div class="toast is-hidden" id="toast"></div>
 
-    <script src="./script.js"></script>
+    <script type="module" src="./script.js"></script>
   </body>
 </html>

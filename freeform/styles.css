@@ -171,6 +171,17 @@ button {
   border-left: 1px solid rgba(172, 178, 191, 0.48);
 }
 
+.live-pill {
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(0, 91, 193, 0.1);
+  color: var(--primary);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+
 .icon-button {
   display: grid;
   place-items: center;
@@ -335,6 +346,31 @@ button {
   line-height: 1.55;
 }
 
+.presence-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.presence-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.65);
+  color: var(--text);
+  font-size: 0.74rem;
+}
+
+.presence-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  flex: 0 0 auto;
+}
+
 .layer-list,
 .history-list {
   margin: 12px 0 0;
@@ -439,6 +475,38 @@ button {
   min-height: 1800px;
   padding: 120px 120px 180px;
   transform-origin: top left;
+}
+
+.cursor-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.remote-cursor {
+  position: absolute;
+  z-index: 1000;
+  pointer-events: none;
+}
+
+.remote-cursor-dot {
+  width: 14px;
+  height: 14px;
+  border: 2px solid white;
+  border-radius: 999px;
+  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.2);
+}
+
+.remote-cursor-label {
+  display: inline-block;
+  margin-top: 6px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  color: white;
+  font-size: 0.72rem;
+  font-weight: 700;
+  white-space: nowrap;
+  box-shadow: 0 10px 20px rgba(15, 23, 42, 0.18);
 }
 
 .draggable {

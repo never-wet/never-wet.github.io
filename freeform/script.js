@@ -1,5 +1,9 @@
+import * as Y from "https://esm.sh/yjs@13.6.27";
+import { WebrtcProvider } from "https://esm.sh/y-webrtc@10.3.0?bundle";
+
 const viewport = document.getElementById("canvasViewport");
 const stage = document.getElementById("canvasStage");
+const cursorLayer = document.getElementById("cursorLayer");
 const fitButton = document.getElementById("fitButton");
 const zoomButton = document.getElementById("zoomButton");
 const panButton = document.getElementById("panButton");
@@ -22,14 +26,15 @@ const modalBody = document.getElementById("modalBody");
 const closeModalButton = document.getElementById("closeModalButton");
 const toast = document.getElementById("toast");
 const canvasGrid = document.querySelector(".canvas-grid");
-let highestLayer = 100;
-let draggableItems = [];
-let currentTool = "sticky";
-let zoomLevel = 1;
-let createdCount = 0;
-let historyEntries = [];
-let toastTimer = null;
+const liveBadge = document.getElementById("liveBadge");
+const roomSummary = document.getElementById("roomSummary");
+const presenceList = document.getElementById("presenceList");
 
+const ROOM_PREFIX = "never-wet-freeform";
+const STAGE_BASE_WIDTH = 2200;
+const STAGE_BASE_HEIGHT = 1800;
+const HISTORY_LIMIT = 20;
+const SEED_VERSION = "v1";
 const stockImages = [
   "../img/code2.png",
   "../img/code.jpg",
@@ -37,64 +42,525 @@ const stockImages = [
   "../img/cat.jpg",
 ];
 
-function showToast(message) {
-  toast.textContent = message;
-  toast.classList.remove("is-hidden");
+const colorPalette = [
+  "#005bc1",
+  "#0f766e",
+  "#b45309",
+  "#7c3aed",
+  "#be123c",
+  "#1d4ed8",
+];
 
-  window.clearTimeout(toastTimer);
-  toastTimer = window.setTimeout(() => {
-    toast.classList.add("is-hidden");
-  }, 2200);
-}
+const userNames = [
+  "Aurora",
+  "Juniper",
+  "Marin",
+  "Sol",
+  "Mika",
+  "Nova",
+  "Ari",
+  "Jules",
+];
 
-function addHistory(message) {
-  historyEntries = [message, ...historyEntries].slice(0, 8);
-  historyList.innerHTML = historyEntries
-    .map((entry) => `<li>${entry}</li>`)
-    .join("");
-}
+const roomId = ensureRoomId();
+const roomUrl = new URL(window.location.href);
+const ydoc = new Y.Doc();
+const provider = new WebrtcProvider(`${ROOM_PREFIX}-${roomId}`, ydoc);
+const awareness = provider.awareness;
+const yElements = ydoc.getMap("elements");
+const ySettings = ydoc.getMap("settings");
+const yHistory = ydoc.getArray("history");
+const yMeta = ydoc.getMap("meta");
 
-function getLayerName(item, fallback = "Canvas item") {
-  return item.dataset.layerName || fallback;
-}
+const localUser = getLocalUserProfile();
+const elementNodes = new Map();
 
-function refreshLayerList() {
-  const items = Array.from(stage.querySelectorAll(".draggable"));
-  layerList.innerHTML = items
-    .slice()
-    .reverse()
-    .map((item) => `<li>${getLayerName(item)}</li>`)
-    .join("");
-}
+let toastTimer = null;
+let currentTool = "sticky";
+let zoomLevel = 1;
+let freePanEnabled = true;
+let panState = null;
+let dragState = null;
+let localElementCount = 0;
 
-function openModal(title, body) {
-  modalTitle.textContent = title;
-  modalBody.innerHTML = body;
-  modal.classList.remove("is-hidden");
-}
+setupRealtime();
+setupUi();
+seedInitialRoom();
+renderAll();
+window.addEventListener("load", () => {
+  centerCanvas(false);
+  pushCursorAwareness(null);
+});
 
-function closeModal() {
-  modal.classList.add("is-hidden");
-}
+function setupRealtime() {
+  awareness.setLocalStateField("user", localUser);
+  awareness.setLocalStateField("tool", currentTool);
+  awareness.setLocalStateField("cursor", null);
 
-function setDockActive(activeButton) {
-  [zoomButton, fitButton, panButton].forEach((button) => {
-    button.classList.toggle("is-active", button === activeButton);
+  yElements.observeDeep(() => {
+    renderElements();
+    refreshLayerList();
+  });
+
+  ySettings.observe(() => {
+    renderSharedSettings();
+  });
+
+  yHistory.observe(() => {
+    renderHistory();
+  });
+
+  awareness.on("change", () => {
+    renderPresence();
+    renderRemoteCursors();
+  });
+
+  window.addEventListener("beforeunload", () => {
+    awareness.setLocalState(null);
+    provider.destroy();
+    ydoc.destroy();
   });
 }
 
-function centerCanvas() {
-  const left = Math.max(0, (stage.scrollWidth - viewport.clientWidth) / 2 - 240);
-  const top = Math.max(0, (stage.scrollHeight - viewport.clientHeight) / 2 - 180);
-  viewport.scrollTo({ left, top, behavior: "smooth" });
-  setDockActive(fitButton);
-  addHistory("Re-centered the canvas");
+function setupUi() {
+  toolButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      setTool(button.dataset.tool);
+      addCanvasItem(button.dataset.tool);
+    });
+  });
+
+  navButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      setSidebarPanel(button.dataset.panel);
+    });
+  });
+
+  newLayerButton.addEventListener("click", () => {
+    addCanvasItem(currentTool);
+  });
+
+  helpButton.addEventListener("click", () => {
+    openModal(
+      "Live Collaboration",
+      `<p>This canvas now opens a shared room from the link in your address bar.</p><p>Anyone opening the same link joins the same board, sees changes live, and appears in the collaborator strip.</p><p>Drag objects, create layers, shuffle layouts, and toggle shared board settings together in real time.</p>`
+    );
+  });
+
+  archiveButton.addEventListener("click", () => {
+    const count = yElements.size;
+    openModal(
+      "Archive Snapshot",
+      `<p>This live room currently contains ${count} shared layers.</p><p>Archive is still a prototype action, but the room state itself is now collaborative and shareable through the URL.</p>`
+    );
+  });
+
+  shareButton.addEventListener("click", async () => {
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(roomUrl.toString());
+        showToast("Live room link copied");
+        pushHistory(`${localUser.name} copied the room link`);
+        return;
+      }
+    } catch (error) {
+      // Fall through to modal.
+    }
+
+    openModal(
+      "Share This Room",
+      `<p>Copy and send this link to invite collaborators into the same live canvas:</p><p><strong>${escapeHtml(roomUrl.toString())}</strong></p>`
+    );
+  });
+
+  moreButton.addEventListener("click", () => {
+    topMenu.classList.toggle("is-hidden");
+  });
+
+  topMenu.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-menu-action]");
+    if (!button) {
+      return;
+    }
+
+    topMenu.classList.add("is-hidden");
+    const action = button.dataset.menuAction;
+
+    if (action === "theme") {
+      const nextGlow = !(ySettings.get("altGlow") === true);
+      ySettings.set("altGlow", nextGlow);
+      pushHistory(`${localUser.name} ${nextGlow ? "enabled" : "disabled"} ambient glow`);
+      showToast(nextGlow ? "Ambient glow shared" : "Ambient glow reset");
+      return;
+    }
+
+    if (action === "shuffle") {
+      shuffleLayout();
+      return;
+    }
+
+    if (action === "clear") {
+      clearGeneratedItems();
+    }
+  });
+
+  zoomButton.addEventListener("click", () => {
+    const next = zoomLevel >= 1.4 ? 0.8 : Number((zoomLevel + 0.1).toFixed(2));
+    applyZoom(next);
+    zoomRange.value = String(Math.round(next * 100));
+    setDockActive(zoomButton);
+    showToast(`Zoom ${Math.round(next * 100)}%`);
+  });
+
+  fitButton.addEventListener("click", () => {
+    applyZoom(1);
+    zoomRange.value = "100";
+    centerCanvas(true);
+  });
+
+  panButton.addEventListener("click", () => {
+    freePanEnabled = !freePanEnabled;
+    setDockActive(panButton);
+    showToast(freePanEnabled ? "Pan enabled" : "Pan locked");
+  });
+
+  zoomRange.addEventListener("input", () => {
+    const next = Number(zoomRange.value) / 100;
+    applyZoom(next);
+    setDockActive(zoomButton);
+  });
+
+  gridToggle.addEventListener("change", () => {
+    ySettings.set("gridVisible", gridToggle.checked);
+    pushHistory(`${localUser.name} ${gridToggle.checked ? "showed" : "hid"} the grid`);
+  });
+
+  closeModalButton.addEventListener("click", closeModal);
+  modal.addEventListener("click", (event) => {
+    if (event.target === modal) {
+      closeModal();
+    }
+  });
+
+  document.addEventListener("click", (event) => {
+    if (!event.target.closest("#moreButton") && !event.target.closest("#topMenu")) {
+      topMenu.classList.add("is-hidden");
+    }
+  });
+
+  viewport.addEventListener("pointerdown", startPan);
+  viewport.addEventListener("pointermove", movePan);
+  viewport.addEventListener("pointerup", stopPan);
+  viewport.addEventListener("pointercancel", stopPan);
+  viewport.addEventListener("pointermove", updateLocalCursor);
+  viewport.addEventListener("pointerleave", () => pushCursorAwareness(null));
 }
 
-let panState = null;
-let freePanEnabled = true;
+function seedInitialRoom() {
+  if (yMeta.get("seedVersion") === SEED_VERSION) {
+    return;
+  }
 
-viewport.addEventListener("pointerdown", (event) => {
+  ydoc.transact(() => {
+    yMeta.set("seedVersion", SEED_VERSION);
+    yMeta.set("nextOrder", 6);
+
+    if (!ySettings.has("gridVisible")) {
+      ySettings.set("gridVisible", true);
+    }
+
+    if (!ySettings.has("altGlow")) {
+      ySettings.set("altGlow", false);
+    }
+
+    upsertElement("seed-note", {
+      id: "seed-note",
+      kind: "sticky",
+      title: "Project Brainstorm",
+      text: "Add ideas for the new ethereal workshop interface here...",
+      x: 360,
+      y: 220,
+      rotation: -2,
+      order: 1,
+      seed: true,
+    });
+
+    upsertElement("seed-circle", {
+      id: "seed-circle",
+      kind: "shape-circle",
+      title: "Orbit Circle",
+      x: 760,
+      y: 180,
+      order: 2,
+      seed: true,
+    });
+
+    upsertElement("seed-blob", {
+      id: "seed-blob",
+      kind: "shape-blob",
+      title: "Glass Blob",
+      x: 850,
+      y: 310,
+      order: 3,
+      seed: true,
+    });
+
+    upsertElement("seed-media", {
+      id: "seed-media",
+      kind: "media",
+      title: "Creative Reference #42",
+      text: "Inspired by ethereal workshop concept",
+      image: "../img/code2.png",
+      x: 470,
+      y: 560,
+      rotation: 3,
+      order: 4,
+      seed: true,
+    });
+
+    upsertElement("seed-type", {
+      id: "seed-type",
+      kind: "text",
+      title: "ETHEREAL WORKSPACE",
+      x: 1010,
+      y: 470,
+      order: 5,
+      seed: true,
+    });
+
+    upsertElement("seed-sprint", {
+      id: "seed-sprint",
+      kind: "sprint",
+      title: "Design Sprint",
+      text: "Due in 2 days",
+      x: 1130,
+      y: 170,
+      order: 6,
+      seed: true,
+    });
+  });
+}
+
+function renderAll() {
+  setSidebarPanel("documents");
+  setTool(currentTool, false);
+  applyZoom(1);
+  renderSharedSettings();
+  renderElements();
+  renderHistory();
+  refreshLayerList();
+  renderPresence();
+  renderRemoteCursors();
+  roomSummary.textContent = `Room ${roomId} is live. Send the link to collaborate on the same canvas in real time.`;
+  liveBadge.textContent = `Room ${roomId}`;
+}
+
+function renderElements() {
+  const items = getSortedElements();
+  const activeIds = new Set();
+
+  items.forEach((record) => {
+    activeIds.add(record.id);
+    let node = elementNodes.get(record.id);
+
+    if (!node) {
+      node = createElementNode(record);
+      elementNodes.set(record.id, node);
+      stage.appendChild(node);
+    }
+
+    updateElementNode(node, record);
+  });
+
+  Array.from(elementNodes.keys()).forEach((id) => {
+    if (!activeIds.has(id)) {
+      elementNodes.get(id)?.remove();
+      elementNodes.delete(id);
+    }
+  });
+
+  cursorLayer.remove();
+  stage.appendChild(cursorLayer);
+  renderRemoteCursors();
+}
+
+function getSortedElements() {
+  return Array.from(yElements.entries())
+    .map(([id, value]) => ({ id, ...value.toJSON() }))
+    .sort((left, right) => (left.order || 0) - (right.order || 0));
+}
+
+function createElementNode(record) {
+  const node = document.createElement(record.kind === "text" ? "div" : "article");
+  node.classList.add("draggable");
+  node.dataset.id = record.id;
+  bindDrag(node);
+  return node;
+}
+
+function updateElementNode(node, record) {
+  node.className = "draggable";
+  node.dataset.id = record.id;
+  node.dataset.layerName = record.title || "Canvas item";
+  node.style.left = `${record.x || 0}px`;
+  node.style.top = `${record.y || 0}px`;
+  node.style.zIndex = String(record.order || 1);
+  node.style.transform = "";
+
+  if (record.kind === "sticky") {
+    node.classList.add("sticky-note");
+    node.style.transform = `rotate(${record.rotation || -2}deg)`;
+    node.innerHTML = `
+      <div>
+        <h2>${escapeHtml(record.title || "Idea Note")}</h2>
+        <p>${escapeHtml(record.text || "Fresh note dropped onto the board.")}</p>
+      </div>
+      <div class="pin-row">
+        <span class="material-symbols-outlined">push_pin</span>
+      </div>
+    `;
+    return;
+  }
+
+  if (record.kind === "shape-circle") {
+    node.classList.add("shape-circle");
+    node.innerHTML = "";
+    return;
+  }
+
+  if (record.kind === "shape-blob") {
+    node.classList.add("shape-blob");
+    node.style.transform = "rotate(15deg)";
+    node.innerHTML = "";
+    return;
+  }
+
+  if (record.kind === "media") {
+    node.classList.add("media-card");
+    node.style.transform = `rotate(${record.rotation || 3}deg)`;
+    node.innerHTML = `
+      <div class="media-frame">
+        <img src="${escapeAttribute(record.image || stockImages[0])}" alt="${escapeAttribute(record.title || "Reference")}" />
+        <div class="media-overlay">
+          <span class="material-symbols-outlined">zoom_in</span>
+        </div>
+      </div>
+      <div class="media-copy">
+        <h3>${escapeHtml(record.title || "Reference")}</h3>
+        <p>${escapeHtml(record.text || "Auto-added inspiration card")}</p>
+      </div>
+    `;
+    return;
+  }
+
+  if (record.kind === "text") {
+    node.classList.add("hero-type");
+    node.textContent = record.title || "ETHEREAL WORKSPACE";
+    return;
+  }
+
+  node.classList.add("sprint-card");
+  node.innerHTML = `
+    <div class="sprint-head">
+      <div class="spark-badge">
+        <span class="material-symbols-outlined">auto_awesome</span>
+      </div>
+      <span class="status-pill">Active</span>
+    </div>
+    <h3>${escapeHtml(record.title || "Design Sprint")}</h3>
+    <div class="team-stack" aria-hidden="true">
+      <span></span>
+      <span></span>
+      <span></span>
+      <span class="team-more">+5</span>
+    </div>
+    <div class="sprint-meta">
+      <span>${escapeHtml(record.text || "Due in 2 days")}</span>
+      <span class="material-symbols-outlined">arrow_forward_ios</span>
+    </div>
+  `;
+}
+
+function bindDrag(node) {
+  node.addEventListener("pointerdown", (event) => {
+    if (event.target.closest("button")) {
+      return;
+    }
+
+    const id = node.dataset.id;
+    const record = getElementRecord(id);
+    if (!record) {
+      return;
+    }
+
+    bringElementToFront(id);
+
+    dragState = {
+      id,
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      initialX: record.x || 0,
+      initialY: record.y || 0,
+      lastX: record.x || 0,
+      lastY: record.y || 0,
+      rafId: null,
+    };
+
+    node.setPointerCapture(event.pointerId);
+  });
+
+  node.addEventListener("pointermove", (event) => {
+    if (!dragState || dragState.pointerId !== event.pointerId || dragState.id !== node.dataset.id) {
+      return;
+    }
+
+    const nextX = dragState.initialX + (event.clientX - dragState.startX) / zoomLevel;
+    const nextY = dragState.initialY + (event.clientY - dragState.startY) / zoomLevel;
+    dragState.lastX = nextX;
+    dragState.lastY = nextY;
+
+    node.style.left = `${nextX}px`;
+    node.style.top = `${nextY}px`;
+    queueDragSync();
+    pushCursorAwareness({ x: nextX, y: nextY });
+  });
+
+  const stopDrag = (event) => {
+    if (!dragState || dragState.pointerId !== event.pointerId || dragState.id !== node.dataset.id) {
+      return;
+    }
+
+    if (dragState.rafId) {
+      cancelAnimationFrame(dragState.rafId);
+      dragState.rafId = null;
+    }
+
+    updateElementFields(dragState.id, { x: dragState.lastX, y: dragState.lastY });
+    pushHistory(`${localUser.name} moved ${getElementRecord(dragState.id)?.title || "an item"}`);
+    node.releasePointerCapture(event.pointerId);
+    dragState = null;
+  };
+
+  node.addEventListener("pointerup", stopDrag);
+  node.addEventListener("pointercancel", stopDrag);
+}
+
+function queueDragSync() {
+  if (!dragState || dragState.rafId) {
+    return;
+  }
+
+  dragState.rafId = requestAnimationFrame(() => {
+    updateElementFields(dragState.id, {
+      x: dragState.lastX,
+      y: dragState.lastY,
+    });
+    dragState.rafId = null;
+  });
+}
+
+function startPan(event) {
   if (!freePanEnabled || event.target.closest(".draggable") || event.target.closest("button")) {
     return;
   }
@@ -109,16 +575,16 @@ viewport.addEventListener("pointerdown", (event) => {
 
   viewport.classList.add("is-panning");
   viewport.setPointerCapture(event.pointerId);
-});
+}
 
-viewport.addEventListener("pointermove", (event) => {
+function movePan(event) {
   if (!panState || panState.pointerId !== event.pointerId) {
     return;
   }
 
   viewport.scrollLeft = panState.scrollLeft - (event.clientX - panState.startX);
   viewport.scrollTop = panState.scrollTop - (event.clientY - panState.startY);
-});
+}
 
 function stopPan(event) {
   if (!panState || panState.pointerId !== event.pointerId) {
@@ -130,164 +596,219 @@ function stopPan(event) {
   panState = null;
 }
 
-viewport.addEventListener("pointerup", stopPan);
-viewport.addEventListener("pointercancel", stopPan);
-
-function enableDrag(item) {
-  let dragState = null;
-
-  item.addEventListener("pointerdown", (event) => {
-    if (event.target.closest("button")) {
-      return;
-    }
-
-    dragState = {
-      pointerId: event.pointerId,
-      startX: event.clientX,
-      startY: event.clientY,
-      initialLeft: Number.parseFloat(item.style.left || "0"),
-      initialTop: Number.parseFloat(item.style.top || "0"),
-    };
-
-    highestLayer += 1;
-    item.style.zIndex = String(highestLayer);
-    item.setPointerCapture(event.pointerId);
-    addHistory(`Selected ${getLayerName(item)}`);
-    refreshLayerList();
-  });
-
-  item.addEventListener("pointermove", (event) => {
-    if (!dragState || dragState.pointerId !== event.pointerId) {
-      return;
-    }
-
-    const deltaX = (event.clientX - dragState.startX) / zoomLevel;
-    const deltaY = (event.clientY - dragState.startY) / zoomLevel;
-    const nextLeft = dragState.initialLeft + deltaX;
-    const nextTop = dragState.initialTop + deltaY;
-
-    item.style.left = `${nextLeft}px`;
-    item.style.top = `${nextTop}px`;
-  });
-
-  function stopDrag(event) {
-    if (!dragState || dragState.pointerId !== event.pointerId) {
-      return;
-    }
-
-    item.releasePointerCapture(event.pointerId);
-    dragState = null;
+function updateLocalCursor(event) {
+  const point = getCanvasPoint(event);
+  if (point) {
+    pushCursorAwareness(point);
   }
-
-  item.addEventListener("pointerup", stopDrag);
-  item.addEventListener("pointercancel", stopDrag);
 }
 
-function bindDraggables() {
-  draggableItems = Array.from(stage.querySelectorAll(".draggable"));
-  draggableItems.forEach((item) => {
-    if (item.dataset.boundDrag === "true") {
-      return;
-    }
-
-    item.dataset.boundDrag = "true";
-    enableDrag(item);
-  });
+function getCanvasPoint(event) {
+  const stageRect = stage.getBoundingClientRect();
+  return {
+    x: (event.clientX - stageRect.left) / zoomLevel,
+    y: (event.clientY - stageRect.top) / zoomLevel,
+  };
 }
 
-function applyZoom(value) {
-  zoomLevel = value;
-  stage.style.transform = `scale(${zoomLevel})`;
-  stage.style.width = `${2200 * zoomLevel}px`;
-  stage.style.height = `${1800 * zoomLevel}px`;
+function pushCursorAwareness(cursor) {
+  awareness.setLocalStateField("cursor", cursor);
 }
 
-function createItemMarkup(tool, title, left, top) {
-  const baseStyle = `left: ${left}px; top: ${top}px;`;
+function renderPresence() {
+  const states = Array.from(awareness.getStates().values()).filter((state) => state?.user);
+  liveBadge.textContent = `${states.length} live in ${roomId}`;
+  presenceList.innerHTML = states
+    .map((state) => {
+      const user = state.user;
+      return `
+        <span class="presence-chip">
+          <span class="presence-dot" style="background:${escapeAttribute(user.color)}"></span>
+          <span>${escapeHtml(user.name)}</span>
+        </span>
+      `;
+    })
+    .join("");
+}
 
-  if (tool === "text") {
-    return `<div class="hero-type draggable" data-layer-name="${title}" style="${baseStyle}">${title.toUpperCase()}</div>`;
-  }
+function renderRemoteCursors() {
+  const remoteStates = Array.from(awareness.getStates().entries()).filter(
+    ([clientId, state]) => clientId !== ydoc.clientID && state?.user && state?.cursor
+  );
 
-  if (tool === "shape") {
-    const shapeClass = createdCount % 2 === 0 ? "shape-circle" : "shape-blob";
-    const label = shapeClass === "shape-circle" ? `${title} Circle` : `${title} Blob`;
-    return `<div class="${shapeClass} draggable" data-layer-name="${label}" style="${baseStyle}"></div>`;
-  }
-
-  if (tool === "media") {
-    const imageSrc = stockImages[createdCount % stockImages.length];
-    return `
-      <article class="media-card draggable" data-layer-name="${title}" style="${baseStyle}">
-        <div class="media-frame">
-          <img src="${imageSrc}" alt="${title}" />
-          <div class="media-overlay">
-            <span class="material-symbols-outlined">zoom_in</span>
-          </div>
+  cursorLayer.innerHTML = remoteStates
+    .map(([, state]) => {
+      const { user, cursor } = state;
+      return `
+        <div class="remote-cursor" style="left:${cursor.x}px; top:${cursor.y}px;">
+          <div class="remote-cursor-dot" style="background:${escapeAttribute(user.color)}"></div>
+          <div class="remote-cursor-label" style="background:${escapeAttribute(user.color)}">${escapeHtml(user.name)}</div>
         </div>
-        <div class="media-copy">
-          <h3>${title}</h3>
-          <p>Auto-added inspiration card</p>
-        </div>
-      </article>
-    `;
-  }
+      `;
+    })
+    .join("");
+}
 
-  if (tool === "pen") {
-    return `
-      <article class="sticky-note draggable" data-layer-name="${title}" style="${baseStyle}">
-        <div>
-          <h2>${title}</h2>
-          <p>Quick sketch stroke converted into a note card for this prototype.</p>
-        </div>
-        <div class="pin-row">
-          <span class="material-symbols-outlined">draw</span>
-        </div>
-      </article>
-    `;
-  }
+function renderSharedSettings() {
+  const showGrid = ySettings.get("gridVisible") !== false;
+  const glow = ySettings.get("altGlow") === true;
+  gridToggle.checked = showGrid;
+  canvasGrid.classList.toggle("is-hidden", !showGrid);
+  document.body.classList.toggle("alt-glow", glow);
+}
 
-  return `
-    <article class="sticky-note draggable" data-layer-name="${title}" style="${baseStyle}">
-      <div>
-        <h2>${title}</h2>
-        <p>Fresh note dropped onto the board. Drag it anywhere and keep building.</p>
-      </div>
-      <div class="pin-row">
-        <span class="material-symbols-outlined">push_pin</span>
-      </div>
-    </article>
-  `;
+function renderHistory() {
+  const entries = yHistory.toArray().slice(0, 8);
+  historyList.innerHTML = entries
+    .map((entry) => `<li>${escapeHtml(entry.text || "")}</li>`)
+    .join("");
+}
+
+function refreshLayerList() {
+  const items = getSortedElements().slice().reverse();
+  layerList.innerHTML = items
+    .map((item) => `<li>${escapeHtml(item.title || "Canvas item")}</li>`)
+    .join("");
 }
 
 function addCanvasItem(tool = currentTool) {
-  createdCount += 1;
-  const titleMap = {
-    sticky: `Idea Note ${createdCount}`,
-    pen: `Sketch Layer ${createdCount}`,
-    text: `Headline ${createdCount}`,
-    shape: `Shape ${createdCount}`,
-    media: `Reference ${createdCount}`,
+  localElementCount += 1;
+  const id = `item-${crypto.randomUUID()}`;
+  const order = nextOrder();
+  const left = 320 + (localElementCount % 5) * 120;
+  const top = 240 + (localElementCount % 4) * 110;
+
+  const item = {
+    id,
+    x: left,
+    y: top,
+    order,
+    seed: false,
   };
 
-  const title = titleMap[tool] || `Layer ${createdCount}`;
-  const left = 320 + (createdCount % 5) * 120;
-  const top = 240 + (createdCount % 4) * 110;
+  if (tool === "text") {
+    item.kind = "text";
+    item.title = `Headline ${localElementCount}`.toUpperCase();
+  } else if (tool === "shape") {
+    item.kind = localElementCount % 2 === 0 ? "shape-circle" : "shape-blob";
+    item.title = item.kind === "shape-circle" ? `Shape ${localElementCount} Circle` : `Shape ${localElementCount} Blob`;
+  } else if (tool === "media") {
+    item.kind = "media";
+    item.title = `Reference ${localElementCount}`;
+    item.text = "Auto-added inspiration card";
+    item.image = stockImages[localElementCount % stockImages.length];
+    item.rotation = 3;
+  } else if (tool === "pen") {
+    item.kind = "sticky";
+    item.title = `Sketch Layer ${localElementCount}`;
+    item.text = "Quick sketch stroke converted into a note card for this prototype.";
+    item.rotation = -1;
+  } else {
+    item.kind = "sticky";
+    item.title = `Idea Note ${localElementCount}`;
+    item.text = "Fresh note dropped onto the board. Drag it anywhere and keep building.";
+    item.rotation = -2;
+  }
 
-  stage.insertAdjacentHTML("beforeend", createItemMarkup(tool, title, left, top));
-  bindDraggables();
-  refreshLayerList();
-  addHistory(`Added ${title}`);
-  showToast(`${title} created`);
+  upsertElement(id, item);
+  pushHistory(`${localUser.name} added ${item.title}`);
+  showToast(`${item.title} created`);
 }
 
-function setTool(tool) {
+function clearGeneratedItems() {
+  ydoc.transact(() => {
+    Array.from(yElements.entries()).forEach(([id, value]) => {
+      if (value.get("seed") !== true) {
+        yElements.delete(id);
+      }
+    });
+  });
+
+  pushHistory(`${localUser.name} cleared generated items`);
+  showToast("Generated items cleared");
+}
+
+function shuffleLayout() {
+  const items = getSortedElements();
+  ydoc.transact(() => {
+    items.forEach((item, index) => {
+      updateElementFields(item.id, {
+        x: 260 + (index % 5) * 180,
+        y: 180 + Math.floor(index / 5) * 170,
+      });
+    });
+  });
+
+  pushHistory(`${localUser.name} shuffled the layout`);
+  showToast("Layout shuffled");
+}
+
+function bringElementToFront(id) {
+  updateElementFields(id, { order: nextOrder() });
+}
+
+function upsertElement(id, record) {
+  ydoc.transact(() => {
+    let target = yElements.get(id);
+    if (!target) {
+      target = new Y.Map();
+      yElements.set(id, target);
+    }
+
+    Object.entries(record).forEach(([key, value]) => {
+      target.set(key, value);
+    });
+  });
+}
+
+function updateElementFields(id, fields) {
+  const target = yElements.get(id);
+  if (!target) {
+    return;
+  }
+
+  Object.entries(fields).forEach(([key, value]) => {
+    target.set(key, value);
+  });
+}
+
+function getElementRecord(id) {
+  const item = yElements.get(id);
+  return item ? { id, ...item.toJSON() } : null;
+}
+
+function nextOrder() {
+  const current = Number(yMeta.get("nextOrder") || 0) + 1;
+  yMeta.set("nextOrder", current);
+  return current;
+}
+
+function pushHistory(text) {
+  ydoc.transact(() => {
+    yHistory.insert(0, [
+      {
+        id: crypto.randomUUID(),
+        text,
+        at: Date.now(),
+      },
+    ]);
+
+    if (yHistory.length > HISTORY_LIMIT) {
+      yHistory.delete(HISTORY_LIMIT, yHistory.length - HISTORY_LIMIT);
+    }
+  });
+}
+
+function setTool(tool, announce = true) {
   currentTool = tool;
   toolButtons.forEach((button) => {
     button.classList.toggle("is-active", button.dataset.tool === tool);
   });
-  addHistory(`Switched to ${tool} tool`);
-  showToast(`${tool[0].toUpperCase()}${tool.slice(1)} tool selected`);
+  awareness.setLocalStateField("tool", tool);
+
+  if (announce) {
+    showToast(`${tool[0].toUpperCase()}${tool.slice(1)} tool selected`);
+  }
 }
 
 function setSidebarPanel(panel) {
@@ -299,148 +820,85 @@ function setSidebarPanel(panel) {
   });
 }
 
-toolButtons.forEach((button) => {
-  button.addEventListener("click", () => {
-    setTool(button.dataset.tool);
-    addCanvasItem(button.dataset.tool);
+function applyZoom(value) {
+  zoomLevel = value;
+  stage.style.transform = `scale(${zoomLevel})`;
+  stage.style.width = `${STAGE_BASE_WIDTH * zoomLevel}px`;
+  stage.style.height = `${STAGE_BASE_HEIGHT * zoomLevel}px`;
+}
+
+function centerCanvas(smooth) {
+  const left = Math.max(0, (stage.scrollWidth - viewport.clientWidth) / 2 - 240);
+  const top = Math.max(0, (stage.scrollHeight - viewport.clientHeight) / 2 - 180);
+  viewport.scrollTo({ left, top, behavior: smooth ? "smooth" : "auto" });
+  setDockActive(fitButton);
+}
+
+function setDockActive(activeButton) {
+  [zoomButton, fitButton, panButton].forEach((button) => {
+    button.classList.toggle("is-active", button === activeButton);
   });
-});
+}
 
-navButtons.forEach((button) => {
-  button.addEventListener("click", () => {
-    setSidebarPanel(button.dataset.panel);
-    addHistory(`Opened ${button.dataset.panel} panel`);
-  });
-});
+function openModal(title, body) {
+  modalTitle.textContent = title;
+  modalBody.innerHTML = body;
+  modal.classList.remove("is-hidden");
+}
 
-newLayerButton.addEventListener("click", () => {
-  addCanvasItem(currentTool);
-});
+function closeModal() {
+  modal.classList.add("is-hidden");
+}
 
-helpButton.addEventListener("click", () => {
-  openModal(
-    "How This Prototype Works",
-    "<p>Pick any tool in the top bar to generate a matching object on the canvas.</p><p>Drag cards to rearrange the board, use Zoom to step through scales, Fit to re-center, and Pan to toggle hand-drag navigation across the canvas.</p>"
-  );
-});
+function showToast(message) {
+  toast.textContent = message;
+  toast.classList.remove("is-hidden");
+  window.clearTimeout(toastTimer);
+  toastTimer = window.setTimeout(() => {
+    toast.classList.add("is-hidden");
+  }, 2200);
+}
 
-archiveButton.addEventListener("click", () => {
-  const count = stage.querySelectorAll(".draggable").length;
-  openModal(
-    "Archive Snapshot",
-    `<p>${count} live layers are currently on the canvas.</p><p>This prototype does not persist files yet, but the archive action is now wired and ready for a real backend or local storage pass.</p>`
-  );
-});
+function ensureRoomId() {
+  const url = new URL(window.location.href);
+  let id = url.searchParams.get("room");
 
-shareButton.addEventListener("click", async () => {
-  const shareUrl = window.location.href;
+  if (!id) {
+    id = (crypto.randomUUID?.() || `room-${Date.now()}`).slice(0, 8);
+    url.searchParams.set("room", id);
+    window.history.replaceState({}, "", url);
+  }
 
-  try {
-    if (navigator.clipboard?.writeText) {
-      await navigator.clipboard.writeText(shareUrl);
-      showToast("Canvas link copied");
-      addHistory("Copied share link");
-      return;
+  return id;
+}
+
+function getLocalUserProfile() {
+  const storageKey = "never-wet-freeform-user";
+  const existing = window.localStorage.getItem(storageKey);
+  if (existing) {
+    try {
+      return JSON.parse(existing);
+    } catch (error) {
+      window.localStorage.removeItem(storageKey);
     }
-  } catch (error) {
-    // Fall through to modal.
   }
 
-  openModal("Share Canvas", `<p>Copy this link:</p><p><strong>${shareUrl}</strong></p>`);
-});
+  const name = `${userNames[Math.floor(Math.random() * userNames.length)]} ${Math.floor(Math.random() * 90 + 10)}`;
+  const color = colorPalette[Math.floor(Math.random() * colorPalette.length)];
+  const profile = { name, color };
+  window.localStorage.setItem(storageKey, JSON.stringify(profile));
+  return profile;
+}
 
-moreButton.addEventListener("click", () => {
-  topMenu.classList.toggle("is-hidden");
-});
+function escapeHtml(value) {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
 
-topMenu.addEventListener("click", (event) => {
-  const button = event.target.closest("[data-menu-action]");
-  if (!button) {
-    return;
-  }
-
-  const action = button.dataset.menuAction;
-  topMenu.classList.add("is-hidden");
-
-  if (action === "theme") {
-    document.body.classList.toggle("alt-glow");
-    addHistory("Toggled ambient glow");
-    showToast("Ambient glow updated");
-    return;
-  }
-
-  if (action === "shuffle") {
-    Array.from(stage.querySelectorAll(".draggable")).forEach((item, index) => {
-      item.style.left = `${260 + (index % 5) * 180}px`;
-      item.style.top = `${180 + Math.floor(index / 5) * 170}px`;
-    });
-    addHistory("Shuffled canvas layout");
-    showToast("Layout shuffled");
-    return;
-  }
-
-  if (action === "clear") {
-    Array.from(stage.querySelectorAll(".draggable"))
-      .slice(5)
-      .forEach((item) => item.remove());
-    bindDraggables();
-    refreshLayerList();
-    addHistory("Cleared generated items");
-    showToast("Generated items cleared");
-  }
-});
-
-zoomButton.addEventListener("click", () => {
-  const next = zoomLevel >= 1.4 ? 0.8 : Number((zoomLevel + 0.1).toFixed(2));
-  applyZoom(next);
-  zoomRange.value = String(Math.round(next * 100));
-  setDockActive(zoomButton);
-  addHistory(`Zoom set to ${Math.round(next * 100)}%`);
-  showToast(`Zoom ${Math.round(next * 100)}%`);
-});
-
-fitButton.addEventListener("click", () => {
-  applyZoom(1);
-  zoomRange.value = "100";
-  centerCanvas();
-});
-
-panButton.addEventListener("click", () => {
-  freePanEnabled = !freePanEnabled;
-  setDockActive(panButton);
-  showToast(freePanEnabled ? "Pan enabled" : "Pan locked");
-  addHistory(freePanEnabled ? "Enabled pan mode" : "Locked pan mode");
-});
-
-zoomRange.addEventListener("input", () => {
-  const next = Number(zoomRange.value) / 100;
-  applyZoom(next);
-  setDockActive(zoomButton);
-});
-
-gridToggle.addEventListener("change", () => {
-  canvasGrid.classList.toggle("is-hidden", !gridToggle.checked);
-  addHistory(gridToggle.checked ? "Grid shown" : "Grid hidden");
-});
-
-closeModalButton.addEventListener("click", closeModal);
-modal.addEventListener("click", (event) => {
-  if (event.target === modal) {
-    closeModal();
-  }
-});
-
-document.addEventListener("click", (event) => {
-  if (!event.target.closest("#moreButton") && !event.target.closest("#topMenu")) {
-    topMenu.classList.add("is-hidden");
-  }
-});
-
-window.addEventListener("load", () => {
-  bindDraggables();
-  refreshLayerList();
-  addHistory("Canvas ready");
-  setSidebarPanel("documents");
-  applyZoom(1);
-  centerCanvas();
-});
+function escapeAttribute(value) {
+  return escapeHtml(value);
+}
