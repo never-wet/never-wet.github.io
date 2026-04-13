@@ -47,6 +47,10 @@ const penBlueInput = $("#penBlueInput");
 const penRedValue = $("#penRedValue");
 const penGreenValue = $("#penGreenValue");
 const penBlueValue = $("#penBlueValue");
+const mediaDrawer = $("#mediaDrawer");
+const mediaDrawerTitle = $("#mediaDrawerTitle");
+const mediaDrawerBody = $("#mediaDrawerBody");
+const closeMediaDrawerButton = $("#closeMediaDrawerButton");
 
 const STAGE_W = 2200;
 const STAGE_H = 1800;
@@ -95,6 +99,7 @@ let presenceTimer = null;
 let drawState = null;
 let penColor = "#005bc1";
 let penWidth = 6;
+let suppressMediaOpenUntil = 0;
 
 setup();
 setPanel("documents");
@@ -119,12 +124,20 @@ async function initLiveRoom() {
 function setup() {
   toolButtons.forEach((b) => b.addEventListener("click", () => {
     setTool(b.dataset.tool, true);
+    if (b.dataset.tool === "media") {
+      openMediaImportModal();
+      return;
+    }
     if (b.dataset.tool !== "pen") addItem(b.dataset.tool);
   }));
   navButtons.forEach((b) => b.addEventListener("click", () => setPanel(b.dataset.panel)));
   newLayerButton.addEventListener("click", () => {
     if (currentTool === "pen") {
       showToast("Use the canvas to draw with the pen");
+      return;
+    }
+    if (currentTool === "media") {
+      openMediaImportModal();
       return;
     }
     addItem(currentTool);
@@ -220,6 +233,7 @@ function setup() {
   setPenColor(penColor);
   penWidthValue.textContent = `${penWidth}px`;
   closeModalButton.addEventListener("click", closeModal);
+  closeMediaDrawerButton.addEventListener("click", closeMediaDrawer);
   modal.addEventListener("click", (e) => { if (e.target === modal) closeModal(); });
   document.addEventListener("click", (e) => {
     if (!e.target.closest("#moreButton") && !e.target.closest("#topMenu")) topMenu.classList.add("is-hidden");
@@ -448,6 +462,27 @@ function addItem(tool) {
   showToast(`${item.title} created`);
 }
 
+function makeMediaItemFromFile(image, filename, dimensions) {
+  localCount += 1;
+  return {
+    id: `item-${crypto.randomUUID()}`,
+    kind: "media",
+    title: stripFileExtension(filename) || `Reference ${localCount}`,
+    text: "Imported from your device",
+    importSource: "Your device",
+    fileName: filename,
+    fileType: filename.split(".").pop()?.toUpperCase() || "Image",
+    image,
+    width: dimensions.width,
+    height: dimensions.height,
+    x: 320 + (localCount % 5) * 120,
+    y: 240 + (localCount % 4) * 110,
+    order: nextOrder(),
+    rotation: 0,
+    seed: false
+  };
+}
+
 function sortedElements() {
   return Array.from(state.elements.values()).sort((a, b) => (a.order || 0) - (b.order || 0));
 }
@@ -522,7 +557,7 @@ function paint(node, el) {
   if (el.kind === "media") {
     node.classList.add("media-card");
     node.style.transform = `rotate(${el.rotation || 0}deg)`;
-    node.innerHTML = `<div class="media-frame"><img src="${esc(el.image)}" alt="${esc(el.title)}" /><div class="media-overlay"><span class="material-symbols-outlined">zoom_in</span></div></div><div class="media-copy"><h3 data-edit-field="title">${esc(el.title)}</h3><p data-edit-field="text">${esc(el.text)}</p></div>`;
+    node.innerHTML = `<img src="${esc(el.image)}" alt="${esc(el.title)}" width="${Number(el.width) || 420}" height="${Number(el.height) || 236}" /><div class="media-overlay"><span class="material-symbols-outlined">zoom_in</span></div>`;
     return;
   }
   if (el.kind === "text") { node.classList.add("hero-type"); node.innerHTML = `<span data-edit-field="title">${esc(el.title)}</span>`; return; }
@@ -531,6 +566,14 @@ function paint(node, el) {
 }
 
 function bindDrag(node) {
+  node.addEventListener("click", (e) => {
+    if (Date.now() < suppressMediaOpenUntil) return;
+    const el = getItem(node.dataset.id);
+    if (!el || el.kind !== "media") return;
+    if (e.target.closest("[data-edit-field]")) return;
+    openMediaDrawer(el);
+  });
+
   node.addEventListener("dblclick", (e) => {
     if (node.classList.contains("hero-type")) {
       const hero = node.querySelector("[data-edit-field]") || node;
@@ -569,6 +612,7 @@ function bindDrag(node) {
       } else {
         pushHistory(`${user.name} moved ${getItem(dragState.id)?.title || "an item"}`);
       }
+      suppressMediaOpenUntil = Date.now() + 180;
     }
     node.releasePointerCapture(e.pointerId);
     dragState = null;
@@ -871,6 +915,90 @@ function shareModal() {
   });
 }
 
+function openMediaImportModal() {
+  openModal("Import Media", `
+    <div class="media-import">
+      <div class="media-dropzone" id="mediaDropzone">
+        <div>
+          <span class="material-symbols-outlined">upload_file</span>
+          <h3>Drop images here</h3>
+          <p>Drag and drop files into the canvas, or choose images from your computer.</p>
+          <div class="media-import-actions">
+            <button class="primary-action" id="mediaBrowseButton" type="button">
+              <span class="material-symbols-outlined">image</span>
+              <span>Choose Images</span>
+            </button>
+          </div>
+          <input class="media-import-input" id="mediaFileInput" type="file" accept="image/*" multiple />
+        </div>
+      </div>
+      <p class="media-import-meta">Imported images are added to the live room and shared with connected collaborators.</p>
+    </div>
+  `);
+
+  const dropzone = $("#mediaDropzone");
+  const input = $("#mediaFileInput");
+  const browse = $("#mediaBrowseButton");
+  if (!dropzone || !input || !browse) return;
+
+  browse.addEventListener("click", () => input.click());
+  input.addEventListener("change", () => importMediaFiles(input.files));
+  ["dragenter", "dragover"].forEach((type) => dropzone.addEventListener(type, (event) => {
+    event.preventDefault();
+    dropzone.classList.add("is-dragover");
+  }));
+  ["dragleave", "dragend", "drop"].forEach((type) => dropzone.addEventListener(type, (event) => {
+    event.preventDefault();
+    dropzone.classList.remove("is-dragover");
+  }));
+  dropzone.addEventListener("drop", (event) => importMediaFiles(event.dataTransfer?.files));
+}
+
+function openMediaDrawer(item) {
+  mediaDrawerTitle.textContent = item.title || "Untitled image";
+  mediaDrawerBody.innerHTML = `
+    <div class="media-drawer-preview"><img src="${esc(item.image)}" alt="${esc(item.title || "Media preview")}" /></div>
+    <div class="media-drawer-meta">
+      <div class="media-drawer-row"><div class="media-drawer-label">File</div><div class="media-drawer-value">${esc(item.fileName || item.title || "Unknown")}</div></div>
+      <div class="media-drawer-row"><div class="media-drawer-label">Source</div><div class="media-drawer-value">${esc(item.importSource || item.text || "Board media")}</div></div>
+      <div class="media-drawer-row"><div class="media-drawer-label">Type</div><div class="media-drawer-value">${esc(item.fileType || "Image")}</div></div>
+      <div class="media-drawer-row"><div class="media-drawer-label">Notes</div><div class="media-drawer-value">${esc(item.text || "No extra notes")}</div></div>
+    </div>
+  `;
+  mediaDrawer.classList.add("is-open");
+}
+
+function closeMediaDrawer() {
+  mediaDrawer.classList.remove("is-open");
+}
+
+async function importMediaFiles(fileList) {
+  if (!ensureConnected()) return;
+  const files = Array.from(fileList || []).filter((file) => file.type.startsWith("image/"));
+  if (!files.length) {
+    showToast("No image files found");
+    return;
+  }
+
+  for (const file of files) {
+    try {
+      const image = await readFileAsDataUrl(file);
+      const dimensions = await getImageDimensions(image);
+      const item = makeMediaItemFromFile(image, file.name, dimensions);
+      if (!sendMessage({ type: "element.upsert", payload: item })) return;
+      rememberElement(item);
+      renderElements();
+      renderLayers();
+      pushHistory(`${user.name} imported ${item.title}`);
+    } catch {
+      showToast(`Couldn't import ${file.name}`);
+    }
+  }
+
+  closeModal();
+  showToast(files.length === 1 ? "Image added" : `${files.length} images added`);
+}
+
 function openModal(title, body) { modalTitle.textContent = title; modalBody.innerHTML = body; modal.classList.remove("is-hidden"); }
 function closeModal() { modal.classList.add("is-hidden"); }
 function showToast(msg) { toast.textContent = msg; toast.classList.remove("is-hidden"); clearTimeout(toastTimer); toastTimer = setTimeout(() => toast.classList.add("is-hidden"), 2200); }
@@ -1044,6 +1172,23 @@ async function readSocketMessage(data) {
 
 async function copyText(v, ok) { try { await navigator.clipboard.writeText(v); showToast(ok); } catch { showToast("Copy failed"); } }
 function esc(v) { return String(v ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#39;"); }
+function stripFileExtension(name) { return String(name || "").replace(/\.[^.]+$/, ""); }
+function readFileAsDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ""));
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(file);
+  });
+}
+function getImageDimensions(src) {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => resolve({ width: image.naturalWidth, height: image.naturalHeight });
+    image.onerror = reject;
+    image.src = src;
+  });
+}
 function pointerToStagePoint(e) {
   const rect = stage.getBoundingClientRect();
   return {

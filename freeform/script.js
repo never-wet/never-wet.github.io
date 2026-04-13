@@ -47,6 +47,10 @@ const penBlueInput = $("#penBlueInput");
 const penRedValue = $("#penRedValue");
 const penGreenValue = $("#penGreenValue");
 const penBlueValue = $("#penBlueValue");
+const mediaDrawer = $("#mediaDrawer");
+const mediaDrawerTitle = $("#mediaDrawerTitle");
+const mediaDrawerBody = $("#mediaDrawerBody");
+const closeMediaDrawerButton = $("#closeMediaDrawerButton");
 
 const STAGE_W = 2200;
 const STAGE_H = 1800;
@@ -81,6 +85,7 @@ let toastTimer = null;
 let panState = null;
 let dragState = null;
 let drawState = null;
+let suppressMediaOpenUntil = 0;
 
 setup();
 render();
@@ -89,12 +94,20 @@ window.addEventListener("load", () => center(false));
 function setup() {
   toolButtons.forEach((b) => b.addEventListener("click", () => {
     setTool(b.dataset.tool, true);
+    if (b.dataset.tool === "media") {
+      openMediaImportModal();
+      return;
+    }
     if (b.dataset.tool !== "pen") dispatch({ type: "add", tool: b.dataset.tool, actor: user.name });
   }));
   navButtons.forEach((b) => b.addEventListener("click", () => setPanel(b.dataset.panel)));
   newLayerButton.addEventListener("click", () => {
     if (state.tool === "pen") {
       showToast("Use the canvas to draw with the pen");
+      return;
+    }
+    if (state.tool === "media") {
+      openMediaImportModal();
       return;
     }
     dispatch({ type: "add", tool: state.tool, actor: user.name });
@@ -154,6 +167,7 @@ function setup() {
   setPenColor(state.penColor);
   penWidthValue.textContent = `${state.penWidth}px`;
   closeModalButton.addEventListener("click", closeModal);
+  closeMediaDrawerButton.addEventListener("click", closeMediaDrawer);
   modal.addEventListener("click", (e) => { if (e.target === modal) closeModal(); });
   document.addEventListener("click", (e) => {
     if (!e.target.closest("#moreButton") && !e.target.closest("#topMenu")) topMenu.classList.add("is-hidden");
@@ -213,6 +227,11 @@ function apply(a) {
     state.count += 1;
     state.elements.push(makeStroke(a.points, a.color, a.width));
     log(`${a.actor} drew a stroke`);
+  }
+  if (a.type === "add-media") {
+    state.elements.push(a.item);
+    log(`${a.actor} imported ${a.item.title}`);
+    showToast(`${a.item.title} added`);
   }
   if (a.type === "front") {
     const el = find(a.id);
@@ -280,6 +299,27 @@ function makeStroke(points, color, width) {
     color,
     width,
     order: nextOrder(),
+    seed: false,
+  };
+}
+
+function makeMediaItemFromFile(image, filename, dimensions) {
+  state.count += 1;
+  return {
+    id: `item-${crypto.randomUUID()}`,
+    kind: "media",
+    title: stripFileExtension(filename) || `Reference ${state.count}`,
+    text: "Imported from your device",
+    importSource: "Your device",
+    fileName: filename,
+    fileType: filename.split(".").pop()?.toUpperCase() || "Image",
+    image,
+    width: dimensions.width,
+    height: dimensions.height,
+    x: 320 + (state.count % 5) * 120,
+    y: 240 + (state.count % 4) * 110,
+    order: nextOrder(),
+    rotation: 0,
     seed: false,
   };
 }
@@ -355,7 +395,7 @@ function paint(node, el) {
   if (el.kind === "media") {
     node.classList.add("media-card");
     node.style.transform = `rotate(${el.rotation || 0}deg)`;
-    node.innerHTML = `<div class="media-frame"><img src="${esc(el.image)}" alt="${esc(el.title)}" /><div class="media-overlay"><span class="material-symbols-outlined">zoom_in</span></div></div><div class="media-copy"><h3 data-edit-field="title">${esc(el.title)}</h3><p data-edit-field="text">${esc(el.text)}</p></div>`;
+    node.innerHTML = `<img src="${esc(el.image)}" alt="${esc(el.title)}" width="${Number(el.width) || 420}" height="${Number(el.height) || 236}" /><div class="media-overlay"><span class="material-symbols-outlined">zoom_in</span></div>`;
     return;
   }
   if (el.kind === "text") { node.classList.add("hero-type"); node.innerHTML = `<span data-edit-field="title">${esc(el.title)}</span>`; return; }
@@ -364,6 +404,14 @@ function paint(node, el) {
 }
 
 function bindDrag(node) {
+  node.addEventListener("click", (e) => {
+    if (Date.now() < suppressMediaOpenUntil) return;
+    const el = find(node.dataset.id);
+    if (!el || el.kind !== "media") return;
+    if (e.target.closest("[data-edit-field]")) return;
+    openMediaDrawer(el);
+  });
+
   node.addEventListener("dblclick", (e) => {
     if (node.classList.contains("hero-type")) {
       const heroField = node.querySelector("[data-edit-field]") || node;
@@ -409,6 +457,7 @@ function bindDrag(node) {
     if (!dragState || dragState.pid !== e.pointerId || dragState.id !== node.dataset.id) return;
     if (dragState.moved) {
       dispatch({ type: "move", id: dragState.id, x: dragState.lx, y: dragState.ly, order: dragState.order, actor: user.name });
+      suppressMediaOpenUntil = Date.now() + 180;
     }
     node.releasePointerCapture(e.pointerId);
     dragState = null;
@@ -668,6 +717,66 @@ function helpModal() {
   openModal("Offline Mode", `<p>This page is the local-only freeform canvas.</p><p>Your edits work on this device while the page is open, but they do not sync to other devices.</p><p>Use Share to switch to the public live version if you want collaboration.</p>`);
 }
 
+function openMediaImportModal() {
+  openModal("Import Media", `
+    <div class="media-import">
+      <div class="media-dropzone" id="mediaDropzone">
+        <div>
+          <span class="material-symbols-outlined">upload_file</span>
+          <h3>Drop images here</h3>
+          <p>Drag and drop files into the canvas, or choose images from your computer.</p>
+          <div class="media-import-actions">
+            <button class="primary-action" id="mediaBrowseButton" type="button">
+              <span class="material-symbols-outlined">image</span>
+              <span>Choose Images</span>
+            </button>
+          </div>
+          <input class="media-import-input" id="mediaFileInput" type="file" accept="image/*" multiple />
+        </div>
+      </div>
+      <p class="media-import-meta">Supports common image formats like PNG, JPG, GIF, and WebP.</p>
+    </div>
+  `);
+
+  const dropzone = $("#mediaDropzone");
+  const input = $("#mediaFileInput");
+  const browse = $("#mediaBrowseButton");
+  if (!dropzone || !input || !browse) return;
+
+  browse.addEventListener("click", () => input.click());
+  input.addEventListener("change", () => importMediaFiles(input.files));
+  ["dragenter", "dragover"].forEach((type) => dropzone.addEventListener(type, (event) => {
+    event.preventDefault();
+    dropzone.classList.add("is-dragover");
+  }));
+  ["dragleave", "dragend", "drop"].forEach((type) => dropzone.addEventListener(type, (event) => {
+    event.preventDefault();
+    dropzone.classList.remove("is-dragover");
+  }));
+  dropzone.addEventListener("drop", (event) => importMediaFiles(event.dataTransfer?.files));
+}
+
+async function importMediaFiles(fileList) {
+  const files = Array.from(fileList || []).filter((file) => file.type.startsWith("image/"));
+  if (!files.length) {
+    showToast("No image files found");
+    return;
+  }
+
+  for (const file of files) {
+    try {
+      const image = await readFileAsDataUrl(file);
+      const dimensions = await getImageDimensions(image);
+      const item = makeMediaItemFromFile(image, file.name, dimensions);
+      dispatch({ type: "add-media", item, actor: user.name });
+    } catch {
+      showToast(`Couldn't import ${file.name}`);
+    }
+  }
+
+  closeModal();
+}
+
 function shareModal() {
   const liveUrl = new URL("./live.html", window.location.href);
   liveUrl.searchParams.set("room", state.roomId);
@@ -676,6 +785,24 @@ function shareModal() {
     window.location.href = liveUrl.toString();
   });
   $("#copyLiveModeButton")?.addEventListener("click", () => copyText(liveUrl.toString(), "Live link copied"));
+}
+
+function openMediaDrawer(item) {
+  mediaDrawerTitle.textContent = item.title || "Untitled image";
+  mediaDrawerBody.innerHTML = `
+    <div class="media-drawer-preview"><img src="${esc(item.image)}" alt="${esc(item.title || "Media preview")}" /></div>
+    <div class="media-drawer-meta">
+      <div class="media-drawer-row"><div class="media-drawer-label">File</div><div class="media-drawer-value">${esc(item.fileName || item.title || "Unknown")}</div></div>
+      <div class="media-drawer-row"><div class="media-drawer-label">Source</div><div class="media-drawer-value">${esc(item.importSource || item.text || "Board media")}</div></div>
+      <div class="media-drawer-row"><div class="media-drawer-label">Type</div><div class="media-drawer-value">${esc(item.fileType || "Image")}</div></div>
+      <div class="media-drawer-row"><div class="media-drawer-label">Notes</div><div class="media-drawer-value">${esc(item.text || "No extra notes")}</div></div>
+    </div>
+  `;
+  mediaDrawer.classList.add("is-open");
+}
+
+function closeMediaDrawer() {
+  mediaDrawer.classList.remove("is-open");
 }
 
 function hostPanel() {
@@ -851,6 +978,23 @@ function enc(x) { return btoa(unescape(encodeURIComponent(JSON.stringify(x)))); 
 function dec(x) { return JSON.parse(decodeURIComponent(escape(atob(x)))); }
 async function copyText(v, ok) { try { await navigator.clipboard.writeText(v); showToast(ok); } catch { showToast("Copy failed"); } }
 function esc(v) { return String(v).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#39;"); }
+function stripFileExtension(name) { return String(name || "").replace(/\.[^.]+$/, ""); }
+function readFileAsDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ""));
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(file);
+  });
+}
+function getImageDimensions(src) {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => resolve({ width: image.naturalWidth, height: image.naturalHeight });
+    image.onerror = reject;
+    image.src = src;
+  });
+}
 function pointerToStagePoint(e) {
   const rect = stage.getBoundingClientRect();
   return { x: (e.clientX - rect.left) / state.zoom, y: (e.clientY - rect.top) / state.zoom };

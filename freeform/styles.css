@@ -452,6 +452,100 @@ button {
   padding-left: 280px;
 }
 
+.media-drawer {
+  position: fixed;
+  top: 110px;
+  right: 16px;
+  bottom: 24px;
+  z-index: 35;
+  width: min(360px, calc(100vw - 32px));
+  padding: 18px;
+  border-radius: 30px;
+  transform: translateX(calc(100% + 24px));
+  transition: transform 240ms ease;
+}
+
+.media-drawer.is-open {
+  transform: translateX(0);
+}
+
+.media-drawer-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.media-drawer-kicker {
+  margin: 0 0 6px;
+  color: var(--text-soft);
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.media-drawer-head h2 {
+  margin: 0;
+  color: var(--text);
+  font-size: 1.2rem;
+  line-height: 1.15;
+}
+
+.media-drawer-body {
+  margin-top: 18px;
+  color: var(--text-soft);
+}
+
+.media-drawer-preview {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.7);
+  box-shadow: 0 18px 32px rgba(71, 85, 105, 0.14);
+}
+
+.media-drawer-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.media-drawer-meta {
+  display: grid;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.media-drawer-row {
+  display: grid;
+  grid-template-columns: 86px 1fr;
+  gap: 12px;
+  padding: 10px 0;
+  border-top: 1px solid rgba(172, 178, 191, 0.24);
+}
+
+.media-drawer-row:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.media-drawer-label {
+  color: var(--text-soft);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.media-drawer-value {
+  color: var(--text);
+  font-size: 0.86rem;
+  line-height: 1.5;
+  word-break: break-word;
+}
+
 .canvas-viewport {
   width: 100%;
   height: 100%;
@@ -556,13 +650,11 @@ button {
 }
 
 .sticky-note h2,
-.media-copy h3,
 .sprint-card h3 {
   margin: 0;
 }
 
 .sticky-note p,
-.media-copy p,
 .sprint-meta,
 .hero-type {
   margin: 0;
@@ -601,25 +693,24 @@ button {
 }
 
 .media-card {
-  width: 420px;
-  padding: 16px;
-  border-radius: 24px;
-  background: rgba(255, 255, 255, 0.9);
+  display: inline-block;
+  width: auto;
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  overflow: visible;
+  line-height: 0;
+}
+
+.media-card img {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: none;
+  max-height: none;
+  border-radius: 0;
   box-shadow: var(--shadow-card);
-}
-
-.media-frame {
-  position: relative;
-  overflow: hidden;
-  aspect-ratio: 16 / 9;
-  border-radius: 18px;
-  background: var(--surface-soft);
-}
-
-.media-frame img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
 }
 
 .media-overlay {
@@ -1080,6 +1171,72 @@ button {
   margin: 0 0 12px;
 }
 
+.media-import {
+  display: grid;
+  gap: 14px;
+}
+
+.media-dropzone {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 220px;
+  padding: 22px;
+  border: 1.5px dashed rgba(0, 91, 193, 0.28);
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at top, rgba(216, 226, 255, 0.72), transparent 52%),
+    rgba(255, 255, 255, 0.58);
+  text-align: center;
+  transition:
+    border-color 180ms ease,
+    background-color 180ms ease,
+    transform 180ms ease;
+}
+
+.media-dropzone.is-dragover {
+  border-color: rgba(0, 91, 193, 0.64);
+  background:
+    radial-gradient(circle at top, rgba(216, 226, 255, 0.92), transparent 52%),
+    rgba(255, 255, 255, 0.86);
+  transform: translateY(-1px);
+}
+
+.media-dropzone .material-symbols-outlined {
+  font-size: 2.2rem;
+  color: var(--primary);
+}
+
+.media-dropzone h3 {
+  margin: 12px 0 6px;
+  color: var(--text);
+  font-size: 1rem;
+}
+
+.media-dropzone p {
+  margin: 0;
+  color: var(--text-soft);
+  font-size: 0.84rem;
+}
+
+.media-import-actions {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+
+.media-import-input {
+  display: none;
+}
+
+.media-import-meta {
+  color: var(--text-soft);
+  font-size: 0.76rem;
+  text-align: center;
+}
+
 .connection-tools {
   display: flex;
   gap: 10px;
@@ -1169,6 +1326,12 @@ button {
     padding-top: 320px;
   }
 
+  .media-drawer {
+    top: auto;
+    bottom: 16px;
+    height: min(420px, calc(100vh - 140px));
+  }
+
   .pen-controls {
     right: 16px;
     bottom: 102px;
@@ -1213,6 +1376,12 @@ button {
 
   .media-card {
     width: 320px;
+  }
+
+  .media-drawer {
+    left: 12px;
+    right: 12px;
+    width: auto;
   }
 
   .sticky-note {
