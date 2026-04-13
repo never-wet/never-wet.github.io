@@ -3,6 +3,7 @@ const $$ = (s) => Array.from(document.querySelectorAll(s));
 
 const viewport = $("#canvasViewport");
 const stage = $("#canvasStage");
+const drawLayer = $("#drawLayer");
 const cursorLayer = $("#cursorLayer");
 const fitButton = $("#fitButton");
 const zoomButton = $("#zoomButton");
@@ -29,6 +30,23 @@ const canvasGrid = $(".canvas-grid");
 const liveBadge = $("#liveBadge");
 const roomSummary = $("#roomSummary");
 const presenceList = $("#presenceList");
+const penControls = $("#penControls");
+const penWidthInput = $("#penWidthInput");
+const penWidthValue = $("#penWidthValue");
+const penSwatches = $$("[data-pen-color]");
+const penColorButton = $("#penColorButton");
+const penColorPopover = $("#penColorPopover");
+const penColorPreview = $("#penColorPreview");
+const penColorValue = $("#penColorValue");
+const penPickerSwatch = $("#penPickerSwatch");
+const penPickerCaption = $("#penPickerCaption");
+const penHexInput = $("#penHexInput");
+const penRedInput = $("#penRedInput");
+const penGreenInput = $("#penGreenInput");
+const penBlueInput = $("#penBlueInput");
+const penRedValue = $("#penRedValue");
+const penGreenValue = $("#penGreenValue");
+const penBlueValue = $("#penBlueValue");
 
 const STAGE_W = 2200;
 const STAGE_H = 1800;
@@ -44,6 +62,7 @@ const serverOrigin = resolveServerOrigin();
 const snapshotUrl = new URL(`/api/rooms/${encodeURIComponent(roomId)}`, serverOrigin);
 const websocketUrl = buildWebsocketUrl(serverOrigin, roomId, clientId);
 const nodes = new Map();
+const strokeNodes = new Map();
 const state = {
   roomId,
   elements: new Map(),
@@ -73,6 +92,9 @@ let localCount = 0;
 let currentTool = "sticky";
 let currentCursor = null;
 let presenceTimer = null;
+let drawState = null;
+let penColor = "#005bc1";
+let penWidth = 6;
 
 setup();
 setPanel("documents");
@@ -97,10 +119,16 @@ async function initLiveRoom() {
 function setup() {
   toolButtons.forEach((b) => b.addEventListener("click", () => {
     setTool(b.dataset.tool, true);
-    addItem(b.dataset.tool);
+    if (b.dataset.tool !== "pen") addItem(b.dataset.tool);
   }));
   navButtons.forEach((b) => b.addEventListener("click", () => setPanel(b.dataset.panel)));
-  newLayerButton.addEventListener("click", () => addItem(currentTool));
+  newLayerButton.addEventListener("click", () => {
+    if (currentTool === "pen") {
+      showToast("Use the canvas to draw with the pen");
+      return;
+    }
+    addItem(currentTool);
+  });
   helpButton.addEventListener("click", () => openModal("Public Live Mode", `<p>This page uses a custom live sync backend.</p><p>Anyone opening the same live link joins room <strong>${esc(roomId)}</strong> and should see the same shared canvas state.</p><p>Server: <code>${esc(serverOrigin)}</code></p>`));
   archiveButton.addEventListener("click", () => openModal("Archive Snapshot", `<p>${state.elements.size} shared layers are currently in room <strong>${esc(roomId)}</strong>.</p><p>This live room syncs state in real time, but the current backend is not a permanent archive.</p>`));
   shareButton.addEventListener("click", shareModal);
@@ -171,15 +199,40 @@ function setup() {
     }
     pushHistory(`${user.name} ${gridToggle.checked ? "showed" : "hid"} the grid`);
   });
+  penColorButton.addEventListener("click", (event) => {
+    event.stopPropagation();
+    penColorPopover.classList.toggle("is-hidden");
+  });
+  penColorPopover.addEventListener("pointerdown", (event) => event.stopPropagation());
+  penColorPopover.addEventListener("click", (event) => event.stopPropagation());
+  penSwatches.forEach((swatch) => swatch.addEventListener("click", () => {
+    setPenColor(swatch.dataset.penColor);
+  }));
+  [penRedInput, penGreenInput, penBlueInput].forEach((input) => input.addEventListener("input", syncPenColorFromRgb));
+  penHexInput.addEventListener("focus", selectPenHexInput);
+  penHexInput.addEventListener("input", syncPenColorFromHexPreview);
+  penHexInput.addEventListener("blur", syncPenColorFromHexCommit);
+  penHexInput.addEventListener("keydown", onPenHexKeyDown);
+  penWidthInput.addEventListener("input", () => {
+    penWidth = Number(penWidthInput.value);
+    penWidthValue.textContent = `${penWidth}px`;
+  });
+  setPenColor(penColor);
+  penWidthValue.textContent = `${penWidth}px`;
   closeModalButton.addEventListener("click", closeModal);
   modal.addEventListener("click", (e) => { if (e.target === modal) closeModal(); });
   document.addEventListener("click", (e) => {
     if (!e.target.closest("#moreButton") && !e.target.closest("#topMenu")) topMenu.classList.add("is-hidden");
+    if (!e.target.closest(".pen-picker-shell")) penColorPopover.classList.add("is-hidden");
   });
   viewport.addEventListener("pointerdown", panStart);
   viewport.addEventListener("pointermove", panMove);
   viewport.addEventListener("pointerup", panStop);
   viewport.addEventListener("pointercancel", panStop);
+  viewport.addEventListener("pointerdown", drawStart);
+  viewport.addEventListener("pointermove", drawMove);
+  viewport.addEventListener("pointerup", drawStop);
+  viewport.addEventListener("pointercancel", drawStop);
   viewport.addEventListener("pointermove", localCursor);
   viewport.addEventListener("pointerleave", () => sendPresence(null));
 }
@@ -368,6 +421,10 @@ function renderAll() {
 }
 
 function addItem(tool) {
+  if (tool === "pen") {
+    showToast("Use the canvas to draw with the pen");
+    return;
+  }
   if (!ensureConnected()) return;
   localCount += 1;
   const id = `item-${crypto.randomUUID()}`;
@@ -381,9 +438,8 @@ function addItem(tool) {
   let item;
   if (tool === "text") item = { ...base, kind: "text", title: `HEADLINE ${localCount}` };
   else if (tool === "shape") item = { ...base, kind: localCount % 2 === 0 ? "shape-circle" : "shape-blob", title: localCount % 2 === 0 ? `Shape ${localCount} Circle` : `Shape ${localCount} Blob` };
-  else if (tool === "media") item = { ...base, kind: "media", title: `Reference ${localCount}`, text: "Auto-added inspiration card", image: IMAGES[localCount % IMAGES.length], rotation: 3 };
-  else if (tool === "pen") item = { ...base, kind: "sticky", title: `Sketch Layer ${localCount}`, text: "Quick sketch stroke converted into a note card for this prototype.", rotation: -1 };
-  else item = { ...base, kind: "sticky", title: `Idea Note ${localCount}`, text: "Fresh note dropped onto the board. Drag it anywhere and keep building.", rotation: -2 };
+  else if (tool === "media") item = { ...base, kind: "media", title: `Reference ${localCount}`, text: "Auto-added inspiration card", image: IMAGES[localCount % IMAGES.length], rotation: 0 };
+  else item = { ...base, kind: "sticky", title: `Idea Note ${localCount}`, text: "Fresh note dropped onto the board. Drag it anywhere and keep building.", rotation: 0 };
   if (!sendMessage({ type: "element.upsert", payload: item })) return;
   rememberElement(item);
   renderElements();
@@ -399,6 +455,7 @@ function sortedElements() {
 function renderElements() {
   const ids = new Set();
   sortedElements().forEach((el) => {
+    if (el.kind === "stroke") return;
     ids.add(el.id);
     let node = nodes.get(el.id);
     if (!node) {
@@ -417,8 +474,34 @@ function renderElements() {
       nodes.delete(id);
     }
   });
+  renderStrokes();
   cursorLayer.remove();
   stage.appendChild(cursorLayer);
+}
+
+function renderStrokes() {
+  const ids = new Set();
+  sortedElements()
+    .filter((el) => el.kind === "stroke")
+    .forEach((el) => {
+      ids.add(el.id);
+      let node = strokeNodes.get(el.id);
+      if (!node) {
+        node = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        node.classList.add("draw-path");
+        strokeNodes.set(el.id, node);
+        drawLayer.appendChild(node);
+      }
+      node.setAttribute("d", pointsToPath(el.points || []));
+      node.setAttribute("stroke", el.color || "#005bc1");
+      node.setAttribute("stroke-width", String(el.width || 6));
+    });
+  Array.from(strokeNodes.keys()).forEach((id) => {
+    if (!ids.has(id)) {
+      strokeNodes.get(id)?.remove();
+      strokeNodes.delete(id);
+    }
+  });
 }
 
 function paint(node, el) {
@@ -430,15 +513,15 @@ function paint(node, el) {
   node.style.transform = "";
   if (el.kind === "sticky") {
     node.classList.add("sticky-note");
-    node.style.transform = `rotate(${el.rotation || -2}deg)`;
+    node.style.transform = `rotate(${el.rotation || 0}deg)`;
     node.innerHTML = `<div><h2 data-edit-field="title">${esc(el.title)}</h2><p data-edit-field="text">${esc(el.text)}</p></div><div class="pin-row"><span class="material-symbols-outlined">push_pin</span></div>`;
     return;
   }
   if (el.kind === "shape-circle") { node.classList.add("shape-circle"); node.innerHTML = ""; return; }
-  if (el.kind === "shape-blob") { node.classList.add("shape-blob"); node.style.transform = "rotate(15deg)"; node.innerHTML = ""; return; }
+  if (el.kind === "shape-blob") { node.classList.add("shape-blob"); node.style.transform = "none"; node.innerHTML = ""; return; }
   if (el.kind === "media") {
     node.classList.add("media-card");
-    node.style.transform = `rotate(${el.rotation || 3}deg)`;
+    node.style.transform = `rotate(${el.rotation || 0}deg)`;
     node.innerHTML = `<div class="media-frame"><img src="${esc(el.image)}" alt="${esc(el.title)}" /><div class="media-overlay"><span class="material-symbols-outlined">zoom_in</span></div></div><div class="media-copy"><h3 data-edit-field="title">${esc(el.title)}</h3><p data-edit-field="text">${esc(el.text)}</p></div>`;
     return;
   }
@@ -465,6 +548,7 @@ function bindDrag(node) {
   });
 
   node.addEventListener("pointerdown", (e) => {
+    if (currentTool === "pen") return;
     const source = e.target.nodeType === Node.TEXT_NODE ? e.target.parentElement : e.target;
     if (source?.closest('[data-edit-field][data-editing="true"]')) return;
     e.stopPropagation();
@@ -576,13 +660,13 @@ function caretEnd(el) {
 }
 
 function panStart(e) {
-  if (!panEnabled || dragState || e.target.closest(".draggable") || e.target.closest("button")) return;
+  if (!panEnabled || dragState || drawState || currentTool === "pen" || e.target.closest(".draggable") || e.target.closest("button")) return;
   panState = { pid: e.pointerId, sx: e.clientX, sy: e.clientY, sl: viewport.scrollLeft, st: viewport.scrollTop };
   viewport.classList.add("is-panning");
   viewport.setPointerCapture(e.pointerId);
 }
 function panMove(e) {
-  if (!panState || dragState || panState.pid !== e.pointerId) return;
+  if (!panState || dragState || drawState || panState.pid !== e.pointerId) return;
   viewport.scrollLeft = panState.sl - (e.clientX - panState.sx);
   viewport.scrollTop = panState.st - (e.clientY - panState.sy);
 }
@@ -596,6 +680,60 @@ function panStop(e) {
 function localCursor(e) {
   const r = stage.getBoundingClientRect();
   sendPresence({ x: (e.clientX - r.left) / zoom, y: (e.clientY - r.top) / zoom });
+}
+
+function drawStart(e) {
+  if (currentTool !== "pen" || dragState || e.button !== 0 || e.target.closest(".draggable") || e.target.closest("button") || e.target.closest("input") || e.target.closest("label")) return;
+  if (!ensureConnected()) return;
+  const point = pointerToStagePoint(e);
+  drawState = {
+    pid: e.pointerId,
+    points: [point],
+    preview: document.createElementNS("http://www.w3.org/2000/svg", "path")
+  };
+  drawState.preview.classList.add("draw-path");
+  drawState.preview.setAttribute("stroke", penColor);
+  drawState.preview.setAttribute("stroke-width", String(penWidth));
+  drawState.preview.setAttribute("d", pointsToPath(drawState.points));
+  drawLayer.appendChild(drawState.preview);
+  viewport.setPointerCapture(e.pointerId);
+  e.preventDefault();
+}
+
+function drawMove(e) {
+  if (!drawState || drawState.pid !== e.pointerId) return;
+  const point = pointerToStagePoint(e);
+  const last = drawState.points[drawState.points.length - 1];
+  if (last && Math.hypot(point.x - last.x, point.y - last.y) < 1.5) return;
+  drawState.points.push(point);
+  drawState.preview.setAttribute("d", pointsToPath(drawState.points));
+  e.preventDefault();
+}
+
+function drawStop(e) {
+  if (!drawState || drawState.pid !== e.pointerId) return;
+  const points = drawState.points.slice();
+  drawState.preview.remove();
+  viewport.releasePointerCapture(e.pointerId);
+  drawState = null;
+  if (points.length < 2) return;
+  localCount += 1;
+  const stroke = {
+    id: `stroke-${crypto.randomUUID()}`,
+    kind: "stroke",
+    title: `Stroke ${localCount}`,
+    points,
+    color: penColor,
+    width: penWidth,
+    order: nextOrder(),
+    seed: false
+  };
+  if (!sendMessage({ type: "element.upsert", payload: stroke })) return;
+  rememberElement(stroke);
+  renderElements();
+  renderLayers();
+  pushHistory(`${user.name} drew a stroke`);
+  showToast("Stroke added");
 }
 
 function renderSettings() {
@@ -637,7 +775,63 @@ function renderRemote() {
 function setTool(tool, toastIt) {
   currentTool = tool;
   toolButtons.forEach((b) => b.classList.toggle("is-active", b.dataset.tool === tool));
+  penControls.classList.toggle("is-hidden", tool !== "pen");
+  if (tool !== "pen") penColorPopover.classList.add("is-hidden");
   if (toastIt) showToast(`${tool[0].toUpperCase()}${tool.slice(1)} tool selected`);
+}
+function syncPenSwatches(color) {
+  penSwatches.forEach((swatch) => swatch.classList.toggle("is-active", swatch.dataset.penColor?.toLowerCase() === color.toLowerCase()));
+  penColorPreview?.style.setProperty("--pen-preview", color);
+  if (penColorValue) penColorValue.textContent = color.toUpperCase();
+  penPickerSwatch?.style.setProperty("--pen-preview", color);
+  if (penPickerCaption) penPickerCaption.textContent = color.toUpperCase();
+}
+function setPenColor(color) {
+  penColor = normalizeHex(color) || penColor;
+  syncPenSwatches(penColor);
+  syncPenColorInputs(penColor);
+}
+function syncPenColorInputs(color) {
+  const rgb = hexToRgb(color);
+  if (!rgb) return;
+  if (document.activeElement !== penHexInput) {
+    penHexInput.value = color.toUpperCase();
+  }
+  penRedInput.value = String(rgb.r);
+  penGreenInput.value = String(rgb.g);
+  penBlueInput.value = String(rgb.b);
+  penRedValue.textContent = String(rgb.r);
+  penGreenValue.textContent = String(rgb.g);
+  penBlueValue.textContent = String(rgb.b);
+}
+function syncPenColorFromRgb() {
+  penRedValue.textContent = penRedInput.value;
+  penGreenValue.textContent = penGreenInput.value;
+  penBlueValue.textContent = penBlueInput.value;
+  setPenColor(rgbToHex(Number(penRedInput.value), Number(penGreenInput.value), Number(penBlueInput.value)));
+}
+function syncPenColorFromHexPreview() {
+  const next = normalizeHex(penHexInput.value);
+  if (!next) return;
+  setPenColor(next);
+}
+function syncPenColorFromHexCommit() {
+  const next = normalizeHex(penHexInput.value);
+  if (!next) {
+    penHexInput.value = penColor.toUpperCase();
+    return;
+  }
+  setPenColor(next);
+}
+function selectPenHexInput() {
+  queueMicrotask(() => penHexInput.select());
+}
+function onPenHexKeyDown(event) {
+  if (event.key === "Enter") {
+    event.preventDefault();
+    syncPenColorFromHexCommit();
+    penHexInput.blur();
+  }
 }
 
 function setPanel(panel) {
@@ -850,3 +1044,36 @@ async function readSocketMessage(data) {
 
 async function copyText(v, ok) { try { await navigator.clipboard.writeText(v); showToast(ok); } catch { showToast("Copy failed"); } }
 function esc(v) { return String(v ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#39;"); }
+function pointerToStagePoint(e) {
+  const rect = stage.getBoundingClientRect();
+  return {
+    x: (e.clientX - rect.left) / zoom,
+    y: (e.clientY - rect.top) / zoom
+  };
+}
+function pointsToPath(points) {
+  if (!points.length) return "";
+  if (points.length === 1) return `M ${points[0].x} ${points[0].y}`;
+  return points.map((point, index) => `${index === 0 ? "M" : "L"} ${Math.round(point.x * 10) / 10} ${Math.round(point.y * 10) / 10}`).join(" ");
+}
+function normalizeHex(value) {
+  const raw = String(value || "").trim().replace(/^#/, "");
+  if (/^[\da-fA-F]{3}$/.test(raw)) {
+    return `#${raw.split("").map((char) => `${char}${char}`).join("").toLowerCase()}`;
+  }
+  if (/^[\da-fA-F]{6}$/.test(raw)) return `#${raw.toLowerCase()}`;
+  return null;
+}
+function hexToRgb(hex) {
+  const normalized = normalizeHex(hex);
+  if (!normalized) return null;
+  const value = normalized.slice(1);
+  return {
+    r: Number.parseInt(value.slice(0, 2), 16),
+    g: Number.parseInt(value.slice(2, 4), 16),
+    b: Number.parseInt(value.slice(4, 6), 16),
+  };
+}
+function rgbToHex(r, g, b) {
+  return `#${[r, g, b].map((value) => Math.max(0, Math.min(255, value)).toString(16).padStart(2, "0")).join("")}`;
+}

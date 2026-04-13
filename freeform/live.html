@@ -158,10 +158,68 @@
         aria-label="Infinite canvas"
       >
         <div class="canvas-stage" id="canvasStage">
+          <svg class="draw-layer" id="drawLayer" aria-hidden="true"></svg>
           <div class="cursor-layer" id="cursorLayer" aria-hidden="true"></div>
         </div>
       </section>
     </main>
+
+    <section class="pen-controls glass-panel is-hidden" id="penControls" aria-label="Pen controls">
+      <div class="pen-control">
+        <span>Color</span>
+        <div class="pen-color-row">
+          <div class="pen-swatches" id="penSwatches" role="list" aria-label="Pen colors">
+            <button class="pen-swatch is-active" type="button" data-pen-color="#005bc1" style="--swatch:#005bc1" aria-label="Blue"></button>
+            <button class="pen-swatch" type="button" data-pen-color="#0f766e" style="--swatch:#0f766e" aria-label="Teal"></button>
+            <button class="pen-swatch" type="button" data-pen-color="#b45309" style="--swatch:#b45309" aria-label="Amber"></button>
+            <button class="pen-swatch" type="button" data-pen-color="#be123c" style="--swatch:#be123c" aria-label="Rose"></button>
+            <button class="pen-swatch" type="button" data-pen-color="#7c3aed" style="--swatch:#7c3aed" aria-label="Violet"></button>
+          </div>
+          <div class="pen-picker-shell">
+            <button class="pen-color-chip" id="penColorButton" type="button" aria-label="Open custom pen color picker">
+            <span class="pen-color-preview" id="penColorPreview"></span>
+            <span class="pen-color-meta">
+              <span class="material-symbols-outlined">palette</span>
+              <strong id="penColorValue">#005BC1</strong>
+            </span>
+            </button>
+            <section class="pen-picker-popover glass-panel is-hidden" id="penColorPopover" aria-label="Custom color picker">
+              <div class="pen-picker-header">
+                <div class="pen-picker-swatch" id="penPickerSwatch"></div>
+                <div>
+                  <strong>Custom Color</strong>
+                  <p id="penPickerCaption">#005BC1</p>
+                </div>
+              </div>
+              <div class="pen-picker-field">
+                <span>Hex</span>
+                <input id="penHexInput" type="text" maxlength="7" value="#005BC1" spellcheck="false" />
+              </div>
+              <div class="pen-picker-field">
+                <span>R</span>
+                <input id="penRedInput" type="range" min="0" max="255" value="0" />
+                <strong id="penRedValue">0</strong>
+              </div>
+              <div class="pen-picker-field">
+                <span>G</span>
+                <input id="penGreenInput" type="range" min="0" max="255" value="91" />
+                <strong id="penGreenValue">91</strong>
+              </div>
+              <div class="pen-picker-field">
+                <span>B</span>
+                <input id="penBlueInput" type="range" min="0" max="255" value="193" />
+                <strong id="penBlueValue">193</strong>
+              </div>
+            </section>
+          </div>
+        </div>
+      </div>
+      <label class="pen-control pen-width-control">
+        <span>Thickness</span>
+        <input id="penWidthInput" type="range" min="2" max="18" value="6" />
+        <strong id="penWidthValue">6px</strong>
+      </label>
+    </section>
 
     <div class="bottom-dock glass-panel">
       <button class="dock-button" id="zoomButton" type="button">

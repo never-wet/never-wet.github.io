@@ -3,6 +3,7 @@ const $$ = (s) => Array.from(document.querySelectorAll(s));
 
 const viewport = $("#canvasViewport");
 const stage = $("#canvasStage");
+const drawLayer = $("#drawLayer");
 const cursorLayer = $("#cursorLayer");
 const fitButton = $("#fitButton");
 const zoomButton = $("#zoomButton");
@@ -29,6 +30,23 @@ const canvasGrid = $(".canvas-grid");
 const liveBadge = $("#liveBadge");
 const roomSummary = $("#roomSummary");
 const presenceList = $("#presenceList");
+const penControls = $("#penControls");
+const penWidthInput = $("#penWidthInput");
+const penWidthValue = $("#penWidthValue");
+const penSwatches = $$("[data-pen-color]");
+const penColorButton = $("#penColorButton");
+const penColorPopover = $("#penColorPopover");
+const penColorPreview = $("#penColorPreview");
+const penColorValue = $("#penColorValue");
+const penPickerSwatch = $("#penPickerSwatch");
+const penPickerCaption = $("#penPickerCaption");
+const penHexInput = $("#penHexInput");
+const penRedInput = $("#penRedInput");
+const penGreenInput = $("#penGreenInput");
+const penBlueInput = $("#penBlueInput");
+const penRedValue = $("#penRedValue");
+const penGreenValue = $("#penGreenValue");
+const penBlueValue = $("#penBlueValue");
 
 const STAGE_W = 2200;
 const STAGE_H = 1800;
@@ -42,6 +60,7 @@ const peers = new Map();
 const remote = new Map();
 const pending = new Map();
 const nodes = new Map();
+const strokeNodes = new Map();
 const state = {
   mode: "solo",
   roomId: ensureRoomId(),
@@ -54,11 +73,14 @@ const state = {
   order: 6,
   history: ["Canvas ready"],
   elements: seed(),
+  penColor: "#005bc1",
+  penWidth: 6,
 };
 
 let toastTimer = null;
 let panState = null;
 let dragState = null;
+let drawState = null;
 
 setup();
 render();
@@ -67,10 +89,16 @@ window.addEventListener("load", () => center(false));
 function setup() {
   toolButtons.forEach((b) => b.addEventListener("click", () => {
     setTool(b.dataset.tool, true);
-    dispatch({ type: "add", tool: b.dataset.tool, actor: user.name });
+    if (b.dataset.tool !== "pen") dispatch({ type: "add", tool: b.dataset.tool, actor: user.name });
   }));
   navButtons.forEach((b) => b.addEventListener("click", () => setPanel(b.dataset.panel)));
-  newLayerButton.addEventListener("click", () => dispatch({ type: "add", tool: state.tool, actor: user.name }));
+  newLayerButton.addEventListener("click", () => {
+    if (state.tool === "pen") {
+      showToast("Use the canvas to draw with the pen");
+      return;
+    }
+    dispatch({ type: "add", tool: state.tool, actor: user.name });
+  });
   helpButton.addEventListener("click", helpModal);
   archiveButton.addEventListener("click", () => openModal("Archive Snapshot", `<p>${state.elements.length} live layers are on this host-based session.</p><p>If the host closes, the room disappears.</p>`));
   shareButton.addEventListener("click", shareModal);
@@ -105,15 +133,40 @@ function setup() {
     dock(zoomButton);
   });
   gridToggle.addEventListener("change", () => dispatch({ type: "grid", visible: gridToggle.checked, actor: user.name }));
+  penColorButton.addEventListener("click", (event) => {
+    event.stopPropagation();
+    penColorPopover.classList.toggle("is-hidden");
+  });
+  penColorPopover.addEventListener("pointerdown", (event) => event.stopPropagation());
+  penColorPopover.addEventListener("click", (event) => event.stopPropagation());
+  penSwatches.forEach((swatch) => swatch.addEventListener("click", () => {
+    setPenColor(swatch.dataset.penColor);
+  }));
+  [penRedInput, penGreenInput, penBlueInput].forEach((input) => input.addEventListener("input", syncPenColorFromRgb));
+  penHexInput.addEventListener("focus", selectPenHexInput);
+  penHexInput.addEventListener("input", syncPenColorFromHexPreview);
+  penHexInput.addEventListener("blur", syncPenColorFromHexCommit);
+  penHexInput.addEventListener("keydown", onPenHexKeyDown);
+  penWidthInput.addEventListener("input", () => {
+    state.penWidth = Number(penWidthInput.value);
+    penWidthValue.textContent = `${state.penWidth}px`;
+  });
+  setPenColor(state.penColor);
+  penWidthValue.textContent = `${state.penWidth}px`;
   closeModalButton.addEventListener("click", closeModal);
   modal.addEventListener("click", (e) => { if (e.target === modal) closeModal(); });
   document.addEventListener("click", (e) => {
     if (!e.target.closest("#moreButton") && !e.target.closest("#topMenu")) topMenu.classList.add("is-hidden");
+    if (!e.target.closest(".pen-picker-shell")) penColorPopover.classList.add("is-hidden");
   });
   viewport.addEventListener("pointerdown", panStart);
   viewport.addEventListener("pointermove", panMove);
   viewport.addEventListener("pointerup", panStop);
   viewport.addEventListener("pointercancel", panStop);
+  viewport.addEventListener("pointerdown", drawStart);
+  viewport.addEventListener("pointermove", drawMove);
+  viewport.addEventListener("pointerup", drawStop);
+  viewport.addEventListener("pointercancel", drawStop);
   viewport.addEventListener("pointermove", localCursor);
   viewport.addEventListener("pointerleave", () => sendCursor(null));
 }
@@ -133,10 +186,10 @@ function render() {
 
 function seed() {
   return [
-    { id: "seed-note", kind: "sticky", title: "Project Brainstorm", text: "Add ideas for the new ethereal workshop interface here...", x: 360, y: 220, rotation: -2, order: 1, seed: true },
+    { id: "seed-note", kind: "sticky", title: "Project Brainstorm", text: "Add ideas for the new ethereal workshop interface here...", x: 360, y: 220, rotation: 0, order: 1, seed: true },
     { id: "seed-circle", kind: "shape-circle", title: "Orbit Circle", x: 760, y: 180, order: 2, seed: true },
     { id: "seed-blob", kind: "shape-blob", title: "Glass Blob", x: 850, y: 310, order: 3, seed: true },
-    { id: "seed-media", kind: "media", title: "Creative Reference #42", text: "Inspired by ethereal workshop concept", image: "../img/code2.png", x: 470, y: 560, rotation: 3, order: 4, seed: true },
+    { id: "seed-media", kind: "media", title: "Creative Reference #42", text: "Inspired by ethereal workshop concept", image: "../img/code2.png", x: 470, y: 560, rotation: 0, order: 4, seed: true },
     { id: "seed-type", kind: "text", title: "ETHEREAL WORKSPACE", x: 1010, y: 470, order: 5, seed: true },
     { id: "seed-sprint", kind: "sprint", title: "Design Sprint", text: "Due in 2 days", x: 1130, y: 170, order: 6, seed: true },
   ];
@@ -150,10 +203,16 @@ function dispatch(action, fromPeer = false) {
 
 function apply(a) {
   if (a.type === "add") {
+    if (a.tool === "pen") return;
     state.count += 1;
     state.elements.push(makeItem(a.tool, state.count));
     log(`${a.actor} added ${state.elements[state.elements.length - 1].title}`);
     showToast(`${state.elements[state.elements.length - 1].title} created`);
+  }
+  if (a.type === "draw") {
+    state.count += 1;
+    state.elements.push(makeStroke(a.points, a.color, a.width));
+    log(`${a.actor} drew a stroke`);
   }
   if (a.type === "front") {
     const el = find(a.id);
@@ -208,14 +267,27 @@ function makeItem(tool, n) {
   const base = { id: `item-${crypto.randomUUID()}`, x: 320 + (n % 5) * 120, y: 240 + (n % 4) * 110, order: nextOrder(), seed: false };
   if (tool === "text") return { ...base, kind: "text", title: `HEADLINE ${n}` };
   if (tool === "shape") return { ...base, kind: n % 2 === 0 ? "shape-circle" : "shape-blob", title: n % 2 === 0 ? `Shape ${n} Circle` : `Shape ${n} Blob` };
-  if (tool === "media") return { ...base, kind: "media", title: `Reference ${n}`, text: "Auto-added inspiration card", image: IMAGES[n % IMAGES.length], rotation: 3 };
-  if (tool === "pen") return { ...base, kind: "sticky", title: `Sketch Layer ${n}`, text: "Quick sketch stroke converted into a note card for this prototype.", rotation: -1 };
-  return { ...base, kind: "sticky", title: `Idea Note ${n}`, text: "Fresh note dropped onto the board. Drag it anywhere and keep building.", rotation: -2 };
+  if (tool === "media") return { ...base, kind: "media", title: `Reference ${n}`, text: "Auto-added inspiration card", image: IMAGES[n % IMAGES.length], rotation: 0 };
+  return { ...base, kind: "sticky", title: `Idea Note ${n}`, text: "Fresh note dropped onto the board. Drag it anywhere and keep building.", rotation: 0 };
+}
+
+function makeStroke(points, color, width) {
+  return {
+    id: `stroke-${crypto.randomUUID()}`,
+    kind: "stroke",
+    title: `Stroke ${state.count}`,
+    points,
+    color,
+    width,
+    order: nextOrder(),
+    seed: false,
+  };
 }
 
 function renderElements() {
   const ids = new Set();
   state.elements.slice().sort((l, r) => l.order - r.order).forEach((el) => {
+    if (el.kind === "stroke") return;
     ids.add(el.id);
     let node = nodes.get(el.id);
     if (!node) {
@@ -234,8 +306,35 @@ function renderElements() {
       nodes.delete(id);
     }
   });
+  renderStrokes();
   cursorLayer.remove();
   stage.appendChild(cursorLayer);
+}
+
+function renderStrokes() {
+  const ids = new Set();
+  state.elements
+    .filter((el) => el.kind === "stroke")
+    .sort((l, r) => l.order - r.order)
+    .forEach((el) => {
+      ids.add(el.id);
+      let node = strokeNodes.get(el.id);
+      if (!node) {
+        node = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        node.classList.add("draw-path");
+        strokeNodes.set(el.id, node);
+        drawLayer.appendChild(node);
+      }
+      node.setAttribute("d", pointsToPath(el.points || []));
+      node.setAttribute("stroke", el.color || "#005bc1");
+      node.setAttribute("stroke-width", String(el.width || 6));
+    });
+  Array.from(strokeNodes.keys()).forEach((id) => {
+    if (!ids.has(id)) {
+      strokeNodes.get(id)?.remove();
+      strokeNodes.delete(id);
+    }
+  });
 }
 
 function paint(node, el) {
@@ -247,15 +346,15 @@ function paint(node, el) {
   node.style.transform = "";
   if (el.kind === "sticky") {
     node.classList.add("sticky-note");
-    node.style.transform = `rotate(${el.rotation || -2}deg)`;
+    node.style.transform = `rotate(${el.rotation || 0}deg)`;
     node.innerHTML = `<div><h2 data-edit-field="title">${esc(el.title)}</h2><p data-edit-field="text">${esc(el.text)}</p></div><div class="pin-row"><span class="material-symbols-outlined">push_pin</span></div>`;
     return;
   }
   if (el.kind === "shape-circle") { node.classList.add("shape-circle"); node.innerHTML = ""; return; }
-  if (el.kind === "shape-blob") { node.classList.add("shape-blob"); node.style.transform = "rotate(15deg)"; node.innerHTML = ""; return; }
+  if (el.kind === "shape-blob") { node.classList.add("shape-blob"); node.style.transform = "none"; node.innerHTML = ""; return; }
   if (el.kind === "media") {
     node.classList.add("media-card");
-    node.style.transform = `rotate(${el.rotation || 3}deg)`;
+    node.style.transform = `rotate(${el.rotation || 0}deg)`;
     node.innerHTML = `<div class="media-frame"><img src="${esc(el.image)}" alt="${esc(el.title)}" /><div class="media-overlay"><span class="material-symbols-outlined">zoom_in</span></div></div><div class="media-copy"><h3 data-edit-field="title">${esc(el.title)}</h3><p data-edit-field="text">${esc(el.text)}</p></div>`;
     return;
   }
@@ -283,6 +382,7 @@ function bindDrag(node) {
   });
 
   node.addEventListener("pointerdown", (e) => {
+    if (state.tool === "pen") return;
     const source = e.target.nodeType === Node.TEXT_NODE ? e.target.parentElement : e.target;
     if (source?.closest('[data-edit-field][data-editing="true"]')) return;
     e.stopPropagation();
@@ -335,13 +435,13 @@ function bindDrag(node) {
 }
 
 function panStart(e) {
-  if (!state.pan || dragState || e.target.closest(".draggable") || e.target.closest("button")) return;
+  if (!state.pan || dragState || drawState || state.tool === "pen" || e.target.closest(".draggable") || e.target.closest("button")) return;
   panState = { pid: e.pointerId, sx: e.clientX, sy: e.clientY, sl: viewport.scrollLeft, st: viewport.scrollTop };
   viewport.classList.add("is-panning");
   viewport.setPointerCapture(e.pointerId);
 }
 function panMove(e) {
-  if (!panState || dragState || panState.pid !== e.pointerId) return;
+  if (!panState || dragState || drawState || panState.pid !== e.pointerId) return;
   viewport.scrollLeft = panState.sl - (e.clientX - panState.sx);
   viewport.scrollTop = panState.st - (e.clientY - panState.sy);
 }
@@ -356,6 +456,45 @@ function localCursor(e) {
   if (state.mode === "solo") return;
   const r = stage.getBoundingClientRect();
   sendCursor({ x: (e.clientX - r.left) / state.zoom, y: (e.clientY - r.top) / state.zoom });
+}
+
+function drawStart(e) {
+  if (state.tool !== "pen" || dragState || e.button !== 0 || e.target.closest(".draggable") || e.target.closest("button") || e.target.closest("input") || e.target.closest("label")) return;
+  const point = pointerToStagePoint(e);
+  drawState = {
+    pid: e.pointerId,
+    points: [point],
+    preview: document.createElementNS("http://www.w3.org/2000/svg", "path"),
+  };
+  drawState.preview.classList.add("draw-path");
+  drawState.preview.setAttribute("stroke", state.penColor);
+  drawState.preview.setAttribute("stroke-width", String(state.penWidth));
+  drawState.preview.setAttribute("d", pointsToPath(drawState.points));
+  drawLayer.appendChild(drawState.preview);
+  viewport.setPointerCapture(e.pointerId);
+  e.preventDefault();
+}
+
+function drawMove(e) {
+  if (!drawState || drawState.pid !== e.pointerId) return;
+  const point = pointerToStagePoint(e);
+  const last = drawState.points[drawState.points.length - 1];
+  if (last && Math.hypot(point.x - last.x, point.y - last.y) < 1.5) return;
+  drawState.points.push(point);
+  drawState.preview.setAttribute("d", pointsToPath(drawState.points));
+  e.preventDefault();
+}
+
+function drawStop(e) {
+  if (!drawState || drawState.pid !== e.pointerId) return;
+  const points = drawState.points.slice();
+  drawState.preview.remove();
+  viewport.releasePointerCapture(e.pointerId);
+  drawState = null;
+  if (points.length < 2) return;
+  dispatch({ type: "draw", points, color: state.penColor, width: state.penWidth, actor: user.name });
+  renderElements();
+  showToast("Stroke added");
 }
 
 function startInlineEdit(target, owner) {
@@ -427,7 +566,7 @@ function renderSettings() {
   document.body.classList.toggle("alt-glow", state.glow);
 }
 function renderHistory() { historyList.innerHTML = state.history.slice(0, 8).map((x) => `<li>${esc(x)}</li>`).join(""); }
-function renderLayers() { layerList.innerHTML = state.elements.slice().sort((l, r) => r.order - l.order).map((x) => `<li>${esc(x.title)}</li>`).join(""); }
+function renderLayers() { layerList.innerHTML = state.elements.slice().sort((l, r) => r.order - l.order).map((x) => `<li>${esc(x.title || "Stroke")}</li>`).join(""); }
 function renderPresence() {
   const people = [user, ...Array.from(remote.values()).map((x) => x.user)];
   presenceList.innerHTML = people.map((u) => `<span class="presence-chip"><span class="presence-dot" style="background:${esc(u.color)}"></span><span>${esc(u.name)}</span></span>`).join("");
@@ -445,7 +584,63 @@ function updateBadge() {
 function setTool(tool, toastIt) {
   state.tool = tool;
   toolButtons.forEach((b) => b.classList.toggle("is-active", b.dataset.tool === tool));
+  penControls.classList.toggle("is-hidden", tool !== "pen");
+  if (tool !== "pen") penColorPopover.classList.add("is-hidden");
   if (toastIt) showToast(`${tool[0].toUpperCase()}${tool.slice(1)} tool selected`);
+}
+function syncPenSwatches(color) {
+  penSwatches.forEach((swatch) => swatch.classList.toggle("is-active", swatch.dataset.penColor?.toLowerCase() === color.toLowerCase()));
+  penColorPreview?.style.setProperty("--pen-preview", color);
+  if (penColorValue) penColorValue.textContent = color.toUpperCase();
+  penPickerSwatch?.style.setProperty("--pen-preview", color);
+  if (penPickerCaption) penPickerCaption.textContent = color.toUpperCase();
+}
+function setPenColor(color) {
+  state.penColor = normalizeHex(color) || state.penColor;
+  syncPenSwatches(state.penColor);
+  syncPenColorInputs(state.penColor);
+}
+function syncPenColorInputs(color) {
+  const rgb = hexToRgb(color);
+  if (!rgb) return;
+  if (document.activeElement !== penHexInput) {
+    penHexInput.value = color.toUpperCase();
+  }
+  penRedInput.value = String(rgb.r);
+  penGreenInput.value = String(rgb.g);
+  penBlueInput.value = String(rgb.b);
+  penRedValue.textContent = String(rgb.r);
+  penGreenValue.textContent = String(rgb.g);
+  penBlueValue.textContent = String(rgb.b);
+}
+function syncPenColorFromRgb() {
+  penRedValue.textContent = penRedInput.value;
+  penGreenValue.textContent = penGreenInput.value;
+  penBlueValue.textContent = penBlueInput.value;
+  setPenColor(rgbToHex(Number(penRedInput.value), Number(penGreenInput.value), Number(penBlueInput.value)));
+}
+function syncPenColorFromHexPreview() {
+  const next = normalizeHex(penHexInput.value);
+  if (!next) return;
+  setPenColor(next);
+}
+function syncPenColorFromHexCommit() {
+  const next = normalizeHex(penHexInput.value);
+  if (!next) {
+    penHexInput.value = state.penColor.toUpperCase();
+    return;
+  }
+  setPenColor(next);
+}
+function selectPenHexInput() {
+  queueMicrotask(() => penHexInput.select());
+}
+function onPenHexKeyDown(event) {
+  if (event.key === "Enter") {
+    event.preventDefault();
+    syncPenColorFromHexCommit();
+    penHexInput.blur();
+  }
 }
 function setPanel(panel) {
   navButtons.forEach((b) => b.classList.toggle("is-active", b.dataset.panel === panel));
@@ -656,3 +851,33 @@ function enc(x) { return btoa(unescape(encodeURIComponent(JSON.stringify(x)))); 
 function dec(x) { return JSON.parse(decodeURIComponent(escape(atob(x)))); }
 async function copyText(v, ok) { try { await navigator.clipboard.writeText(v); showToast(ok); } catch { showToast("Copy failed"); } }
 function esc(v) { return String(v).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#39;"); }
+function pointerToStagePoint(e) {
+  const rect = stage.getBoundingClientRect();
+  return { x: (e.clientX - rect.left) / state.zoom, y: (e.clientY - rect.top) / state.zoom };
+}
+function pointsToPath(points) {
+  if (!points.length) return "";
+  if (points.length === 1) return `M ${points[0].x} ${points[0].y}`;
+  return points.map((point, index) => `${index === 0 ? "M" : "L"} ${Math.round(point.x * 10) / 10} ${Math.round(point.y * 10) / 10}`).join(" ");
+}
+function normalizeHex(value) {
+  const raw = String(value || "").trim().replace(/^#/, "");
+  if (/^[\da-fA-F]{3}$/.test(raw)) {
+    return `#${raw.split("").map((char) => `${char}${char}`).join("").toLowerCase()}`;
+  }
+  if (/^[\da-fA-F]{6}$/.test(raw)) return `#${raw.toLowerCase()}`;
+  return null;
+}
+function hexToRgb(hex) {
+  const normalized = normalizeHex(hex);
+  if (!normalized) return null;
+  const value = normalized.slice(1);
+  return {
+    r: Number.parseInt(value.slice(0, 2), 16),
+    g: Number.parseInt(value.slice(2, 4), 16),
+    b: Number.parseInt(value.slice(4, 6), 16),
+  };
+}
+function rgbToHex(r, g, b) {
+  return `#${[r, g, b].map((value) => Math.max(0, Math.min(255, value)).toString(16).padStart(2, "0")).join("")}`;
+}
