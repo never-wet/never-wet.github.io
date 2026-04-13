@@ -1,5 +1,5 @@
 import * as Y from "https://esm.sh/yjs@13.6.27";
-import { WebrtcProvider } from "https://esm.sh/y-webrtc@10.3.0?bundle";
+import { WebsocketProvider } from "https://esm.sh/y-websocket@2.1.0?bundle";
 
 const viewport = document.getElementById("canvasViewport");
 const stage = document.getElementById("canvasStage");
@@ -31,6 +31,7 @@ const roomSummary = document.getElementById("roomSummary");
 const presenceList = document.getElementById("presenceList");
 
 const ROOM_PREFIX = "never-wet-freeform";
+const WS_SERVER_URL = "wss://demos.yjs.dev/ws";
 const STAGE_BASE_WIDTH = 2200;
 const STAGE_BASE_HEIGHT = 1800;
 const HISTORY_LIMIT = 20;
@@ -65,7 +66,7 @@ const userNames = [
 const roomId = ensureRoomId();
 const roomUrl = new URL(window.location.href);
 const ydoc = new Y.Doc();
-const provider = new WebrtcProvider(`${ROOM_PREFIX}-${roomId}`, ydoc);
+const provider = new WebsocketProvider(WS_SERVER_URL, `${ROOM_PREFIX}-${roomId}`, ydoc);
 const awareness = provider.awareness;
 const yElements = ydoc.getMap("elements");
 const ySettings = ydoc.getMap("settings");
@@ -96,6 +97,17 @@ function setupRealtime() {
   awareness.setLocalStateField("user", localUser);
   awareness.setLocalStateField("tool", currentTool);
   awareness.setLocalStateField("cursor", null);
+
+  provider.on("status", (event) => {
+    const statusText = event.status === "connected" ? "connected" : "connecting";
+    liveBadge.textContent = `${statusText} ${roomId}`;
+  });
+
+  provider.on("sync", (isSynced) => {
+    if (isSynced) {
+      showToast("Live room synced");
+    }
+  });
 
   yElements.observeDeep(() => {
     renderElements();
@@ -143,7 +155,7 @@ function setupUi() {
   helpButton.addEventListener("click", () => {
     openModal(
       "Live Collaboration",
-      `<p>This canvas now opens a shared room from the link in your address bar.</p><p>Anyone opening the same link joins the same board, sees changes live, and appears in the collaborator strip.</p><p>Drag objects, create layers, shuffle layouts, and toggle shared board settings together in real time.</p>`
+      `<p>This canvas now opens a shared room from the link in your address bar.</p><p>Anyone opening the same link joins the same board through a shared websocket sync server, so updates travel across different laptops instead of relying on direct browser-to-browser connections.</p><p>Drag objects, create layers, shuffle layouts, and toggle shared board settings together in real time.</p>`
     );
   });
 
@@ -351,8 +363,8 @@ function renderAll() {
   refreshLayerList();
   renderPresence();
   renderRemoteCursors();
-  roomSummary.textContent = `Room ${roomId} is live. Send the link to collaborate on the same canvas in real time.`;
-  liveBadge.textContent = `Room ${roomId}`;
+  roomSummary.textContent = `Room ${roomId} is live through a shared sync server. Anyone opening this exact link joins the same board.`;
+  liveBadge.textContent = `connecting ${roomId}`;
 }
 
 function renderElements() {
@@ -617,7 +629,8 @@ function pushCursorAwareness(cursor) {
 
 function renderPresence() {
   const states = Array.from(awareness.getStates().values()).filter((state) => state?.user);
-  liveBadge.textContent = `${states.length} live in ${roomId}`;
+  const presenceText = states.length === 1 ? "1 live" : `${states.length} live`;
+  liveBadge.textContent = `${presenceText} ${roomId}`;
   presenceList.innerHTML = states
     .map((state) => {
       const user = state.user;
