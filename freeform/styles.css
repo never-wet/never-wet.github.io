@@ -802,6 +802,38 @@ button {
   margin: 0 0 12px;
 }
 
+.connection-tools {
+  display: flex;
+  gap: 10px;
+  margin-top: 14px;
+  flex-wrap: wrap;
+}
+
+.connection-panel {
+  margin-top: 16px;
+}
+
+.connection-label {
+  display: block;
+  margin: 12px 0 8px;
+  color: var(--text);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.connection-textarea {
+  width: 100%;
+  min-height: 112px;
+  resize: vertical;
+  padding: 12px 14px;
+  border: 1px solid rgba(172, 178, 191, 0.4);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.74);
+  color: var(--text);
+  font: inherit;
+  line-height: 1.5;
+}
+
 .toast {
   position: fixed;
   left: 50%;

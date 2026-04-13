@@ -1,917 +1,501 @@
-import * as Y from "https://esm.sh/yjs@13.6.27";
-import { WebsocketProvider } from "https://esm.sh/y-websocket@2.1.0?bundle";
+const $ = (s) => document.querySelector(s);
+const $$ = (s) => Array.from(document.querySelectorAll(s));
 
-const viewport = document.getElementById("canvasViewport");
-const stage = document.getElementById("canvasStage");
-const cursorLayer = document.getElementById("cursorLayer");
-const fitButton = document.getElementById("fitButton");
-const zoomButton = document.getElementById("zoomButton");
-const panButton = document.getElementById("panButton");
-const shareButton = document.getElementById("shareButton");
-const moreButton = document.getElementById("moreButton");
-const topMenu = document.getElementById("topMenu");
-const navButtons = Array.from(document.querySelectorAll(".nav-button"));
-const panelCopies = Array.from(document.querySelectorAll("[data-panel-copy]"));
-const toolButtons = Array.from(document.querySelectorAll("[data-tool]"));
-const newLayerButton = document.getElementById("newLayerButton");
-const helpButton = document.getElementById("helpButton");
-const archiveButton = document.getElementById("archiveButton");
-const zoomRange = document.getElementById("zoomRange");
-const gridToggle = document.getElementById("gridToggle");
-const layerList = document.getElementById("layerList");
-const historyList = document.getElementById("historyList");
-const modal = document.getElementById("modal");
-const modalTitle = document.getElementById("modalTitle");
-const modalBody = document.getElementById("modalBody");
-const closeModalButton = document.getElementById("closeModalButton");
-const toast = document.getElementById("toast");
-const canvasGrid = document.querySelector(".canvas-grid");
-const liveBadge = document.getElementById("liveBadge");
-const roomSummary = document.getElementById("roomSummary");
-const presenceList = document.getElementById("presenceList");
+const viewport = $("#canvasViewport");
+const stage = $("#canvasStage");
+const cursorLayer = $("#cursorLayer");
+const fitButton = $("#fitButton");
+const zoomButton = $("#zoomButton");
+const panButton = $("#panButton");
+const shareButton = $("#shareButton");
+const moreButton = $("#moreButton");
+const topMenu = $("#topMenu");
+const toolButtons = $$("[data-tool]");
+const navButtons = $$(".nav-button");
+const panelCopies = $$("[data-panel-copy]");
+const newLayerButton = $("#newLayerButton");
+const helpButton = $("#helpButton");
+const archiveButton = $("#archiveButton");
+const zoomRange = $("#zoomRange");
+const gridToggle = $("#gridToggle");
+const layerList = $("#layerList");
+const historyList = $("#historyList");
+const modal = $("#modal");
+const modalTitle = $("#modalTitle");
+const modalBody = $("#modalBody");
+const closeModalButton = $("#closeModalButton");
+const toast = $("#toast");
+const canvasGrid = $(".canvas-grid");
+const liveBadge = $("#liveBadge");
+const roomSummary = $("#roomSummary");
+const presenceList = $("#presenceList");
 
-const ROOM_PREFIX = "never-wet-freeform";
-const WS_SERVER_URL = "wss://demos.yjs.dev/ws";
-const STAGE_BASE_WIDTH = 2200;
-const STAGE_BASE_HEIGHT = 1800;
-const HISTORY_LIMIT = 20;
-const SEED_VERSION = "v1";
-const stockImages = [
-  "../img/code2.png",
-  "../img/code.jpg",
-  "../img/background.jpeg",
-  "../img/cat.jpg",
-];
+const STAGE_W = 2200;
+const STAGE_H = 1800;
+const ICE = { iceServers: [{ urls: ["stun:stun.l.google.com:19302", "stun:stun1.l.google.com:19302"] }] };
+const COLORS = ["#005bc1", "#0f766e", "#b45309", "#7c3aed", "#be123c", "#1d4ed8"];
+const NAMES = ["Aurora", "Juniper", "Marin", "Sol", "Mika", "Nova", "Ari", "Jules"];
+const IMAGES = ["../img/code2.png", "../img/code.jpg", "../img/background.jpeg", "../img/cat.jpg"];
 
-const colorPalette = [
-  "#005bc1",
-  "#0f766e",
-  "#b45309",
-  "#7c3aed",
-  "#be123c",
-  "#1d4ed8",
-];
-
-const userNames = [
-  "Aurora",
-  "Juniper",
-  "Marin",
-  "Sol",
-  "Mika",
-  "Nova",
-  "Ari",
-  "Jules",
-];
-
-const roomId = ensureRoomId();
-const roomUrl = new URL(window.location.href);
-const ydoc = new Y.Doc();
-const provider = new WebsocketProvider(WS_SERVER_URL, `${ROOM_PREFIX}-${roomId}`, ydoc);
-const awareness = provider.awareness;
-const yElements = ydoc.getMap("elements");
-const ySettings = ydoc.getMap("settings");
-const yHistory = ydoc.getArray("history");
-const yMeta = ydoc.getMap("meta");
-
-const localUser = getLocalUserProfile();
-const elementNodes = new Map();
+const user = loadUser();
+const peers = new Map();
+const remote = new Map();
+const pending = new Map();
+const nodes = new Map();
+const state = {
+  mode: "solo",
+  roomId: ensureRoomId(),
+  tool: "sticky",
+  zoom: 1,
+  pan: true,
+  glow: false,
+  grid: true,
+  count: 0,
+  order: 6,
+  history: ["Canvas ready"],
+  elements: seed(),
+};
 
 let toastTimer = null;
-let currentTool = "sticky";
-let zoomLevel = 1;
-let freePanEnabled = true;
 let panState = null;
 let dragState = null;
-let localElementCount = 0;
 
-setupRealtime();
-setupUi();
-seedInitialRoom();
-renderAll();
-window.addEventListener("load", () => {
-  centerCanvas(false);
-  pushCursorAwareness(null);
-});
+setup();
+render();
+window.addEventListener("load", () => center(false));
 
-function setupRealtime() {
-  awareness.setLocalStateField("user", localUser);
-  awareness.setLocalStateField("tool", currentTool);
-  awareness.setLocalStateField("cursor", null);
-
-  provider.on("status", (event) => {
-    const statusText = event.status === "connected" ? "connected" : "connecting";
-    liveBadge.textContent = `${statusText} ${roomId}`;
-  });
-
-  provider.on("sync", (isSynced) => {
-    if (isSynced) {
-      showToast("Live room synced");
-    }
-  });
-
-  yElements.observeDeep(() => {
-    renderElements();
-    refreshLayerList();
-  });
-
-  ySettings.observe(() => {
-    renderSharedSettings();
-  });
-
-  yHistory.observe(() => {
-    renderHistory();
-  });
-
-  awareness.on("change", () => {
-    renderPresence();
-    renderRemoteCursors();
-  });
-
-  window.addEventListener("beforeunload", () => {
-    awareness.setLocalState(null);
-    provider.destroy();
-    ydoc.destroy();
-  });
-}
-
-function setupUi() {
-  toolButtons.forEach((button) => {
-    button.addEventListener("click", () => {
-      setTool(button.dataset.tool);
-      addCanvasItem(button.dataset.tool);
-    });
-  });
-
-  navButtons.forEach((button) => {
-    button.addEventListener("click", () => {
-      setSidebarPanel(button.dataset.panel);
-    });
-  });
-
-  newLayerButton.addEventListener("click", () => {
-    addCanvasItem(currentTool);
-  });
-
-  helpButton.addEventListener("click", () => {
-    openModal(
-      "Live Collaboration",
-      `<p>This canvas now opens a shared room from the link in your address bar.</p><p>Anyone opening the same link joins the same board through a shared websocket sync server, so updates travel across different laptops instead of relying on direct browser-to-browser connections.</p><p>Drag objects, create layers, shuffle layouts, and toggle shared board settings together in real time.</p>`
-    );
-  });
-
-  archiveButton.addEventListener("click", () => {
-    const count = yElements.size;
-    openModal(
-      "Archive Snapshot",
-      `<p>This live room currently contains ${count} shared layers.</p><p>Archive is still a prototype action, but the room state itself is now collaborative and shareable through the URL.</p>`
-    );
-  });
-
-  shareButton.addEventListener("click", async () => {
-    try {
-      if (navigator.clipboard?.writeText) {
-        await navigator.clipboard.writeText(roomUrl.toString());
-        showToast("Live room link copied");
-        pushHistory(`${localUser.name} copied the room link`);
-        return;
-      }
-    } catch (error) {
-      // Fall through to modal.
-    }
-
-    openModal(
-      "Share This Room",
-      `<p>Copy and send this link to invite collaborators into the same live canvas:</p><p><strong>${escapeHtml(roomUrl.toString())}</strong></p>`
-    );
-  });
-
-  moreButton.addEventListener("click", () => {
-    topMenu.classList.toggle("is-hidden");
-  });
-
-  topMenu.addEventListener("click", (event) => {
-    const button = event.target.closest("[data-menu-action]");
-    if (!button) {
-      return;
-    }
-
+function setup() {
+  toolButtons.forEach((b) => b.addEventListener("click", () => {
+    setTool(b.dataset.tool, true);
+    dispatch({ type: "add", tool: b.dataset.tool, actor: user.name });
+  }));
+  navButtons.forEach((b) => b.addEventListener("click", () => setPanel(b.dataset.panel)));
+  newLayerButton.addEventListener("click", () => dispatch({ type: "add", tool: state.tool, actor: user.name }));
+  helpButton.addEventListener("click", helpModal);
+  archiveButton.addEventListener("click", () => openModal("Archive Snapshot", `<p>${state.elements.length} live layers are on this host-based session.</p><p>If the host closes, the room disappears.</p>`));
+  shareButton.addEventListener("click", shareModal);
+  moreButton.addEventListener("click", () => topMenu.classList.toggle("is-hidden"));
+  topMenu.addEventListener("click", (e) => {
+    const b = e.target.closest("[data-menu-action]");
+    if (!b) return;
     topMenu.classList.add("is-hidden");
-    const action = button.dataset.menuAction;
-
-    if (action === "theme") {
-      const nextGlow = !(ySettings.get("altGlow") === true);
-      ySettings.set("altGlow", nextGlow);
-      pushHistory(`${localUser.name} ${nextGlow ? "enabled" : "disabled"} ambient glow`);
-      showToast(nextGlow ? "Ambient glow shared" : "Ambient glow reset");
-      return;
-    }
-
-    if (action === "shuffle") {
-      shuffleLayout();
-      return;
-    }
-
-    if (action === "clear") {
-      clearGeneratedItems();
-    }
+    if (b.dataset.menuAction === "theme") dispatch({ type: "glow", actor: user.name });
+    if (b.dataset.menuAction === "shuffle") dispatch({ type: "shuffle", actor: user.name });
+    if (b.dataset.menuAction === "clear") dispatch({ type: "clear", actor: user.name });
   });
-
   zoomButton.addEventListener("click", () => {
-    const next = zoomLevel >= 1.4 ? 0.8 : Number((zoomLevel + 0.1).toFixed(2));
+    const next = state.zoom >= 1.4 ? 0.8 : Number((state.zoom + 0.1).toFixed(2));
     applyZoom(next);
     zoomRange.value = String(Math.round(next * 100));
-    setDockActive(zoomButton);
+    dock(zoomButton);
     showToast(`Zoom ${Math.round(next * 100)}%`);
   });
-
   fitButton.addEventListener("click", () => {
     applyZoom(1);
     zoomRange.value = "100";
-    centerCanvas(true);
+    center(true);
   });
-
   panButton.addEventListener("click", () => {
-    freePanEnabled = !freePanEnabled;
-    setDockActive(panButton);
-    showToast(freePanEnabled ? "Pan enabled" : "Pan locked");
+    state.pan = !state.pan;
+    dock(panButton);
+    showToast(state.pan ? "Pan enabled" : "Pan locked");
   });
-
   zoomRange.addEventListener("input", () => {
-    const next = Number(zoomRange.value) / 100;
-    applyZoom(next);
-    setDockActive(zoomButton);
+    applyZoom(Number(zoomRange.value) / 100);
+    dock(zoomButton);
   });
-
-  gridToggle.addEventListener("change", () => {
-    ySettings.set("gridVisible", gridToggle.checked);
-    pushHistory(`${localUser.name} ${gridToggle.checked ? "showed" : "hid"} the grid`);
-  });
-
+  gridToggle.addEventListener("change", () => dispatch({ type: "grid", visible: gridToggle.checked, actor: user.name }));
   closeModalButton.addEventListener("click", closeModal);
-  modal.addEventListener("click", (event) => {
-    if (event.target === modal) {
-      closeModal();
-    }
+  modal.addEventListener("click", (e) => { if (e.target === modal) closeModal(); });
+  document.addEventListener("click", (e) => {
+    if (!e.target.closest("#moreButton") && !e.target.closest("#topMenu")) topMenu.classList.add("is-hidden");
   });
-
-  document.addEventListener("click", (event) => {
-    if (!event.target.closest("#moreButton") && !event.target.closest("#topMenu")) {
-      topMenu.classList.add("is-hidden");
-    }
-  });
-
-  viewport.addEventListener("pointerdown", startPan);
-  viewport.addEventListener("pointermove", movePan);
-  viewport.addEventListener("pointerup", stopPan);
-  viewport.addEventListener("pointercancel", stopPan);
-  viewport.addEventListener("pointermove", updateLocalCursor);
-  viewport.addEventListener("pointerleave", () => pushCursorAwareness(null));
+  viewport.addEventListener("pointerdown", panStart);
+  viewport.addEventListener("pointermove", panMove);
+  viewport.addEventListener("pointerup", panStop);
+  viewport.addEventListener("pointercancel", panStop);
+  viewport.addEventListener("pointermove", localCursor);
+  viewport.addEventListener("pointerleave", () => sendCursor(null));
 }
 
-function seedInitialRoom() {
-  if (yMeta.get("seedVersion") === SEED_VERSION) {
-    return;
-  }
-
-  ydoc.transact(() => {
-    yMeta.set("seedVersion", SEED_VERSION);
-    yMeta.set("nextOrder", 6);
-
-    if (!ySettings.has("gridVisible")) {
-      ySettings.set("gridVisible", true);
-    }
-
-    if (!ySettings.has("altGlow")) {
-      ySettings.set("altGlow", false);
-    }
-
-    upsertElement("seed-note", {
-      id: "seed-note",
-      kind: "sticky",
-      title: "Project Brainstorm",
-      text: "Add ideas for the new ethereal workshop interface here...",
-      x: 360,
-      y: 220,
-      rotation: -2,
-      order: 1,
-      seed: true,
-    });
-
-    upsertElement("seed-circle", {
-      id: "seed-circle",
-      kind: "shape-circle",
-      title: "Orbit Circle",
-      x: 760,
-      y: 180,
-      order: 2,
-      seed: true,
-    });
-
-    upsertElement("seed-blob", {
-      id: "seed-blob",
-      kind: "shape-blob",
-      title: "Glass Blob",
-      x: 850,
-      y: 310,
-      order: 3,
-      seed: true,
-    });
-
-    upsertElement("seed-media", {
-      id: "seed-media",
-      kind: "media",
-      title: "Creative Reference #42",
-      text: "Inspired by ethereal workshop concept",
-      image: "../img/code2.png",
-      x: 470,
-      y: 560,
-      rotation: 3,
-      order: 4,
-      seed: true,
-    });
-
-    upsertElement("seed-type", {
-      id: "seed-type",
-      kind: "text",
-      title: "ETHEREAL WORKSPACE",
-      x: 1010,
-      y: 470,
-      order: 5,
-      seed: true,
-    });
-
-    upsertElement("seed-sprint", {
-      id: "seed-sprint",
-      kind: "sprint",
-      title: "Design Sprint",
-      text: "Due in 2 days",
-      x: 1130,
-      y: 170,
-      order: 6,
-      seed: true,
-    });
-  });
-}
-
-function renderAll() {
-  setSidebarPanel("documents");
-  setTool(currentTool, false);
+function render() {
+  setPanel("documents");
+  setTool(state.tool, false);
   applyZoom(1);
-  renderSharedSettings();
+  renderSettings();
   renderElements();
   renderHistory();
-  refreshLayerList();
+  renderLayers();
   renderPresence();
-  renderRemoteCursors();
-  roomSummary.textContent = `Room ${roomId} is live through a shared sync server. Anyone opening this exact link joins the same board.`;
-  liveBadge.textContent = `connecting ${roomId}`;
+  renderRemote();
+  updateBadge();
+}
+
+function seed() {
+  return [
+    { id: "seed-note", kind: "sticky", title: "Project Brainstorm", text: "Add ideas for the new ethereal workshop interface here...", x: 360, y: 220, rotation: -2, order: 1, seed: true },
+    { id: "seed-circle", kind: "shape-circle", title: "Orbit Circle", x: 760, y: 180, order: 2, seed: true },
+    { id: "seed-blob", kind: "shape-blob", title: "Glass Blob", x: 850, y: 310, order: 3, seed: true },
+    { id: "seed-media", kind: "media", title: "Creative Reference #42", text: "Inspired by ethereal workshop concept", image: "../img/code2.png", x: 470, y: 560, rotation: 3, order: 4, seed: true },
+    { id: "seed-type", kind: "text", title: "ETHEREAL WORKSPACE", x: 1010, y: 470, order: 5, seed: true },
+    { id: "seed-sprint", kind: "sprint", title: "Design Sprint", text: "Due in 2 days", x: 1130, y: 170, order: 6, seed: true },
+  ];
+}
+
+function dispatch(action, fromPeer = false) {
+  if (state.mode === "client" && !fromPeer) return sendHost({ type: "action", action });
+  apply(action);
+  if (state.mode === "host") broadcastState();
+}
+
+function apply(a) {
+  if (a.type === "add") {
+    state.count += 1;
+    state.elements.push(makeItem(a.tool, state.count));
+    log(`${a.actor} added ${state.elements[state.elements.length - 1].title}`);
+    showToast(`${state.elements[state.elements.length - 1].title} created`);
+  }
+  if (a.type === "front") {
+    const el = find(a.id);
+    if (el) el.order = a.order;
+  }
+  if (a.type === "move") {
+    const el = find(a.id);
+    if (el) {
+      el.x = a.x;
+      el.y = a.y;
+      el.order = a.order;
+      log(`${a.actor} moved ${el.title}`);
+    }
+  }
+  if (a.type === "grid") {
+    state.grid = a.visible;
+    log(`${a.actor} ${a.visible ? "showed" : "hid"} the grid`);
+  }
+  if (a.type === "glow") {
+    state.glow = !state.glow;
+    log(`${a.actor} ${state.glow ? "enabled" : "disabled"} ambient glow`);
+    showToast(state.glow ? "Ambient glow shared" : "Ambient glow reset");
+  }
+  if (a.type === "shuffle") {
+    state.elements.slice().sort((l, r) => l.order - r.order).forEach((el, i) => {
+      el.x = 260 + (i % 5) * 180;
+      el.y = 180 + Math.floor(i / 5) * 170;
+    });
+    log(`${a.actor} shuffled the layout`);
+    showToast("Layout shuffled");
+  }
+  if (a.type === "clear") {
+    state.elements = state.elements.filter((e) => e.seed);
+    log(`${a.actor} cleared generated items`);
+    showToast("Generated items cleared");
+  }
+  renderSettings();
+  renderElements();
+  renderHistory();
+  renderLayers();
+}
+
+function makeItem(tool, n) {
+  const base = { id: `item-${crypto.randomUUID()}`, x: 320 + (n % 5) * 120, y: 240 + (n % 4) * 110, order: nextOrder(), seed: false };
+  if (tool === "text") return { ...base, kind: "text", title: `HEADLINE ${n}` };
+  if (tool === "shape") return { ...base, kind: n % 2 === 0 ? "shape-circle" : "shape-blob", title: n % 2 === 0 ? `Shape ${n} Circle` : `Shape ${n} Blob` };
+  if (tool === "media") return { ...base, kind: "media", title: `Reference ${n}`, text: "Auto-added inspiration card", image: IMAGES[n % IMAGES.length], rotation: 3 };
+  if (tool === "pen") return { ...base, kind: "sticky", title: `Sketch Layer ${n}`, text: "Quick sketch stroke converted into a note card for this prototype.", rotation: -1 };
+  return { ...base, kind: "sticky", title: `Idea Note ${n}`, text: "Fresh note dropped onto the board. Drag it anywhere and keep building.", rotation: -2 };
 }
 
 function renderElements() {
-  const items = getSortedElements();
-  const activeIds = new Set();
-
-  items.forEach((record) => {
-    activeIds.add(record.id);
-    let node = elementNodes.get(record.id);
-
+  const ids = new Set();
+  state.elements.slice().sort((l, r) => l.order - r.order).forEach((el) => {
+    ids.add(el.id);
+    let node = nodes.get(el.id);
     if (!node) {
-      node = createElementNode(record);
-      elementNodes.set(record.id, node);
+      node = document.createElement(el.kind === "text" ? "div" : "article");
+      node.classList.add("draggable");
+      node.dataset.id = el.id;
+      bindDrag(node);
+      nodes.set(el.id, node);
       stage.appendChild(node);
     }
-
-    updateElementNode(node, record);
+    paint(node, el);
   });
-
-  Array.from(elementNodes.keys()).forEach((id) => {
-    if (!activeIds.has(id)) {
-      elementNodes.get(id)?.remove();
-      elementNodes.delete(id);
+  Array.from(nodes.keys()).forEach((id) => {
+    if (!ids.has(id)) {
+      nodes.get(id)?.remove();
+      nodes.delete(id);
     }
   });
-
   cursorLayer.remove();
   stage.appendChild(cursorLayer);
-  renderRemoteCursors();
 }
 
-function getSortedElements() {
-  return Array.from(yElements.entries())
-    .map(([id, value]) => ({ id, ...value.toJSON() }))
-    .sort((left, right) => (left.order || 0) - (right.order || 0));
-}
-
-function createElementNode(record) {
-  const node = document.createElement(record.kind === "text" ? "div" : "article");
-  node.classList.add("draggable");
-  node.dataset.id = record.id;
-  bindDrag(node);
-  return node;
-}
-
-function updateElementNode(node, record) {
+function paint(node, el) {
   node.className = "draggable";
-  node.dataset.id = record.id;
-  node.dataset.layerName = record.title || "Canvas item";
-  node.style.left = `${record.x || 0}px`;
-  node.style.top = `${record.y || 0}px`;
-  node.style.zIndex = String(record.order || 1);
+  node.dataset.id = el.id;
+  node.style.left = `${el.x}px`;
+  node.style.top = `${el.y}px`;
+  node.style.zIndex = String(el.order);
   node.style.transform = "";
-
-  if (record.kind === "sticky") {
+  if (el.kind === "sticky") {
     node.classList.add("sticky-note");
-    node.style.transform = `rotate(${record.rotation || -2}deg)`;
-    node.innerHTML = `
-      <div>
-        <h2>${escapeHtml(record.title || "Idea Note")}</h2>
-        <p>${escapeHtml(record.text || "Fresh note dropped onto the board.")}</p>
-      </div>
-      <div class="pin-row">
-        <span class="material-symbols-outlined">push_pin</span>
-      </div>
-    `;
+    node.style.transform = `rotate(${el.rotation || -2}deg)`;
+    node.innerHTML = `<div><h2>${esc(el.title)}</h2><p>${esc(el.text)}</p></div><div class="pin-row"><span class="material-symbols-outlined">push_pin</span></div>`;
     return;
   }
-
-  if (record.kind === "shape-circle") {
-    node.classList.add("shape-circle");
-    node.innerHTML = "";
-    return;
-  }
-
-  if (record.kind === "shape-blob") {
-    node.classList.add("shape-blob");
-    node.style.transform = "rotate(15deg)";
-    node.innerHTML = "";
-    return;
-  }
-
-  if (record.kind === "media") {
+  if (el.kind === "shape-circle") { node.classList.add("shape-circle"); node.innerHTML = ""; return; }
+  if (el.kind === "shape-blob") { node.classList.add("shape-blob"); node.style.transform = "rotate(15deg)"; node.innerHTML = ""; return; }
+  if (el.kind === "media") {
     node.classList.add("media-card");
-    node.style.transform = `rotate(${record.rotation || 3}deg)`;
-    node.innerHTML = `
-      <div class="media-frame">
-        <img src="${escapeAttribute(record.image || stockImages[0])}" alt="${escapeAttribute(record.title || "Reference")}" />
-        <div class="media-overlay">
-          <span class="material-symbols-outlined">zoom_in</span>
-        </div>
-      </div>
-      <div class="media-copy">
-        <h3>${escapeHtml(record.title || "Reference")}</h3>
-        <p>${escapeHtml(record.text || "Auto-added inspiration card")}</p>
-      </div>
-    `;
+    node.style.transform = `rotate(${el.rotation || 3}deg)`;
+    node.innerHTML = `<div class="media-frame"><img src="${esc(el.image)}" alt="${esc(el.title)}" /><div class="media-overlay"><span class="material-symbols-outlined">zoom_in</span></div></div><div class="media-copy"><h3>${esc(el.title)}</h3><p>${esc(el.text)}</p></div>`;
     return;
   }
-
-  if (record.kind === "text") {
-    node.classList.add("hero-type");
-    node.textContent = record.title || "ETHEREAL WORKSPACE";
-    return;
-  }
-
+  if (el.kind === "text") { node.classList.add("hero-type"); node.textContent = el.title; return; }
   node.classList.add("sprint-card");
-  node.innerHTML = `
-    <div class="sprint-head">
-      <div class="spark-badge">
-        <span class="material-symbols-outlined">auto_awesome</span>
-      </div>
-      <span class="status-pill">Active</span>
-    </div>
-    <h3>${escapeHtml(record.title || "Design Sprint")}</h3>
-    <div class="team-stack" aria-hidden="true">
-      <span></span>
-      <span></span>
-      <span></span>
-      <span class="team-more">+5</span>
-    </div>
-    <div class="sprint-meta">
-      <span>${escapeHtml(record.text || "Due in 2 days")}</span>
-      <span class="material-symbols-outlined">arrow_forward_ios</span>
-    </div>
-  `;
+  node.innerHTML = `<div class="sprint-head"><div class="spark-badge"><span class="material-symbols-outlined">auto_awesome</span></div><span class="status-pill">Active</span></div><h3>${esc(el.title)}</h3><div class="team-stack" aria-hidden="true"><span></span><span></span><span></span><span class="team-more">+5</span></div><div class="sprint-meta"><span>${esc(el.text)}</span><span class="material-symbols-outlined">arrow_forward_ios</span></div>`;
 }
 
 function bindDrag(node) {
-  node.addEventListener("pointerdown", (event) => {
-    if (event.target.closest("button")) {
-      return;
-    }
-
-    const id = node.dataset.id;
-    const record = getElementRecord(id);
-    if (!record) {
-      return;
-    }
-
-    bringElementToFront(id);
-
-    dragState = {
-      id,
-      pointerId: event.pointerId,
-      startX: event.clientX,
-      startY: event.clientY,
-      initialX: record.x || 0,
-      initialY: record.y || 0,
-      lastX: record.x || 0,
-      lastY: record.y || 0,
-      rafId: null,
-    };
-
-    node.setPointerCapture(event.pointerId);
+  node.addEventListener("pointerdown", (e) => {
+    const el = find(node.dataset.id);
+    if (!el || e.target.closest("button")) return;
+    const front = nextOrder();
+    dispatch({ type: "front", id: el.id, order: front, actor: user.name });
+    dragState = { id: el.id, pid: e.pointerId, sx: e.clientX, sy: e.clientY, ix: el.x, iy: el.y, lx: el.x, ly: el.y, order: front };
+    node.setPointerCapture(e.pointerId);
   });
-
-  node.addEventListener("pointermove", (event) => {
-    if (!dragState || dragState.pointerId !== event.pointerId || dragState.id !== node.dataset.id) {
-      return;
-    }
-
-    const nextX = dragState.initialX + (event.clientX - dragState.startX) / zoomLevel;
-    const nextY = dragState.initialY + (event.clientY - dragState.startY) / zoomLevel;
-    dragState.lastX = nextX;
-    dragState.lastY = nextY;
-
-    node.style.left = `${nextX}px`;
-    node.style.top = `${nextY}px`;
-    queueDragSync();
-    pushCursorAwareness({ x: nextX, y: nextY });
-  });
-
-  const stopDrag = (event) => {
-    if (!dragState || dragState.pointerId !== event.pointerId || dragState.id !== node.dataset.id) {
-      return;
-    }
-
-    if (dragState.rafId) {
-      cancelAnimationFrame(dragState.rafId);
-      dragState.rafId = null;
-    }
-
-    updateElementFields(dragState.id, { x: dragState.lastX, y: dragState.lastY });
-    pushHistory(`${localUser.name} moved ${getElementRecord(dragState.id)?.title || "an item"}`);
-    node.releasePointerCapture(event.pointerId);
+  const stop = (e) => {
+    if (!dragState || dragState.pid !== e.pointerId || dragState.id !== node.dataset.id) return;
+    dispatch({ type: "move", id: dragState.id, x: dragState.lx, y: dragState.ly, order: dragState.order, actor: user.name });
+    node.releasePointerCapture(e.pointerId);
     dragState = null;
   };
-
-  node.addEventListener("pointerup", stopDrag);
-  node.addEventListener("pointercancel", stopDrag);
-}
-
-function queueDragSync() {
-  if (!dragState || dragState.rafId) {
-    return;
-  }
-
-  dragState.rafId = requestAnimationFrame(() => {
-    updateElementFields(dragState.id, {
-      x: dragState.lastX,
-      y: dragState.lastY,
-    });
-    dragState.rafId = null;
+  node.addEventListener("pointermove", (e) => {
+    if (!dragState || dragState.pid !== e.pointerId || dragState.id !== node.dataset.id) return;
+    dragState.lx = dragState.ix + (e.clientX - dragState.sx) / state.zoom;
+    dragState.ly = dragState.iy + (e.clientY - dragState.sy) / state.zoom;
+    node.style.left = `${dragState.lx}px`;
+    node.style.top = `${dragState.ly}px`;
+    sendCursor({ x: dragState.lx, y: dragState.ly });
   });
+  node.addEventListener("pointerup", stop);
+  node.addEventListener("pointercancel", stop);
 }
 
-function startPan(event) {
-  if (!freePanEnabled || event.target.closest(".draggable") || event.target.closest("button")) {
-    return;
-  }
-
-  panState = {
-    pointerId: event.pointerId,
-    startX: event.clientX,
-    startY: event.clientY,
-    scrollLeft: viewport.scrollLeft,
-    scrollTop: viewport.scrollTop,
-  };
-
+function panStart(e) {
+  if (!state.pan || e.target.closest(".draggable") || e.target.closest("button")) return;
+  panState = { pid: e.pointerId, sx: e.clientX, sy: e.clientY, sl: viewport.scrollLeft, st: viewport.scrollTop };
   viewport.classList.add("is-panning");
-  viewport.setPointerCapture(event.pointerId);
+  viewport.setPointerCapture(e.pointerId);
 }
-
-function movePan(event) {
-  if (!panState || panState.pointerId !== event.pointerId) {
-    return;
-  }
-
-  viewport.scrollLeft = panState.scrollLeft - (event.clientX - panState.startX);
-  viewport.scrollTop = panState.scrollTop - (event.clientY - panState.startY);
+function panMove(e) {
+  if (!panState || panState.pid !== e.pointerId) return;
+  viewport.scrollLeft = panState.sl - (e.clientX - panState.sx);
+  viewport.scrollTop = panState.st - (e.clientY - panState.sy);
 }
-
-function stopPan(event) {
-  if (!panState || panState.pointerId !== event.pointerId) {
-    return;
-  }
-
+function panStop(e) {
+  if (!panState || panState.pid !== e.pointerId) return;
   viewport.classList.remove("is-panning");
-  viewport.releasePointerCapture(event.pointerId);
+  viewport.releasePointerCapture(e.pointerId);
   panState = null;
 }
 
-function updateLocalCursor(event) {
-  const point = getCanvasPoint(event);
-  if (point) {
-    pushCursorAwareness(point);
-  }
+function localCursor(e) {
+  if (state.mode === "solo") return;
+  const r = stage.getBoundingClientRect();
+  sendCursor({ x: (e.clientX - r.left) / state.zoom, y: (e.clientY - r.top) / state.zoom });
 }
 
-function getCanvasPoint(event) {
-  const stageRect = stage.getBoundingClientRect();
-  return {
-    x: (event.clientX - stageRect.left) / zoomLevel,
-    y: (event.clientY - stageRect.top) / zoomLevel,
-  };
+function renderSettings() {
+  gridToggle.checked = state.grid;
+  canvasGrid.classList.toggle("is-hidden", !state.grid);
+  document.body.classList.toggle("alt-glow", state.glow);
 }
-
-function pushCursorAwareness(cursor) {
-  awareness.setLocalStateField("cursor", cursor);
-}
-
+function renderHistory() { historyList.innerHTML = state.history.slice(0, 8).map((x) => `<li>${esc(x)}</li>`).join(""); }
+function renderLayers() { layerList.innerHTML = state.elements.slice().sort((l, r) => r.order - l.order).map((x) => `<li>${esc(x.title)}</li>`).join(""); }
 function renderPresence() {
-  const states = Array.from(awareness.getStates().values()).filter((state) => state?.user);
-  const presenceText = states.length === 1 ? "1 live" : `${states.length} live`;
-  liveBadge.textContent = `${presenceText} ${roomId}`;
-  presenceList.innerHTML = states
-    .map((state) => {
-      const user = state.user;
-      return `
-        <span class="presence-chip">
-          <span class="presence-dot" style="background:${escapeAttribute(user.color)}"></span>
-          <span>${escapeHtml(user.name)}</span>
-        </span>
-      `;
-    })
-    .join("");
+  const people = [user, ...Array.from(remote.values()).map((x) => x.user)];
+  presenceList.innerHTML = people.map((u) => `<span class="presence-chip"><span class="presence-dot" style="background:${esc(u.color)}"></span><span>${esc(u.name)}</span></span>`).join("");
+  updateBadge();
+}
+function renderRemote() {
+  cursorLayer.innerHTML = Array.from(remote.values()).filter((x) => x.cursor).map((x) => `<div class="remote-cursor" style="left:${x.cursor.x}px; top:${x.cursor.y}px;"><div class="remote-cursor-dot" style="background:${esc(x.user.color)}"></div><div class="remote-cursor-label" style="background:${esc(x.user.color)}">${esc(x.user.name)}</div></div>`).join("");
 }
 
-function renderRemoteCursors() {
-  const remoteStates = Array.from(awareness.getStates().entries()).filter(
-    ([clientId, state]) => clientId !== ydoc.clientID && state?.user && state?.cursor
-  );
-
-  cursorLayer.innerHTML = remoteStates
-    .map(([, state]) => {
-      const { user, cursor } = state;
-      return `
-        <div class="remote-cursor" style="left:${cursor.x}px; top:${cursor.y}px;">
-          <div class="remote-cursor-dot" style="background:${escapeAttribute(user.color)}"></div>
-          <div class="remote-cursor-label" style="background:${escapeAttribute(user.color)}">${escapeHtml(user.name)}</div>
-        </div>
-      `;
-    })
-    .join("");
+function updateBadge() {
+  const n = 1 + remote.size;
+  const mode = state.mode === "host" ? "host" : state.mode === "client" ? "joined" : "solo";
+  liveBadge.textContent = `${n} live ${mode}`;
+  roomSummary.textContent = state.mode === "host"
+    ? "This laptop is the host. Keep it open while others use the room."
+    : state.mode === "client"
+      ? "This laptop is joined to a host. If the host closes, the room ends."
+      : "Solo mode. Use Share to host or join a live room.";
 }
 
-function renderSharedSettings() {
-  const showGrid = ySettings.get("gridVisible") !== false;
-  const glow = ySettings.get("altGlow") === true;
-  gridToggle.checked = showGrid;
-  canvasGrid.classList.toggle("is-hidden", !showGrid);
-  document.body.classList.toggle("alt-glow", glow);
+function setTool(tool, toastIt) {
+  state.tool = tool;
+  toolButtons.forEach((b) => b.classList.toggle("is-active", b.dataset.tool === tool));
+  if (toastIt) showToast(`${tool[0].toUpperCase()}${tool.slice(1)} tool selected`);
+}
+function setPanel(panel) {
+  navButtons.forEach((b) => b.classList.toggle("is-active", b.dataset.panel === panel));
+  panelCopies.forEach((p) => p.classList.toggle("is-hidden", p.dataset.panelCopy !== panel));
+}
+function applyZoom(v) {
+  state.zoom = v;
+  stage.style.transform = `scale(${v})`;
+  stage.style.width = `${STAGE_W * v}px`;
+  stage.style.height = `${STAGE_H * v}px`;
+}
+function center(smooth) {
+  viewport.scrollTo({ left: Math.max(0, (stage.scrollWidth - viewport.clientWidth) / 2 - 240), top: Math.max(0, (stage.scrollHeight - viewport.clientHeight) / 2 - 180), behavior: smooth ? "smooth" : "auto" });
+  dock(fitButton);
+}
+function dock(btn) { [zoomButton, fitButton, panButton].forEach((b) => b.classList.toggle("is-active", b === btn)); }
+function find(id) { return state.elements.find((x) => x.id === id); }
+function nextOrder() { state.order += 1; return state.order; }
+function log(msg) { state.history.unshift(msg); state.history = state.history.slice(0, 20); }
+function openModal(title, body) { modalTitle.textContent = title; modalBody.innerHTML = body; modal.classList.remove("is-hidden"); }
+function closeModal() { modal.classList.add("is-hidden"); }
+function showToast(msg) { toast.textContent = msg; toast.classList.remove("is-hidden"); clearTimeout(toastTimer); toastTimer = setTimeout(() => toast.classList.add("is-hidden"), 2200); }
+
+function helpModal() {
+  openModal("Host And Join", `<p>This version does not use a sync server.</p><p>One laptop hosts the room. Each joining laptop needs a one-time invite/response handshake. The host must stay open, and when it closes, the session disappears.</p>`);
 }
 
-function renderHistory() {
-  const entries = yHistory.toArray().slice(0, 8);
-  historyList.innerHTML = entries
-    .map((entry) => `<li>${escapeHtml(entry.text || "")}</li>`)
-    .join("");
+function shareModal() {
+  openModal("Share Or Join", `<p>Without a server, browsers need a manual handshake. One laptop hosts, the others join.</p><div class="connection-tools"><button class="menu-item" id="hostRoomButton" type="button"><span class="material-symbols-outlined">lan</span><span>Host on this laptop</span></button><button class="menu-item" id="joinRoomButton" type="button"><span class="material-symbols-outlined">link</span><span>Join another laptop</span></button></div><div class="connection-panel" id="connectionPanel"></div>`);
+  $("#hostRoomButton")?.addEventListener("click", hostPanel);
+  $("#joinRoomButton")?.addEventListener("click", joinPanel);
 }
 
-function refreshLayerList() {
-  const items = getSortedElements().slice().reverse();
-  layerList.innerHTML = items
-    .map((item) => `<li>${escapeHtml(item.title || "Canvas item")}</li>`)
-    .join("");
+function hostPanel() {
+  state.mode = "host";
+  renderPresence();
+  $("#connectionPanel").innerHTML = `<p>Create one invite per joining laptop.</p><button class="menu-item" id="createInviteButton" type="button"><span class="material-symbols-outlined">add_link</span><span>Create invite</span></button><label class="connection-label" for="hostAnswerInput">Paste the joiner response here</label><textarea class="connection-textarea" id="hostAnswerInput" placeholder="Joiner response"></textarea><button class="menu-item" id="acceptAnswerButton" type="button"><span class="material-symbols-outlined">done_all</span><span>Accept response</span></button><div id="hostInviteOutput"></div>`;
+  $("#createInviteButton")?.addEventListener("click", async () => {
+    const invite = await createInvite();
+    $("#hostInviteOutput").innerHTML = `<label class="connection-label">Send this invite to one laptop</label><textarea class="connection-textarea">${invite}</textarea><button class="menu-item" id="copyHostInviteButton" type="button"><span class="material-symbols-outlined">content_copy</span><span>Copy invite</span></button>`;
+    $("#copyHostInviteButton")?.addEventListener("click", () => copyText(invite, "Invite copied"));
+  });
+  $("#acceptAnswerButton")?.addEventListener("click", () => acceptAnswer($("#hostAnswerInput").value.trim()));
 }
 
-function addCanvasItem(tool = currentTool) {
-  localElementCount += 1;
-  const id = `item-${crypto.randomUUID()}`;
-  const order = nextOrder();
-  const left = 320 + (localElementCount % 5) * 120;
-  const top = 240 + (localElementCount % 4) * 110;
-
-  const item = {
-    id,
-    x: left,
-    y: top,
-    order,
-    seed: false,
-  };
-
-  if (tool === "text") {
-    item.kind = "text";
-    item.title = `Headline ${localElementCount}`.toUpperCase();
-  } else if (tool === "shape") {
-    item.kind = localElementCount % 2 === 0 ? "shape-circle" : "shape-blob";
-    item.title = item.kind === "shape-circle" ? `Shape ${localElementCount} Circle` : `Shape ${localElementCount} Blob`;
-  } else if (tool === "media") {
-    item.kind = "media";
-    item.title = `Reference ${localElementCount}`;
-    item.text = "Auto-added inspiration card";
-    item.image = stockImages[localElementCount % stockImages.length];
-    item.rotation = 3;
-  } else if (tool === "pen") {
-    item.kind = "sticky";
-    item.title = `Sketch Layer ${localElementCount}`;
-    item.text = "Quick sketch stroke converted into a note card for this prototype.";
-    item.rotation = -1;
-  } else {
-    item.kind = "sticky";
-    item.title = `Idea Note ${localElementCount}`;
-    item.text = "Fresh note dropped onto the board. Drag it anywhere and keep building.";
-    item.rotation = -2;
-  }
-
-  upsertElement(id, item);
-  pushHistory(`${localUser.name} added ${item.title}`);
-  showToast(`${item.title} created`);
+function joinPanel() {
+  $("#connectionPanel").innerHTML = `<label class="connection-label" for="joinInviteInput">Paste the host invite</label><textarea class="connection-textarea" id="joinInviteInput" placeholder="Host invite"></textarea><button class="menu-item" id="createJoinResponseButton" type="button"><span class="material-symbols-outlined">outbound</span><span>Create response</span></button><div id="joinResponseOutput"></div>`;
+  $("#createJoinResponseButton")?.addEventListener("click", async () => {
+    const response = await joinFromInvite($("#joinInviteInput").value.trim());
+    $("#joinResponseOutput").innerHTML = `<label class="connection-label">Paste this back into the host laptop</label><textarea class="connection-textarea">${response}</textarea><button class="menu-item" id="copyJoinResponseButton" type="button"><span class="material-symbols-outlined">content_copy</span><span>Copy response</span></button>`;
+    $("#copyJoinResponseButton")?.addEventListener("click", () => copyText(response, "Response copied"));
+  });
 }
 
-function clearGeneratedItems() {
-  ydoc.transact(() => {
-    Array.from(yElements.entries()).forEach(([id, value]) => {
-      if (value.get("seed") !== true) {
-        yElements.delete(id);
+async function createInvite() {
+  const id = crypto.randomUUID();
+  const pc = mkPeer(id);
+  const ch = pc.createDataChannel("freeform");
+  pending.set(id, { pc, ch });
+  bindChannel(id, ch);
+  await pc.setLocalDescription(await pc.createOffer());
+  await waitIce(pc);
+  return enc({ id, room: state.roomId, desc: pc.localDescription, user });
+}
+
+async function acceptAnswer(text) {
+  const data = dec(text);
+  const x = pending.get(data.id);
+  if (!x) return showToast("Invite not found");
+  await x.pc.setRemoteDescription(new RTCSessionDescription(data.desc));
+  peers.set(data.id, x);
+  pending.delete(data.id);
+  send(x.ch, { type: "state", state: snap() });
+  send(x.ch, { type: "hello", user });
+  showToast("Joiner connected");
+}
+
+async function joinFromInvite(text) {
+  const data = dec(text);
+  const pc = mkPeer(data.id);
+  pc.addEventListener("datachannel", (e) => { peers.set(data.id, { pc, ch: e.channel }); bindChannel(data.id, e.channel); });
+  await pc.setRemoteDescription(new RTCSessionDescription(data.desc));
+  await pc.setLocalDescription(await pc.createAnswer());
+  await waitIce(pc);
+  state.mode = "client";
+  renderPresence();
+  return enc({ id: data.id, room: data.room, desc: pc.localDescription, user });
+}
+
+function mkPeer(id) {
+  const pc = new RTCPeerConnection(ICE);
+  pc.addEventListener("connectionstatechange", () => {
+    if (["failed", "disconnected", "closed"].includes(pc.connectionState)) {
+      peers.delete(id);
+      remote.delete(id);
+      renderPresence();
+      renderRemote();
+    }
+  });
+  return pc;
+}
+
+function bindChannel(id, ch) {
+  ch.addEventListener("open", () => {
+    send(ch, { type: "hello", user });
+    if (state.mode === "host") send(ch, { type: "state", state: snap() });
+    showToast("Peer connected");
+  });
+  ch.addEventListener("message", (e) => {
+    const m = JSON.parse(e.data);
+    if (m.type === "hello") {
+      remote.set(id, { user: m.user, cursor: null });
+      renderPresence();
+      renderRemote();
+      if (state.mode === "host") {
+        peers.forEach((p, pid) => {
+          if (pid !== id) send(p.ch, { type: "presence", user: m.user, cursor: null });
+        });
+        send(ch, { type: "presence", user, cursor: null });
+        remote.forEach((entry, rid) => {
+          if (rid !== id) send(ch, { type: "presence", user: entry.user, cursor: entry.cursor || null });
+        });
       }
-    });
-  });
-
-  pushHistory(`${localUser.name} cleared generated items`);
-  showToast("Generated items cleared");
-}
-
-function shuffleLayout() {
-  const items = getSortedElements();
-  ydoc.transact(() => {
-    items.forEach((item, index) => {
-      updateElementFields(item.id, {
-        x: 260 + (index % 5) * 180,
-        y: 180 + Math.floor(index / 5) * 170,
-      });
-    });
-  });
-
-  pushHistory(`${localUser.name} shuffled the layout`);
-  showToast("Layout shuffled");
-}
-
-function bringElementToFront(id) {
-  updateElementFields(id, { order: nextOrder() });
-}
-
-function upsertElement(id, record) {
-  ydoc.transact(() => {
-    let target = yElements.get(id);
-    if (!target) {
-      target = new Y.Map();
-      yElements.set(id, target);
     }
-
-    Object.entries(record).forEach(([key, value]) => {
-      target.set(key, value);
-    });
+    if (m.type === "presence") { remote.set(id, { user: m.user, cursor: m.cursor || null }); renderPresence(); renderRemote(); if (state.mode === "host") relay(id, m); }
+    if (m.type === "cursor") { const x = remote.get(id); if (x) { x.cursor = m.cursor; renderRemote(); if (state.mode === "host") relay(id, { type: "presence", user: x.user, cursor: m.cursor }); } }
+    if (m.type === "action" && state.mode === "host") dispatch(m.action, true);
+    if (m.type === "state" && state.mode === "client") { load(m.state); renderPresence(); }
   });
 }
 
-function updateElementFields(id, fields) {
-  const target = yElements.get(id);
-  if (!target) {
-    return;
-  }
-
-  Object.entries(fields).forEach(([key, value]) => {
-    target.set(key, value);
-  });
+function relay(skip, msg) { peers.forEach((p, id) => { if (id !== skip) send(p.ch, msg); }); }
+function sendHost(msg) { const p = peers.values().next().value; if (p) send(p.ch, msg); }
+function send(ch, msg) { if (ch.readyState === "open") ch.send(JSON.stringify(msg)); }
+function broadcastState() { peers.forEach((p) => send(p.ch, { type: "state", state: snap() })); }
+function sendCursor(cursor) {
+  if (state.mode === "solo") return;
+  if (state.mode === "host") peers.forEach((p) => send(p.ch, { type: "presence", user, cursor }));
+  else sendHost({ type: "cursor", cursor });
 }
+function snap() { return JSON.parse(JSON.stringify({ tool: state.tool, glow: state.glow, grid: state.grid, count: state.count, order: state.order, history: state.history, elements: state.elements })); }
+function load(s) { state.tool = s.tool; state.glow = s.glow; state.grid = s.grid; state.count = s.count; state.order = s.order; state.history = s.history; state.elements = s.elements; setTool(state.tool, false); renderSettings(); renderElements(); renderHistory(); renderLayers(); }
+function waitIce(pc) { if (pc.iceGatheringState === "complete") return Promise.resolve(); return new Promise((r) => { const h = () => { if (pc.iceGatheringState === "complete") { pc.removeEventListener("icegatheringstatechange", h); r(); } }; pc.addEventListener("icegatheringstatechange", h); }); }
 
-function getElementRecord(id) {
-  const item = yElements.get(id);
-  return item ? { id, ...item.toJSON() } : null;
+function loadUser() {
+  const key = "never-wet-freeform-user";
+  try { const old = JSON.parse(localStorage.getItem(key)); if (old) return old; } catch {}
+  const u = { name: `${NAMES[Math.floor(Math.random() * NAMES.length)]} ${Math.floor(Math.random() * 90 + 10)}`, color: COLORS[Math.floor(Math.random() * COLORS.length)] };
+  localStorage.setItem(key, JSON.stringify(u));
+  return u;
 }
-
-function nextOrder() {
-  const current = Number(yMeta.get("nextOrder") || 0) + 1;
-  yMeta.set("nextOrder", current);
-  return current;
-}
-
-function pushHistory(text) {
-  ydoc.transact(() => {
-    yHistory.insert(0, [
-      {
-        id: crypto.randomUUID(),
-        text,
-        at: Date.now(),
-      },
-    ]);
-
-    if (yHistory.length > HISTORY_LIMIT) {
-      yHistory.delete(HISTORY_LIMIT, yHistory.length - HISTORY_LIMIT);
-    }
-  });
-}
-
-function setTool(tool, announce = true) {
-  currentTool = tool;
-  toolButtons.forEach((button) => {
-    button.classList.toggle("is-active", button.dataset.tool === tool);
-  });
-  awareness.setLocalStateField("tool", tool);
-
-  if (announce) {
-    showToast(`${tool[0].toUpperCase()}${tool.slice(1)} tool selected`);
-  }
-}
-
-function setSidebarPanel(panel) {
-  navButtons.forEach((button) => {
-    button.classList.toggle("is-active", button.dataset.panel === panel);
-  });
-  panelCopies.forEach((copy) => {
-    copy.classList.toggle("is-hidden", copy.dataset.panelCopy !== panel);
-  });
-}
-
-function applyZoom(value) {
-  zoomLevel = value;
-  stage.style.transform = `scale(${zoomLevel})`;
-  stage.style.width = `${STAGE_BASE_WIDTH * zoomLevel}px`;
-  stage.style.height = `${STAGE_BASE_HEIGHT * zoomLevel}px`;
-}
-
-function centerCanvas(smooth) {
-  const left = Math.max(0, (stage.scrollWidth - viewport.clientWidth) / 2 - 240);
-  const top = Math.max(0, (stage.scrollHeight - viewport.clientHeight) / 2 - 180);
-  viewport.scrollTo({ left, top, behavior: smooth ? "smooth" : "auto" });
-  setDockActive(fitButton);
-}
-
-function setDockActive(activeButton) {
-  [zoomButton, fitButton, panButton].forEach((button) => {
-    button.classList.toggle("is-active", button === activeButton);
-  });
-}
-
-function openModal(title, body) {
-  modalTitle.textContent = title;
-  modalBody.innerHTML = body;
-  modal.classList.remove("is-hidden");
-}
-
-function closeModal() {
-  modal.classList.add("is-hidden");
-}
-
-function showToast(message) {
-  toast.textContent = message;
-  toast.classList.remove("is-hidden");
-  window.clearTimeout(toastTimer);
-  toastTimer = window.setTimeout(() => {
-    toast.classList.add("is-hidden");
-  }, 2200);
-}
-
 function ensureRoomId() {
-  const url = new URL(window.location.href);
-  let id = url.searchParams.get("room");
-
-  if (!id) {
-    id = (crypto.randomUUID?.() || `room-${Date.now()}`).slice(0, 8);
-    url.searchParams.set("room", id);
-    window.history.replaceState({}, "", url);
-  }
-
+  const u = new URL(location.href);
+  let id = u.searchParams.get("room");
+  if (!id) { id = (crypto.randomUUID?.() || `room-${Date.now()}`).slice(0, 8); u.searchParams.set("room", id); history.replaceState({}, "", u); }
   return id;
 }
-
-function getLocalUserProfile() {
-  const storageKey = "never-wet-freeform-user";
-  const existing = window.localStorage.getItem(storageKey);
-  if (existing) {
-    try {
-      return JSON.parse(existing);
-    } catch (error) {
-      window.localStorage.removeItem(storageKey);
-    }
-  }
-
-  const name = `${userNames[Math.floor(Math.random() * userNames.length)]} ${Math.floor(Math.random() * 90 + 10)}`;
-  const color = colorPalette[Math.floor(Math.random() * colorPalette.length)];
-  const profile = { name, color };
-  window.localStorage.setItem(storageKey, JSON.stringify(profile));
-  return profile;
-}
-
-function escapeHtml(value) {
-  return String(value)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;");
-}
-
-function escapeAttribute(value) {
-  return escapeHtml(value);
-}
+function enc(x) { return btoa(unescape(encodeURIComponent(JSON.stringify(x)))); }
+function dec(x) { return JSON.parse(decodeURIComponent(escape(atob(x)))); }
+async function copyText(v, ok) { try { await navigator.clipboard.writeText(v); showToast(ok); } catch { showToast("Copy failed"); } }
+function esc(v) { return String(v).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#39;"); }
