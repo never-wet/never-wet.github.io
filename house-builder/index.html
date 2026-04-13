@@ -3,7 +3,13 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>House Lab 3D</title>
+    <title>MONOLITH_LABS | 3D_BUILDING_LAB</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
     <link rel="stylesheet" href="./styles.css" />
     <script type="importmap">
       {
@@ -14,15 +20,19 @@
     </script>
   </head>
   <body>
-    <div class="page-shell">
+    <div class="app-shell">
       <header class="topbar">
         <a class="brand" href="./">
-          <span class="brand-mark">HL</span>
-          <span class="brand-copy">
-            <strong>House Lab 3D</strong>
-            <small>Builder Workspace</small>
-          </span>
+          <span class="brand-name">MONOLITH_LABS</span>
+          <span class="brand-subtitle">3D_BUILDING_LAB</span>
         </a>
+
+        <nav class="topnav" aria-label="Primary">
+          <a class="topnav-link" href="#">Projects</a>
+          <a class="topnav-link is-active" href="#">Blueprint</a>
+          <a class="topnav-link" href="#">Renders</a>
+          <a class="topnav-link" href="../threejs/">Archive</a>
+        </nav>
 
         <div class="topbar-metrics">
           <div class="mini-stat">
@@ -42,120 +52,164 @@
             <strong id="area-readout">0 sqm</strong>
           </div>
         </div>
-
-        <div class="topbar-links">
-          <a class="top-link" href="../threejs/">Archive</a>
-        </div>
       </header>
 
-      <main class="app-grid" id="workspace">
-        <aside class="left-rail" id="controls">
-          <section class="panel">
-            <div class="section-head">
-              <p class="section-kicker">Parts</p>
-              <h2>Library</h2>
+      <main class="workspace">
+        <aside class="materials-rail" id="controls">
+          <div class="rail-label">MATERIALS</div>
+          <button class="rail-tool is-active" data-part="floor" type="button" title="Floor Plate">
+            <span class="rail-tool-icon">FL</span>
+            <span class="rail-tool-label">Floor</span>
+          </button>
+          <button class="rail-tool" data-part="wall" type="button" title="Wall Panel">
+            <span class="rail-tool-icon">WL</span>
+            <span class="rail-tool-label">Wall</span>
+          </button>
+          <button class="rail-tool" data-part="window" type="button" title="Window">
+            <span class="rail-tool-icon">GL</span>
+            <span class="rail-tool-label">Glass</span>
+          </button>
+          <button class="rail-tool" data-part="door" type="button" title="Door">
+            <span class="rail-tool-icon">DR</span>
+            <span class="rail-tool-label">Door</span>
+          </button>
+          <button class="rail-tool" data-part="column" type="button" title="Column">
+            <span class="rail-tool-icon">CL</span>
+            <span class="rail-tool-label">Column</span>
+          </button>
+          <button class="rail-tool" data-part="roof" type="button" title="Roof Volume">
+            <span class="rail-tool-icon">RF</span>
+            <span class="rail-tool-label">Roof</span>
+          </button>
+          <div class="rail-spacer"></div>
+          <button class="rail-action" id="rotate-button" type="button" title="Rotate">R</button>
+          <button class="rail-action" id="erase-button" type="button" title="Erase">E</button>
+          <button class="rail-action rail-action-danger" id="reset-button" type="button" title="Clear">
+            X
+          </button>
+        </aside>
+
+        <section class="stage-shell">
+          <div class="stage-meta stage-meta-left">L_01 // STAGE_WORKSPACE // GRID_2000MM</div>
+          <div class="stage-meta stage-meta-right">
+            ACTIVE_PRIMITIVE: <span id="active-primitive-readout">FLOOR_PLATE</span>
+          </div>
+
+          <div class="stage-toolbar">
+            <div class="toolbar-block">
+              <span class="toolbar-label">Module</span>
+              <strong id="summary-part">Floor Plate</strong>
             </div>
-            <div class="tool-grid">
-              <button class="tool-card is-active" data-part="floor">
-                <span class="tool-name">Floor Plate</span>
-                <span class="tool-note">Slab</span>
-              </button>
-              <button class="tool-card" data-part="wall">
-                <span class="tool-name">Wall Panel</span>
-                <span class="tool-note">Wall</span>
-              </button>
-              <button class="tool-card" data-part="window">
-                <span class="tool-name">Window</span>
-                <span class="tool-note">Glass</span>
-              </button>
-              <button class="tool-card" data-part="door">
-                <span class="tool-name">Door</span>
-                <span class="tool-note">Entry</span>
-              </button>
-              <button class="tool-card" data-part="column">
-                <span class="tool-name">Column</span>
-                <span class="tool-note">Support</span>
-              </button>
-              <button class="tool-card" data-part="roof">
-                <span class="tool-name">Roof Volume</span>
-                <span class="tool-note">Top</span>
-              </button>
+            <div class="toolbar-block">
+              <span class="toolbar-label">Scale</span>
+              <strong id="summary-size">1 x 1 x 1</strong>
+            </div>
+            <div class="toolbar-block">
+              <span class="toolbar-label">Mode</span>
+              <strong id="mode-readout">Build</strong>
+            </div>
+            <div class="toolbar-block">
+              <span class="toolbar-label">Status</span>
+              <strong id="status-pill">Ready to place</strong>
+            </div>
+          </div>
+
+          <div class="stage-canvas-wrap">
+            <canvas id="scene"></canvas>
+          </div>
+
+          <div class="floating-controls">
+            <button class="floating-button view-chip is-active" data-view="perspective" type="button">
+              Perspective
+            </button>
+            <button class="floating-button view-chip" data-view="top" type="button">Top</button>
+            <button class="floating-button view-chip" data-view="front" type="button">Front</button>
+            <button class="floating-button view-chip" data-view="detail" type="button">Detail</button>
+          </div>
+        </section>
+
+        <aside class="specs-rail">
+          <section class="spec-block">
+            <div class="spec-header">
+              <h1>TECHNICAL_SPECS</h1>
+              <p>MONOLITH_CORE // V.08.3</p>
+            </div>
+
+            <div class="hero-metric">
+              <span>Total Volume</span>
+              <strong><span id="volume-readout">0.00</span> <small>m3</small></strong>
+            </div>
+
+            <div class="integrity-card">
+              <div class="integrity-row">
+                <span>Structural Integrity</span>
+                <strong id="integrity-readout">100%</strong>
+              </div>
+              <div class="integrity-bar">
+                <div class="integrity-fill" id="integrity-bar"></div>
+              </div>
+              <p id="integrity-caption">EST. OPTIMAL</p>
+            </div>
+
+            <div class="usage-card">
+              <span class="usage-title">Material Usage</span>
+              <div class="usage-row">
+                <span>CONCRETE</span>
+                <strong id="concrete-readout">0.0</strong>
+              </div>
+              <div class="usage-row">
+                <span>STEEL</span>
+                <strong id="steel-readout">0.0</strong>
+              </div>
+              <div class="usage-row">
+                <span>GLAZING</span>
+                <strong id="glazing-readout">0.0</strong>
+              </div>
             </div>
           </section>
 
-          <section class="panel">
-            <div class="section-head">
-              <p class="section-kicker">Scale</p>
-              <h2>Size</h2>
+          <section class="spec-block">
+            <div class="section-title">
+              <span>CONFIG</span>
+              <strong>Module Controls</strong>
             </div>
-            <div class="slider-group compact">
+
+            <div class="slider-cluster">
               <label class="slider-row" for="size-x">
-                <span>W</span>
+                <span>WIDTH</span>
                 <strong id="size-x-value">1</strong>
               </label>
               <input id="size-x" type="range" min="1" max="6" step="1" value="1" />
 
               <label class="slider-row" for="size-y">
-                <span>H</span>
+                <span>HEIGHT</span>
                 <strong id="size-y-value">1</strong>
               </label>
               <input id="size-y" type="range" min="1" max="6" step="1" value="1" />
 
               <label class="slider-row" for="size-z">
-                <span>D</span>
+                <span>DEPTH</span>
                 <strong id="size-z-value">1</strong>
               </label>
               <input id="size-z" type="range" min="1" max="6" step="1" value="1" />
             </div>
-          </section>
 
-          <section class="panel">
-            <div class="section-head">
-              <p class="section-kicker">Build</p>
-              <h2>Actions</h2>
-            </div>
-            <div class="button-stack">
-              <button class="control-button" id="rotate-button" type="button">Rotate</button>
-              <button class="control-button" id="erase-button" type="button">Erase</button>
-              <button class="control-button danger" id="reset-button" type="button">Clear</button>
-            </div>
-
-            <div class="level-box compact">
-              <div class="stepper">
+            <div class="level-box">
+              <span class="section-chip">STORY_SELECT</span>
+              <div class="level-stepper">
                 <button class="step-button" id="level-down" type="button">-</button>
                 <span id="level-text">Level 1</span>
                 <button class="step-button" id="level-up" type="button">+</button>
               </div>
             </div>
           </section>
-        </aside>
 
-        <section class="stage panel">
-          <div class="stage-toolbar">
-            <div class="toolbar-group">
-              <span class="toolbar-label">Module</span>
-              <strong id="summary-part">Floor Plate</strong>
+          <section class="spec-block">
+            <div class="section-title">
+              <span>PALETTE</span>
+              <strong>Surface Set</strong>
             </div>
-            <div class="toolbar-group">
-              <span class="toolbar-label">Scale</span>
-              <strong id="summary-size">1 x 1 x 1</strong>
-            </div>
-            <div class="toolbar-group">
-              <span class="toolbar-label">Status</span>
-              <strong id="status-pill">Ready to place</strong>
-            </div>
-          </div>
-
-          <canvas id="scene"></canvas>
-        </section>
-
-        <aside class="right-rail">
-          <section class="panel">
-            <div class="section-head">
-              <p class="section-kicker">Palette</p>
-              <h2>Materials</h2>
-            </div>
-            <div class="swatch-grid dense">
+            <div class="swatch-grid">
               <button class="swatch-chip is-active" data-palette="clay" type="button">
                 <span class="swatch-tone clay-tone"></span>
                 <span>Clay</span>
@@ -175,29 +229,12 @@
             </div>
           </section>
 
-          <section class="panel">
-            <div class="section-head">
-              <p class="section-kicker">View</p>
-              <h2>Camera</h2>
+          <section class="spec-block">
+            <div class="section-title">
+              <span>INSPECTOR</span>
+              <strong>Active Module</strong>
             </div>
-            <div class="view-grid dense">
-              <button class="view-chip is-active" data-view="perspective" type="button">Perspective</button>
-              <button class="view-chip" data-view="top" type="button">Top</button>
-              <button class="view-chip" data-view="front" type="button">Front</button>
-              <button class="view-chip" data-view="detail" type="button">Detail</button>
-            </div>
-          </section>
-
-          <section class="panel">
-            <div class="section-head">
-              <p class="section-kicker">Inspector</p>
-              <h2>Active</h2>
-            </div>
-            <div class="micro-stats dense">
-              <div>
-                <span>Mode</span>
-                <strong id="mode-readout">Build</strong>
-              </div>
+            <div class="micro-stats">
               <div>
                 <span>Selected</span>
                 <strong id="selected-part-readout">Floor Plate</strong>
@@ -210,10 +247,25 @@
                 <span>Palette</span>
                 <strong id="palette-readout">Clay</strong>
               </div>
+              <div>
+                <span>Action</span>
+                <strong id="action-readout">Deploy</strong>
+              </div>
             </div>
           </section>
         </aside>
       </main>
+
+      <footer class="statusbar">
+        <div class="statusbar-group">
+          <span>SYS_OK</span>
+          <span id="builder-mode-readout">BUILD_MODE</span>
+        </div>
+        <div class="statusbar-group">
+          <span id="coord-readout">COORD: X=0.00 Y=0.00 Z=0.00</span>
+          <span id="selection-readout">SEL: FLOOR_PLATE</span>
+        </div>
+      </footer>
     </div>
 
     <script type="module" src="./scene.js"></script>

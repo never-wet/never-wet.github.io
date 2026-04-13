@@ -14,8 +14,20 @@ const summarySize = document.getElementById("summary-size");
 const statusPill = document.getElementById("status-pill");
 const paletteReadout = document.getElementById("palette-readout");
 const areaReadout = document.getElementById("area-readout");
+const volumeReadout = document.getElementById("volume-readout");
+const integrityReadout = document.getElementById("integrity-readout");
+const integrityBar = document.getElementById("integrity-bar");
+const integrityCaption = document.getElementById("integrity-caption");
+const concreteReadout = document.getElementById("concrete-readout");
+const steelReadout = document.getElementById("steel-readout");
+const glazingReadout = document.getElementById("glazing-readout");
+const coordReadout = document.getElementById("coord-readout");
+const selectionReadout = document.getElementById("selection-readout");
+const builderModeReadout = document.getElementById("builder-mode-readout");
+const activePrimitiveReadout = document.getElementById("active-primitive-readout");
+const actionReadout = document.getElementById("action-readout");
 
-const toolCards = [...document.querySelectorAll(".tool-card")];
+const toolCards = [...document.querySelectorAll("[data-part]")];
 const swatchChips = [...document.querySelectorAll(".swatch-chip")];
 const viewChips = [...document.querySelectorAll(".view-chip")];
 const rotateButton = document.getElementById("rotate-button");
@@ -53,74 +65,78 @@ let isPresetAnimating = false;
 const palettePresets = {
   clay: {
     label: "Clay",
-    sceneBackground: 0xf4ede1,
-    fog: 0xf4ede1,
-    hemiSky: 0xfff5dd,
-    hemiGround: 0xb08c65,
-    pointLight: 0xb2cad2,
-    platform: 0xe3cba4,
-    gridMajor: 0xa9835f,
-    gridMinor: 0xcbb79e,
-    floor: 0xd6af79,
-    wall: 0xf7f0e7,
-    window: 0xa7ccd5,
-    door: 0x7b4c37,
-    column: 0x83936f,
-    roof: 0xb45a3c,
-    preview: 0xd8b17e,
+    sceneBackground: 0x070808,
+    fog: 0x070808,
+    hemiSky: 0x2b3137,
+    hemiGround: 0x080909,
+    pointLight: 0x8faccd,
+    platform: 0x1d2022,
+    stagePlate: 0x171a1c,
+    gridMajor: 0x7e725b,
+    gridMinor: 0x36393b,
+    floor: 0xc3b28c,
+    wall: 0xd9d4cb,
+    window: 0x87acd8,
+    door: 0x635340,
+    column: 0x7d8378,
+    roof: 0xa1825d,
+    preview: 0xd5c5a3,
   },
   studio: {
     label: "Studio",
-    sceneBackground: 0xe9edf3,
-    fog: 0xe9edf3,
-    hemiSky: 0xf8fbff,
-    hemiGround: 0x9aa8b7,
-    pointLight: 0x8fb0dd,
-    platform: 0xd8dde5,
-    gridMajor: 0x90a0b5,
-    gridMinor: 0xc4cfdb,
-    floor: 0xc8d0db,
-    wall: 0xfafbfd,
-    window: 0xb9d7ef,
-    door: 0x6f7d95,
-    column: 0x9ea8b4,
-    roof: 0x8699b3,
-    preview: 0x9eb6d7,
+    sceneBackground: 0x08090b,
+    fog: 0x08090b,
+    hemiSky: 0x2a313c,
+    hemiGround: 0x090a0c,
+    pointLight: 0x9dbbe4,
+    platform: 0x1d2126,
+    stagePlate: 0x171b20,
+    gridMajor: 0x6a7b95,
+    gridMinor: 0x333942,
+    floor: 0xa2afc0,
+    wall: 0xd7dce4,
+    window: 0x99bbdf,
+    door: 0x596579,
+    column: 0x7f8b97,
+    roof: 0x72829a,
+    preview: 0x9dbbe4,
   },
   forest: {
     label: "Forest",
-    sceneBackground: 0xebeee5,
-    fog: 0xebeee5,
-    hemiSky: 0xf2f4eb,
-    hemiGround: 0x7a7f5b,
-    pointLight: 0xb5c8ab,
-    platform: 0xcdbb98,
-    gridMajor: 0x7b735b,
-    gridMinor: 0xb8b39e,
-    floor: 0xbea37e,
-    wall: 0xf2eee5,
-    window: 0xb2cec4,
-    door: 0x6b5847,
-    column: 0x708565,
-    roof: 0x8a624a,
-    preview: 0x92a57d,
+    sceneBackground: 0x080908,
+    fog: 0x080908,
+    hemiSky: 0x252d29,
+    hemiGround: 0x080908,
+    pointLight: 0x8da88b,
+    platform: 0x1c1d1a,
+    stagePlate: 0x171915,
+    gridMajor: 0x74725a,
+    gridMinor: 0x33352f,
+    floor: 0x9f8d70,
+    wall: 0xd8d2c6,
+    window: 0x87b2ad,
+    door: 0x5d4f43,
+    column: 0x6f7b63,
+    roof: 0x8b6a50,
+    preview: 0x9db18a,
   },
   night: {
     label: "Night",
-    sceneBackground: 0x1c2230,
-    fog: 0x1c2230,
-    hemiSky: 0x6a7797,
-    hemiGround: 0x141824,
-    pointLight: 0x8db9ff,
-    platform: 0x404a5c,
-    gridMajor: 0x6f82a0,
-    gridMinor: 0x4a5469,
-    floor: 0x7e8697,
-    wall: 0xd6dbe5,
-    window: 0x8cb9ff,
-    door: 0x5d4d48,
-    column: 0x8b987d,
-    roof: 0x6f7487,
+    sceneBackground: 0x05070b,
+    fog: 0x05070b,
+    hemiSky: 0x1b2232,
+    hemiGround: 0x05070b,
+    pointLight: 0x7ea7ff,
+    platform: 0x1a1f2a,
+    stagePlate: 0x141925,
+    gridMajor: 0x62789c,
+    gridMinor: 0x2c3444,
+    floor: 0x7a8597,
+    wall: 0xcfd6e2,
+    window: 0x86b3ff,
+    door: 0x544947,
+    column: 0x7d8572,
+    roof: 0x697085,
     preview: 0x9db7ea,
   },
 };
@@ -139,7 +155,7 @@ renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.1;
+renderer.toneMappingExposure = 1.02;
 
 const camera = new THREE.PerspectiveCamera(46, 1, 0.1, 120);
 camera.position.copy(cameraRig.currentPosition);
@@ -154,12 +170,12 @@ controls.maxPolarAngle = Math.PI / 2.04;
 const hemi = new THREE.HemisphereLight(
   palettePresets[activePalette].hemiSky,
   palettePresets[activePalette].hemiGround,
-  1.8
+  0.95
 );
 scene.add(hemi);
 
-const sun = new THREE.DirectionalLight(0xffffff, 2.4);
-sun.position.set(16, 24, 10);
+const sun = new THREE.DirectionalLight(0xf3e7cf, 1.65);
+sun.position.set(14, 20, 12);
 sun.castShadow = true;
 sun.shadow.mapSize.set(2048, 2048);
 sun.shadow.camera.left = -30;
@@ -168,50 +184,56 @@ sun.shadow.camera.top = 30;
 sun.shadow.camera.bottom = -30;
 scene.add(sun);
 
-const fillLight = new THREE.PointLight(palettePresets[activePalette].pointLight, 40, 66);
-fillLight.position.set(-12, 10, -10);
+const fillLight = new THREE.PointLight(palettePresets[activePalette].pointLight, 24, 56);
+fillLight.position.set(-10, 8, -6);
 scene.add(fillLight);
+
+const rimLight = new THREE.DirectionalLight(0x92bcf0, 0.56);
+rimLight.position.set(-14, 8, -16);
+scene.add(rimLight);
 
 const world = new THREE.Group();
 scene.add(world);
 
 const platform = new THREE.Mesh(
-  new THREE.CylinderGeometry(18, 20, 1.8, 64),
+  new THREE.BoxGeometry(40, 1.4, 40),
   new THREE.MeshStandardMaterial({
-    color: 0xe3cba4,
+    color: palettePresets[activePalette].platform,
     roughness: 0.96,
-    metalness: 0.04,
+    metalness: 0.08,
   })
 );
-platform.position.y = -0.9;
+platform.position.y = -0.72;
 platform.receiveShadow = true;
 world.add(platform);
 
 const buildSurface = new THREE.Mesh(
   new THREE.PlaneGeometry(48, 48),
   new THREE.MeshStandardMaterial({
-    color: 0xf0e5d1,
+    color: palettePresets[activePalette].stagePlate,
     transparent: true,
-    opacity: 0.08,
+    opacity: 0.28,
+    roughness: 0.94,
+    metalness: 0.02,
   })
 );
 buildSurface.rotation.x = -Math.PI / 2;
 buildSurface.position.y = 0.001;
 world.add(buildSurface);
 
-const skyBackdrop = new THREE.Mesh(
-  new THREE.SphereGeometry(80, 48, 48),
-  new THREE.MeshBasicMaterial({
-    color: 0x90a8b8,
-    side: THREE.BackSide,
-  })
+const grid = new THREE.GridHelper(
+  48,
+  24,
+  palettePresets[activePalette].gridMajor,
+  palettePresets[activePalette].gridMinor
 );
-scene.add(skyBackdrop);
-
-const grid = new THREE.GridHelper(48, 24, 0xa9835f, 0xcbb79e);
 grid.position.y = 0.01;
 world.add(grid);
 const gridMaterials = Array.isArray(grid.material) ? grid.material : [grid.material];
+gridMaterials.forEach((material) => {
+  material.transparent = true;
+  material.opacity = 0.9;
+});
 
 const partsGroup = new THREE.Group();
 world.add(partsGroup);
@@ -349,7 +371,11 @@ let currentRotation = 0;
 const previewMaterial = new THREE.MeshStandardMaterial({
   color: palettePresets[activePalette].preview,
   transparent: true,
-  opacity: 0.42,
+  opacity: 0.38,
+  emissive: new THREE.Color(palettePresets[activePalette].preview),
+  emissiveIntensity: 0.1,
+  roughness: 0.48,
+  metalness: 0.12,
 });
 
 let previewMesh = createPreviewMesh(activePart);
@@ -420,7 +446,7 @@ function createMesh(partName, size) {
   mesh.material.color.setHex(getPaletteColor(partName));
   if (partName === "window" && "emissive" in mesh.material) {
     mesh.material.emissive.setHex(getPaletteColor(partName));
-    mesh.material.emissiveIntensity = activePalette === "night" ? 0.22 : 0.05;
+    mesh.material.emissiveIntensity = activePalette === "night" ? 0.34 : 0.12;
   }
   mesh.castShadow = true;
   mesh.receiveShadow = true;
@@ -464,12 +490,94 @@ function formatVolume(size) {
   return `${size.x} x ${size.y} x ${size.z}`;
 }
 
+function formatPrimitiveLabel(partName) {
+  return partConfigs[partName].label.replace(/\s+/g, "_").toUpperCase();
+}
+
+function getPlacedVolume() {
+  return placedMeshes.reduce((sum, mesh) => {
+    const config = partConfigs[mesh.userData.part];
+    const size = mesh.userData.size;
+    const dimensions = config.dimensions(size);
+
+    if ("width" in dimensions) {
+      return sum + dimensions.width * dimensions.height * dimensions.depth;
+    }
+
+    if ("radius" in dimensions && "height" in dimensions) {
+      const depthScale = dimensions.depthScale ?? 1;
+      return sum + Math.PI * dimensions.radius * dimensions.radius * dimensions.height * depthScale;
+    }
+
+    return sum;
+  }, 0);
+}
+
+function getMaterialUsage() {
+  const usage = {
+    concrete: 0,
+    steel: 0,
+    glazing: 0,
+  };
+
+  placedMeshes.forEach((mesh) => {
+    const size = mesh.userData.size;
+    const weight = size.x * size.y * size.z;
+
+    if (mesh.userData.part === "window") {
+      usage.glazing += weight * 22.05;
+      usage.steel += weight * 8.5;
+      return;
+    }
+
+    if (mesh.userData.part === "column") {
+      usage.steel += weight * 16.2;
+      usage.concrete += weight * 12.8;
+      return;
+    }
+
+    if (mesh.userData.part === "roof") {
+      usage.steel += weight * 10.4;
+      usage.concrete += weight * 4.6;
+      return;
+    }
+
+    if (mesh.userData.part === "door") {
+      usage.steel += weight * 5.8;
+      usage.concrete += weight * 2.4;
+      return;
+    }
+
+    usage.concrete += weight * 18.4;
+  });
+
+  return usage;
+}
+
+function getIntegrityEstimate() {
+  if (!placedMeshes.length) {
+    return 100;
+  }
+
+  const floors = placedMeshes.filter((mesh) => mesh.userData.part === "floor").length;
+  const supports = placedMeshes.filter((mesh) => ["wall", "column"].includes(mesh.userData.part)).length;
+  const openings = placedMeshes.filter((mesh) => ["window", "door"].includes(mesh.userData.part)).length;
+  const roofs = placedMeshes.filter((mesh) => mesh.userData.part === "roof").length;
+  const base = 64 + floors * 6 + supports * 4 + roofs * 3 - openings * 2.5;
+
+  return THREE.MathUtils.clamp(Math.round(base), 28, 100);
+}
+
 function updateHud() {
   const size = getActiveSize();
   const label = getCurrentPartConfig().label;
   const totalFloorArea = placedMeshes
     .filter((mesh) => mesh.userData.part === "floor")
     .reduce((sum, mesh) => sum + mesh.userData.size.x * mesh.userData.size.z * 4, 0);
+  const totalVolume = getPlacedVolume();
+  const usage = getMaterialUsage();
+  const integrity = getIntegrityEstimate();
+  const actionLabel = eraseMode ? "Erase" : "Deploy";
 
   pieceCount.textContent = String(placedMeshes.length);
   levelReadout.textContent = String(currentLevel + 1);
@@ -482,7 +590,18 @@ function updateHud() {
   summarySize.textContent = formatVolume(size);
   paletteReadout.textContent = palettePresets[activePalette].label;
   areaReadout.textContent = `${totalFloorArea} sqm`;
+  volumeReadout.textContent = totalVolume.toFixed(2);
+  concreteReadout.textContent = usage.concrete.toFixed(1);
+  steelReadout.textContent = usage.steel.toFixed(1);
+  glazingReadout.textContent = usage.glazing.toFixed(1);
+  integrityReadout.textContent = `${integrity}%`;
+  integrityBar.style.width = `${integrity}%`;
+  integrityCaption.textContent = integrity >= 85 ? "EST. OPTIMAL" : integrity >= 60 ? "EST. STABLE" : "EST. FRAGILE";
   statusPill.textContent = eraseMode ? "Click a placed module to remove it" : "Ready to place";
+  activePrimitiveReadout.textContent = formatPrimitiveLabel(activePart);
+  selectionReadout.textContent = `SEL: ${formatPrimitiveLabel(activePart)}`;
+  builderModeReadout.textContent = eraseMode ? "ERASE_MODE" : "BUILD_MODE";
+  actionReadout.textContent = actionLabel;
   eraseButton.classList.toggle("is-active", eraseMode);
 }
 
@@ -499,6 +618,8 @@ function updatePreviewTransform(x = previewMesh.position.x, z = previewMesh.posi
   if (config.afterCreate) {
     config.afterCreate(previewMesh, size);
   }
+
+  coordReadout.textContent = `COORD: X=${snappedX.toFixed(2)} Y=${previewMesh.position.y.toFixed(2)} Z=${snappedZ.toFixed(2)}`;
 }
 
 function setActivePart(partName) {
@@ -520,8 +641,7 @@ function applyPaletteToScene() {
   hemi.groundColor.setHex(palette.hemiGround);
   fillLight.color.setHex(palette.pointLight);
   platform.material.color.setHex(palette.platform);
-  buildSurface.material.color.setHex(palette.platform);
-  skyBackdrop.material.color.setHex(palette.pointLight);
+  buildSurface.material.color.setHex(palette.stagePlate);
   if (gridMaterials[0]) {
     gridMaterials[0].color.setHex(palette.gridMajor);
   }
@@ -529,6 +649,7 @@ function applyPaletteToScene() {
     gridMaterials[1].color.setHex(palette.gridMinor);
   }
   previewMaterial.color.setHex(getPaletteColor(activePart));
+  previewMaterial.emissive.setHex(getPaletteColor(activePart));
 
   placedMeshes.forEach((mesh) => {
     const partName = mesh.userData.part;
@@ -537,7 +658,7 @@ function applyPaletteToScene() {
     mesh.material.color.setHex(getPaletteColor(partName));
     if (partName === "window" && "emissive" in mesh.material) {
       mesh.material.emissive.setHex(getPaletteColor(partName));
-      mesh.material.emissiveIntensity = activePalette === "night" ? 0.22 : 0.05;
+      mesh.material.emissiveIntensity = activePalette === "night" ? 0.34 : 0.12;
     }
   });
 
@@ -776,33 +897,7 @@ controls.addEventListener("start", () => {
 
 window.addEventListener("resize", setCanvasSize);
 
-const clouds = [];
-for (let i = 0; i < 8; i += 1) {
-  const cloud = new THREE.Mesh(
-    new THREE.SphereGeometry(0.8 + Math.random() * 1.4, 18, 18),
-    new THREE.MeshStandardMaterial({
-      color: 0xffffff,
-      transparent: true,
-      opacity: 0.24,
-      roughness: 1,
-    })
-  );
-  cloud.position.set(-18 + i * 5.2, 12 + Math.sin(i * 0.7) * 1.4, -14 + Math.cos(i) * 4);
-  cloud.scale.set(1.8, 0.8, 1.2);
-  scene.add(cloud);
-  clouds.push(cloud);
-}
-
-const clock = new THREE.Clock();
-
 function animate() {
-  const elapsed = clock.getElapsedTime();
-
-  clouds.forEach((cloud, index) => {
-    cloud.position.x += Math.sin(elapsed * 0.08 + index) * 0.002;
-    cloud.position.z += Math.cos(elapsed * 0.05 + index) * 0.0015;
-  });
-
   if (isPresetAnimating) {
     cameraRig.currentPosition.lerp(cameraRig.targetPosition, 0.06);
     cameraRig.currentLookAt.lerp(cameraRig.targetLookAt, 0.06);
