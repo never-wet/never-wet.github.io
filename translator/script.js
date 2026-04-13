@@ -89,28 +89,64 @@ const outputLabel = document.querySelector("#outputLabel");
 const inputMeta = document.querySelector("#inputMeta");
 const statusText = document.querySelector("#statusText");
 const translateBtn = document.querySelector("#translateBtn");
+const saveBtn = document.querySelector("#saveBtn");
 const modeButtons = [...document.querySelectorAll(".mode-chip")];
 const swapBtn = document.querySelector("#swapBtn");
 const copyBtn = document.querySelector("#copyBtn");
 const playBtn = document.querySelector("#playBtn");
 const clearBtn = document.querySelector("#clearBtn");
 const referenceGrid = document.querySelector("#referenceGrid");
+const historyList = document.querySelector("#historyList");
+const historyEmpty = document.querySelector("#historyEmpty");
+const historySearch = document.querySelector("#historySearch");
+const filterButtons = [...document.querySelectorAll(".filter-btn")];
+const sectionLinks = [...document.querySelectorAll('a[href^="#"]')];
+const fabLink = document.querySelector(".fab");
 
 let currentMode = "text-to-morse";
 let activeAudioContext = null;
+let historyFilter = "all";
+let translationHistory = loadHistory();
 
 renderReference();
+renderHistory();
 translate();
 
 inputText.addEventListener("input", translate);
-translateBtn.addEventListener("click", translate);
+translateBtn.addEventListener("click", handleTranslateClick);
+saveBtn.addEventListener("click", saveCurrentTranslation);
 swapBtn.addEventListener("click", swapMode);
 clearBtn.addEventListener("click", clearFields);
 copyBtn.addEventListener("click", copyOutput);
 playBtn.addEventListener("click", playOutputAsMorse);
+historySearch.addEventListener("input", renderHistory);
+historyList.addEventListener("click", handleHistoryAction);
+fabLink.addEventListener("click", () => scrollToSection("referencePanel"));
 
 for (const button of modeButtons) {
   button.addEventListener("click", () => setMode(button.dataset.mode));
+}
+
+for (const link of sectionLinks) {
+  link.addEventListener("click", (event) => {
+    const id = link.getAttribute("href")?.slice(1);
+    if (!id) {
+      return;
+    }
+
+    event.preventDefault();
+    scrollToSection(id);
+  });
+}
+
+for (const button of filterButtons) {
+  button.addEventListener("click", () => {
+    historyFilter = button.dataset.filter;
+    for (const item of filterButtons) {
+      item.classList.toggle("is-active", item === button);
+    }
+    renderHistory();
+  });
 }
 
 function setMode(mode) {
@@ -159,11 +195,36 @@ async function copyOutput() {
   }
 
   try {
-    await navigator.clipboard.writeText(outputText.value);
+    await copyText(outputText.value);
     setStatus("Output copied to clipboard.", "success");
   } catch (error) {
     setStatus("Clipboard access was blocked in this browser.", "error");
   }
+}
+
+function saveCurrentTranslation() {
+  const source = inputText.value.trim();
+  const output = outputText.value.trim();
+
+  if (!source || !output) {
+    setStatus("Translate a message before saving it to history.", "error");
+    return;
+  }
+
+  const entry = {
+    id: createId(),
+    mode: currentMode,
+    source,
+    output,
+    starred: false,
+    createdAt: new Date().toISOString()
+  };
+
+  translationHistory = upsertHistoryEntry(entry);
+  persistHistory();
+  renderHistory();
+  setStatus("Transmission saved to history.", "success");
+  location.hash = "historyPanel";
 }
 
 function translate() {
@@ -174,6 +235,7 @@ function translate() {
     setStatus("Ready to translate.", "default");
     playBtn.disabled = true;
     copyBtn.disabled = true;
+    saveBtn.disabled = true;
     return;
   }
 
@@ -186,6 +248,7 @@ function translate() {
   setStatus(result.message, result.status);
   playBtn.disabled = !result.output.trim() || currentMode !== "text-to-morse";
   copyBtn.disabled = !result.output.trim();
+  saveBtn.disabled = !result.output.trim();
 }
 
 function textToMorse(text) {
@@ -308,6 +371,14 @@ async function playOutputAsMorse() {
     return;
   }
 
+  await playMorseValue(outputText.value);
+}
+
+async function playMorseValue(value) {
+  if (!value.trim()) {
+    return;
+  }
+
   try {
     const AudioContextClass = window.AudioContext || window.webkitAudioContext;
     if (!AudioContextClass) {
@@ -326,7 +397,7 @@ async function playOutputAsMorse() {
     const unit = 0.085;
     let cursor = activeAudioContext.currentTime;
 
-    for (const symbol of outputText.value) {
+    for (const symbol of value) {
       if (symbol === ".") {
         playTone(cursor, unit);
         cursor += unit * 2;
@@ -364,4 +435,241 @@ function playTone(startTime, duration) {
   gainNode.connect(activeAudioContext.destination);
   oscillator.start(startTime);
   oscillator.stop(startTime + duration + 0.02);
+}
+
+function handleHistoryAction(event) {
+  const button = event.target.closest("[data-action]");
+  if (!button) {
+    return;
+  }
+
+  const entry = translationHistory.find((item) => item.id === button.dataset.id);
+  if (!entry) {
+    return;
+  }
+
+  const action = button.dataset.action;
+
+  if (action === "toggle-star") {
+    entry.starred = !entry.starred;
+    persistHistory();
+    renderHistory();
+    return;
+  }
+
+  if (action === "copy") {
+    copyText(entry.output)
+      .then(() => setStatus("History entry copied to clipboard.", "success"))
+      .catch(() => setStatus("Clipboard access was blocked in this browser.", "error"));
+    return;
+  }
+
+  if (action === "delete") {
+    translationHistory = translationHistory.filter((item) => item.id !== entry.id);
+    persistHistory();
+    renderHistory();
+    setStatus("History entry deleted.", "success");
+    return;
+  }
+
+  if (action === "play") {
+    const playable = entry.mode === "text-to-morse" ? entry.output : textToMorse(entry.output).output;
+    playMorseValue(playable);
+    return;
+  }
+}
+
+function renderHistory() {
+  const searchTerm = historySearch.value.trim().toLowerCase();
+  const filteredEntries = translationHistory.filter((entry) => {
+    if (historyFilter === "starred" && !entry.starred) {
+      return false;
+    }
+
+    if (
+      historyFilter !== "all" &&
+      historyFilter !== "starred" &&
+      entry.mode !== historyFilter
+    ) {
+      return false;
+    }
+
+    if (!searchTerm) {
+      return true;
+    }
+
+    return `${entry.source} ${entry.output}`.toLowerCase().includes(searchTerm);
+  });
+
+  historyEmpty.classList.toggle("is-hidden", filteredEntries.length > 0);
+  historyList.classList.toggle("is-hidden", filteredEntries.length === 0);
+
+  historyList.innerHTML = filteredEntries
+    .map(
+      (entry) => `
+        <article class="history-entry ${entry.starred ? "is-starred" : ""}">
+          <div class="history-entry-main">
+            <div class="history-entry-meta">
+              <span class="history-date">${formatHistoryDate(entry.createdAt)}</span>
+              <span class="history-mode">${entry.mode === "text-to-morse" ? "sent" : "decoded"}</span>
+              ${entry.starred ? '<span class="material-symbols-outlined history-star">star</span>' : ""}
+            </div>
+            <p class="history-source">${escapeHtml(entry.source)}</p>
+            <p class="history-output">${escapeHtml(entry.output)}</p>
+          </div>
+          <div class="history-actions">
+            <button class="history-btn ${entry.starred ? "is-active" : ""}" data-action="toggle-star" data-id="${entry.id}" type="button" aria-label="Star entry">
+              <span class="material-symbols-outlined">star</span>
+            </button>
+            <button class="history-btn play" data-action="play" data-id="${entry.id}" type="button" aria-label="Play history entry">
+              <span class="material-symbols-outlined">play_arrow</span>
+            </button>
+            <button class="history-btn" data-action="copy" data-id="${entry.id}" type="button" aria-label="Copy history entry">
+              <span class="material-symbols-outlined">content_copy</span>
+            </button>
+            <button class="history-btn delete" data-action="delete" data-id="${entry.id}" type="button" aria-label="Delete history entry">
+              <span class="material-symbols-outlined">delete</span>
+            </button>
+          </div>
+        </article>
+      `
+    )
+    .join("");
+}
+
+function loadHistory() {
+  try {
+    const stored = localStorage.getItem("morse-translator-history");
+    if (!stored) {
+      return [];
+    }
+
+    const parsed = JSON.parse(stored);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (error) {
+    return [];
+  }
+}
+
+function persistHistory() {
+  localStorage.setItem(
+    "morse-translator-history",
+    JSON.stringify(translationHistory)
+  );
+}
+
+function upsertHistoryEntry(entry) {
+  const existingIndex = translationHistory.findIndex(
+    (item) =>
+      item.mode === entry.mode &&
+      item.source === entry.source &&
+      item.output === entry.output
+  );
+
+  if (existingIndex >= 0) {
+    const existing = translationHistory[existingIndex];
+    const updated = {
+      ...existing,
+      createdAt: new Date().toISOString()
+    };
+
+    return [
+      updated,
+      ...translationHistory.filter((_, index) => index !== existingIndex)
+    ].slice(0, 50);
+  }
+
+  return [entry, ...translationHistory].slice(0, 50);
+}
+
+function formatHistoryDate(isoString) {
+  const date = new Date(isoString);
+  if (Number.isNaN(date.getTime())) {
+    return "Unknown timestamp";
+  }
+
+  return new Intl.DateTimeFormat(undefined, {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit"
+  }).format(date);
+}
+
+function createId() {
+  return `${Date.now()}-${Math.random().toString(16).slice(2, 10)}`;
+}
+
+function escapeHtml(value) {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
+async function copyText(value) {
+  await navigator.clipboard.writeText(value);
+}
+
+function handleTranslateClick() {
+  translate();
+
+  const source = inputText.value.trim();
+  const output = outputText.value.trim();
+
+  if (!source || !output) {
+    return;
+  }
+
+  const entry = {
+    id: createId(),
+    mode: currentMode,
+    source,
+    output,
+    starred: false,
+    createdAt: new Date().toISOString()
+  };
+
+  translationHistory = upsertHistoryEntry(entry);
+  persistHistory();
+  renderHistory();
+}
+
+function scrollToSection(id) {
+  const target = document.getElementById(id);
+  if (!target) {
+    return;
+  }
+
+  history.replaceState(null, "", `#${id}`);
+  centerElementInViewport(getScrollAnchor(target), "smooth");
+}
+
+function getScrollAnchor(section) {
+  return (
+    section.querySelector("[data-scroll-anchor]") ||
+    section.querySelector("h1, h2") ||
+    section
+  );
+}
+
+function centerElementInViewport(element, behavior) {
+  const rect = element.getBoundingClientRect();
+  const absoluteTop = window.scrollY + rect.top;
+  const elementCenter = absoluteTop + rect.height / 2;
+  const viewportCenter = window.innerHeight / 2;
+  const navOffset = Number(element.dataset.scrollShift || 10);
+  const maxScroll = Math.max(
+    document.documentElement.scrollHeight - window.innerHeight,
+    0
+  );
+  const nextScroll = Math.min(
+    Math.max(elementCenter - viewportCenter - navOffset, 0),
+    maxScroll
+  );
+
+  window.scrollTo({ top: nextScroll, behavior });
 }

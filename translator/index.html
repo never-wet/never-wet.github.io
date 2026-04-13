@@ -24,6 +24,7 @@
           <a class="is-active" href="#translatorPanel">Translator</a>
           <a href="#referencePanel">Reference</a>
           <a href="#statusPanel">Status</a>
+          <a href="#historyPanel">History</a>
           <a href="#aboutPanel">About</a>
         </div>
         <button class="icon-btn" type="button" aria-label="Interface settings">
@@ -51,7 +52,7 @@
         </button>
       </section>
 
-      <section class="workbench" id="translatorPanel">
+      <section class="workbench" id="translatorPanel" data-scroll-anchor data-scroll-shift="260">
         <div class="terminal-panel">
           <div class="panel-frame">
             <div class="panel-core">
@@ -69,6 +70,7 @@
                     <span>TRANSLATE</span>
                     <span class="material-symbols-outlined">sensors</span>
                   </button>
+                  <button id="saveBtn" class="ghost-btn" type="button">Save</button>
                   <button id="swapBtn" class="ghost-btn" type="button">Swap</button>
                   <button id="clearBtn" class="ghost-btn" type="button">Clear</button>
                 </div>
@@ -142,8 +144,46 @@
         </article>
       </section>
 
+      <section class="history-panel" id="historyPanel">
+        <div class="history-hero" data-scroll-anchor data-scroll-shift="-120">
+          <div>
+            <h2>History</h2>
+            <p>
+              Your recent transmissions and saved ciphers. Logged and archived
+              for analog precision.
+            </p>
+          </div>
+        </div>
+
+        <div class="history-toolbar">
+          <div class="filter-tabs" role="tablist" aria-label="History filters">
+            <button class="filter-btn is-active" data-filter="all" type="button">All</button>
+            <button class="filter-btn" data-filter="starred" type="button">Starred</button>
+            <button class="filter-btn" data-filter="text-to-morse" type="button">Sent</button>
+            <button class="filter-btn" data-filter="morse-to-text" type="button">Decoded</button>
+          </div>
+
+          <label class="search-box">
+            <span class="material-symbols-outlined">search</span>
+            <input
+              id="historySearch"
+              type="text"
+              placeholder="Search archive..."
+              aria-label="Search history"
+            />
+          </label>
+        </div>
+
+        <div id="historyList" class="history-list"></div>
+
+        <div class="history-empty is-hidden" id="historyEmpty">
+          <span class="material-symbols-outlined">radio</span>
+          <p>No saved transmissions yet. Translate something, then press Save.</p>
+        </div>
+      </section>
+
       <section class="reference-panel" id="referencePanel">
-        <div class="reference-header">
+        <div class="reference-header" data-scroll-anchor data-scroll-shift="-300">
           <div>
             <p class="hero-kicker">Comprehensive dictionary</p>
             <h2>Morse Reference</h2>
@@ -165,12 +205,13 @@
         </div>
         <div class="footer-links">
           <a href="#translatorPanel">Translator</a>
+          <a href="#historyPanel">History</a>
           <a href="#referencePanel">Reference</a>
         </div>
       </div>
     </footer>
 
-    <button class="fab" type="button" aria-label="Jump to reference" onclick="location.hash='referencePanel'">
+    <button class="fab" type="button" aria-label="Jump to reference">
       <span class="material-symbols-outlined">help</span>
     </button>
 
