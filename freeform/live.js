@@ -1,6 +1,3 @@
-import * as Y from "https://esm.sh/yjs@13.6.27";
-import { WebsocketProvider } from "https://esm.sh/y-websocket@2.1.0?bundle";
-
 const $ = (s) => document.querySelector(s);
 const $$ = (s) => Array.from(document.querySelectorAll(s));
 
@@ -33,25 +30,40 @@ const liveBadge = $("#liveBadge");
 const roomSummary = $("#roomSummary");
 const presenceList = $("#presenceList");
 
-const WS_URL = "wss://demos.yjs.dev/ws";
-const ROOM_PREFIX = "never-wet-freeform";
 const STAGE_W = 2200;
 const STAGE_H = 1800;
+const DEFAULT_SERVER_PORT = "8787";
 const IMAGES = ["../img/code2.png", "../img/code.jpg", "../img/background.jpeg", "../img/cat.jpg"];
 const COLORS = ["#005bc1", "#0f766e", "#b45309", "#7c3aed", "#be123c", "#1d4ed8"];
 const NAMES = ["Aurora", "Juniper", "Marin", "Sol", "Mika", "Nova", "Ari", "Jules"];
 
 const roomId = ensureRoomId();
+const clientId = ensureClientId();
 const user = loadUser();
-const ydoc = new Y.Doc();
-const provider = new WebsocketProvider(WS_URL, `${ROOM_PREFIX}-${roomId}`, ydoc);
-const awareness = provider.awareness;
-const yElements = ydoc.getMap("elements");
-const yHistory = ydoc.getArray("history");
-const ySettings = ydoc.getMap("settings");
-const yMeta = ydoc.getMap("meta");
+const serverOrigin = resolveServerOrigin();
+const snapshotUrl = new URL(`/api/rooms/${encodeURIComponent(roomId)}`, serverOrigin);
+const websocketUrl = buildWebsocketUrl(serverOrigin, roomId, clientId);
 const nodes = new Map();
+const state = {
+  roomId,
+  elements: new Map(),
+  settings: {
+    grid: true,
+    glow: false
+  },
+  meta: {
+    seedVersion: "v1",
+    nextOrder: 0
+  },
+  history: [],
+  presence: new Map()
+};
 
+let socket = null;
+let reconnectTimer = null;
+let destroyed = false;
+let connected = false;
+let bootstrapped = false;
 let toastTimer = null;
 let zoom = 1;
 let panEnabled = true;
@@ -59,32 +71,28 @@ let panState = null;
 let dragState = null;
 let localCount = 0;
 let currentTool = "sticky";
+let currentCursor = null;
+let presenceTimer = null;
 
-awareness.setLocalStateField("user", user);
-awareness.setLocalStateField("cursor", null);
-
-seedIfNeeded();
 setup();
+setPanel("documents");
+setTool(currentTool, false);
+applyZoom(1);
 renderAll();
 window.addEventListener("load", () => center(false));
-
-provider.on("status", (event) => {
-  if (event.status === "connected") {
-    showToast("Live room connected");
-  }
-  updatePresence();
+window.addEventListener("beforeunload", () => {
+  destroyed = true;
+  if (reconnectTimer) window.clearTimeout(reconnectTimer);
+  if (presenceTimer) window.clearTimeout(presenceTimer);
+  socket?.close();
 });
 
-yElements.observeDeep(() => {
-  renderElements();
-  renderLayers();
-});
-yHistory.observe(() => renderHistory());
-ySettings.observe(() => renderSettings());
-awareness.on("change", () => {
-  updatePresence();
-  renderRemote();
-});
+initLiveRoom();
+
+async function initLiveRoom() {
+  await loadSnapshot();
+  connectSocket();
+}
 
 function setup() {
   toolButtons.forEach((b) => b.addEventListener("click", () => {
@@ -93,35 +101,46 @@ function setup() {
   }));
   navButtons.forEach((b) => b.addEventListener("click", () => setPanel(b.dataset.panel)));
   newLayerButton.addEventListener("click", () => addItem(currentTool));
-  helpButton.addEventListener("click", () => openModal("Public Live Mode", `<p>This page uses a shared websocket sync service.</p><p>Anyone opening the same live link joins the same room and should see updates across devices.</p><p>If this public live mode misbehaves, you can switch back to the local-only version.</p>`));
-  archiveButton.addEventListener("click", () => openModal("Archive Snapshot", `<p>${yElements.size} shared layers are currently in room <strong>${roomId}</strong>.</p><p>This public room is meant for live collaboration, not private persistence.</p>`));
+  helpButton.addEventListener("click", () => openModal("Public Live Mode", `<p>This page uses a custom live sync backend.</p><p>Anyone opening the same live link joins room <strong>${esc(roomId)}</strong> and should see the same shared canvas state.</p><p>Server: <code>${esc(serverOrigin)}</code></p>`));
+  archiveButton.addEventListener("click", () => openModal("Archive Snapshot", `<p>${state.elements.size} shared layers are currently in room <strong>${esc(roomId)}</strong>.</p><p>This live room syncs state in real time, but the current backend is not a permanent archive.</p>`));
   shareButton.addEventListener("click", shareModal);
   moreButton.addEventListener("click", () => topMenu.classList.toggle("is-hidden"));
-  topMenu.addEventListener("click", (e) => {
+  topMenu.addEventListener("click", async (e) => {
     const b = e.target.closest("[data-menu-action]");
     if (!b) return;
     topMenu.classList.add("is-hidden");
     if (b.dataset.menuAction === "theme") {
-      ySettings.set("glow", !(ySettings.get("glow") === true));
+      const nextGlow = !(state.settings.glow === true);
+      if (!patchSettings({ glow: nextGlow })) return;
       pushHistory(`${user.name} toggled ambient glow`);
+      return;
     }
     if (b.dataset.menuAction === "shuffle") {
+      if (!ensureConnected()) return;
       const items = sortedElements();
-      ydoc.transact(() => {
-        items.forEach((item, i) => updateFields(item.id, { x: 260 + (i % 5) * 180, y: 180 + Math.floor(i / 5) * 170 }));
+      let changed = 0;
+      items.forEach((item, i) => {
+        if (updateFields(item.id, { x: 260 + (i % 5) * 180, y: 180 + Math.floor(i / 5) * 170 })) {
+          changed += 1;
+        }
       });
-      pushHistory(`${user.name} shuffled the layout`);
-      showToast("Layout shuffled");
+      if (changed > 0) {
+        pushHistory(`${user.name} shuffled the layout`);
+        showToast("Layout shuffled");
+      }
+      return;
     }
     if (b.dataset.menuAction === "clear") {
-      ydoc.transact(() => {
-        Array.from(yElements.keys()).forEach((id) => {
-          const item = yElements.get(id);
-          if (item?.get("seed") !== true) yElements.delete(id);
-        });
+      if (!ensureConnected()) return;
+      const generated = sortedElements().filter((item) => item.seed !== true);
+      let deleted = 0;
+      generated.forEach((item) => {
+        if (deleteItem(item.id)) deleted += 1;
       });
-      pushHistory(`${user.name} cleared generated items`);
-      showToast("Generated items cleared");
+      if (deleted > 0) {
+        pushHistory(`${user.name} cleared generated items`);
+        showToast("Generated items cleared");
+      }
     }
   });
   zoomButton.addEventListener("click", () => {
@@ -146,7 +165,10 @@ function setup() {
     dock(zoomButton);
   });
   gridToggle.addEventListener("change", () => {
-    ySettings.set("grid", gridToggle.checked);
+    if (!patchSettings({ grid: gridToggle.checked })) {
+      renderSettings();
+      return;
+    }
     pushHistory(`${user.name} ${gridToggle.checked ? "showed" : "hid"} the grid`);
   });
   closeModalButton.addEventListener("click", closeModal);
@@ -159,30 +181,184 @@ function setup() {
   viewport.addEventListener("pointerup", panStop);
   viewport.addEventListener("pointercancel", panStop);
   viewport.addEventListener("pointermove", localCursor);
-  viewport.addEventListener("pointerleave", () => awareness.setLocalStateField("cursor", null));
+  viewport.addEventListener("pointerleave", () => sendPresence(null));
 }
 
-function seedIfNeeded() {
-  if (yMeta.get("seedVersion") === "v1") return;
-  ydoc.transact(() => {
-    yMeta.set("seedVersion", "v1");
-    yMeta.set("nextOrder", 6);
-    ySettings.set("grid", true);
-    ySettings.set("glow", false);
-    putItem({ id: "seed-note", kind: "sticky", title: "Project Brainstorm", text: "Add ideas for the new ethereal workshop interface here...", x: 360, y: 220, rotation: -2, order: 1, seed: true });
-    putItem({ id: "seed-circle", kind: "shape-circle", title: "Orbit Circle", x: 760, y: 180, order: 2, seed: true });
-    putItem({ id: "seed-blob", kind: "shape-blob", title: "Glass Blob", x: 850, y: 310, order: 3, seed: true });
-    putItem({ id: "seed-media", kind: "media", title: "Creative Reference #42", text: "Inspired by ethereal workshop concept", image: "../img/code2.png", x: 470, y: 560, rotation: 3, order: 4, seed: true });
-    putItem({ id: "seed-type", kind: "text", title: "ETHEREAL WORKSPACE", x: 1010, y: 470, order: 5, seed: true });
-    putItem({ id: "seed-sprint", kind: "sprint", title: "Design Sprint", text: "Due in 2 days", x: 1130, y: 170, order: 6, seed: true });
-    yHistory.insert(0, [{ text: "Canvas ready" }]);
+async function loadSnapshot() {
+  try {
+    const response = await fetch(snapshotUrl, {
+      headers: {
+        Accept: "application/json"
+      }
+    });
+    if (!response.ok) {
+      throw new Error(`Snapshot request failed with ${response.status}`);
+    }
+    const snapshot = await response.json();
+    applySnapshot(snapshot);
+    bootstrapped = true;
+  } catch (error) {
+    console.error(error);
+    showToast("Snapshot load failed");
+    liveBadge.textContent = "Offline";
+    roomSummary.textContent = `Room ${roomId} could not load from ${serverOrigin}.`;
+  }
+}
+
+function connectSocket() {
+  if (destroyed) return;
+  if (socket && (socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CONNECTING)) return;
+
+  socket = new WebSocket(websocketUrl);
+  updatePresence();
+
+  socket.addEventListener("open", () => {
+    connected = true;
+    updatePresence();
+    showToast("Live room connected");
+    sendMessage({ type: "room.snapshot.request" });
+    sendPresence(currentCursor);
+  });
+
+  socket.addEventListener("message", async (event) => {
+    const payload = await readSocketMessage(event.data);
+    if (payload) handleServerMessage(payload);
+  });
+
+  socket.addEventListener("close", () => {
+    connected = false;
+    updatePresence();
+    scheduleReconnect();
+  });
+
+  socket.addEventListener("error", () => {
+    connected = false;
+    updatePresence();
+  });
+}
+
+function scheduleReconnect() {
+  if (destroyed) return;
+  if (reconnectTimer) return;
+  liveBadge.textContent = "Reconnecting";
+  reconnectTimer = window.setTimeout(() => {
+    reconnectTimer = null;
+    connectSocket();
+  }, 1800);
+}
+
+function handleServerMessage(raw) {
+  let message;
+  try {
+    message = JSON.parse(raw);
+  } catch {
+    console.warn("Invalid server message", raw);
+    return;
+  }
+
+  if (message.type === "room.snapshot") {
+    applySnapshot(message.payload);
+    return;
+  }
+
+  if (message.type === "presence.list") {
+    applyPresenceList(message.payload);
+    return;
+  }
+
+  if (message.type === "presence.updated") {
+    if (!message.payload?.clientId) return;
+    state.presence.set(message.payload.clientId, message.payload);
+    updatePresence();
+    renderRemote();
+    return;
+  }
+
+  if (message.type === "element.upserted") {
+    const item = message.payload;
+    if (!item?.id) return;
+    rememberElement(item);
+    renderElements();
+    renderLayers();
+    return;
+  }
+
+  if (message.type === "element.patched") {
+    const current = state.elements.get(message.payload?.id);
+    if (!current) return;
+    rememberElement({ ...current, ...message.payload.fields, id: current.id });
+    renderElements();
+    renderLayers();
+    return;
+  }
+
+  if (message.type === "element.deleted") {
+    state.elements.delete(message.payload?.id);
+    renderElements();
+    renderLayers();
+    return;
+  }
+
+  if (message.type === "settings.patched") {
+    state.settings = {
+      ...state.settings,
+      ...message.payload
+    };
+    renderSettings();
+    return;
+  }
+
+  if (message.type === "history.appended") {
+    state.history.unshift(message.payload);
+    if (state.history.length > 20) state.history.length = 20;
+    renderHistory();
+    return;
+  }
+
+  if (message.type === "error") {
+    console.warn("Server error", message.payload);
+    showToast(message.payload?.message || "Live sync error");
+  }
+}
+
+function applySnapshot(snapshot) {
+  if (!snapshot) return;
+  bootstrapped = true;
+  state.roomId = snapshot.roomId || roomId;
+  state.elements = new Map((snapshot.elements || []).map((item) => [item.id, item]));
+  state.settings = {
+    grid: snapshot.settings?.grid !== false,
+    glow: snapshot.settings?.glow === true
+  };
+  state.meta = {
+    seedVersion: snapshot.meta?.seedVersion || "v1",
+    nextOrder: Number(snapshot.meta?.nextOrder || 0)
+  };
+  state.history = Array.isArray(snapshot.history) ? snapshot.history.slice(0, 20) : [];
+  state.presence = new Map((snapshot.presence || []).map((entry) => [entry.clientId, entry]));
+  localCount = Math.max(localCount, Array.from(state.elements.values()).filter((item) => !item.seed).length);
+  ensureOwnPresenceListed();
+  renderAll();
+}
+
+function applyPresenceList(list) {
+  state.presence = new Map((Array.isArray(list) ? list : []).map((entry) => [entry.clientId, entry]));
+  ensureOwnPresenceListed();
+  updatePresence();
+  renderRemote();
+}
+
+function ensureOwnPresenceListed() {
+  if (!connected && !currentCursor && !state.presence.has(clientId)) return;
+  state.presence.set(clientId, {
+    clientId,
+    user,
+    cursor: currentCursor,
+    lastSeenAt: Date.now()
   });
 }
 
 function renderAll() {
-  setPanel("documents");
-  setTool(currentTool, false);
-  applyZoom(1);
   renderSettings();
   renderElements();
   renderHistory();
@@ -192,24 +368,32 @@ function renderAll() {
 }
 
 function addItem(tool) {
+  if (!ensureConnected()) return;
   localCount += 1;
   const id = `item-${crypto.randomUUID()}`;
-  const base = { id, x: 320 + (localCount % 5) * 120, y: 240 + (localCount % 4) * 110, order: nextOrder(), seed: false };
+  const base = {
+    id,
+    x: 320 + (localCount % 5) * 120,
+    y: 240 + (localCount % 4) * 110,
+    order: nextOrder(),
+    seed: false
+  };
   let item;
   if (tool === "text") item = { ...base, kind: "text", title: `HEADLINE ${localCount}` };
   else if (tool === "shape") item = { ...base, kind: localCount % 2 === 0 ? "shape-circle" : "shape-blob", title: localCount % 2 === 0 ? `Shape ${localCount} Circle` : `Shape ${localCount} Blob` };
   else if (tool === "media") item = { ...base, kind: "media", title: `Reference ${localCount}`, text: "Auto-added inspiration card", image: IMAGES[localCount % IMAGES.length], rotation: 3 };
   else if (tool === "pen") item = { ...base, kind: "sticky", title: `Sketch Layer ${localCount}`, text: "Quick sketch stroke converted into a note card for this prototype.", rotation: -1 };
   else item = { ...base, kind: "sticky", title: `Idea Note ${localCount}`, text: "Fresh note dropped onto the board. Drag it anywhere and keep building.", rotation: -2 };
-  putItem(item);
+  if (!sendMessage({ type: "element.upsert", payload: item })) return;
+  rememberElement(item);
+  renderElements();
+  renderLayers();
   pushHistory(`${user.name} added ${item.title}`);
   showToast(`${item.title} created`);
 }
 
 function sortedElements() {
-  return Array.from(yElements.entries())
-    .map(([id, map]) => ({ id, ...map.toJSON() }))
-    .sort((a, b) => (a.order || 0) - (b.order || 0));
+  return Array.from(state.elements.values()).sort((a, b) => (a.order || 0) - (b.order || 0));
 }
 
 function renderElements() {
@@ -296,8 +480,11 @@ function bindDrag(node) {
     e.stopPropagation();
     if (!dragState || dragState.pid !== e.pointerId || dragState.id !== node.dataset.id) return;
     if (dragState.moved) {
-      updateFields(dragState.id, { x: dragState.lx, y: dragState.ly, order: dragState.order });
-      pushHistory(`${user.name} moved ${getItem(dragState.id)?.title || "an item"}`);
+      if (!updateFields(dragState.id, { x: dragState.lx, y: dragState.ly, order: dragState.order })) {
+        renderElements();
+      } else {
+        pushHistory(`${user.name} moved ${getItem(dragState.id)?.title || "an item"}`);
+      }
     }
     node.releasePointerCapture(e.pointerId);
     dragState = null;
@@ -312,13 +499,18 @@ function bindDrag(node) {
     if (!dragState.moved) {
       dragState.moved = true;
       dragState.order = nextOrder();
-      updateFields(dragState.id, { order: dragState.order });
+      const current = getItem(dragState.id);
+      if (current) {
+        rememberElement({ ...current, order: dragState.order });
+        renderElements();
+        renderLayers();
+      }
     }
     dragState.lx = dragState.ix + deltaX;
     dragState.ly = dragState.iy + deltaY;
     node.style.left = `${dragState.lx}px`;
     node.style.top = `${dragState.ly}px`;
-    awareness.setLocalStateField("cursor", { x: dragState.lx, y: dragState.ly });
+    sendPresence({ x: dragState.lx, y: dragState.ly });
   });
   node.addEventListener("pointerup", stop);
   node.addEventListener("pointercancel", stop);
@@ -328,7 +520,7 @@ function startInlineEdit(target, owner) {
   if (dragState) return;
   const field = target.dataset.editField;
   const el = getItem(owner.dataset.id);
-  if (!el) return;
+  if (!el || !field) return;
   const current = String(el[field] || "");
   target.setAttribute("contenteditable", "true");
   target.setAttribute("data-editing", "true");
@@ -347,7 +539,15 @@ function startInlineEdit(target, owner) {
       return;
     }
     if (next === current) return;
-    updateFields(el.id, { [field]: next });
+    if (!next.trim()) {
+      target.textContent = current;
+      showToast("Text can't be empty");
+      return;
+    }
+    if (!updateFields(el.id, { [field]: next })) {
+      target.textContent = current;
+      return;
+    }
     pushHistory(`${user.name} edited ${el.title || "text"}`);
     showToast("Text updated");
   };
@@ -395,30 +595,42 @@ function panStop(e) {
 
 function localCursor(e) {
   const r = stage.getBoundingClientRect();
-  awareness.setLocalStateField("cursor", { x: (e.clientX - r.left) / zoom, y: (e.clientY - r.top) / zoom });
+  sendPresence({ x: (e.clientX - r.left) / zoom, y: (e.clientY - r.top) / zoom });
 }
 
 function renderSettings() {
-  const grid = ySettings.get("grid") !== false;
-  const glow = ySettings.get("glow") === true;
+  const grid = state.settings.grid !== false;
+  const glow = state.settings.glow === true;
   gridToggle.checked = grid;
   canvasGrid.classList.toggle("is-hidden", !grid);
   document.body.classList.toggle("alt-glow", glow);
 }
-function renderHistory() { historyList.innerHTML = yHistory.toArray().slice(0, 8).map((x) => `<li>${esc(x.text || "")}</li>`).join(""); }
-function renderLayers() { layerList.innerHTML = sortedElements().slice().reverse().map((x) => `<li>${esc(x.title || "Canvas item")}</li>`).join(""); }
+
+function renderHistory() {
+  historyList.innerHTML = state.history.slice(0, 8).map((x) => `<li>${esc(x.text || "")}</li>`).join("");
+}
+
+function renderLayers() {
+  layerList.innerHTML = sortedElements().slice().reverse().map((x) => `<li>${esc(x.title || "Canvas item")}</li>`).join("");
+}
 
 function updatePresence() {
-  const states = Array.from(awareness.getStates().values()).filter((x) => x?.user);
+  const states = Array.from(state.presence.values()).filter((x) => x?.user);
   presenceList.innerHTML = states.map((entry) => `<span class="presence-chip"><span class="presence-dot" style="background:${esc(entry.user.color)}"></span><span>${esc(entry.user.name)}</span></span>`).join("");
-  liveBadge.textContent = `${states.length} live`;
-  roomSummary.textContent = `Public live room ${roomId}. Open the same link on other devices to collaborate.`;
+  liveBadge.textContent = connected
+    ? `${states.length} live`
+    : socket?.readyState === WebSocket.CONNECTING
+      ? "Connecting"
+      : bootstrapped
+        ? "Reconnecting"
+        : "Syncing";
+  roomSummary.textContent = `Public live room ${roomId}. Open the same link on other devices to collaborate through ${serverOrigin}.`;
 }
 
 function renderRemote() {
-  cursorLayer.innerHTML = Array.from(awareness.getStates().entries())
-    .filter(([id, entry]) => id !== ydoc.clientID && entry?.user && entry?.cursor)
-    .map(([, entry]) => `<div class="remote-cursor" style="left:${entry.cursor.x}px; top:${entry.cursor.y}px;"><div class="remote-cursor-dot" style="background:${esc(entry.user.color)}"></div><div class="remote-cursor-label" style="background:${esc(entry.user.color)}">${esc(entry.user.name)}</div></div>`)
+  cursorLayer.innerHTML = Array.from(state.presence.values())
+    .filter((entry) => entry.clientId !== clientId && entry?.user && entry?.cursor)
+    .map((entry) => `<div class="remote-cursor" style="left:${entry.cursor.x}px; top:${entry.cursor.y}px;"><div class="remote-cursor-dot" style="background:${esc(entry.user.color)}"></div><div class="remote-cursor-label" style="background:${esc(entry.user.color)}">${esc(entry.user.name)}</div></div>`)
     .join("");
 }
 
@@ -427,29 +639,40 @@ function setTool(tool, toastIt) {
   toolButtons.forEach((b) => b.classList.toggle("is-active", b.dataset.tool === tool));
   if (toastIt) showToast(`${tool[0].toUpperCase()}${tool.slice(1)} tool selected`);
 }
+
 function setPanel(panel) {
   navButtons.forEach((b) => b.classList.toggle("is-active", b.dataset.panel === panel));
   panelCopies.forEach((p) => p.classList.toggle("is-hidden", p.dataset.panelCopy !== panel));
 }
+
 function applyZoom(v) {
   zoom = v;
   stage.style.transform = `scale(${v})`;
   stage.style.width = `${STAGE_W * v}px`;
   stage.style.height = `${STAGE_H * v}px`;
 }
+
 function center(smooth) {
   viewport.scrollTo({ left: Math.max(0, (stage.scrollWidth - viewport.clientWidth) / 2 - 240), top: Math.max(0, (stage.scrollHeight - viewport.clientHeight) / 2 - 180), behavior: smooth ? "smooth" : "auto" });
   dock(fitButton);
 }
-function dock(btn) { [zoomButton, fitButton, panButton].forEach((b) => b.classList.toggle("is-active", b === btn)); }
+
+function dock(btn) {
+  [zoomButton, fitButton, panButton].forEach((b) => b.classList.toggle("is-active", b === btn));
+}
 
 function shareModal() {
   const liveUrl = new URL(window.location.href);
-  openModal("Share Live Room", `<p>Anyone opening this link joins the same public live room.</p><div class="connection-tools"><button class="menu-item" id="copyLiveLinkButton" type="button"><span class="material-symbols-outlined">content_copy</span><span>Copy live link</span></button><button class="menu-item" id="openLocalModeButton" type="button"><span class="material-symbols-outlined">desktop_windows</span><span>Switch to local-only mode</span></button></div><div class="connection-panel"><p class="connection-status">${esc(liveUrl.toString())}</p></div>`);
+  if (liveUrl.searchParams.get("server") || !isDefaultServerOrigin(serverOrigin)) {
+    liveUrl.searchParams.set("server", serverOrigin);
+  }
+  openModal("Share Live Room", `<p>Anyone opening this link joins the same live room through the configured backend.</p><div class="connection-tools"><button class="menu-item" id="copyLiveLinkButton" type="button"><span class="material-symbols-outlined">content_copy</span><span>Copy live link</span></button><button class="menu-item" id="copyServerLinkButton" type="button"><span class="material-symbols-outlined">link</span><span>Copy backend URL</span></button><button class="menu-item" id="openLocalModeButton" type="button"><span class="material-symbols-outlined">desktop_windows</span><span>Switch to local-only mode</span></button></div><div class="connection-panel"><p class="connection-status">${esc(liveUrl.toString())}</p></div>`);
   $("#copyLiveLinkButton")?.addEventListener("click", () => copyText(liveUrl.toString(), "Live link copied"));
+  $("#copyServerLinkButton")?.addEventListener("click", () => copyText(serverOrigin, "Backend URL copied"));
   $("#openLocalModeButton")?.addEventListener("click", () => {
     const localUrl = new URL("./index.html", window.location.href);
     localUrl.searchParams.set("room", roomId);
+    if (liveUrl.searchParams.get("server")) localUrl.searchParams.set("server", liveUrl.searchParams.get("server"));
     window.location.href = localUrl.toString();
   });
 }
@@ -458,32 +681,98 @@ function openModal(title, body) { modalTitle.textContent = title; modalBody.inne
 function closeModal() { modal.classList.add("is-hidden"); }
 function showToast(msg) { toast.textContent = msg; toast.classList.remove("is-hidden"); clearTimeout(toastTimer); toastTimer = setTimeout(() => toast.classList.add("is-hidden"), 2200); }
 
-function putItem(item) {
-  let map = yElements.get(item.id);
-  if (!map) {
-    map = new Y.Map();
-    yElements.set(item.id, map);
-  }
-  Object.entries(item).forEach(([k, v]) => map.set(k, v));
+function rememberElement(item) {
+  state.elements.set(item.id, item);
+  state.meta.nextOrder = Math.max(state.meta.nextOrder || 0, Number(item.order || 0));
 }
+
 function updateFields(id, fields) {
-  const map = yElements.get(id);
-  if (!map) return;
-  Object.entries(fields).forEach(([k, v]) => map.set(k, v));
+  const current = state.elements.get(id);
+  if (!current) return false;
+  if (!sendMessage({ type: "element.patch", payload: { id, fields } })) return false;
+  rememberElement({ ...current, ...fields, id: current.id });
+  renderElements();
+  renderLayers();
+  return true;
 }
+
+function patchSettings(fields) {
+  if (!sendMessage({ type: "settings.patch", payload: fields })) return false;
+  state.settings = {
+    ...state.settings,
+    ...fields
+  };
+  renderSettings();
+  return true;
+}
+
+function deleteItem(id) {
+  if (!state.elements.has(id)) return false;
+  if (!sendMessage({ type: "element.delete", payload: { id } })) return false;
+  state.elements.delete(id);
+  renderElements();
+  renderLayers();
+  return true;
+}
+
 function getItem(id) {
-  const map = yElements.get(id);
-  return map ? { id, ...map.toJSON() } : null;
+  const item = state.elements.get(id);
+  return item ? { ...item } : null;
 }
+
 function nextOrder() {
-  const next = Number(yMeta.get("nextOrder") || 0) + 1;
-  yMeta.set("nextOrder", next);
+  const next = Number(state.meta.nextOrder || 0) + 1;
+  state.meta.nextOrder = next;
   return next;
 }
+
 function pushHistory(text) {
-  yHistory.insert(0, [{ text }]);
-  if (yHistory.length > 20) yHistory.delete(20, yHistory.length - 20);
+  sendMessage({
+    type: "history.append",
+    payload: {
+      text,
+      actorId: clientId,
+      at: Date.now()
+    }
+  });
 }
+
+function sendPresence(cursor) {
+  currentCursor = cursor;
+  ensureOwnPresenceListed();
+  updatePresence();
+  renderRemote();
+  if (presenceTimer) return;
+  presenceTimer = window.setTimeout(() => {
+    presenceTimer = null;
+    sendMessage({
+      type: "presence.update",
+      payload: {
+        clientId,
+        user,
+        cursor: currentCursor,
+        lastSeenAt: Date.now()
+      }
+    }, false);
+  }, 40);
+}
+
+function ensureConnected() {
+  if (connected && socket?.readyState === WebSocket.OPEN) return true;
+  showToast("Live server unavailable");
+  connectSocket();
+  return false;
+}
+
+function sendMessage(message, toastOnFailure = true) {
+  if (!connected || !socket || socket.readyState !== WebSocket.OPEN) {
+    if (toastOnFailure) showToast("Live server unavailable");
+    return false;
+  }
+  socket.send(JSON.stringify(message));
+  return true;
+}
+
 function ensureRoomId() {
   const u = new URL(window.location.href);
   let id = u.searchParams.get("room");
@@ -494,6 +783,54 @@ function ensureRoomId() {
   }
   return id;
 }
+
+function ensureClientId() {
+  const key = "never-wet-freeform-live-client";
+  let id = sessionStorage.getItem(key);
+  if (!id) {
+    id = crypto.randomUUID?.() || `client-${Date.now()}`;
+    sessionStorage.setItem(key, id);
+  }
+  return id;
+}
+
+function resolveServerOrigin() {
+  const page = new URL(window.location.href);
+  const explicit = page.searchParams.get("server");
+  if (explicit) {
+    return normalizeServerOrigin(explicit);
+  }
+  if (window.location.protocol === "http:" || window.location.protocol === "https:") {
+    return `${window.location.protocol}//${window.location.hostname}:${DEFAULT_SERVER_PORT}`;
+  }
+  return `http://localhost:${DEFAULT_SERVER_PORT}`;
+}
+
+function normalizeServerOrigin(value) {
+  try {
+    const url = new URL(value.includes("://") ? value : `http://${value}`);
+    return `${url.protocol}//${url.host}`;
+  } catch {
+    return `http://localhost:${DEFAULT_SERVER_PORT}`;
+  }
+}
+
+function buildWebsocketUrl(origin, room, client) {
+  const httpUrl = new URL(origin);
+  const wsProtocol = httpUrl.protocol === "https:" ? "wss:" : "ws:";
+  const wsUrl = new URL(`${wsProtocol}//${httpUrl.host}/ws`);
+  wsUrl.searchParams.set("room", room);
+  wsUrl.searchParams.set("clientId", client);
+  return wsUrl.toString();
+}
+
+function isDefaultServerOrigin(origin) {
+  if (window.location.protocol !== "http:" && window.location.protocol !== "https:") {
+    return origin === `http://localhost:${DEFAULT_SERVER_PORT}`;
+  }
+  return origin === `${window.location.protocol}//${window.location.hostname}:${DEFAULT_SERVER_PORT}`;
+}
+
 function loadUser() {
   const key = "never-wet-freeform-live-user";
   try {
@@ -504,5 +841,12 @@ function loadUser() {
   localStorage.setItem(key, JSON.stringify(created));
   return created;
 }
+
+async function readSocketMessage(data) {
+  if (typeof data === "string") return data;
+  if (data instanceof Blob) return await data.text();
+  return null;
+}
+
 async function copyText(v, ok) { try { await navigator.clipboard.writeText(v); showToast(ok); } catch { showToast("Copy failed"); } }
-function esc(v) { return String(v).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#39;"); }
+function esc(v) { return String(v ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#39;"); }
