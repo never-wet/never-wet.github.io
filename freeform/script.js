@@ -438,14 +438,8 @@ function renderRemote() {
 }
 
 function updateBadge() {
-  const n = 1 + remote.size;
-  const mode = state.mode === "host" ? "host" : state.mode === "client" ? "joined" : "solo";
-  liveBadge.textContent = `${n} live ${mode}`;
-  roomSummary.textContent = state.mode === "host"
-    ? "This laptop is the host. Keep it open while others use the room."
-    : state.mode === "client"
-      ? "This laptop is joined to a host. If the host closes, the room ends."
-      : "Solo mode. Use Share to host or join a live room.";
+  liveBadge.textContent = "Local Only";
+  roomSummary.textContent = "Local-only mode. Use Share to open the public live version for cross-device collaboration.";
 }
 
 function setTool(tool, toastIt) {
@@ -476,13 +470,17 @@ function closeModal() { modal.classList.add("is-hidden"); }
 function showToast(msg) { toast.textContent = msg; toast.classList.remove("is-hidden"); clearTimeout(toastTimer); toastTimer = setTimeout(() => toast.classList.add("is-hidden"), 2200); }
 
 function helpModal() {
-  openModal("Host And Join", `<p>This version does not use a sync server.</p><p>One laptop hosts the room. Each joining laptop needs a one-time invite/response handshake. The host must stay open, and when it closes, the session disappears.</p>`);
+  openModal("Offline Mode", `<p>This page is the local-only freeform canvas.</p><p>Your edits work on this device while the page is open, but they do not sync to other devices.</p><p>Use Share to switch to the public live version if you want collaboration.</p>`);
 }
 
 function shareModal() {
-  openModal("Share Or Join", `<p>Without a server, browsers need a manual handshake. One laptop hosts, the others join.</p><div class="connection-tools"><button class="menu-item" id="hostRoomButton" type="button"><span class="material-symbols-outlined">lan</span><span>Host on this laptop</span></button><button class="menu-item" id="joinRoomButton" type="button"><span class="material-symbols-outlined">link</span><span>Join another laptop</span></button></div><div class="connection-panel" id="connectionPanel"></div>`);
-  $("#hostRoomButton")?.addEventListener("click", hostPanel);
-  $("#joinRoomButton")?.addEventListener("click", joinPanel);
+  const liveUrl = new URL("./live.html", window.location.href);
+  liveUrl.searchParams.set("room", state.roomId);
+  openModal("Share Options", `<p>This page is local-only.</p><div class="connection-tools"><button class="menu-item" id="openLiveModeButton" type="button"><span class="material-symbols-outlined">hub</span><span>Open public live mode</span></button><button class="menu-item" id="copyLiveModeButton" type="button"><span class="material-symbols-outlined">content_copy</span><span>Copy live link</span></button></div><div class="connection-panel"><p class="connection-status">Public live mode uses a shared sync service and is the version meant for multi-device collaboration.</p></div>`);
+  $("#openLiveModeButton")?.addEventListener("click", () => {
+    window.location.href = liveUrl.toString();
+  });
+  $("#copyLiveModeButton")?.addEventListener("click", () => copyText(liveUrl.toString(), "Live link copied"));
 }
 
 function hostPanel() {
