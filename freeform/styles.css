@@ -516,6 +516,14 @@ button {
   touch-action: none;
 }
 
+[data-edit-field][data-editing="true"] {
+  user-select: text;
+  cursor: text;
+  outline: 2px solid rgba(0, 91, 193, 0.28);
+  outline-offset: 4px;
+  border-radius: 8px;
+}
+
 .sticky-note {
   display: flex;
   flex-direction: column;

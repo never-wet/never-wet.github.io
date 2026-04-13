@@ -116,6 +116,7 @@ function setup() {
   viewport.addEventListener("pointercancel", panStop);
   viewport.addEventListener("pointermove", localCursor);
   viewport.addEventListener("pointerleave", () => sendCursor(null));
+  stage.addEventListener("dblclick", handleTextEditDblClick);
 }
 
 function render() {
@@ -166,6 +167,14 @@ function apply(a) {
       el.y = a.y;
       el.order = a.order;
       log(`${a.actor} moved ${el.title}`);
+    }
+  }
+  if (a.type === "edit-text") {
+    const el = find(a.id);
+    if (el) {
+      el[a.field] = a.value;
+      log(`${a.actor} edited ${el.title || "text"}`);
+      showToast("Text updated");
     }
   }
   if (a.type === "grid") {
@@ -240,7 +249,7 @@ function paint(node, el) {
   if (el.kind === "sticky") {
     node.classList.add("sticky-note");
     node.style.transform = `rotate(${el.rotation || -2}deg)`;
-    node.innerHTML = `<div><h2>${esc(el.title)}</h2><p>${esc(el.text)}</p></div><div class="pin-row"><span class="material-symbols-outlined">push_pin</span></div>`;
+    node.innerHTML = `<div><h2 data-edit-field="title">${esc(el.title)}</h2><p data-edit-field="text">${esc(el.text)}</p></div><div class="pin-row"><span class="material-symbols-outlined">push_pin</span></div>`;
     return;
   }
   if (el.kind === "shape-circle") { node.classList.add("shape-circle"); node.innerHTML = ""; return; }
@@ -248,16 +257,17 @@ function paint(node, el) {
   if (el.kind === "media") {
     node.classList.add("media-card");
     node.style.transform = `rotate(${el.rotation || 3}deg)`;
-    node.innerHTML = `<div class="media-frame"><img src="${esc(el.image)}" alt="${esc(el.title)}" /><div class="media-overlay"><span class="material-symbols-outlined">zoom_in</span></div></div><div class="media-copy"><h3>${esc(el.title)}</h3><p>${esc(el.text)}</p></div>`;
+    node.innerHTML = `<div class="media-frame"><img src="${esc(el.image)}" alt="${esc(el.title)}" /><div class="media-overlay"><span class="material-symbols-outlined">zoom_in</span></div></div><div class="media-copy"><h3 data-edit-field="title">${esc(el.title)}</h3><p data-edit-field="text">${esc(el.text)}</p></div>`;
     return;
   }
-  if (el.kind === "text") { node.classList.add("hero-type"); node.textContent = el.title; return; }
+  if (el.kind === "text") { node.classList.add("hero-type"); node.innerHTML = `<span data-edit-field="title">${esc(el.title)}</span>`; return; }
   node.classList.add("sprint-card");
-  node.innerHTML = `<div class="sprint-head"><div class="spark-badge"><span class="material-symbols-outlined">auto_awesome</span></div><span class="status-pill">Active</span></div><h3>${esc(el.title)}</h3><div class="team-stack" aria-hidden="true"><span></span><span></span><span></span><span class="team-more">+5</span></div><div class="sprint-meta"><span>${esc(el.text)}</span><span class="material-symbols-outlined">arrow_forward_ios</span></div>`;
+  node.innerHTML = `<div class="sprint-head"><div class="spark-badge"><span class="material-symbols-outlined">auto_awesome</span></div><span class="status-pill">Active</span></div><h3 data-edit-field="title">${esc(el.title)}</h3><div class="team-stack" aria-hidden="true"><span></span><span></span><span></span><span class="team-more">+5</span></div><div class="sprint-meta"><span data-edit-field="text">${esc(el.text)}</span><span class="material-symbols-outlined">arrow_forward_ios</span></div>`;
 }
 
 function bindDrag(node) {
   node.addEventListener("pointerdown", (e) => {
+    if (e.target.closest("[data-edit-field]")) return;
     e.stopPropagation();
     const el = find(node.dataset.id);
     if (!el || e.target.closest("button")) return;
@@ -310,6 +320,73 @@ function localCursor(e) {
   if (state.mode === "solo") return;
   const r = stage.getBoundingClientRect();
   sendCursor({ x: (e.clientX - r.left) / state.zoom, y: (e.clientY - r.top) / state.zoom });
+}
+
+function handleTextEditDblClick(e) {
+  if (dragState) return;
+  const target = e.target.closest("[data-edit-field]");
+  const owner = e.target.closest(".draggable");
+  if (!target || !owner) return;
+  e.preventDefault();
+  e.stopPropagation();
+
+  const field = target.dataset.editField;
+  const el = find(owner.dataset.id);
+  if (!el) return;
+
+  const current = String(el[field] || "");
+  target.setAttribute("contenteditable", "true");
+  target.setAttribute("data-editing", "true");
+  target.focus();
+  placeCaretAtEnd(target);
+
+  const finish = (save) => {
+    const next = target.textContent ?? "";
+    target.removeAttribute("contenteditable");
+    target.removeAttribute("data-editing");
+    target.removeEventListener("blur", onBlur);
+    target.removeEventListener("keydown", onKeyDown);
+
+    if (!save) {
+      target.textContent = current;
+      return;
+    }
+
+    if (next === current) return;
+    dispatch({
+      type: "edit-text",
+      id: el.id,
+      field,
+      value: next,
+      actor: user.name,
+    });
+  };
+
+  const onBlur = () => finish(true);
+  const onKeyDown = (event) => {
+    if (event.key === "Enter" && field !== "text" && !event.shiftKey) {
+      event.preventDefault();
+      finish(true);
+      return;
+    }
+
+    if (event.key === "Escape") {
+      event.preventDefault();
+      finish(false);
+    }
+  };
+
+  target.addEventListener("blur", onBlur);
+  target.addEventListener("keydown", onKeyDown);
+}
+
+function placeCaretAtEnd(element) {
+  const selection = window.getSelection();
+  const range = document.createRange();
+  range.selectNodeContents(element);
+  range.collapse(false);
+  selection.removeAllRanges();
+  selection.addRange(range);
 }
 
 function renderSettings() {
