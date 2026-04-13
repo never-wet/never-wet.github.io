@@ -1,86 +1,178 @@
 <!doctype html>
-<html lang="en">
+<html class="dark" lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Morse Code Translator</title>
+    <title>THE SIGNAL | Analog Precision Morse Translator</title>
     <meta
       name="description"
-      content="Translate plain text to Morse code and decode Morse back into text."
+      content="Analog-inspired Morse translator with live encoding, decoding, playback, and full reference."
     />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Manrope:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&family=Material+Symbols+Outlined:wght@400&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
-    <main class="page-shell">
-      <section class="hero-card">
-        <p class="eyebrow">Signal Lab</p>
-        <h1>Morse Code Translator</h1>
-        <p class="lede">
-          Convert text into dots and dashes, or decode Morse back into readable
-          text in real time.
-        </p>
+    <nav class="topbar">
+      <div class="topbar-inner">
+        <div class="brand">THE SIGNAL</div>
+        <div class="top-links">
+          <a class="is-active" href="#translatorPanel">Translator</a>
+          <a href="#referencePanel">Reference</a>
+          <a href="#statusPanel">Status</a>
+          <a href="#aboutPanel">About</a>
+        </div>
+        <button class="icon-btn" type="button" aria-label="Interface settings">
+          <span class="material-symbols-outlined">settings</span>
+        </button>
+      </div>
+    </nav>
 
-        <div class="mode-switch" role="group" aria-label="Translation mode">
-          <button class="mode-btn is-active" data-mode="text-to-morse" type="button">
-            Text to Morse
-          </button>
-          <button class="mode-btn" data-mode="morse-to-text" type="button">
-            Morse to Text
-          </button>
+    <main class="page-shell">
+      <div class="hero-glow" aria-hidden="true"></div>
+
+      <section class="hero">
+        <p class="hero-kicker">Electromagnetic Signal Translation Interface</p>
+        <h1>ANALOG PRECISION</h1>
+      </section>
+
+      <section class="mode-bar" aria-label="Translation mode">
+        <button class="mode-chip is-active" data-mode="text-to-morse" type="button">
+          <span class="material-symbols-outlined">keyboard</span>
+          <span>Text to Morse</span>
+        </button>
+        <button class="mode-chip" data-mode="morse-to-text" type="button">
+          <span class="material-symbols-outlined">graphic_eq</span>
+          <span>Morse to Text</span>
+        </button>
+      </section>
+
+      <section class="workbench" id="translatorPanel">
+        <div class="terminal-panel">
+          <div class="panel-frame">
+            <div class="panel-core">
+              <label class="panel-label" id="inputLabel" for="inputText">Source / English</label>
+              <textarea
+                id="inputText"
+                spellcheck="false"
+                placeholder="Enter message to transmit..."
+              ></textarea>
+
+              <div class="panel-footer">
+                <span class="panel-meta" id="inputMeta">EN-US // UTF-8</span>
+                <div class="action-row">
+                  <button id="translateBtn" class="primary-btn" type="button">
+                    <span>TRANSLATE</span>
+                    <span class="material-symbols-outlined">sensors</span>
+                  </button>
+                  <button id="swapBtn" class="ghost-btn" type="button">Swap</button>
+                  <button id="clearBtn" class="ghost-btn" type="button">Clear</button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div class="translator-grid">
-          <label class="panel">
-            <span class="panel-title" id="inputLabel">Plain Text</span>
-            <textarea
-              id="inputText"
-              spellcheck="false"
-              placeholder="Type a message like HELLO WORLD"
-              aria-labelledby="inputLabel"
-            ></textarea>
-          </label>
+        <div class="artifact-panel">
+          <div class="artifact-core">
+            <div class="artifact-head">
+              <div>
+                <label class="panel-label secondary" id="outputLabel" for="outputText">
+                  Output / Morse Code
+                </label>
+                <p class="artifact-subtitle" id="statusPanel">Carrier synchronized.</p>
+              </div>
 
-          <label class="panel">
-            <span class="panel-title" id="outputLabel">Morse Code</span>
+              <div class="icon-actions">
+                <button id="playBtn" class="icon-btn signal" type="button" aria-label="Play Morse">
+                  <span class="material-symbols-outlined">play_arrow</span>
+                </button>
+                <button id="copyBtn" class="icon-btn" type="button" aria-label="Copy output">
+                  <span class="material-symbols-outlined">content_copy</span>
+                </button>
+              </div>
+            </div>
+
             <textarea
               id="outputText"
+              class="output-display"
               readonly
               spellcheck="false"
-              placeholder=".... . .-.. .-.. --- / .-- --- .-. .-.. -.."
-              aria-labelledby="outputLabel"
+              placeholder="- .... . / ... .. --. -. .- .-.."
             ></textarea>
-          </label>
-        </div>
 
-        <div class="actions">
-          <button id="swapBtn" class="ghost-btn" type="button">Swap Direction</button>
-          <button id="copyBtn" class="ghost-btn" type="button">Copy Output</button>
-          <button id="playBtn" class="ghost-btn" type="button">Play Morse</button>
-          <button id="clearBtn" class="ghost-btn" type="button">Clear</button>
-        </div>
-
-        <div class="status-row">
-          <p id="statusText" class="status-text" aria-live="polite">
-            Ready to translate.
-          </p>
-          <p class="hint">Use spaces between letters and <code>/</code> between words.</p>
+            <div class="signal-line">
+              <span class="signal-dot"></span>
+              <p id="statusText" class="status-text">Ready to translate.</p>
+            </div>
+          </div>
         </div>
       </section>
 
-      <section class="reference-card">
-        <div>
-          <p class="eyebrow">Cheat Sheet</p>
-          <h2>Common Morse Symbols</h2>
+      <section class="info-grid" id="aboutPanel">
+        <article class="info-card">
+          <span class="material-symbols-outlined accent-primary">history_edu</span>
+          <h2>Live Conversion</h2>
+          <p>
+            Encoding and decoding happen instantly, with warnings when symbols
+            fall outside the supported Morse set.
+          </p>
+        </article>
+
+        <article class="info-card">
+          <span class="material-symbols-outlined accent-secondary">settings_input_antenna</span>
+          <h2>Signal Playback</h2>
+          <p>
+            Play translated Morse as audio beeps for quick listening practice
+            and rhythm checking.
+          </p>
+        </article>
+
+        <article class="info-card">
+          <span class="material-symbols-outlined accent-tertiary">import_contacts</span>
+          <h2>Full Reference</h2>
+          <p>
+            Browse the complete international Morse alphabet, numerals, and
+            supported punctuation below.
+          </p>
+        </article>
+      </section>
+
+      <section class="reference-panel" id="referencePanel">
+        <div class="reference-header">
+          <div>
+            <p class="hero-kicker">Comprehensive dictionary</p>
+            <h2>Morse Reference</h2>
+          </div>
+          <p class="reference-note">
+            Letters use spaces between characters. Words are separated with
+            <code>/</code>.
+          </p>
         </div>
         <div class="reference-grid" id="referenceGrid"></div>
       </section>
     </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        <div class="footer-brand">
+          <span>THE SIGNAL</span>
+          <span>Analog Precision Morse Interface</span>
+        </div>
+        <div class="footer-links">
+          <a href="#translatorPanel">Translator</a>
+          <a href="#referencePanel">Reference</a>
+        </div>
+      </div>
+    </footer>
+
+    <button class="fab" type="button" aria-label="Jump to reference" onclick="location.hash='referencePanel'">
+      <span class="material-symbols-outlined">help</span>
+    </button>
 
     <script src="./script.js"></script>
   </body>

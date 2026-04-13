@@ -60,26 +60,36 @@ const REVERSE_MORSE_MAP = Object.fromEntries(
 );
 
 const REFERENCE_SYMBOLS = [
-  "A",
-  "B",
-  "C",
-  "S",
-  "O",
-  "1",
-  "2",
-  "3",
-  "0",
+  ..."ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+  ..."0123456789",
   ".",
+  ",",
   "?",
-  "/"
+  "!",
+  "'",
+  '"',
+  "/",
+  "(",
+  ")",
+  "&",
+  ":",
+  ";",
+  "=",
+  "+",
+  "-",
+  "_",
+  "@",
+  "$"
 ];
 
 const inputText = document.querySelector("#inputText");
 const outputText = document.querySelector("#outputText");
 const inputLabel = document.querySelector("#inputLabel");
 const outputLabel = document.querySelector("#outputLabel");
+const inputMeta = document.querySelector("#inputMeta");
 const statusText = document.querySelector("#statusText");
-const modeButtons = [...document.querySelectorAll(".mode-btn")];
+const translateBtn = document.querySelector("#translateBtn");
+const modeButtons = [...document.querySelectorAll(".mode-chip")];
 const swapBtn = document.querySelector("#swapBtn");
 const copyBtn = document.querySelector("#copyBtn");
 const playBtn = document.querySelector("#playBtn");
@@ -93,6 +103,7 @@ renderReference();
 translate();
 
 inputText.addEventListener("input", translate);
+translateBtn.addEventListener("click", translate);
 swapBtn.addEventListener("click", swapMode);
 clearBtn.addEventListener("click", clearFields);
 copyBtn.addEventListener("click", copyOutput);
@@ -115,11 +126,13 @@ function setMode(mode) {
   if (currentMode === "text-to-morse") {
     inputLabel.textContent = "Plain Text";
     outputLabel.textContent = "Morse Code";
+    inputMeta.textContent = "EN-US // UTF-8";
     inputText.placeholder = "Type a message like HELLO WORLD";
-    outputText.placeholder = ".... . .-.. .-.. --- / .-- --- .-. .-.. -..";
+    outputText.placeholder = "- .... . / ... .. --. -. .- .-..";
   } else {
     inputLabel.textContent = "Morse Code";
     outputLabel.textContent = "Plain Text";
+    inputMeta.textContent = "ITU // DOT-DASH";
     inputText.placeholder = "... --- ... / -- .- -.-- -.. .- -.--";
     outputText.placeholder = "SOS MAYDAY";
   }
