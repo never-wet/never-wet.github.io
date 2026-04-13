@@ -737,11 +737,46 @@ code,
   color: var(--primary);
 }
 
+.reference-groups {
+  display: grid;
+  gap: 18px;
+  margin-top: 22px;
+}
+
+.reference-section {
+  padding: 18px;
+  border: 1px solid rgba(65, 72, 72, 0.2);
+  border-radius: 18px;
+  background: rgba(12, 14, 17, 0.32);
+}
+
+.reference-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.reference-section-header h3 {
+  margin: 0;
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 1rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.reference-section-header span {
+  color: var(--text-dim);
+  font-size: 0.74rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
 .reference-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
   gap: 12px;
-  margin-top: 22px;
 }
 
 .reference-item {

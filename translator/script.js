@@ -59,27 +59,41 @@ const REVERSE_MORSE_MAP = Object.fromEntries(
   Object.entries(MORSE_MAP).map(([key, value]) => [value, key])
 );
 
-const REFERENCE_SYMBOLS = [
-  ..."ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-  ..."0123456789",
-  ".",
-  ",",
-  "?",
-  "!",
-  "'",
-  '"',
-  "/",
-  "(",
-  ")",
-  "&",
-  ":",
-  ";",
-  "=",
-  "+",
-  "-",
-  "_",
-  "@",
-  "$"
+const REFERENCE_GROUPS = [
+  {
+    title: "Letters",
+    note: "A-Z",
+    symbols: [..."ABCDEFGHIJKLMNOPQRSTUVWXYZ"]
+  },
+  {
+    title: "Numbers",
+    note: "0-9",
+    symbols: [..."0123456789"]
+  },
+  {
+    title: "Symbols",
+    note: "Punctuation",
+    symbols: [
+      ".",
+      ",",
+      "?",
+      "!",
+      "'",
+      '"',
+      "/",
+      "(",
+      ")",
+      "&",
+      ":",
+      ";",
+      "=",
+      "+",
+      "-",
+      "_",
+      "@",
+      "$"
+    ]
+  }
 ];
 
 const inputText = document.querySelector("#inputText");
@@ -101,6 +115,7 @@ const historyEmpty = document.querySelector("#historyEmpty");
 const historySearch = document.querySelector("#historySearch");
 const filterButtons = [...document.querySelectorAll(".filter-btn")];
 const sectionLinks = [...document.querySelectorAll('a[href^="#"]')];
+const topNavLinks = [...document.querySelectorAll(".top-links a")];
 const fabLink = document.querySelector(".fab");
 
 let currentMode = "text-to-morse";
@@ -135,6 +150,7 @@ for (const link of sectionLinks) {
     }
 
     event.preventDefault();
+    setActiveTopNavLink(id);
     scrollToSection(id);
   });
 }
@@ -356,12 +372,26 @@ function setStatus(message, status) {
 }
 
 function renderReference() {
-  referenceGrid.innerHTML = REFERENCE_SYMBOLS.map(
-    (symbol) => `
-      <article class="reference-item">
-        <strong>${symbol}</strong>
-        <span>${MORSE_MAP[symbol]}</span>
-      </article>
+  referenceGrid.innerHTML = REFERENCE_GROUPS.map(
+    (group) => `
+      <section class="reference-section">
+        <div class="reference-section-header">
+          <h3>${group.title}</h3>
+          <span>${group.note}</span>
+        </div>
+        <div class="reference-grid">
+          ${group.symbols
+            .map(
+              (symbol) => `
+                <article class="reference-item">
+                  <strong>${escapeHtml(symbol)}</strong>
+                  <span>${MORSE_MAP[symbol]}</span>
+                </article>
+              `
+            )
+            .join("")}
+        </div>
+      </section>
     `
   ).join("");
 }
@@ -672,4 +702,11 @@ function centerElementInViewport(element, behavior) {
   );
 
   window.scrollTo({ top: nextScroll, behavior });
+}
+
+function setActiveTopNavLink(id) {
+  for (const link of topNavLinks) {
+    const targetId = link.getAttribute("href")?.slice(1);
+    link.classList.toggle("is-active", targetId === id);
+  }
 }
