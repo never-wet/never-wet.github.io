@@ -392,7 +392,7 @@ function applySnapshot(snapshot) {
   if (!snapshot) return;
   bootstrapped = true;
   state.roomId = snapshot.roomId || roomId;
-  state.elements = new Map((snapshot.elements || []).map((item) => [item.id, item]));
+  state.elements = new Map((snapshot.elements || []).filter((item) => item?.id !== "seed-sprint").map((item) => [item.id, item]));
   state.settings = {
     grid: snapshot.settings?.grid !== false,
     glow: snapshot.settings?.glow === true
@@ -548,8 +548,9 @@ function paint(node, el) {
   node.style.transform = "";
   if (el.kind === "sticky") {
     node.classList.add("sticky-note");
+    node.classList.toggle("is-pinned", el.pinned === true);
     node.style.transform = `rotate(${el.rotation || 0}deg)`;
-    node.innerHTML = `<div><h2 data-edit-field="title">${esc(el.title)}</h2><p data-edit-field="text">${esc(el.text)}</p></div><div class="pin-row"><span class="material-symbols-outlined">push_pin</span></div>`;
+    node.innerHTML = `<div><h2 data-edit-field="title">${esc(el.title)}</h2><p data-edit-field="text">${esc(el.text)}</p></div><div class="pin-row"><button class="pin-button ${el.pinned ? "is-pinned" : ""}" data-pin-toggle="true" type="button" aria-label="${el.pinned ? "Unpin note" : "Pin note"}"><span class="material-symbols-outlined">${el.pinned ? "keep" : "push_pin"}</span></button></div>`;
     return;
   }
   if (el.kind === "shape-circle") { node.classList.add("shape-circle"); node.innerHTML = ""; return; }
@@ -567,14 +568,35 @@ function paint(node, el) {
 
 function bindDrag(node) {
   node.addEventListener("click", (e) => {
+    const item = getItem(node.dataset.id);
+    if (e.target.closest("[data-pin-toggle]")) {
+      e.preventDefault();
+      e.stopPropagation();
+      if (item?.kind === "sticky") {
+        if (updateFields(item.id, { pinned: !item.pinned })) {
+          pushHistory(`${user.name} ${item.pinned ? "unpinned" : "pinned"} ${item.title}`);
+          showToast(item.pinned ? "Sticky note unpinned" : "Sticky note pinned");
+        }
+      }
+      return;
+    }
+
     if (Date.now() < suppressMediaOpenUntil) return;
-    const el = getItem(node.dataset.id);
+    const el = item;
     if (!el || el.kind !== "media") return;
     if (e.target.closest("[data-edit-field]")) return;
     openMediaDrawer(el);
   });
 
   node.addEventListener("dblclick", (e) => {
+    const item = getItem(node.dataset.id);
+    if (item?.kind === "sticky") {
+      e.preventDefault();
+      e.stopPropagation();
+      openStickyEditor(item);
+      return;
+    }
+
     if (node.classList.contains("hero-type")) {
       const hero = node.querySelector("[data-edit-field]") || node;
       e.preventDefault();
@@ -596,6 +618,7 @@ function bindDrag(node) {
     if (source?.closest('[data-edit-field][data-editing="true"]')) return;
     e.stopPropagation();
     const el = getItem(node.dataset.id);
+    if (el?.pinned) return;
     if (!el || e.target.closest("button")) return;
     dragState = { id: el.id, pid: e.pointerId, sx: e.clientX, sy: e.clientY, ix: el.x, iy: el.y, lx: el.x, ly: el.y, order: el.order, moved: false };
     panState = null;
@@ -952,6 +975,43 @@ function openMediaImportModal() {
     dropzone.classList.remove("is-dragover");
   }));
   dropzone.addEventListener("drop", (event) => importMediaFiles(event.dataTransfer?.files));
+}
+
+function openStickyEditor(item) {
+  openModal("Edit Sticky Note", `
+    <div class="sticky-editor">
+      <input class="sticky-editor-title" id="stickyEditorTitle" type="text" value="${esc(item.title || "")}" />
+      <textarea class="sticky-editor-body" id="stickyEditorBody">${esc(item.text || "")}</textarea>
+      <div class="sticky-editor-actions">
+        <button class="ghost-row" id="stickyEditorCancel" type="button">Cancel</button>
+        <button class="primary-action" id="stickyEditorDone" type="button">Done</button>
+      </div>
+    </div>
+  `);
+
+  const titleInput = $("#stickyEditorTitle");
+  const bodyInput = $("#stickyEditorBody");
+  const cancelButton = $("#stickyEditorCancel");
+  const doneButton = $("#stickyEditorDone");
+  if (!titleInput || !bodyInput || !doneButton || !cancelButton) return;
+
+  titleInput.focus();
+  titleInput.select();
+
+  const commit = () => {
+    const nextTitle = titleInput.value.trim() || item.title || "Untitled note";
+    const nextBody = bodyInput.value.trim() || item.text || "";
+    if (nextTitle !== item.title && !updateFields(item.id, { title: nextTitle })) return;
+    if (nextBody !== item.text && !updateFields(item.id, { text: nextBody })) return;
+    if (nextTitle !== item.title || nextBody !== item.text) {
+      pushHistory(`${user.name} edited ${nextTitle}`);
+      showToast("Sticky note updated");
+    }
+    closeModal();
+  };
+
+  doneButton.addEventListener("click", commit);
+  cancelButton.addEventListener("click", closeModal);
 }
 
 function openMediaDrawer(item) {

@@ -671,7 +671,27 @@ button {
 .pin-row {
   display: flex;
   justify-content: flex-end;
-  color: rgba(36, 48, 61, 0.24);
+}
+
+.pin-button {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.28);
+  color: rgba(36, 48, 61, 0.26);
+  cursor: pointer;
+}
+
+.pin-button.is-pinned {
+  background: rgba(36, 48, 61, 0.14);
+  color: rgba(36, 48, 61, 0.74);
+}
+
+.sticky-note.is-pinned {
+  box-shadow: 0 18px 34px rgba(31, 41, 55, 0.18);
 }
 
 .shape-circle {
@@ -1235,6 +1255,40 @@ button {
   color: var(--text-soft);
   font-size: 0.76rem;
   text-align: center;
+}
+
+.sticky-editor {
+  display: grid;
+  gap: 14px;
+}
+
+.sticky-editor-title,
+.sticky-editor-body {
+  width: 100%;
+  border: 1px solid rgba(172, 178, 191, 0.28);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.74);
+  color: var(--text);
+  font: inherit;
+}
+
+.sticky-editor-title {
+  padding: 14px 16px;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.sticky-editor-body {
+  min-height: 240px;
+  padding: 16px;
+  resize: vertical;
+  line-height: 1.6;
+}
+
+.sticky-editor-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
 }
 
 .connection-tools {

@@ -205,7 +205,6 @@ function seed() {
     { id: "seed-blob", kind: "shape-blob", title: "Glass Blob", x: 850, y: 310, order: 3, seed: true },
     { id: "seed-media", kind: "media", title: "Creative Reference #42", text: "Inspired by ethereal workshop concept", image: "../img/code2.png", x: 470, y: 560, rotation: 0, order: 4, seed: true },
     { id: "seed-type", kind: "text", title: "ETHEREAL WORKSPACE", x: 1010, y: 470, order: 5, seed: true },
-    { id: "seed-sprint", kind: "sprint", title: "Design Sprint", text: "Due in 2 days", x: 1130, y: 170, order: 6, seed: true },
   ];
 }
 
@@ -254,6 +253,14 @@ function apply(a) {
       showToast("Text updated");
     }
   }
+  if (a.type === "pin") {
+    const el = find(a.id);
+    if (el) {
+      el.pinned = a.value;
+      log(`${a.actor} ${a.value ? "pinned" : "unpinned"} ${el.title}`);
+      showToast(a.value ? "Sticky note pinned" : "Sticky note unpinned");
+    }
+  }
   if (a.type === "grid") {
     state.grid = a.visible;
     log(`${a.actor} ${a.visible ? "showed" : "hid"} the grid`);
@@ -287,7 +294,7 @@ function makeItem(tool, n) {
   if (tool === "text") return { ...base, kind: "text", title: `HEADLINE ${n}` };
   if (tool === "shape") return { ...base, kind: n % 2 === 0 ? "shape-circle" : "shape-blob", title: n % 2 === 0 ? `Shape ${n} Circle` : `Shape ${n} Blob` };
   if (tool === "media") return { ...base, kind: "media", title: `Reference ${n}`, text: "Auto-added inspiration card", image: IMAGES[n % IMAGES.length], rotation: 0 };
-  return { ...base, kind: "sticky", title: `Idea Note ${n}`, text: "Fresh note dropped onto the board. Drag it anywhere and keep building.", rotation: 0 };
+  return { ...base, kind: "sticky", title: `Idea Note ${n}`, text: "Fresh note dropped onto the board. Drag it anywhere and keep building.", rotation: 0, pinned: false };
 }
 
 function makeStroke(points, color, width) {
@@ -386,8 +393,9 @@ function paint(node, el) {
   node.style.transform = "";
   if (el.kind === "sticky") {
     node.classList.add("sticky-note");
+    node.classList.toggle("is-pinned", el.pinned === true);
     node.style.transform = `rotate(${el.rotation || 0}deg)`;
-    node.innerHTML = `<div><h2 data-edit-field="title">${esc(el.title)}</h2><p data-edit-field="text">${esc(el.text)}</p></div><div class="pin-row"><span class="material-symbols-outlined">push_pin</span></div>`;
+    node.innerHTML = `<div><h2 data-edit-field="title">${esc(el.title)}</h2><p data-edit-field="text">${esc(el.text)}</p></div><div class="pin-row"><button class="pin-button ${el.pinned ? "is-pinned" : ""}" data-pin-toggle="true" type="button" aria-label="${el.pinned ? "Unpin note" : "Pin note"}"><span class="material-symbols-outlined">${el.pinned ? "keep" : "push_pin"}</span></button></div>`;
     return;
   }
   if (el.kind === "shape-circle") { node.classList.add("shape-circle"); node.innerHTML = ""; return; }
@@ -405,14 +413,32 @@ function paint(node, el) {
 
 function bindDrag(node) {
   node.addEventListener("click", (e) => {
+    const item = find(node.dataset.id);
+    if (e.target.closest("[data-pin-toggle]")) {
+      e.preventDefault();
+      e.stopPropagation();
+      if (item?.kind === "sticky") {
+        dispatch({ type: "pin", id: item.id, value: !item.pinned, actor: user.name });
+      }
+      return;
+    }
+
     if (Date.now() < suppressMediaOpenUntil) return;
-    const el = find(node.dataset.id);
+    const el = item;
     if (!el || el.kind !== "media") return;
     if (e.target.closest("[data-edit-field]")) return;
     openMediaDrawer(el);
   });
 
   node.addEventListener("dblclick", (e) => {
+    const item = find(node.dataset.id);
+    if (item?.kind === "sticky") {
+      e.preventDefault();
+      e.stopPropagation();
+      openStickyEditor(item);
+      return;
+    }
+
     if (node.classList.contains("hero-type")) {
       const heroField = node.querySelector("[data-edit-field]") || node;
       e.preventDefault();
@@ -435,6 +461,7 @@ function bindDrag(node) {
     if (source?.closest('[data-edit-field][data-editing="true"]')) return;
     e.stopPropagation();
     const el = find(node.dataset.id);
+    if (el?.pinned) return;
     if (!el || e.target.closest("button")) return;
     dragState = {
       id: el.id,
@@ -715,6 +742,43 @@ function showToast(msg) { toast.textContent = msg; toast.classList.remove("is-hi
 
 function helpModal() {
   openModal("Offline Mode", `<p>This page is the local-only freeform canvas.</p><p>Your edits work on this device while the page is open, but they do not sync to other devices.</p><p>Use Share to switch to the public live version if you want collaboration.</p>`);
+}
+
+function openStickyEditor(item) {
+  openModal("Edit Sticky Note", `
+    <div class="sticky-editor">
+      <input class="sticky-editor-title" id="stickyEditorTitle" type="text" value="${esc(item.title || "")}" />
+      <textarea class="sticky-editor-body" id="stickyEditorBody">${esc(item.text || "")}</textarea>
+      <div class="sticky-editor-actions">
+        <button class="ghost-row" id="stickyEditorCancel" type="button">Cancel</button>
+        <button class="primary-action" id="stickyEditorDone" type="button">Done</button>
+      </div>
+    </div>
+  `);
+
+  const titleInput = $("#stickyEditorTitle");
+  const bodyInput = $("#stickyEditorBody");
+  const cancelButton = $("#stickyEditorCancel");
+  const doneButton = $("#stickyEditorDone");
+  if (!titleInput || !bodyInput || !doneButton || !cancelButton) return;
+
+  titleInput.focus();
+  titleInput.select();
+
+  const commit = () => {
+    const nextTitle = titleInput.value.trim() || item.title || "Untitled note";
+    const nextBody = bodyInput.value.trim() || item.text || "";
+    if (nextTitle !== item.title) {
+      dispatch({ type: "edit-text", id: item.id, field: "title", value: nextTitle, actor: user.name });
+    }
+    if (nextBody !== item.text) {
+      dispatch({ type: "edit-text", id: item.id, field: "text", value: nextBody, actor: user.name });
+    }
+    closeModal();
+  };
+
+  doneButton.addEventListener("click", commit);
+  cancelButton.addEventListener("click", closeModal);
 }
 
 function openMediaImportModal() {
