@@ -258,20 +258,25 @@ function paint(node, el) {
 
 function bindDrag(node) {
   node.addEventListener("pointerdown", (e) => {
+    e.stopPropagation();
     const el = find(node.dataset.id);
     if (!el || e.target.closest("button")) return;
     const front = nextOrder();
     dispatch({ type: "front", id: el.id, order: front, actor: user.name });
     dragState = { id: el.id, pid: e.pointerId, sx: e.clientX, sy: e.clientY, ix: el.x, iy: el.y, lx: el.x, ly: el.y, order: front };
+    panState = null;
+    viewport.classList.remove("is-panning");
     node.setPointerCapture(e.pointerId);
   });
   const stop = (e) => {
+    e.stopPropagation();
     if (!dragState || dragState.pid !== e.pointerId || dragState.id !== node.dataset.id) return;
     dispatch({ type: "move", id: dragState.id, x: dragState.lx, y: dragState.ly, order: dragState.order, actor: user.name });
     node.releasePointerCapture(e.pointerId);
     dragState = null;
   };
   node.addEventListener("pointermove", (e) => {
+    e.stopPropagation();
     if (!dragState || dragState.pid !== e.pointerId || dragState.id !== node.dataset.id) return;
     dragState.lx = dragState.ix + (e.clientX - dragState.sx) / state.zoom;
     dragState.ly = dragState.iy + (e.clientY - dragState.sy) / state.zoom;
@@ -284,13 +289,13 @@ function bindDrag(node) {
 }
 
 function panStart(e) {
-  if (!state.pan || e.target.closest(".draggable") || e.target.closest("button")) return;
+  if (!state.pan || dragState || e.target.closest(".draggable") || e.target.closest("button")) return;
   panState = { pid: e.pointerId, sx: e.clientX, sy: e.clientY, sl: viewport.scrollLeft, st: viewport.scrollTop };
   viewport.classList.add("is-panning");
   viewport.setPointerCapture(e.pointerId);
 }
 function panMove(e) {
-  if (!panState || panState.pid !== e.pointerId) return;
+  if (!panState || dragState || panState.pid !== e.pointerId) return;
   viewport.scrollLeft = panState.sl - (e.clientX - panState.sx);
   viewport.scrollTop = panState.st - (e.clientY - panState.sy);
 }
