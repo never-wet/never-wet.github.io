@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en" class="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Infinite Canvas</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="canvas-grid" aria-hidden="true"></div>
+
+    <div class="top-shell">
+      <header class="topbar glass-panel">
+        <div class="brand">Infinite Canvas</div>
+
+        <nav class="toolbar" aria-label="Canvas tools">
+          <button class="tool-button" data-tool="pen" type="button">
+            <span class="material-symbols-outlined">edit</span>
+            <span>Pen</span>
+          </button>
+          <button class="tool-button" data-tool="text" type="button">
+            <span class="material-symbols-outlined">title</span>
+            <span>Text</span>
+          </button>
+          <button class="tool-button" data-tool="shape" type="button">
+            <span class="material-symbols-outlined">category</span>
+            <span>Shapes</span>
+          </button>
+          <button class="tool-button is-active" data-tool="sticky" type="button">
+            <span class="material-symbols-outlined">sticky_note_2</span>
+            <span>Sticky Notes</span>
+          </button>
+          <button class="tool-button" data-tool="media" type="button">
+            <span class="material-symbols-outlined">perm_media</span>
+            <span>Media</span>
+          </button>
+        </nav>
+
+        <div class="toolbar-meta">
+          <button class="icon-button" aria-label="Share" id="shareButton" type="button">
+            <span class="material-symbols-outlined">share</span>
+          </button>
+          <button class="icon-button" aria-label="More" id="moreButton" type="button">
+            <span class="material-symbols-outlined">more_vert</span>
+          </button>
+          <div class="live-pill" id="liveBadge">Live room</div>
+          <div class="avatar-ring" aria-hidden="true">
+            <img src="../img/junha.png" alt="Workspace profile" />
+          </div>
+        </div>
+
+        <div class="top-menu glass-panel is-hidden" id="topMenu">
+          <button class="menu-item" data-menu-action="theme" type="button">
+            <span class="material-symbols-outlined">light_mode</span>
+            <span>Toggle ambient glow</span>
+          </button>
+          <button class="menu-item" data-menu-action="shuffle" type="button">
+            <span class="material-symbols-outlined">shuffle</span>
+            <span>Shuffle layout</span>
+          </button>
+          <button class="menu-item" data-menu-action="clear" type="button">
+            <span class="material-symbols-outlined">ink_eraser</span>
+            <span>Clear generated items</span>
+          </button>
+        </div>
+      </header>
+    </div>
+
+    <aside class="sidebar glass-panel">
+      <div class="project-card">
+        <div class="project-badge">
+          <span class="material-symbols-outlined">deployed_code</span>
+        </div>
+        <div>
+          <h1>Project Alpha</h1>
+          <p>Last edited 2m ago</p>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav" aria-label="Project navigation">
+        <button class="nav-button is-active" data-panel="documents" type="button">
+          <span class="material-symbols-outlined">folder</span>
+          <span>Documents</span>
+        </button>
+        <button class="nav-button" data-panel="layers" type="button">
+          <span class="material-symbols-outlined">layers</span>
+          <span>Layers</span>
+        </button>
+        <button class="nav-button" data-panel="history" type="button">
+          <span class="material-symbols-outlined">history</span>
+          <span>History</span>
+        </button>
+        <button class="nav-button" data-panel="settings" type="button">
+          <span class="material-symbols-outlined">settings</span>
+          <span>Settings</span>
+        </button>
+      </nav>
+
+      <section class="sidebar-panel" id="sidebarPanel">
+        <div class="panel-copy" data-panel-copy="documents">
+          <h2>Documents</h2>
+          <p id="roomSummary">Creative brief, motion references, and notes are pinned across the board.</p>
+          <div class="presence-strip" id="presenceList"></div>
+        </div>
+        <div class="panel-copy is-hidden" data-panel-copy="layers">
+          <h2>Layers</h2>
+          <p>Every new canvas object appears here, with the newest item surfaced to the top.</p>
+          <ul class="layer-list" id="layerList"></ul>
+        </div>
+        <div class="panel-copy is-hidden" data-panel-copy="history">
+          <h2>History</h2>
+          <p>Recent actions update live while you add, move, zoom, and reorganize the canvas.</p>
+          <ul class="history-list" id="historyList"></ul>
+        </div>
+        <div class="panel-copy is-hidden" data-panel-copy="settings">
+          <h2>Settings</h2>
+          <label class="setting-row">
+            <span>Canvas zoom</span>
+            <input id="zoomRange" type="range" min="70" max="140" value="100" />
+          </label>
+          <label class="setting-row">
+            <span>Grid visibility</span>
+            <input id="gridToggle" type="checkbox" checked />
+          </label>
+        </div>
+      </section>
+
+      <div class="sidebar-footer">
+        <button class="ghost-row" id="helpButton" type="button">
+          <span class="material-symbols-outlined">help</span>
+          <span>Help</span>
+        </button>
+        <button class="ghost-row" id="archiveButton" type="button">
+          <span class="material-symbols-outlined">archive</span>
+          <span>Archive</span>
+        </button>
+        <button class="primary-action" id="newLayerButton" type="button">
+          <span class="material-symbols-outlined">add</span>
+          <span>New Layer</span>
+        </button>
+      </div>
+    </aside>
+
+    <main class="workspace-shell">
+      <section
+        class="canvas-viewport"
+        id="canvasViewport"
+        aria-label="Infinite canvas"
+      >
+        <div class="canvas-stage" id="canvasStage">
+          <div class="cursor-layer" id="cursorLayer" aria-hidden="true"></div>
+        </div>
+      </section>
+    </main>
+
+    <div class="bottom-dock glass-panel">
+      <button class="dock-button" id="zoomButton" type="button">
+        <span class="material-symbols-outlined">zoom_in</span>
+        <span>Zoom</span>
+      </button>
+      <button class="dock-button is-active" id="fitButton" type="button">
+        <span class="material-symbols-outlined">fullscreen</span>
+        <span>Fit</span>
+      </button>
+      <button class="dock-button" id="panButton" type="button">
+        <span class="material-symbols-outlined">pan_tool</span>
+        <span>Pan</span>
+      </button>
+    </div>
+
+    <section class="modal is-hidden" id="modal">
+      <div class="modal-card glass-panel">
+        <div class="modal-head">
+          <h2 id="modalTitle">Panel</h2>
+          <button class="icon-button" id="closeModalButton" type="button" aria-label="Close dialog">
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+        <div class="modal-body" id="modalBody"></div>
+      </div>
+    </section>
+
+    <div class="toast is-hidden" id="toast"></div>
+
+    <script src="./script.js"></script>
+  </body>
+</html>
