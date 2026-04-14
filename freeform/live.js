@@ -67,6 +67,8 @@ const snapshotUrl = new URL(`/api/rooms/${encodeURIComponent(roomId)}`, serverOr
 const websocketUrl = buildWebsocketUrl(serverOrigin, roomId, clientId);
 const nodes = new Map();
 const strokeNodes = new Map();
+const selectedIds = new Set();
+const selectionBox = document.createElement("div");
 const state = {
   roomId,
   elements: new Map(),
@@ -100,6 +102,7 @@ let drawState = null;
 let penColor = "#005bc1";
 let penWidth = 6;
 let suppressMediaOpenUntil = 0;
+let marqueeState = null;
 
 setup();
 setPanel("documents");
@@ -122,6 +125,10 @@ async function initLiveRoom() {
 }
 
 function setup() {
+  selectionBox.dataset.selectionBox = "true";
+  selectionBox.classList.add("is-hidden");
+  stage.appendChild(selectionBox);
+
   toolButtons.forEach((b) => b.addEventListener("click", () => {
     setTool(b.dataset.tool, true);
     if (b.dataset.tool === "media") {
@@ -243,6 +250,10 @@ function setup() {
   viewport.addEventListener("pointermove", panMove);
   viewport.addEventListener("pointerup", panStop);
   viewport.addEventListener("pointercancel", panStop);
+  viewport.addEventListener("pointerdown", marqueeStart);
+  viewport.addEventListener("pointermove", marqueeMove);
+  viewport.addEventListener("pointerup", marqueeStop);
+  viewport.addEventListener("pointercancel", marqueeStop);
   viewport.addEventListener("pointerdown", drawStart);
   viewport.addEventListener("pointermove", drawMove);
   viewport.addEventListener("pointerup", drawStop);
@@ -510,6 +521,7 @@ function renderElements() {
     }
   });
   renderStrokes();
+  stage.appendChild(selectionBox);
   cursorLayer.remove();
   stage.appendChild(cursorLayer);
 }
@@ -542,6 +554,7 @@ function renderStrokes() {
 function paint(node, el) {
   node.className = "draggable";
   node.dataset.id = el.id;
+  node.classList.toggle("is-selected", selectedIds.has(el.id));
   node.style.left = `${el.x}px`;
   node.style.top = `${el.y}px`;
   node.style.zIndex = String(el.order);
@@ -569,10 +582,21 @@ function paint(node, el) {
 function bindDrag(node) {
   node.addEventListener("click", (e) => {
     const item = getItem(node.dataset.id);
+    if (!item) return;
+
+    if (e.shiftKey || e.ctrlKey || e.metaKey) {
+      e.preventDefault();
+      e.stopPropagation();
+      toggleSelection(item.id);
+      return;
+    }
+
+    if (Date.now() >= suppressMediaOpenUntil) selectOnly(item.id);
+
     if (e.target.closest("[data-pin-toggle]")) {
       e.preventDefault();
       e.stopPropagation();
-      if (item?.kind === "sticky") {
+      if (item.kind === "sticky") {
         if (updateFields(item.id, { pinned: !item.pinned })) {
           pushHistory(`${user.name} ${item.pinned ? "unpinned" : "pinned"} ${item.title}`);
           showToast(item.pinned ? "Sticky note unpinned" : "Sticky note pinned");
@@ -620,7 +644,26 @@ function bindDrag(node) {
     const el = getItem(node.dataset.id);
     if (el?.pinned) return;
     if (!el || e.target.closest("button")) return;
-    dragState = { id: el.id, pid: e.pointerId, sx: e.clientX, sy: e.clientY, ix: el.x, iy: el.y, lx: el.x, ly: el.y, order: el.order, moved: false };
+    if (!selectedIds.has(el.id) && !e.shiftKey && !e.ctrlKey && !e.metaKey) {
+      selectOnly(el.id);
+    }
+    const groupIds = selectedIds.has(el.id) ? Array.from(selectedIds) : [el.id];
+    dragState = {
+      id: el.id,
+      pid: e.pointerId,
+      sx: e.clientX,
+      sy: e.clientY,
+      ix: el.x,
+      iy: el.y,
+      lx: el.x,
+      ly: el.y,
+      order: el.order,
+      moved: false,
+      group: groupIds.map((id) => {
+        const item = getItem(id);
+        return item ? { id, x: item.x, y: item.y } : null;
+      }).filter(Boolean)
+    };
     panState = null;
     viewport.classList.remove("is-panning");
     node.setPointerCapture(e.pointerId);
@@ -630,11 +673,18 @@ function bindDrag(node) {
     e.stopPropagation();
     if (!dragState || dragState.pid !== e.pointerId || dragState.id !== node.dataset.id) return;
     if (dragState.moved) {
-      if (!updateFields(dragState.id, { x: dragState.lx, y: dragState.ly, order: dragState.order })) {
-        renderElements();
-      } else {
-        pushHistory(`${user.name} moved ${getItem(dragState.id)?.title || "an item"}`);
-      }
+      const deltaX = dragState.lx - dragState.ix;
+      const deltaY = dragState.ly - dragState.iy;
+      let ok = true;
+      dragState.group.forEach((entry) => {
+        if (!updateFields(entry.id, {
+          x: entry.x + deltaX,
+          y: entry.y + deltaY,
+          order: entry.id === dragState.id ? dragState.order : getItem(entry.id)?.order
+        })) ok = false;
+      });
+      if (!ok) renderElements();
+      else pushHistory(`${user.name} moved ${dragState.group.length > 1 ? `${dragState.group.length} items` : (getItem(dragState.id)?.title || "an item")}`);
       suppressMediaOpenUntil = Date.now() + 180;
     }
     node.releasePointerCapture(e.pointerId);
@@ -659,8 +709,12 @@ function bindDrag(node) {
     }
     dragState.lx = dragState.ix + deltaX;
     dragState.ly = dragState.iy + deltaY;
-    node.style.left = `${dragState.lx}px`;
-    node.style.top = `${dragState.ly}px`;
+    dragState.group.forEach((entry) => {
+      const groupNode = nodes.get(entry.id);
+      if (!groupNode) return;
+      groupNode.style.left = `${entry.x + deltaX}px`;
+      groupNode.style.top = `${entry.y + deltaY}px`;
+    });
     sendPresence({ x: dragState.lx, y: dragState.ly });
   });
   node.addEventListener("pointerup", stop);
@@ -727,13 +781,14 @@ function caretEnd(el) {
 }
 
 function panStart(e) {
-  if (!panEnabled || dragState || drawState || currentTool === "pen" || e.target.closest(".draggable") || e.target.closest("button")) return;
+  if (!panEnabled || dragState || drawState || marqueeState || currentTool === "pen" || e.target.closest(".draggable") || e.target.closest("button")) return;
+  if (!e.shiftKey && !e.ctrlKey && !e.metaKey) clearSelection();
   panState = { pid: e.pointerId, sx: e.clientX, sy: e.clientY, sl: viewport.scrollLeft, st: viewport.scrollTop };
   viewport.classList.add("is-panning");
   viewport.setPointerCapture(e.pointerId);
 }
 function panMove(e) {
-  if (!panState || dragState || drawState || panState.pid !== e.pointerId) return;
+  if (!panState || dragState || drawState || marqueeState || panState.pid !== e.pointerId) return;
   viewport.scrollLeft = panState.sl - (e.clientX - panState.sx);
   viewport.scrollTop = panState.st - (e.clientY - panState.sy);
 }
@@ -802,6 +857,61 @@ function drawStop(e) {
   pushHistory(`${user.name} drew a stroke`);
   showToast("Stroke added");
 }
+function marqueeStart(e) {
+  if (currentTool === "pen" || drawState || dragState || e.button !== 0) return;
+  if (e.target.closest(".draggable") || e.target.closest("button") || e.target.closest("input") || e.target.closest("textarea")) return;
+  const point = pointerToStagePoint(e);
+  if (!e.shiftKey && !e.ctrlKey && !e.metaKey) clearSelection();
+  marqueeState = { pid: e.pointerId, sx: point.x, sy: point.y, additive: !!(e.shiftKey || e.ctrlKey || e.metaKey) };
+  selectionBox.classList.remove("is-hidden");
+  updateSelectionBox(point.x, point.y, point.x, point.y);
+  viewport.setPointerCapture(e.pointerId);
+  e.preventDefault();
+}
+function marqueeMove(e) {
+  if (!marqueeState || marqueeState.pid !== e.pointerId) return;
+  const point = pointerToStagePoint(e);
+  updateSelectionBox(marqueeState.sx, marqueeState.sy, point.x, point.y);
+}
+function marqueeStop(e) {
+  if (!marqueeState || marqueeState.pid !== e.pointerId) return;
+  const point = pointerToStagePoint(e);
+  const rect = normalizeRect(marqueeState.sx, marqueeState.sy, point.x, point.y);
+  if (!marqueeState.additive) clearSelection();
+  getIntersectingSelection(rect).forEach((id) => selectedIds.add(id));
+  renderElements();
+  selectionBox.classList.add("is-hidden");
+  viewport.releasePointerCapture(e.pointerId);
+  marqueeState = null;
+}
+function updateSelectionBox(x1, y1, x2, y2) {
+  const rect = normalizeRect(x1, y1, x2, y2);
+  selectionBox.style.left = `${rect.left}px`;
+  selectionBox.style.top = `${rect.top}px`;
+  selectionBox.style.width = `${rect.width}px`;
+  selectionBox.style.height = `${rect.height}px`;
+}
+function normalizeRect(x1, y1, x2, y2) {
+  return {
+    left: Math.min(x1, x2),
+    top: Math.min(y1, y2),
+    width: Math.abs(x2 - x1),
+    height: Math.abs(y2 - y1),
+    right: Math.max(x1, x2),
+    bottom: Math.max(y1, y2),
+  };
+}
+function getIntersectingSelection(rect) {
+  const hits = [];
+  nodes.forEach((node, id) => {
+    const left = node.offsetLeft;
+    const top = node.offsetTop;
+    const right = left + node.offsetWidth;
+    const bottom = top + node.offsetHeight;
+    if (right >= rect.left && left <= rect.right && bottom >= rect.top && top <= rect.bottom) hits.push(id);
+  });
+  return hits;
+}
 
 function renderSettings() {
   const grid = state.settings.grid !== false;
@@ -852,6 +962,21 @@ function syncPenSwatches(color) {
   if (penColorValue) penColorValue.textContent = color.toUpperCase();
   penPickerSwatch?.style.setProperty("--pen-preview", color);
   if (penPickerCaption) penPickerCaption.textContent = color.toUpperCase();
+}
+function selectOnly(id) {
+  selectedIds.clear();
+  selectedIds.add(id);
+  renderElements();
+}
+function toggleSelection(id) {
+  if (selectedIds.has(id)) selectedIds.delete(id);
+  else selectedIds.add(id);
+  renderElements();
+}
+function clearSelection() {
+  if (!selectedIds.size) return;
+  selectedIds.clear();
+  renderElements();
 }
 function setPenColor(color) {
   penColor = normalizeHex(color) || penColor;

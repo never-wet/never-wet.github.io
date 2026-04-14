@@ -65,6 +65,8 @@ const remote = new Map();
 const pending = new Map();
 const nodes = new Map();
 const strokeNodes = new Map();
+const selectedIds = new Set();
+const selectionBox = document.createElement("div");
 const state = {
   mode: "solo",
   roomId: ensureRoomId(),
@@ -86,12 +88,17 @@ let panState = null;
 let dragState = null;
 let drawState = null;
 let suppressMediaOpenUntil = 0;
+let marqueeState = null;
 
 setup();
 render();
 window.addEventListener("load", () => center(false));
 
 function setup() {
+  selectionBox.dataset.selectionBox = "true";
+  selectionBox.classList.add("is-hidden");
+  stage.appendChild(selectionBox);
+
   toolButtons.forEach((b) => b.addEventListener("click", () => {
     setTool(b.dataset.tool, true);
     if (b.dataset.tool === "media") {
@@ -177,6 +184,10 @@ function setup() {
   viewport.addEventListener("pointermove", panMove);
   viewport.addEventListener("pointerup", panStop);
   viewport.addEventListener("pointercancel", panStop);
+  viewport.addEventListener("pointerdown", marqueeStart);
+  viewport.addEventListener("pointermove", marqueeMove);
+  viewport.addEventListener("pointerup", marqueeStop);
+  viewport.addEventListener("pointercancel", marqueeStop);
   viewport.addEventListener("pointerdown", drawStart);
   viewport.addEventListener("pointermove", drawMove);
   viewport.addEventListener("pointerup", drawStop);
@@ -354,6 +365,7 @@ function renderElements() {
     }
   });
   renderStrokes();
+  stage.appendChild(selectionBox);
   cursorLayer.remove();
   stage.appendChild(cursorLayer);
 }
@@ -387,6 +399,7 @@ function renderStrokes() {
 function paint(node, el) {
   node.className = "draggable";
   node.dataset.id = el.id;
+  node.classList.toggle("is-selected", selectedIds.has(el.id));
   node.style.left = `${el.x}px`;
   node.style.top = `${el.y}px`;
   node.style.zIndex = String(el.order);
@@ -414,10 +427,21 @@ function paint(node, el) {
 function bindDrag(node) {
   node.addEventListener("click", (e) => {
     const item = find(node.dataset.id);
+    if (!item) return;
+
+    if (e.shiftKey || e.ctrlKey || e.metaKey) {
+      e.preventDefault();
+      e.stopPropagation();
+      toggleSelection(item.id);
+      return;
+    }
+
+    if (Date.now() >= suppressMediaOpenUntil) selectOnly(item.id);
+
     if (e.target.closest("[data-pin-toggle]")) {
       e.preventDefault();
       e.stopPropagation();
-      if (item?.kind === "sticky") {
+      if (item.kind === "sticky") {
         dispatch({ type: "pin", id: item.id, value: !item.pinned, actor: user.name });
       }
       return;
@@ -463,6 +487,10 @@ function bindDrag(node) {
     const el = find(node.dataset.id);
     if (el?.pinned) return;
     if (!el || e.target.closest("button")) return;
+    if (!selectedIds.has(el.id) && !e.shiftKey && !e.ctrlKey && !e.metaKey) {
+      selectOnly(el.id);
+    }
+    const groupIds = selectedIds.has(el.id) ? Array.from(selectedIds) : [el.id];
     dragState = {
       id: el.id,
       pid: e.pointerId,
@@ -474,6 +502,10 @@ function bindDrag(node) {
       ly: el.y,
       order: el.order,
       moved: false,
+      group: groupIds.map((id) => {
+        const item = find(id);
+        return item ? { id, x: item.x, y: item.y } : null;
+      }).filter(Boolean),
     };
     panState = null;
     viewport.classList.remove("is-panning");
@@ -483,7 +515,18 @@ function bindDrag(node) {
     e.stopPropagation();
     if (!dragState || dragState.pid !== e.pointerId || dragState.id !== node.dataset.id) return;
     if (dragState.moved) {
-      dispatch({ type: "move", id: dragState.id, x: dragState.lx, y: dragState.ly, order: dragState.order, actor: user.name });
+      const deltaX = dragState.lx - dragState.ix;
+      const deltaY = dragState.ly - dragState.iy;
+      dragState.group.forEach((entry, index) => {
+        dispatch({
+          type: "move",
+          id: entry.id,
+          x: entry.x + deltaX,
+          y: entry.y + deltaY,
+          order: entry.id === dragState.id ? dragState.order : find(entry.id)?.order,
+          actor: index === 0 ? user.name : ""
+        });
+      });
       suppressMediaOpenUntil = Date.now() + 180;
     }
     node.releasePointerCapture(e.pointerId);
@@ -502,8 +545,12 @@ function bindDrag(node) {
     }
     dragState.lx = dragState.ix + deltaX;
     dragState.ly = dragState.iy + deltaY;
-    node.style.left = `${dragState.lx}px`;
-    node.style.top = `${dragState.ly}px`;
+    dragState.group.forEach((entry) => {
+      const groupNode = nodes.get(entry.id);
+      if (!groupNode) return;
+      groupNode.style.left = `${entry.x + deltaX}px`;
+      groupNode.style.top = `${entry.y + deltaY}px`;
+    });
     sendCursor({ x: dragState.lx, y: dragState.ly });
   });
   node.addEventListener("pointerup", stop);
@@ -511,13 +558,14 @@ function bindDrag(node) {
 }
 
 function panStart(e) {
-  if (!state.pan || dragState || drawState || state.tool === "pen" || e.target.closest(".draggable") || e.target.closest("button")) return;
+  if (!state.pan || dragState || drawState || marqueeState || state.tool === "pen" || e.target.closest(".draggable") || e.target.closest("button")) return;
+  if (!e.shiftKey && !e.ctrlKey && !e.metaKey) clearSelection();
   panState = { pid: e.pointerId, sx: e.clientX, sy: e.clientY, sl: viewport.scrollLeft, st: viewport.scrollTop };
   viewport.classList.add("is-panning");
   viewport.setPointerCapture(e.pointerId);
 }
 function panMove(e) {
-  if (!panState || dragState || drawState || panState.pid !== e.pointerId) return;
+  if (!panState || dragState || drawState || marqueeState || panState.pid !== e.pointerId) return;
   viewport.scrollLeft = panState.sl - (e.clientX - panState.sx);
   viewport.scrollTop = panState.st - (e.clientY - panState.sy);
 }
@@ -571,6 +619,61 @@ function drawStop(e) {
   dispatch({ type: "draw", points, color: state.penColor, width: state.penWidth, actor: user.name });
   renderElements();
   showToast("Stroke added");
+}
+function marqueeStart(e) {
+  if (state.tool === "pen" || drawState || dragState || e.button !== 0) return;
+  if (e.target.closest(".draggable") || e.target.closest("button") || e.target.closest("input") || e.target.closest("textarea")) return;
+  const point = pointerToStagePoint(e);
+  if (!e.shiftKey && !e.ctrlKey && !e.metaKey) clearSelection();
+  marqueeState = { pid: e.pointerId, sx: point.x, sy: point.y, additive: !!(e.shiftKey || e.ctrlKey || e.metaKey) };
+  selectionBox.classList.remove("is-hidden");
+  updateSelectionBox(point.x, point.y, point.x, point.y);
+  viewport.setPointerCapture(e.pointerId);
+  e.preventDefault();
+}
+function marqueeMove(e) {
+  if (!marqueeState || marqueeState.pid !== e.pointerId) return;
+  const point = pointerToStagePoint(e);
+  updateSelectionBox(marqueeState.sx, marqueeState.sy, point.x, point.y);
+}
+function marqueeStop(e) {
+  if (!marqueeState || marqueeState.pid !== e.pointerId) return;
+  const point = pointerToStagePoint(e);
+  const rect = normalizeRect(marqueeState.sx, marqueeState.sy, point.x, point.y);
+  if (!marqueeState.additive) clearSelection();
+  getIntersectingSelection(rect).forEach((id) => selectedIds.add(id));
+  renderElements();
+  selectionBox.classList.add("is-hidden");
+  viewport.releasePointerCapture(e.pointerId);
+  marqueeState = null;
+}
+function updateSelectionBox(x1, y1, x2, y2) {
+  const rect = normalizeRect(x1, y1, x2, y2);
+  selectionBox.style.left = `${rect.left}px`;
+  selectionBox.style.top = `${rect.top}px`;
+  selectionBox.style.width = `${rect.width}px`;
+  selectionBox.style.height = `${rect.height}px`;
+}
+function normalizeRect(x1, y1, x2, y2) {
+  return {
+    left: Math.min(x1, x2),
+    top: Math.min(y1, y2),
+    width: Math.abs(x2 - x1),
+    height: Math.abs(y2 - y1),
+    right: Math.max(x1, x2),
+    bottom: Math.max(y1, y2),
+  };
+}
+function getIntersectingSelection(rect) {
+  const hits = [];
+  nodes.forEach((node, id) => {
+    const left = node.offsetLeft;
+    const top = node.offsetTop;
+    const right = left + node.offsetWidth;
+    const bottom = top + node.offsetHeight;
+    if (right >= rect.left && left <= rect.right && bottom >= rect.top && top <= rect.bottom) hits.push(id);
+  });
+  return hits;
 }
 
 function startInlineEdit(target, owner) {
@@ -670,6 +773,21 @@ function syncPenSwatches(color) {
   if (penColorValue) penColorValue.textContent = color.toUpperCase();
   penPickerSwatch?.style.setProperty("--pen-preview", color);
   if (penPickerCaption) penPickerCaption.textContent = color.toUpperCase();
+}
+function selectOnly(id) {
+  selectedIds.clear();
+  selectedIds.add(id);
+  renderElements();
+}
+function toggleSelection(id) {
+  if (selectedIds.has(id)) selectedIds.delete(id);
+  else selectedIds.add(id);
+  renderElements();
+}
+function clearSelection() {
+  if (!selectedIds.size) return;
+  selectedIds.clear();
+  renderElements();
 }
 function setPenColor(color) {
   state.penColor = normalizeHex(color) || state.penColor;
