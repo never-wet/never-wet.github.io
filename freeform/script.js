@@ -4,6 +4,7 @@ const $$ = (s) => Array.from(document.querySelectorAll(s));
 const viewport = $("#canvasViewport");
 const stage = $("#canvasStage");
 const drawLayer = $("#drawLayer");
+const mouseGrid = $("#mouseGrid");
 const cursorLayer = $("#cursorLayer");
 const fitButton = $("#fitButton");
 const zoomButton = $("#zoomButton");
@@ -89,12 +90,16 @@ let dragState = null;
 let drawState = null;
 let suppressMediaOpenUntil = 0;
 let marqueeState = null;
+let mouseGridContext = null;
+let mouseGridPointer = { x: -9999, y: -9999, active: false };
+let mouseGridFrame = 0;
 
 setup();
 render();
 window.addEventListener("load", () => center(false));
 
 function setup() {
+  setupMouseGrid();
   selectionBox.dataset.selectionBox = "true";
   selectionBox.classList.add("is-hidden");
   stage.appendChild(selectionBox);
@@ -203,6 +208,9 @@ function setup() {
   viewport.addEventListener("pointercancel", drawStop);
   viewport.addEventListener("pointermove", localCursor);
   viewport.addEventListener("pointerleave", () => sendCursor(null));
+  window.addEventListener("pointermove", updateMouseGridPointer, true);
+  window.addEventListener("pointerleave", clearMouseGridPointer, true);
+  window.addEventListener("resize", resizeMouseGrid);
 }
 
 function render() {
@@ -216,6 +224,66 @@ function render() {
   renderPresence();
   renderRemote();
   updateBadge();
+  drawMouseGrid();
+}
+
+function setupMouseGrid() {
+  if (!mouseGrid) return;
+  mouseGridContext = mouseGrid.getContext("2d");
+  resizeMouseGrid();
+}
+function resizeMouseGrid() {
+  if (!mouseGrid || !mouseGridContext) return;
+  const ratio = window.devicePixelRatio || 1;
+  mouseGrid.width = Math.floor(window.innerWidth * ratio);
+  mouseGrid.height = Math.floor(window.innerHeight * ratio);
+  mouseGrid.style.width = `${window.innerWidth}px`;
+  mouseGrid.style.height = `${window.innerHeight}px`;
+  mouseGridContext.setTransform(ratio, 0, 0, ratio, 0, 0);
+  drawMouseGrid();
+}
+function updateMouseGridPointer(event) {
+  mouseGridPointer = { x: event.clientX, y: event.clientY, active: true };
+  requestMouseGridDraw();
+}
+function clearMouseGridPointer() {
+  mouseGridPointer = { x: -9999, y: -9999, active: false };
+  requestMouseGridDraw();
+}
+function requestMouseGridDraw() {
+  if (mouseGridFrame) return;
+  mouseGridFrame = window.requestAnimationFrame(() => {
+    mouseGridFrame = 0;
+    drawMouseGrid();
+  });
+}
+function drawMouseGrid() {
+  if (!mouseGridContext || !mouseGrid) return;
+  const ctx = mouseGridContext;
+  const width = window.innerWidth;
+  const height = window.innerHeight;
+  const gap = 10;
+  const radius = 120;
+  ctx.clearRect(0, 0, width, height);
+  if (!mouseGridPointer.active) return;
+  const startX = Math.max(0, Math.floor((mouseGridPointer.x - radius) / gap) * gap);
+  const endX = Math.min(width, Math.ceil((mouseGridPointer.x + radius) / gap) * gap);
+  const startY = Math.max(0, Math.floor((mouseGridPointer.y - radius) / gap) * gap);
+  const endY = Math.min(height, Math.ceil((mouseGridPointer.y + radius) / gap) * gap);
+  for (let x = startX; x <= endX; x += gap) {
+    for (let y = startY; y <= endY; y += gap) {
+      const distance = Math.hypot(x - mouseGridPointer.x, y - mouseGridPointer.y);
+      if (distance > radius) continue;
+      const influence = 1 - distance / radius;
+      const alpha = 0.14 + influence * 0.58;
+      const size = 1 + influence * 1.8;
+      ctx.beginPath();
+      ctx.arc(x, y, size, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(75, 142, 255, ${alpha})`;
+      ctx.fill();
+    }
+  }
+  ctx.shadowBlur = 0;
 }
 
 function seed() {
