@@ -180,14 +180,15 @@ function setup() {
     }
     if (b.dataset.menuAction === "clear") {
       if (!ensureConnected()) return;
-      const generated = sortedElements().filter((item) => item.seed !== true);
+      const items = sortedElements();
       let deleted = 0;
-      generated.forEach((item) => {
+      items.forEach((item) => {
         if (deleteItem(item.id)) deleted += 1;
       });
       if (deleted > 0) {
-        pushHistory(`${user.name} cleared generated items`);
-        showToast("Generated items cleared");
+        selectedIds.clear();
+        pushHistory(`${user.name} cleared the canvas`);
+        showToast("Canvas cleared");
       }
     }
   });

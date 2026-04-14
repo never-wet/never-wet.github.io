@@ -290,9 +290,10 @@ function apply(a) {
     showToast("Layout shuffled");
   }
   if (a.type === "clear") {
-    state.elements = state.elements.filter((e) => e.seed);
-    log(`${a.actor} cleared generated items`);
-    showToast("Generated items cleared");
+    state.elements = [];
+    selectedIds.clear();
+    log(`${a.actor} cleared the canvas`);
+    showToast("Canvas cleared");
   }
   renderSettings();
   renderElements();
