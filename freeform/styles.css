@@ -281,8 +281,17 @@ button {
   width: 44px;
   height: 44px;
   border-radius: 14px;
+  border: 0;
   background: var(--primary);
   color: white;
+  cursor: pointer;
+}
+
+.project-badge:hover,
+.project-badge:focus-visible {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 24px rgba(0, 91, 193, 0.24);
+  outline: none;
 }
 
 .project-card h1 {

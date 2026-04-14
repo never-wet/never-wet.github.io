@@ -32,6 +32,7 @@ const liveBadge = $("#liveBadge");
 const roomSummary = $("#roomSummary");
 const projectTitle = $("#projectTitle");
 const projectSubtitle = $("#projectSubtitle");
+const projectHomeButton = $("#projectHomeButton");
 const presenceList = $("#presenceList");
 const penControls = $("#penControls");
 const penWidthInput = $("#penWidthInput");
@@ -193,6 +194,7 @@ function setup() {
   penWidthValue.textContent = `${state.penWidth}px`;
   closeModalButton.addEventListener("click", closeModal);
   closeMediaDrawerButton.addEventListener("click", closeMediaDrawer);
+  projectHomeButton?.addEventListener("click", goHome);
   modal.addEventListener("click", (e) => { if (e.target === modal) closeModal(); });
   document.addEventListener("click", (e) => {
     if (!e.target.closest("#moreButton") && !e.target.closest("#topMenu")) topMenu.classList.add("is-hidden");
@@ -515,7 +517,7 @@ function renderStrokes() {
 }
 
 function ensureInfiniteStage() {
-  const canGrowLeading = Boolean(panState || dragState || drawState || marqueeState);
+  const canGrowLeading = Boolean(panState || dragState || drawState);
   let growLeft = canGrowLeading && viewport.scrollLeft < STAGE_EDGE_BUFFER * state.zoom ? STAGE_GROW_STEP : 0;
   let growTop = canGrowLeading && viewport.scrollTop < STAGE_EDGE_BUFFER * state.zoom ? STAGE_GROW_STEP : 0;
   let growRight = viewport.scrollLeft + viewport.clientWidth > stageMetrics.width * state.zoom - STAGE_EDGE_BUFFER * state.zoom ? STAGE_GROW_STEP : 0;
@@ -904,7 +906,6 @@ function marqueeMove(e) {
   if (!marqueeState || marqueeState.pid !== e.pointerId) return;
   const point = pointerToStagePoint(e);
   updateSelectionBox(marqueeState.sx, marqueeState.sy, point.x, point.y);
-  ensureInfiniteStage();
 }
 function marqueeStop(e) {
   if (!marqueeState || marqueeState.pid !== e.pointerId) return;
@@ -1036,6 +1037,13 @@ function applyProjectMeta() {
   if (projectSubtitle) projectSubtitle.textContent = `Local board • Room ${state.roomId}`;
 }
 
+function goHome() {
+  const homeUrl = new URL("./index.html", window.location.href);
+  homeUrl.searchParams.set("project", projectName);
+  homeUrl.searchParams.set("room", state.roomId);
+  window.location.href = homeUrl.toString();
+}
+
 function setTool(tool, toastIt) {
   state.tool = tool;
   toolButtons.forEach((b) => b.classList.toggle("is-active", b.dataset.tool === tool));
@@ -1123,7 +1131,19 @@ function applyZoom(v) {
   stage.style.height = `${stageMetrics.height * v}px`;
 }
 function center(smooth) {
-  viewport.scrollTo({ left: Math.max(0, (stage.scrollWidth - viewport.clientWidth) / 2 - 240), top: Math.max(0, (stage.scrollHeight - viewport.clientHeight) / 2 - 180), behavior: smooth ? "smooth" : "auto" });
+  const bounds = getCanvasBounds();
+  const hasItems = state.elements.length > 0;
+  const targetLeft = hasItems
+    ? ((bounds.left + bounds.right) / 2) * state.zoom - viewport.clientWidth / 2
+    : (stage.scrollWidth - viewport.clientWidth) / 2 - 240;
+  const targetTop = hasItems
+    ? ((bounds.top + bounds.bottom) / 2) * state.zoom - viewport.clientHeight / 2
+    : (stage.scrollHeight - viewport.clientHeight) / 2 - 180;
+  viewport.scrollTo({
+    left: Math.max(0, targetLeft),
+    top: Math.max(0, targetTop),
+    behavior: smooth ? "smooth" : "auto"
+  });
 }
 function refreshDock() {
   zoomButton.classList.toggle("is-active", state.pan);
