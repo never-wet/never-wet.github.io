@@ -1018,6 +1018,7 @@ function renderSettings() {
   const glow = state.settings.glow === true;
   gridToggle.checked = grid;
   canvasGrid.classList.toggle("is-hidden", !grid);
+  mouseGrid.classList.toggle("is-hidden", !grid);
   document.body.classList.toggle("alt-glow", glow);
 }
 

@@ -842,6 +842,7 @@ function placeCaretAtEnd(element) {
 function renderSettings() {
   gridToggle.checked = state.grid;
   canvasGrid.classList.toggle("is-hidden", !state.grid);
+  mouseGrid.classList.toggle("is-hidden", !state.grid);
   document.body.classList.toggle("alt-glow", state.glow);
 }
 function renderHistory() { historyList.innerHTML = state.history.slice(0, 8).map((x) => `<li>${esc(x)}</li>`).join(""); }
