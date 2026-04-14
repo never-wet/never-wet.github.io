@@ -726,6 +726,120 @@ button {
   backdrop-filter: blur(12px);
 }
 
+.shape-rounded {
+  width: 220px;
+  height: 150px;
+  border: 2px solid rgba(0, 91, 193, 0.16);
+  border-radius: 36px;
+  background: linear-gradient(135deg, rgba(216, 226, 255, 0.8), rgba(255, 255, 255, 0.42));
+  backdrop-filter: blur(12px);
+}
+
+.shape-diamond {
+  width: 170px;
+  height: 170px;
+  background: linear-gradient(135deg, rgba(216, 211, 244, 0.7), rgba(255, 255, 255, 0.34));
+  border: 2px solid rgba(95, 92, 120, 0.18);
+  transform: rotate(45deg);
+  backdrop-filter: blur(12px);
+}
+
+.shape-diamond::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border: inherit;
+}
+
+.shape-triangle {
+  width: 0;
+  height: 0;
+  border-left: 110px solid transparent;
+  border-right: 110px solid transparent;
+  border-bottom: 190px solid rgba(0, 91, 193, 0.18);
+  filter: drop-shadow(0 18px 30px rgba(71, 85, 105, 0.12));
+}
+
+.shape-triangle::after {
+  content: "";
+  position: absolute;
+  left: -103px;
+  top: 10px;
+  width: 0;
+  height: 0;
+  border-left: 103px solid transparent;
+  border-right: 103px solid transparent;
+  border-bottom: 178px solid rgba(216, 226, 255, 0.82);
+}
+
+.shape-selector {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.shape-option {
+  display: grid;
+  gap: 12px;
+  justify-items: center;
+  padding: 16px;
+  border: 1px solid rgba(172, 178, 191, 0.2);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.44);
+  cursor: pointer;
+  text-align: center;
+}
+
+.shape-option:hover,
+.shape-option:focus-visible {
+  transform: translateY(-1px);
+  outline: none;
+  box-shadow: 0 16px 28px rgba(71, 85, 105, 0.12);
+}
+
+.shape-option-preview {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 112px;
+  height: 92px;
+}
+
+.shape-option-preview .shape-circle {
+  width: 72px;
+  height: 72px;
+}
+
+.shape-option-preview .shape-blob {
+  width: 88px;
+  height: 52px;
+}
+
+.shape-option-preview .shape-rounded {
+  width: 84px;
+  height: 56px;
+}
+
+.shape-option-preview .shape-diamond {
+  width: 58px;
+  height: 58px;
+}
+
+.shape-option-preview .shape-triangle {
+  border-left-width: 38px;
+  border-right-width: 38px;
+  border-bottom-width: 66px;
+}
+
+.shape-option-preview .shape-triangle::after {
+  left: -34px;
+  top: 4px;
+  border-left-width: 34px;
+  border-right-width: 34px;
+  border-bottom-width: 58px;
+}
+
 .media-card {
   display: inline-block;
   width: auto;

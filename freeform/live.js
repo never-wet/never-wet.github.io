@@ -131,6 +131,10 @@ function setup() {
 
   toolButtons.forEach((b) => b.addEventListener("click", () => {
     setTool(b.dataset.tool, true);
+    if (b.dataset.tool === "shape") {
+      openShapePicker();
+      return;
+    }
     if (b.dataset.tool === "media") {
       openMediaImportModal();
       return;
@@ -141,6 +145,10 @@ function setup() {
   newLayerButton.addEventListener("click", () => {
     if (currentTool === "pen") {
       showToast("Use the canvas to draw with the pen");
+      return;
+    }
+    if (currentTool === "shape") {
+      openShapePicker();
       return;
     }
     if (currentTool === "media") {
@@ -247,6 +255,7 @@ function setup() {
     if (!e.target.closest("#moreButton") && !e.target.closest("#topMenu")) topMenu.classList.add("is-hidden");
     if (!e.target.closest(".pen-picker-shell")) penColorPopover.classList.add("is-hidden");
   });
+  document.addEventListener("keydown", handleSelectionDeleteKey);
   viewport.addEventListener("pointerdown", panStart);
   viewport.addEventListener("pointermove", panMove);
   viewport.addEventListener("pointerup", panStop);
@@ -463,7 +472,6 @@ function addItem(tool) {
   };
   let item;
   if (tool === "text") item = { ...base, kind: "text", title: `HEADLINE ${localCount}` };
-  else if (tool === "shape") item = { ...base, kind: localCount % 2 === 0 ? "shape-circle" : "shape-blob", title: localCount % 2 === 0 ? `Shape ${localCount} Circle` : `Shape ${localCount} Blob` };
   else if (tool === "media") item = { ...base, kind: "media", title: `Reference ${localCount}`, text: "Auto-added inspiration card", image: IMAGES[localCount % IMAGES.length], rotation: 0 };
   else item = { ...base, kind: "sticky", title: `Idea Note ${localCount}`, text: "Fresh note dropped onto the board. Drag it anywhere and keep building.", rotation: 0 };
   if (!sendMessage({ type: "element.upsert", payload: item })) return;
@@ -472,6 +480,25 @@ function addItem(tool) {
   renderLayers();
   pushHistory(`${user.name} added ${item.title}`);
   showToast(`${item.title} created`);
+}
+
+function makeShapeItem(shape) {
+  localCount += 1;
+  const base = {
+    id: `item-${crypto.randomUUID()}`,
+    x: 320 + (localCount % 5) * 120,
+    y: 240 + (localCount % 4) * 110,
+    order: nextOrder(),
+    seed: false
+  };
+  const titles = {
+    "shape-circle": `Shape ${localCount} Circle`,
+    "shape-blob": `Shape ${localCount} Blob`,
+    "shape-rounded": `Shape ${localCount} Capsule`,
+    "shape-diamond": `Shape ${localCount} Diamond`,
+    "shape-triangle": `Shape ${localCount} Triangle`
+  };
+  return { ...base, kind: shape, title: titles[shape] || `Shape ${localCount}` };
 }
 
 function makeMediaItemFromFile(image, filename, dimensions) {
@@ -569,6 +596,9 @@ function paint(node, el) {
   }
   if (el.kind === "shape-circle") { node.classList.add("shape-circle"); node.innerHTML = ""; return; }
   if (el.kind === "shape-blob") { node.classList.add("shape-blob"); node.style.transform = "none"; node.innerHTML = ""; return; }
+  if (el.kind === "shape-rounded") { node.classList.add("shape-rounded"); node.innerHTML = ""; return; }
+  if (el.kind === "shape-diamond") { node.classList.add("shape-diamond"); node.innerHTML = ""; return; }
+  if (el.kind === "shape-triangle") { node.classList.add("shape-triangle"); node.innerHTML = ""; return; }
   if (el.kind === "media") {
     node.classList.add("media-card");
     node.style.transform = `rotate(${el.rotation || 0}deg)`;
@@ -1064,6 +1094,33 @@ function shareModal() {
     window.location.href = localUrl.toString();
   });
 }
+function handleSelectionDeleteKey(event) {
+  if (event.key !== "Backspace") return;
+  const target = event.target;
+  if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement || target?.isContentEditable) return;
+  if (!selectedIds.size) return;
+  event.preventDefault();
+  openDeleteSelectionModal();
+}
+function openDeleteSelectionModal() {
+  const ids = Array.from(selectedIds);
+  openModal("Delete Selected Items", `<p>Delete ${ids.length} selected item${ids.length === 1 ? "" : "s"}?</p><div class="connection-tools"><button class="ghost-row" id="cancelDeleteSelectionButton" type="button">Cancel</button><button class="primary-action" id="confirmDeleteSelectionButton" type="button">Delete</button></div>`);
+  $("#cancelDeleteSelectionButton")?.addEventListener("click", closeModal);
+  $("#confirmDeleteSelectionButton")?.addEventListener("click", () => {
+    let deleted = 0;
+    ids.forEach((id) => {
+      if (deleteItem(id)) deleted += 1;
+    });
+    selectedIds.clear();
+    renderElements();
+    renderLayers();
+    closeModal();
+    if (deleted > 0) {
+      pushHistory(`${user.name} deleted ${deleted} item${deleted === 1 ? "" : "s"}`);
+      showToast(deleted === 1 ? "Item deleted" : `${deleted} items deleted`);
+    }
+  });
+}
 
 function openMediaImportModal() {
   openModal("Import Media", `
@@ -1102,6 +1159,43 @@ function openMediaImportModal() {
     dropzone.classList.remove("is-dragover");
   }));
   dropzone.addEventListener("drop", (event) => importMediaFiles(event.dataTransfer?.files));
+}
+
+function openShapePicker() {
+  openModal("Choose Shape", `
+    <div class="shape-selector">
+      <button class="shape-option" data-shape-kind="shape-circle" type="button">
+        <div class="shape-option-preview"><div class="shape-circle"></div></div>
+        <strong>Circle</strong>
+      </button>
+      <button class="shape-option" data-shape-kind="shape-blob" type="button">
+        <div class="shape-option-preview"><div class="shape-blob"></div></div>
+        <strong>Blob</strong>
+      </button>
+      <button class="shape-option" data-shape-kind="shape-rounded" type="button">
+        <div class="shape-option-preview"><div class="shape-rounded"></div></div>
+        <strong>Capsule</strong>
+      </button>
+      <button class="shape-option" data-shape-kind="shape-diamond" type="button">
+        <div class="shape-option-preview"><div class="shape-diamond"></div></div>
+        <strong>Diamond</strong>
+      </button>
+      <button class="shape-option" data-shape-kind="shape-triangle" type="button">
+        <div class="shape-option-preview"><div class="shape-triangle"></div></div>
+        <strong>Triangle</strong>
+      </button>
+    </div>
+  `);
+  $$("[data-shape-kind]").forEach((button) => button.addEventListener("click", () => {
+    const item = makeShapeItem(button.dataset.shapeKind);
+    if (!sendMessage({ type: "element.upsert", payload: item })) return;
+    rememberElement(item);
+    renderElements();
+    renderLayers();
+    pushHistory(`${user.name} added ${item.title}`);
+    showToast(`${item.title} created`);
+    closeModal();
+  }));
 }
 
 function openStickyEditor(item) {

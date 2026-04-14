@@ -101,6 +101,10 @@ function setup() {
 
   toolButtons.forEach((b) => b.addEventListener("click", () => {
     setTool(b.dataset.tool, true);
+    if (b.dataset.tool === "shape") {
+      openShapePicker();
+      return;
+    }
     if (b.dataset.tool === "media") {
       openMediaImportModal();
       return;
@@ -111,6 +115,10 @@ function setup() {
   newLayerButton.addEventListener("click", () => {
     if (state.tool === "pen") {
       showToast("Use the canvas to draw with the pen");
+      return;
+    }
+    if (state.tool === "shape") {
+      openShapePicker();
       return;
     }
     if (state.tool === "media") {
@@ -180,6 +188,7 @@ function setup() {
     if (!e.target.closest("#moreButton") && !e.target.closest("#topMenu")) topMenu.classList.add("is-hidden");
     if (!e.target.closest(".pen-picker-shell")) penColorPopover.classList.add("is-hidden");
   });
+  document.addEventListener("keydown", handleSelectionDeleteKey);
   viewport.addEventListener("pointerdown", panStart);
   viewport.addEventListener("pointermove", panMove);
   viewport.addEventListener("pointerup", panStop);
@@ -243,6 +252,13 @@ function apply(a) {
     log(`${a.actor} imported ${a.item.title}`);
     showToast(`${a.item.title} added`);
   }
+  if (a.type === "add-shape") {
+    state.count += 1;
+    const item = makeShapeItem(a.shape, state.count);
+    state.elements.push(item);
+    log(`${a.actor} added ${item.title}`);
+    showToast(`${item.title} created`);
+  }
   if (a.type === "front") {
     const el = find(a.id);
     if (el) el.order = a.order;
@@ -304,9 +320,20 @@ function apply(a) {
 function makeItem(tool, n) {
   const base = { id: `item-${crypto.randomUUID()}`, x: 320 + (n % 5) * 120, y: 240 + (n % 4) * 110, order: nextOrder(), seed: false };
   if (tool === "text") return { ...base, kind: "text", title: `HEADLINE ${n}` };
-  if (tool === "shape") return { ...base, kind: n % 2 === 0 ? "shape-circle" : "shape-blob", title: n % 2 === 0 ? `Shape ${n} Circle` : `Shape ${n} Blob` };
   if (tool === "media") return { ...base, kind: "media", title: `Reference ${n}`, text: "Auto-added inspiration card", image: IMAGES[n % IMAGES.length], rotation: 0 };
   return { ...base, kind: "sticky", title: `Idea Note ${n}`, text: "Fresh note dropped onto the board. Drag it anywhere and keep building.", rotation: 0, pinned: false };
+}
+
+function makeShapeItem(shape, n) {
+  const base = { id: `item-${crypto.randomUUID()}`, x: 320 + (n % 5) * 120, y: 240 + (n % 4) * 110, order: nextOrder(), seed: false };
+  const titles = {
+    "shape-circle": `Shape ${n} Circle`,
+    "shape-blob": `Shape ${n} Blob`,
+    "shape-rounded": `Shape ${n} Capsule`,
+    "shape-diamond": `Shape ${n} Diamond`,
+    "shape-triangle": `Shape ${n} Triangle`,
+  };
+  return { ...base, kind: shape, title: titles[shape] || `Shape ${n}` };
 }
 
 function makeStroke(points, color, width) {
@@ -414,6 +441,9 @@ function paint(node, el) {
   }
   if (el.kind === "shape-circle") { node.classList.add("shape-circle"); node.innerHTML = ""; return; }
   if (el.kind === "shape-blob") { node.classList.add("shape-blob"); node.style.transform = "none"; node.innerHTML = ""; return; }
+  if (el.kind === "shape-rounded") { node.classList.add("shape-rounded"); node.innerHTML = ""; return; }
+  if (el.kind === "shape-diamond") { node.classList.add("shape-diamond"); node.innerHTML = ""; return; }
+  if (el.kind === "shape-triangle") { node.classList.add("shape-triangle"); node.innerHTML = ""; return; }
   if (el.kind === "media") {
     node.classList.add("media-card");
     node.style.transform = `rotate(${el.rotation || 0}deg)`;
@@ -940,6 +970,37 @@ function openMediaImportModal() {
   dropzone.addEventListener("drop", (event) => importMediaFiles(event.dataTransfer?.files));
 }
 
+function openShapePicker() {
+  openModal("Choose Shape", `
+    <div class="shape-selector">
+      <button class="shape-option" data-shape-kind="shape-circle" type="button">
+        <div class="shape-option-preview"><div class="shape-circle"></div></div>
+        <strong>Circle</strong>
+      </button>
+      <button class="shape-option" data-shape-kind="shape-blob" type="button">
+        <div class="shape-option-preview"><div class="shape-blob"></div></div>
+        <strong>Blob</strong>
+      </button>
+      <button class="shape-option" data-shape-kind="shape-rounded" type="button">
+        <div class="shape-option-preview"><div class="shape-rounded"></div></div>
+        <strong>Capsule</strong>
+      </button>
+      <button class="shape-option" data-shape-kind="shape-diamond" type="button">
+        <div class="shape-option-preview"><div class="shape-diamond"></div></div>
+        <strong>Diamond</strong>
+      </button>
+      <button class="shape-option" data-shape-kind="shape-triangle" type="button">
+        <div class="shape-option-preview"><div class="shape-triangle"></div></div>
+        <strong>Triangle</strong>
+      </button>
+    </div>
+  `);
+  $$("[data-shape-kind]").forEach((button) => button.addEventListener("click", () => {
+    dispatch({ type: "add-shape", shape: button.dataset.shapeKind, actor: user.name });
+    closeModal();
+  }));
+}
+
 async function importMediaFiles(fileList) {
   const files = Array.from(fileList || []).filter((file) => file.type.startsWith("image/"));
   if (!files.length) {
@@ -969,6 +1030,28 @@ function shareModal() {
     window.location.href = liveUrl.toString();
   });
   $("#copyLiveModeButton")?.addEventListener("click", () => copyText(liveUrl.toString(), "Live link copied"));
+}
+function handleSelectionDeleteKey(event) {
+  if (event.key !== "Backspace") return;
+  const target = event.target;
+  if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement || target?.isContentEditable) return;
+  if (!selectedIds.size) return;
+  event.preventDefault();
+  openDeleteSelectionModal();
+}
+function openDeleteSelectionModal() {
+  const ids = Array.from(selectedIds);
+  openModal("Delete Selected Items", `<p>Delete ${ids.length} selected item${ids.length === 1 ? "" : "s"}?</p><div class="connection-tools"><button class="ghost-row" id="cancelDeleteSelectionButton" type="button">Cancel</button><button class="primary-action" id="confirmDeleteSelectionButton" type="button">Delete</button></div>`);
+  $("#cancelDeleteSelectionButton")?.addEventListener("click", closeModal);
+  $("#confirmDeleteSelectionButton")?.addEventListener("click", () => {
+    state.elements = state.elements.filter((item) => !selectedIds.has(item.id));
+    selectedIds.clear();
+    renderElements();
+    renderHistory();
+    renderLayers();
+    closeModal();
+    showToast(ids.length === 1 ? "Item deleted" : `${ids.length} items deleted`);
+  });
 }
 
 function openMediaDrawer(item) {
