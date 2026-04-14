@@ -661,7 +661,8 @@ function bindDrag(node) {
       moved: false,
       group: groupIds.map((id) => {
         const item = getItem(id);
-        return item ? { id, x: item.x, y: item.y } : null;
+        if (!item || item.pinned) return null;
+        return { id, x: item.x, y: item.y };
       }).filter(Boolean)
     };
     panState = null;

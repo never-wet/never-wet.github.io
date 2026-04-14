@@ -1238,7 +1238,8 @@ button {
 
 .media-dropzone .material-symbols-outlined {
   font-size: 2.2rem;
-  color: var(--primary);
+  color: #2f7fe0;
+  text-shadow: 0 8px 20px rgba(47, 127, 224, 0.2);
 }
 
 .media-dropzone h3 {
