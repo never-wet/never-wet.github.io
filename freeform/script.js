@@ -30,6 +30,8 @@ const toast = $("#toast");
 const canvasGrid = $(".canvas-grid");
 const liveBadge = $("#liveBadge");
 const roomSummary = $("#roomSummary");
+const projectTitle = $("#projectTitle");
+const projectSubtitle = $("#projectSubtitle");
 const presenceList = $("#presenceList");
 const penControls = $("#penControls");
 const penWidthInput = $("#penWidthInput");
@@ -63,6 +65,7 @@ const NAMES = ["Aurora", "Juniper", "Marin", "Sol", "Mika", "Nova", "Ari", "Jule
 const IMAGES = ["../img/code2.png", "../img/code.jpg", "../img/background.jpeg", "../img/cat.jpg"];
 
 const user = loadUser();
+const projectName = getProjectName();
 const peers = new Map();
 const remote = new Map();
 const pending = new Map();
@@ -218,6 +221,7 @@ function setup() {
 function render() {
   setPanel("documents");
   setTool(state.tool, false);
+  applyProjectMeta();
   applyZoom(1);
   renderSettings();
   renderElements();
@@ -1027,6 +1031,11 @@ function updateBadge() {
   roomSummary.textContent = "Local-only mode. Use Share to open the public live version for cross-device collaboration.";
 }
 
+function applyProjectMeta() {
+  if (projectTitle) projectTitle.textContent = projectName;
+  if (projectSubtitle) projectSubtitle.textContent = `Local board • Room ${state.roomId}`;
+}
+
 function setTool(tool, toastIt) {
   state.tool = tool;
   toolButtons.forEach((b) => b.classList.toggle("is-active", b.dataset.tool === tool));
@@ -1493,6 +1502,10 @@ function ensureRoomId() {
   let id = u.searchParams.get("room");
   if (!id) { id = (crypto.randomUUID?.() || `room-${Date.now()}`).slice(0, 8); u.searchParams.set("room", id); history.replaceState({}, "", u); }
   return id;
+}
+function getProjectName() {
+  const value = new URL(location.href).searchParams.get("project")?.trim();
+  return value || "Untitled Project";
 }
 function enc(x) { return btoa(unescape(encodeURIComponent(JSON.stringify(x)))); }
 function dec(x) { return JSON.parse(decodeURIComponent(escape(atob(x)))); }

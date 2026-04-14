@@ -30,6 +30,8 @@ const toast = $("#toast");
 const canvasGrid = $(".canvas-grid");
 const liveBadge = $("#liveBadge");
 const roomSummary = $("#roomSummary");
+const projectTitle = $("#projectTitle");
+const projectSubtitle = $("#projectSubtitle");
 const presenceList = $("#presenceList");
 const penControls = $("#penControls");
 const penWidthInput = $("#penWidthInput");
@@ -63,6 +65,7 @@ const COLORS = ["#005bc1", "#0f766e", "#b45309", "#7c3aed", "#be123c", "#1d4ed8"
 const NAMES = ["Aurora", "Juniper", "Marin", "Sol", "Mika", "Nova", "Ari", "Jules"];
 
 const roomId = ensureRoomId();
+const projectName = getProjectName();
 const clientId = ensureClientId();
 const user = loadUser();
 const serverOrigin = resolveServerOrigin();
@@ -117,6 +120,7 @@ const stageMetrics = {
 setup();
 setPanel("documents");
 setTool(currentTool, false);
+applyProjectMeta();
 applyZoom(1);
 renderAll();
 window.addEventListener("load", () => center(false));
@@ -1221,6 +1225,11 @@ function updatePresence() {
   roomSummary.textContent = `Public live room ${roomId}. Open the same link on other devices to collaborate through ${serverOrigin}.`;
 }
 
+function applyProjectMeta() {
+  if (projectTitle) projectTitle.textContent = projectName;
+  if (projectSubtitle) projectSubtitle.textContent = `Live board • Room ${roomId}`;
+}
+
 function renderRemote() {
   cursorLayer.innerHTML = Array.from(state.presence.values())
     .filter((entry) => entry.clientId !== clientId && entry?.user && entry?.cursor)
@@ -1336,7 +1345,7 @@ function shareModal() {
   $("#copyLiveLinkButton")?.addEventListener("click", () => copyText(liveUrl.toString(), "Live link copied"));
   $("#copyServerLinkButton")?.addEventListener("click", () => copyText(serverOrigin, "Backend URL copied"));
   $("#openLocalModeButton")?.addEventListener("click", () => {
-    const localUrl = new URL("./index.html", window.location.href);
+    const localUrl = new URL("./canvas.html", window.location.href);
     localUrl.searchParams.set("room", roomId);
     if (liveUrl.searchParams.get("server")) localUrl.searchParams.set("server", liveUrl.searchParams.get("server"));
     window.location.href = localUrl.toString();
@@ -1633,6 +1642,11 @@ function ensureRoomId() {
     window.history.replaceState({}, "", u);
   }
   return id;
+}
+
+function getProjectName() {
+  const value = new URL(window.location.href).searchParams.get("project")?.trim();
+  return value || "Untitled Project";
 }
 
 function ensureClientId() {

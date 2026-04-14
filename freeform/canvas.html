@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Infinite Canvas Live</title>
+    <title>Infinite Canvas</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -60,18 +60,18 @@
           </div>
         </div>
 
-        <div class="top-menu glass-panel is-hidden" id="topMenu">
+        <div class="top-menu glass-panel is-hidden" id="topMenu" role="menu">
           <button class="menu-item" data-menu-action="theme" type="button">
-            <span class="material-symbols-outlined">light_mode</span>
-            <span>Toggle ambient glow</span>
+            <span class="material-symbols-outlined">auto_awesome</span>
+            <span>Toggle glow</span>
           </button>
           <button class="menu-item" data-menu-action="shuffle" type="button">
-            <span class="material-symbols-outlined">shuffle</span>
+            <span class="material-symbols-outlined">swap_horiz</span>
             <span>Shuffle layout</span>
           </button>
           <button class="menu-item" data-menu-action="clear" type="button">
             <span class="material-symbols-outlined">ink_eraser</span>
-            <span>Clear generated items</span>
+            <span>Clear canvas</span>
           </button>
         </div>
       </header>
@@ -84,11 +84,11 @@
         </div>
         <div>
           <h1 id="projectTitle">Project Alpha</h1>
-          <p id="projectSubtitle">Last edited 2m ago</p>
+          <p id="projectSubtitle">Last edited moments ago</p>
         </div>
       </div>
 
-      <nav class="sidebar-nav" aria-label="Project navigation">
+      <nav class="sidebar-nav" aria-label="Sidebar navigation">
         <button class="nav-button is-active" data-panel="documents" type="button">
           <span class="material-symbols-outlined">folder</span>
           <span>Documents</span>
@@ -188,18 +188,18 @@
             <button class="pen-swatch is-active" type="button" data-pen-color="#005bc1" style="--swatch:#005bc1" aria-label="Blue"></button>
             <button class="pen-swatch" type="button" data-pen-color="#0f766e" style="--swatch:#0f766e" aria-label="Teal"></button>
             <button class="pen-swatch" type="button" data-pen-color="#b45309" style="--swatch:#b45309" aria-label="Amber"></button>
-            <button class="pen-swatch" type="button" data-pen-color="#be123c" style="--swatch:#be123c" aria-label="Rose"></button>
             <button class="pen-swatch" type="button" data-pen-color="#7c3aed" style="--swatch:#7c3aed" aria-label="Violet"></button>
+            <button class="pen-swatch" type="button" data-pen-color="#be123c" style="--swatch:#be123c" aria-label="Rose"></button>
           </div>
           <div class="pen-picker-shell">
-            <button class="pen-color-chip" id="penColorButton" type="button" aria-label="Open custom pen color picker">
-            <span class="pen-color-preview" id="penColorPreview"></span>
-            <span class="pen-color-meta">
-              <span class="material-symbols-outlined">palette</span>
-              <strong id="penColorValue">#005BC1</strong>
-            </span>
+            <button class="pen-color-chip" id="penColorButton" type="button" aria-haspopup="dialog" aria-label="Custom pen color">
+              <span class="pen-color-preview" id="penColorPreview"></span>
+              <span class="pen-color-meta">
+                <span class="material-symbols-outlined">palette</span>
+                <strong id="penColorValue">#005BC1</strong>
+              </span>
             </button>
-            <section class="pen-picker-popover glass-panel is-hidden" id="penColorPopover" aria-label="Custom color picker">
+            <div class="pen-picker-popover glass-panel is-hidden" id="penColorPopover">
               <div class="pen-picker-header">
                 <div class="pen-picker-swatch" id="penPickerSwatch"></div>
                 <div>
@@ -207,26 +207,26 @@
                   <p id="penPickerCaption">#005BC1</p>
                 </div>
               </div>
-              <div class="pen-picker-field">
+              <label class="pen-picker-field">
                 <span>Hex</span>
-                <input id="penHexInput" type="text" maxlength="7" value="#005BC1" spellcheck="false" />
-              </div>
-              <div class="pen-picker-field">
+                <input id="penHexInput" type="text" value="#005BC1" spellcheck="false" />
+              </label>
+              <label class="pen-picker-field">
                 <span>R</span>
                 <input id="penRedInput" type="range" min="0" max="255" value="0" />
                 <strong id="penRedValue">0</strong>
-              </div>
-              <div class="pen-picker-field">
+              </label>
+              <label class="pen-picker-field">
                 <span>G</span>
                 <input id="penGreenInput" type="range" min="0" max="255" value="91" />
                 <strong id="penGreenValue">91</strong>
-              </div>
-              <div class="pen-picker-field">
+              </label>
+              <label class="pen-picker-field">
                 <span>B</span>
                 <input id="penBlueInput" type="range" min="0" max="255" value="193" />
                 <strong id="penBlueValue">193</strong>
-              </div>
-            </section>
+              </label>
+            </div>
           </div>
         </div>
       </div>
@@ -264,8 +264,8 @@
       </div>
     </section>
 
-    <div class="toast is-hidden" id="toast"></div>
+    <div class="toast is-hidden" id="toast">Saved</div>
 
-    <script type="module" src="./live.js"></script>
+    <script src="./script.js"></script>
   </body>
 </html>

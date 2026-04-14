@@ -1,271 +1,117 @@
 <!doctype html>
-<html lang="en" class="light">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Infinite Canvas</title>
+    <title>Freeform Projects</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
-      rel="stylesheet"
-    />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
-      rel="stylesheet"
-    />
-    <link rel="stylesheet" href="./styles.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@400;500;600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="./home.css" />
   </head>
   <body>
-    <div class="canvas-grid" aria-hidden="true"></div>
-    <canvas class="mouse-grid" id="mouseGrid" aria-hidden="true"></canvas>
-
-    <div class="top-shell">
-      <header class="topbar glass-panel">
-        <div class="brand">Infinite Canvas</div>
-
-        <nav class="toolbar" aria-label="Canvas tools">
-          <button class="tool-button" data-tool="pen" type="button">
-            <span class="material-symbols-outlined">edit</span>
-            <span>Pen</span>
-          </button>
-          <button class="tool-button" data-tool="text" type="button">
-            <span class="material-symbols-outlined">title</span>
-            <span>Text</span>
-          </button>
-          <button class="tool-button" data-tool="shape" type="button">
-            <span class="material-symbols-outlined">category</span>
-            <span>Shapes</span>
-          </button>
-          <button class="tool-button is-active" data-tool="sticky" type="button">
-            <span class="material-symbols-outlined">sticky_note_2</span>
-            <span>Sticky Notes</span>
-          </button>
-          <button class="tool-button" data-tool="media" type="button">
-            <span class="material-symbols-outlined">perm_media</span>
-            <span>Media</span>
-          </button>
-        </nav>
-
-        <div class="toolbar-meta">
-          <button class="icon-button" aria-label="Share" id="shareButton" type="button">
-            <span class="material-symbols-outlined">share</span>
-          </button>
-          <button class="icon-button" aria-label="More" id="moreButton" type="button">
-            <span class="material-symbols-outlined">more_vert</span>
-          </button>
-          <div class="live-pill" id="liveBadge">Live room</div>
-          <div class="avatar-ring" aria-hidden="true">
-            <img src="../img/junha.png" alt="Workspace profile" />
+    <div class="studio-bg" aria-hidden="true"></div>
+    <main class="studio-shell">
+      <header class="hero glass-panel">
+        <div class="hero-copy">
+          <p class="eyebrow">Workspace</p>
+          <h1>Make a project, then jump straight into your freeform canvas.</h1>
+          <p class="hero-text">
+            Everything you built in the canvas stays the same. This page is just the project home that creates and reopens boards.
+          </p>
+          <div class="hero-actions">
+            <button class="primary-button" id="createProjectButton" type="button">
+              <span class="material-symbols-outlined">add_circle</span>
+              <span>Create Project</span>
+            </button>
+            <button class="secondary-button" id="openLastProjectButton" type="button">
+              <span class="material-symbols-outlined">history</span>
+              <span>Open Last Project</span>
+            </button>
           </div>
         </div>
-
-        <div class="top-menu glass-panel is-hidden" id="topMenu">
-          <button class="menu-item" data-menu-action="theme" type="button">
-            <span class="material-symbols-outlined">light_mode</span>
-            <span>Toggle ambient glow</span>
-          </button>
-          <button class="menu-item" data-menu-action="shuffle" type="button">
-            <span class="material-symbols-outlined">shuffle</span>
-            <span>Shuffle layout</span>
-          </button>
-          <button class="menu-item" data-menu-action="clear" type="button">
-            <span class="material-symbols-outlined">ink_eraser</span>
-            <span>Clear generated items</span>
-          </button>
-        </div>
+        <section class="hero-stats">
+          <article class="stat-card">
+            <strong id="projectCount">0</strong>
+            <span>Projects</span>
+          </article>
+          <article class="stat-card">
+            <strong>Freeform</strong>
+            <span>Open local or live from the same project card</span>
+          </article>
+        </section>
       </header>
-    </div>
 
-    <aside class="sidebar glass-panel">
-      <div class="project-card">
-        <div class="project-badge">
-          <span class="material-symbols-outlined">deployed_code</span>
+      <section class="projects-panel glass-panel">
+        <div class="projects-head">
+          <div>
+            <p class="eyebrow">Projects</p>
+            <h2>Your Boards</h2>
+          </div>
+          <button class="ghost-button" id="createProjectInlineButton" type="button">
+            <span class="material-symbols-outlined">add</span>
+            <span>New Project</span>
+          </button>
         </div>
-        <div>
-          <h1>Project Alpha</h1>
-          <p>Last edited 2m ago</p>
-        </div>
-      </div>
 
-      <nav class="sidebar-nav" aria-label="Project navigation">
-        <button class="nav-button is-active" data-panel="documents" type="button">
-          <span class="material-symbols-outlined">folder</span>
-          <span>Documents</span>
-        </button>
-        <button class="nav-button" data-panel="layers" type="button">
-          <span class="material-symbols-outlined">layers</span>
-          <span>Layers</span>
-        </button>
-        <button class="nav-button" data-panel="history" type="button">
-          <span class="material-symbols-outlined">history</span>
-          <span>History</span>
-        </button>
-        <button class="nav-button" data-panel="settings" type="button">
-          <span class="material-symbols-outlined">settings</span>
-          <span>Settings</span>
-        </button>
-      </nav>
-
-      <section class="sidebar-panel" id="sidebarPanel">
-        <div class="panel-copy" data-panel-copy="documents">
-          <h2>Documents</h2>
-          <p id="roomSummary">Creative brief, motion references, and notes are pinned across the board.</p>
-          <div class="presence-strip" id="presenceList"></div>
-        </div>
-        <div class="panel-copy is-hidden" data-panel-copy="layers">
-          <h2>Layers</h2>
-          <p>Every new canvas object appears here, with the newest item surfaced to the top.</p>
-          <ul class="layer-list" id="layerList"></ul>
-        </div>
-        <div class="panel-copy is-hidden" data-panel-copy="history">
-          <h2>History</h2>
-          <p>Recent actions update live while you add, move, zoom, and reorganize the canvas.</p>
-          <ul class="history-list" id="historyList"></ul>
-        </div>
-        <div class="panel-copy is-hidden" data-panel-copy="settings">
-          <h2>Settings</h2>
-          <label class="setting-row">
-            <span>Canvas zoom</span>
-            <input id="zoomRange" type="range" min="70" max="140" value="100" />
+        <form class="project-form is-hidden" id="projectForm">
+          <label class="field">
+            <span>Project name</span>
+            <input id="projectNameInput" type="text" maxlength="80" placeholder="Ex. Biology Notes" />
           </label>
-          <label class="setting-row">
-            <span>Grid visibility</span>
-            <input id="gridToggle" type="checkbox" checked />
+          <label class="field">
+            <span>Description</span>
+            <textarea id="projectDescriptionInput" rows="3" maxlength="180" placeholder="Short note about what this board is for"></textarea>
           </label>
-        </div>
-      </section>
+          <div class="form-actions">
+            <button class="secondary-button" id="cancelProjectButton" type="button">Cancel</button>
+            <button class="primary-button" id="saveProjectButton" type="submit">
+              <span class="material-symbols-outlined">arrow_forward</span>
+              <span>Create And Open</span>
+            </button>
+          </div>
+        </form>
 
-      <div class="sidebar-footer">
-        <button class="ghost-row" id="helpButton" type="button">
-          <span class="material-symbols-outlined">help</span>
-          <span>Help</span>
-        </button>
-        <button class="ghost-row" id="archiveButton" type="button">
-          <span class="material-symbols-outlined">archive</span>
-          <span>Archive</span>
-        </button>
-        <button class="primary-action" id="newLayerButton" type="button">
-          <span class="material-symbols-outlined">add</span>
-          <span>New Layer</span>
-        </button>
-      </div>
-    </aside>
-
-    <main class="workspace-shell">
-      <section
-        class="canvas-viewport"
-        id="canvasViewport"
-        aria-label="Infinite canvas"
-      >
-        <div class="canvas-stage" id="canvasStage">
-          <svg class="draw-layer" id="drawLayer" aria-hidden="true"></svg>
-          <div class="cursor-layer" id="cursorLayer" aria-hidden="true"></div>
+        <div class="empty-state is-hidden" id="emptyState">
+          <span class="material-symbols-outlined">note_stack</span>
+          <h3>No projects yet</h3>
+          <p>Create your first project and it will open the freeform canvas right away.</p>
         </div>
+
+        <section class="projects-grid" id="projectsGrid" aria-live="polite"></section>
       </section>
     </main>
 
-    <aside class="media-drawer glass-panel" id="mediaDrawer" aria-label="Media details">
-      <div class="media-drawer-head">
-        <div>
-          <p class="media-drawer-kicker">Media Details</p>
-          <h2 id="mediaDrawerTitle">No media selected</h2>
-        </div>
-        <button class="icon-button" id="closeMediaDrawerButton" type="button" aria-label="Close media details">
-          <span class="material-symbols-outlined">close</span>
-        </button>
-      </div>
-      <div class="media-drawer-body" id="mediaDrawerBody">
-        <p>Select an image card to inspect its details.</p>
-      </div>
-    </aside>
-
-    <section class="pen-controls glass-panel is-hidden" id="penControls" aria-label="Pen controls">
-      <div class="pen-control">
-        <span>Color</span>
-        <div class="pen-color-row">
-          <div class="pen-swatches" id="penSwatches" role="list" aria-label="Pen colors">
-            <button class="pen-swatch is-active" type="button" data-pen-color="#005bc1" style="--swatch:#005bc1" aria-label="Blue"></button>
-            <button class="pen-swatch" type="button" data-pen-color="#0f766e" style="--swatch:#0f766e" aria-label="Teal"></button>
-            <button class="pen-swatch" type="button" data-pen-color="#b45309" style="--swatch:#b45309" aria-label="Amber"></button>
-            <button class="pen-swatch" type="button" data-pen-color="#be123c" style="--swatch:#be123c" aria-label="Rose"></button>
-            <button class="pen-swatch" type="button" data-pen-color="#7c3aed" style="--swatch:#7c3aed" aria-label="Violet"></button>
+    <template id="projectCardTemplate">
+      <article class="project-card">
+        <div class="project-card-head">
+          <div>
+            <p class="project-kicker">Project</p>
+            <h3 data-project-name></h3>
           </div>
-          <div class="pen-picker-shell">
-            <button class="pen-color-chip" id="penColorButton" type="button" aria-label="Open custom pen color picker">
-            <span class="pen-color-preview" id="penColorPreview"></span>
-            <span class="pen-color-meta">
-              <span class="material-symbols-outlined">palette</span>
-              <strong id="penColorValue">#005BC1</strong>
-            </span>
-            </button>
-            <section class="pen-picker-popover glass-panel is-hidden" id="penColorPopover" aria-label="Custom color picker">
-              <div class="pen-picker-header">
-                <div class="pen-picker-swatch" id="penPickerSwatch"></div>
-                <div>
-                  <strong>Custom Color</strong>
-                  <p id="penPickerCaption">#005BC1</p>
-                </div>
-              </div>
-              <div class="pen-picker-field">
-                <span>Hex</span>
-                <input id="penHexInput" type="text" maxlength="7" value="#005BC1" spellcheck="false" />
-              </div>
-              <div class="pen-picker-field">
-                <span>R</span>
-                <input id="penRedInput" type="range" min="0" max="255" value="0" />
-                <strong id="penRedValue">0</strong>
-              </div>
-              <div class="pen-picker-field">
-                <span>G</span>
-                <input id="penGreenInput" type="range" min="0" max="255" value="91" />
-                <strong id="penGreenValue">91</strong>
-              </div>
-              <div class="pen-picker-field">
-                <span>B</span>
-                <input id="penBlueInput" type="range" min="0" max="255" value="193" />
-                <strong id="penBlueValue">193</strong>
-              </div>
-            </section>
-          </div>
-        </div>
-      </div>
-      <label class="pen-control pen-width-control">
-        <span>Thickness</span>
-        <input id="penWidthInput" type="range" min="2" max="18" value="6" />
-        <strong id="penWidthValue">6px</strong>
-      </label>
-    </section>
-
-    <div class="bottom-dock glass-panel">
-      <button class="dock-button" id="zoomButton" type="button">
-        <span class="material-symbols-outlined">pan_tool_alt</span>
-        <span>Hand</span>
-      </button>
-      <button class="dock-button" id="fitButton" type="button">
-        <span class="material-symbols-outlined">center_focus_strong</span>
-        <span>Center</span>
-      </button>
-      <button class="dock-button" id="panButton" type="button">
-        <span class="material-symbols-outlined">deselect</span>
-        <span>Clear</span>
-      </button>
-    </div>
-
-    <section class="modal is-hidden" id="modal">
-      <div class="modal-card glass-panel">
-        <div class="modal-head">
-          <h2 id="modalTitle">Panel</h2>
-          <button class="icon-button" id="closeModalButton" type="button" aria-label="Close dialog">
-            <span class="material-symbols-outlined">close</span>
+          <button class="icon-button" type="button" data-project-delete aria-label="Delete project">
+            <span class="material-symbols-outlined">delete</span>
           </button>
         </div>
-        <div class="modal-body" id="modalBody"></div>
-      </div>
-    </section>
+        <p class="project-description" data-project-description></p>
+        <div class="project-meta">
+          <span data-project-updated></span>
+          <span data-project-room></span>
+        </div>
+        <div class="project-actions">
+          <button class="ghost-button" type="button" data-project-open-live>
+            <span class="material-symbols-outlined">hub</span>
+            <span>Live</span>
+          </button>
+          <button class="primary-button" type="button" data-project-open>
+            <span class="material-symbols-outlined">arrow_forward</span>
+            <span>Open Canvas</span>
+          </button>
+        </div>
+      </article>
+    </template>
 
-    <div class="toast is-hidden" id="toast"></div>
-
-    <script src="./script.js"></script>
+    <script src="./home.js"></script>
   </body>
 </html>
