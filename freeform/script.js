@@ -53,8 +53,10 @@ const mediaDrawerTitle = $("#mediaDrawerTitle");
 const mediaDrawerBody = $("#mediaDrawerBody");
 const closeMediaDrawerButton = $("#closeMediaDrawerButton");
 
-const STAGE_W = 2200;
-const STAGE_H = 1800;
+const BASE_STAGE_W = 2200;
+const BASE_STAGE_H = 1800;
+const STAGE_GROW_STEP = 1200;
+const STAGE_EDGE_BUFFER = 320;
 const ICE = { iceServers: [{ urls: ["stun:stun.l.google.com:19302", "stun:stun1.l.google.com:19302"] }] };
 const COLORS = ["#005bc1", "#0f766e", "#b45309", "#7c3aed", "#be123c", "#1d4ed8"];
 const NAMES = ["Aurora", "Juniper", "Marin", "Sol", "Mika", "Nova", "Ari", "Jules"];
@@ -82,6 +84,10 @@ const state = {
   elements: seed(),
   penColor: "#005bc1",
   penWidth: 6,
+};
+const stageMetrics = {
+  width: BASE_STAGE_W,
+  height: BASE_STAGE_H,
 };
 
 let toastTimer = null;
@@ -383,17 +389,20 @@ function apply(a) {
   renderElements();
   renderHistory();
   renderLayers();
+  ensureInfiniteStage();
 }
 
 function makeItem(tool, n) {
-  const base = { id: `item-${crypto.randomUUID()}`, x: 320 + (n % 5) * 120, y: 240 + (n % 4) * 110, order: nextOrder(), seed: false };
+  const spawn = getSpawnPoint();
+  const base = { id: `item-${crypto.randomUUID()}`, x: spawn.x, y: spawn.y, order: nextOrder(), seed: false };
   if (tool === "text") return { ...base, kind: "text", title: `HEADLINE ${n}` };
   if (tool === "media") return { ...base, kind: "media", title: `Reference ${n}`, text: "Auto-added inspiration card", image: IMAGES[n % IMAGES.length], rotation: 0 };
   return { ...base, kind: "sticky", title: `Idea Note ${n}`, text: "Fresh note dropped onto the board. Drag it anywhere and keep building.", rotation: 0, pinned: false };
 }
 
 function makeShapeItem(shape, n) {
-  const base = { id: `item-${crypto.randomUUID()}`, x: 320 + (n % 5) * 120, y: 240 + (n % 4) * 110, order: nextOrder(), seed: false };
+  const spawn = getSpawnPoint();
+  const base = { id: `item-${crypto.randomUUID()}`, x: spawn.x, y: spawn.y, order: nextOrder(), seed: false };
   const titles = {
     "shape-circle": `Shape ${n} Circle`,
     "shape-blob": `Shape ${n} Blob`,
@@ -419,6 +428,7 @@ function makeStroke(points, color, width) {
 
 function makeMediaItemFromFile(image, filename, dimensions) {
   state.count += 1;
+  const spawn = getSpawnPoint();
   return {
     id: `item-${crypto.randomUUID()}`,
     kind: "media",
@@ -430,11 +440,21 @@ function makeMediaItemFromFile(image, filename, dimensions) {
     image,
     width: dimensions.width,
     height: dimensions.height,
-    x: 320 + (state.count % 5) * 120,
-    y: 240 + (state.count % 4) * 110,
+    x: spawn.x,
+    y: spawn.y,
     order: nextOrder(),
     rotation: 0,
     seed: false,
+  };
+}
+
+function getSpawnPoint() {
+  const centerX = (viewport.scrollLeft + viewport.clientWidth / 2) / state.zoom;
+  const centerY = (viewport.scrollTop + viewport.clientHeight / 2) / state.zoom;
+  const offset = (state.count % 4) * 18;
+  return {
+    x: Math.max(32, Math.round(centerX - 140 + offset)),
+    y: Math.max(32, Math.round(centerY - 90 + offset)),
   };
 }
 
@@ -464,6 +484,7 @@ function renderElements() {
   stage.appendChild(selectionBox);
   cursorLayer.remove();
   stage.appendChild(cursorLayer);
+  ensureInfiniteStage();
 }
 
 function renderStrokes() {
@@ -490,6 +511,150 @@ function renderStrokes() {
       strokeNodes.delete(id);
     }
   });
+}
+
+function ensureInfiniteStage() {
+  const canGrowLeading = Boolean(panState || dragState || drawState || marqueeState);
+  let growLeft = canGrowLeading && viewport.scrollLeft < STAGE_EDGE_BUFFER * state.zoom ? STAGE_GROW_STEP : 0;
+  let growTop = canGrowLeading && viewport.scrollTop < STAGE_EDGE_BUFFER * state.zoom ? STAGE_GROW_STEP : 0;
+  let growRight = viewport.scrollLeft + viewport.clientWidth > stageMetrics.width * state.zoom - STAGE_EDGE_BUFFER * state.zoom ? STAGE_GROW_STEP : 0;
+  let growBottom = viewport.scrollTop + viewport.clientHeight > stageMetrics.height * state.zoom - STAGE_EDGE_BUFFER * state.zoom ? STAGE_GROW_STEP : 0;
+
+  const bounds = getCanvasBounds();
+  if (canGrowLeading && bounds.left < STAGE_EDGE_BUFFER) growLeft = Math.max(growLeft, STAGE_GROW_STEP);
+  if (canGrowLeading && bounds.top < STAGE_EDGE_BUFFER) growTop = Math.max(growTop, STAGE_GROW_STEP);
+  if (bounds.right > stageMetrics.width - STAGE_EDGE_BUFFER) {
+    growRight = Math.max(growRight, snapStageGrowth(bounds.right - (stageMetrics.width - STAGE_EDGE_BUFFER)));
+  }
+  if (bounds.bottom > stageMetrics.height - STAGE_EDGE_BUFFER) {
+    growBottom = Math.max(growBottom, snapStageGrowth(bounds.bottom - (stageMetrics.height - STAGE_EDGE_BUFFER)));
+  }
+
+  if (!growLeft && !growTop && !growRight && !growBottom) return;
+  expandStage({ left: growLeft, top: growTop, right: growRight, bottom: growBottom });
+}
+
+function expandStage({ left = 0, top = 0, right = 0, bottom = 0 }) {
+  if (!left && !top && !right && !bottom) return;
+  if (left || top) shiftCanvasContent(left, top);
+  stageMetrics.width += left + right;
+  stageMetrics.height += top + bottom;
+  if (left) viewport.scrollLeft += left * state.zoom;
+  if (top) viewport.scrollTop += top * state.zoom;
+  if (panState) {
+    panState.sl += left * state.zoom;
+    panState.st += top * state.zoom;
+  }
+  renderElements();
+  renderLayers();
+  applyZoom(state.zoom);
+}
+
+function shiftCanvasContent(dx, dy) {
+  if (!dx && !dy) return;
+  state.elements.forEach((item) => {
+    if (item.kind === "stroke") {
+      item.points = (item.points || []).map((point) => ({ x: point.x + dx, y: point.y + dy }));
+      return;
+    }
+    item.x += dx;
+    item.y += dy;
+  });
+  if (dragState) {
+    dragState.ix += dx;
+    dragState.iy += dy;
+    dragState.lx += dx;
+    dragState.ly += dy;
+    dragState.group.forEach((entry) => {
+      entry.x += dx;
+      entry.y += dy;
+    });
+  }
+  if (drawState) {
+    drawState.points = drawState.points.map((point) => ({ x: point.x + dx, y: point.y + dy }));
+    drawState.preview.setAttribute("d", pointsToPath(drawState.points));
+  }
+  if (marqueeState) {
+    marqueeState.sx += dx;
+    marqueeState.sy += dy;
+    selectionBox.style.left = `${parseFloat(selectionBox.style.left || "0") + dx}px`;
+    selectionBox.style.top = `${parseFloat(selectionBox.style.top || "0") + dy}px`;
+  }
+}
+
+function getCanvasBounds() {
+  const items = state.elements;
+  if (!items.length) {
+    return {
+      left: viewport.scrollLeft / state.zoom,
+      top: viewport.scrollTop / state.zoom,
+      right: (viewport.scrollLeft + viewport.clientWidth) / state.zoom,
+      bottom: (viewport.scrollTop + viewport.clientHeight) / state.zoom,
+    };
+  }
+  return items.reduce((bounds, item) => {
+    const next = getItemBounds(item);
+    return {
+      left: Math.min(bounds.left, next.left),
+      top: Math.min(bounds.top, next.top),
+      right: Math.max(bounds.right, next.right),
+      bottom: Math.max(bounds.bottom, next.bottom),
+    };
+  }, { left: Infinity, top: Infinity, right: -Infinity, bottom: -Infinity });
+}
+
+function getItemBounds(item) {
+  if (item.kind === "stroke") {
+    const points = item.points || [];
+    if (!points.length) return { left: 0, top: 0, right: 0, bottom: 0 };
+    const width = Number(item.width || 0);
+    const xs = points.map((point) => point.x);
+    const ys = points.map((point) => point.y);
+    return {
+      left: Math.min(...xs) - width,
+      top: Math.min(...ys) - width,
+      right: Math.max(...xs) + width,
+      bottom: Math.max(...ys) + width,
+    };
+  }
+
+  const node = nodes.get(item.id);
+  const width = node?.offsetWidth || estimateItemWidth(item);
+  const height = node?.offsetHeight || estimateItemHeight(item);
+  return {
+    left: item.x,
+    top: item.y,
+    right: item.x + width,
+    bottom: item.y + height,
+  };
+}
+
+function estimateItemWidth(item) {
+  if (item.kind === "sticky") return 260;
+  if (item.kind === "shape-circle") return 190;
+  if (item.kind === "shape-blob") return 240;
+  if (item.kind === "shape-rounded") return 220;
+  if (item.kind === "shape-diamond") return 170;
+  if (item.kind === "shape-triangle") return 220;
+  if (item.kind === "media") return Number(item.width || 320);
+  if (item.kind === "text") return 760;
+  return 320;
+}
+
+function estimateItemHeight(item) {
+  if (item.kind === "sticky") return 260;
+  if (item.kind === "shape-circle") return 190;
+  if (item.kind === "shape-blob") return 140;
+  if (item.kind === "shape-rounded") return 150;
+  if (item.kind === "shape-diamond") return 170;
+  if (item.kind === "shape-triangle") return 190;
+  if (item.kind === "media") return Number(item.height || 220);
+  if (item.kind === "text") return 120;
+  return 220;
+}
+
+function snapStageGrowth(value) {
+  return Math.max(STAGE_GROW_STEP, Math.ceil(Math.max(0, value) / STAGE_GROW_STEP) * STAGE_GROW_STEP);
 }
 
 function paint(node, el) {
@@ -651,6 +816,7 @@ function bindDrag(node) {
       groupNode.style.left = `${entry.x + deltaX}px`;
       groupNode.style.top = `${entry.y + deltaY}px`;
     });
+    ensureInfiniteStage();
     sendCursor({ x: dragState.lx, y: dragState.ly });
   });
   node.addEventListener("pointerup", stop);
@@ -668,6 +834,7 @@ function panMove(e) {
   if (!panState || dragState || drawState || marqueeState || panState.pid !== e.pointerId) return;
   viewport.scrollLeft = panState.sl - (e.clientX - panState.sx);
   viewport.scrollTop = panState.st - (e.clientY - panState.sy);
+  ensureInfiniteStage();
 }
 function panStop(e) {
   if (!panState || panState.pid !== e.pointerId) return;
@@ -706,6 +873,7 @@ function drawMove(e) {
   if (last && Math.hypot(point.x - last.x, point.y - last.y) < 1.5) return;
   drawState.points.push(point);
   drawState.preview.setAttribute("d", pointsToPath(drawState.points));
+  ensureInfiniteStage();
   e.preventDefault();
 }
 
@@ -735,6 +903,7 @@ function marqueeMove(e) {
   if (!marqueeState || marqueeState.pid !== e.pointerId) return;
   const point = pointerToStagePoint(e);
   updateSelectionBox(marqueeState.sx, marqueeState.sy, point.x, point.y);
+  ensureInfiniteStage();
 }
 function marqueeStop(e) {
   if (!marqueeState || marqueeState.pid !== e.pointerId) return;
@@ -944,8 +1113,8 @@ function setPanel(panel) {
 function applyZoom(v) {
   state.zoom = v;
   stage.style.transform = `scale(${v})`;
-  stage.style.width = `${STAGE_W * v}px`;
-  stage.style.height = `${STAGE_H * v}px`;
+  stage.style.width = `${stageMetrics.width * v}px`;
+  stage.style.height = `${stageMetrics.height * v}px`;
 }
 function center(smooth) {
   viewport.scrollTo({ left: Math.max(0, (stage.scrollWidth - viewport.clientWidth) / 2 - 240), top: Math.max(0, (stage.scrollHeight - viewport.clientHeight) / 2 - 180), behavior: smooth ? "smooth" : "auto" });
@@ -1277,7 +1446,22 @@ function sendCursor(cursor) {
   else sendHost({ type: "cursor", cursor });
 }
 function snap() { return JSON.parse(JSON.stringify({ tool: state.tool, glow: state.glow, grid: state.grid, count: state.count, order: state.order, history: state.history, elements: state.elements })); }
-function load(s) { state.tool = s.tool; state.glow = s.glow; state.grid = s.grid; state.count = s.count; state.order = s.order; state.history = s.history; state.elements = s.elements; setTool(state.tool, false); renderSettings(); renderElements(); renderHistory(); renderLayers(); }
+function load(s) {
+  state.tool = s.tool;
+  state.glow = s.glow;
+  state.grid = s.grid;
+  state.count = s.count;
+  state.order = s.order;
+  state.history = s.history;
+  state.elements = s.elements;
+  stageMetrics.width = BASE_STAGE_W;
+  stageMetrics.height = BASE_STAGE_H;
+  setTool(state.tool, false);
+  renderSettings();
+  renderElements();
+  renderHistory();
+  renderLayers();
+}
 function waitIce(pc, timeoutMs = 8000) {
   if (pc.iceGatheringState === "complete") return Promise.resolve();
   return new Promise((resolve) => {

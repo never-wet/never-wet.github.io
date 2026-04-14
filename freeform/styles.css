@@ -574,8 +574,8 @@ button {
 
 .canvas-stage {
   position: relative;
-  min-width: 2200px;
-  min-height: 1800px;
+  min-width: 100%;
+  min-height: 100%;
   padding: 120px 120px 180px;
   transform-origin: top left;
 }
@@ -1561,8 +1561,6 @@ button {
   }
 
   .canvas-stage {
-    min-width: 1600px;
-    min-height: 1700px;
     padding: 280px 24px 180px;
   }
 
