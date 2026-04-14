@@ -75,7 +75,7 @@ const state = {
   roomId: ensureRoomId(),
   tool: "sticky",
   zoom: 1,
-  pan: true,
+  pan: false,
   glow: false,
   grid: true,
   count: 0,
@@ -151,25 +151,21 @@ function setup() {
     if (b.dataset.menuAction === "clear") dispatch({ type: "clear", actor: user.name });
   });
   zoomButton.addEventListener("click", () => {
-    const next = state.zoom >= 1.4 ? 0.8 : Number((state.zoom + 0.1).toFixed(2));
-    applyZoom(next);
-    zoomRange.value = String(Math.round(next * 100));
-    dock(zoomButton);
-    showToast(`Zoom ${Math.round(next * 100)}%`);
+    state.pan = !state.pan;
+    refreshDock();
+    showToast(state.pan ? "Hand mode enabled" : "Hand mode disabled");
   });
   fitButton.addEventListener("click", () => {
-    applyZoom(1);
-    zoomRange.value = "100";
     center(true);
+    showToast("Centered on canvas");
   });
   panButton.addEventListener("click", () => {
-    state.pan = !state.pan;
-    dock(panButton);
-    showToast(state.pan ? "Pan enabled" : "Pan locked");
+    clearSelection();
+    closeMediaDrawer();
+    showToast("Selection cleared");
   });
   zoomRange.addEventListener("input", () => {
     applyZoom(Number(zoomRange.value) / 100);
-    dock(zoomButton);
   });
   gridToggle.addEventListener("change", () => dispatch({ type: "grid", visible: gridToggle.checked, actor: user.name }));
   penColorButton.addEventListener("click", (event) => {
@@ -230,6 +226,7 @@ function render() {
   renderPresence();
   renderRemote();
   updateBadge();
+  refreshDock();
   drawMouseGrid();
 }
 
@@ -889,7 +886,7 @@ function drawStop(e) {
   showToast("Stroke added");
 }
 function marqueeStart(e) {
-  if (state.tool === "pen" || drawState || dragState || e.button !== 0) return;
+  if (state.pan || state.tool === "pen" || drawState || dragState || e.button !== 0) return;
   if (e.target.closest(".draggable") || e.target.closest("button") || e.target.closest("input") || e.target.closest("textarea")) return;
   const point = pointerToStagePoint(e);
   if (!e.shiftKey && !e.ctrlKey && !e.metaKey) clearSelection();
@@ -1118,9 +1115,12 @@ function applyZoom(v) {
 }
 function center(smooth) {
   viewport.scrollTo({ left: Math.max(0, (stage.scrollWidth - viewport.clientWidth) / 2 - 240), top: Math.max(0, (stage.scrollHeight - viewport.clientHeight) / 2 - 180), behavior: smooth ? "smooth" : "auto" });
-  dock(fitButton);
 }
-function dock(btn) { [zoomButton, fitButton, panButton].forEach((b) => b.classList.toggle("is-active", b === btn)); }
+function refreshDock() {
+  zoomButton.classList.toggle("is-active", state.pan);
+  fitButton.classList.remove("is-active");
+  panButton.classList.remove("is-active");
+}
 function find(id) { return state.elements.find((x) => x.id === id); }
 function nextOrder() { state.order += 1; return state.order; }
 function log(msg) { state.history.unshift(msg); state.history = state.history.slice(0, 20); }
