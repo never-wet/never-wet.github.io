@@ -161,7 +161,7 @@ const state = loadState();
 normalizeLineupAssignments();
 normalizeRivalClubs();
 const runtime = {
-  buzz: 0,
+  buzz: clamp(state.buzz || 0, 0, 100),
   pendingAutoShots: 0,
   recentManualShotTimes: [],
   lastFrame: performance.now(),
@@ -309,6 +309,7 @@ function createDefaultState() {
     cash: 0,
     goals: 0,
     fans: 0,
+    buzz: 0,
     cashPerGoal: 1,
     goalsPerShot: 1,
     autoShotsPerSecond: 0,
@@ -556,6 +557,7 @@ function confirmPrestigeFromModal() {
 }
 
 function saveState() {
+  state.buzz = runtime.buzz;
   state.lastActiveAt = Date.now();
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   runtime.lastSaveAt = performance.now();
