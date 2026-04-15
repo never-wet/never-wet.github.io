@@ -131,6 +131,50 @@
             justify-content: center;
         }
 
+        .history-container {
+            margin-top: 24px;
+            padding: 20px;
+            border-radius: 16px;
+            background: rgba(0, 0, 0, 0.18);
+            text-align: left;
+        }
+
+        .history-title {
+            margin: 0 0 14px;
+            color: white;
+            font-size: 18px;
+            letter-spacing: 0.04em;
+        }
+
+        .history-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: grid;
+            gap: 10px;
+        }
+
+        .history-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 10px 14px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .history-name {
+            text-transform: capitalize;
+            font-weight: bold;
+        }
+
+        .history-count {
+            color: #ffd700;
+            font-variant-numeric: tabular-nums;
+        }
+
         .winner-gif {
             max-width: 150px;
             max-height: 100px;
@@ -252,179 +296,250 @@
         <div class="result-container" id="resultContainer">
             <div style="color: white; opacity: 0.7;">SPIN 버튼을 눌러서 GIF를 뽑아보세요!</div>
         </div>
+
+        <div class="history-container">
+            <h2 class="history-title">Pull History</h2>
+            <ul class="history-list" id="historyList"></ul>
+        </div>
     </div>
 
     <script>
-        // 기본 샘플 이미지들 (실제로는 여기에 GIF URL들을 넣으시면 됩니다)
-        // sampleGifs에 firstFrame 속성 추가 예시
-        const sampleGifs = [
-            { emoji: "gif/absmal.gif", firstFrame: "gif/absmal_firstframe.png" },
-            { emoji: "gif/common.gif", firstFrame: "gif/common_firstframe.png" },
-            { emoji: "gif/uncommon.gif", firstFrame: "gif/uncommon_firstframe.png" },
-            { emoji: "gif/rare.gif", firstFrame: "gif/rare_firstframe.png" },
-            { emoji: "gif/exotic.gif", firstFrame: "gif/exotic_firstframe.png" },
-            { emoji: "gif/mythic.gif", firstFrame: "gif/mythic_firstframe.png" },
-            { emoji: "gif/legendary.gif", firstFrame: "gif/legendary_firstframe.png" },
-            { emoji: "gif/unreal.gif", firstFrame: "gif/unreal_firstframe.png" },
-            { emoji: "gif/insane.gif", firstFrame: "gif/insane_firstframe.png" },
-            { emoji: "gif/godlike.gif", firstFrame: "gif/godlike_firstframe.png" }
+        const GIFS = [
+            "gif/absmal.gif",
+            "gif/common.gif",
+            "gif/uncommon.gif",
+            "gif/rare.gif",
+            "gif/exotic.gif",
+            "gif/mythic.gif",
+            "gif/legendary.gif",
+            "gif/unreal.gif",
+            "gif/insane.gif",
+            "gif/godlike.gif"
         ];
 
-        const reelPicUrl = "gif/phone reel gif 1frame.png.svg"
-
-        let isSpinning = false;
-        let spinInterval;
-        let currentOffset = 0;
-        let spinSpeed = 12; // 초기 속도
-        let spinTime = 0; // 스핀 시간 추적
-        const itemWidth = 120;
+        const REEL_PLACEHOLDER_URL = "gif/phone reel gif 1frame.png.svg";
+        const ITEM_WIDTH = 120;
+        const REEL_REPEAT_COUNT = 5;
+        const START_OFFSET_MIN = -720;
+        const START_OFFSET_MAX = -120;
+        const TICK_MS = 16;
+        const SLOT_CENTER = 300;
+        const HIGHLIGHT_CENTER_OFFSET = 270;
+        const OVERLAY_SHOW_DELAY_MS = 500;
+        const OVERLAY_DISMISS_DELAY_MS = 1000;
+        const WINNER_GIF_DURATION_MS = 3000;
 
         const slotStrip = document.getElementById('slotStrip');
         const spinButton = document.getElementById('spinButton');
         const resultContainer = document.getElementById('resultContainer');
+        const historyList = document.getElementById('historyList');
+        const pullCounts = Object.fromEntries(GIFS.map((gif) => [gif, 0]));
+
+        const state = {
+            isSpinning: false,
+            currentOffset: 0,
+            spinSpeed: 12,
+            spinTime: 0,
+            spinInterval: null
+        };
 
         spinButton.addEventListener('click', startSpin);
 
         function setupSlots() {
+            const totalItems = GIFS.length * REEL_REPEAT_COUNT;
+
             slotStrip.innerHTML = '';
-            
-            // 충분한 개수의 아이템들을 생성 (5번 반복으로 늘림)
-            const totalItems = sampleGifs.length * 5;
-            
-            for (let i = 0; i < totalItems; i++) {
-                const gifItem = document.createElement('div');
-                gifItem.className = 'gif-item';
-                
-                const gif = sampleGifs[i % sampleGifs.length];
-                // 플레이스홀더 div 생성
-                const placeholder = document.createElement('div');
-                placeholder.className = 'placeholder-gif';
-                placeholder.innerHTML = `<img src="${reelPicUrl}" class="position ='0' top='0' left='0' width='100%' height='100%' pointer-events='none' opacity='1'">`;
-                
-                gifItem.appendChild(placeholder);
-                gifItem.dataset.gifIndex = i % sampleGifs.length;
-                slotStrip.appendChild(gifItem);
+            renderPullHistory();
+
+            for (let index = 0; index < totalItems; index += 1) {
+                slotStrip.appendChild(createSlotItem(index % GIFS.length));
             }
         }
 
+        function createSlotItem(gifIndex) {
+            const gifItem = document.createElement('div');
+            gifItem.className = 'gif-item';
+            gifItem.dataset.gifIndex = gifIndex;
+
+            const placeholder = document.createElement('div');
+            placeholder.className = 'placeholder-gif';
+
+            const placeholderImage = document.createElement('img');
+            placeholderImage.src = REEL_PLACEHOLDER_URL;
+            placeholderImage.alt = '';
+            placeholderImage.draggable = false;
+
+            placeholder.appendChild(placeholderImage);
+            gifItem.appendChild(placeholder);
+
+            return gifItem;
+        }
+
+        function setStripOffset(offset) {
+            state.currentOffset = offset;
+            slotStrip.style.transform = `translateX(${offset}px)`;
+        }
+
+        function setItemSpinState(isActive) {
+            slotStrip
+                .querySelectorAll('.gif-item')
+                .forEach((item) => item.classList.toggle('spinning', isActive));
+        }
+
+        function getCenteredItemIndex() {
+            const centerPosition = -state.currentOffset + SLOT_CENTER;
+            return Math.round(centerPosition / ITEM_WIDTH);
+        }
+
+        function getAlignedOffset(itemIndex) {
+            return HIGHLIGHT_CENTER_OFFSET - (itemIndex * ITEM_WIDTH);
+        }
+
+        function getSpinSpeed(elapsedMs, currentSpeed) {
+            if (elapsedMs < 1200) {
+                return 35;
+            }
+
+            if (elapsedMs < 2500) {
+                const decayFactor = (elapsedMs - 1200) / 1300;
+                return 35 * (1 - decayFactor * 0.8);
+            }
+
+            if (elapsedMs < 3800) {
+                const decayFactor = (elapsedMs - 2500) / 1300;
+                return 7 * (1 - decayFactor * 0.7);
+            }
+
+            return Math.max(0.3, currentSpeed * 0.9);
+        }
+
         function startSpin() {
-            if (isSpinning) return;
-            
-            isSpinning = true;
+            if (state.isSpinning) {
+                return;
+            }
+
+            state.isSpinning = true;
+            state.spinSpeed = 35;
+            state.spinTime = 0;
             spinButton.disabled = true;
             resultContainer.innerHTML = '';
-            
-            // 초기 설정 - 매번 랜덤한 시작 위치로 다양성 확보
-            currentOffset = Math.random() * -600 - 120; // -720 ~ -120 사이의 랜덤 시작
-            spinSpeed = 35;
-            spinTime = 0;
-            
-            // 모든 아이템에 spinning 클래스 관리
-            const allItems = slotStrip.querySelectorAll('.gif-item');
-            allItems.forEach(item => item.classList.remove('spinning'));
-            setTimeout(() => {
-                allItems.forEach(item => item.classList.add('spinning'));
-            }, 10);
-            
-            // 부드러운 스피닝 시작
-            spinInterval = setInterval(() => {
-                spinTime += 16;
-                
-                if (spinTime < 1200) {
-                    spinSpeed = 35;
-                } else if (spinTime < 2500) {
-                    const decayFactor = (spinTime - 1200) / 1300;
-                    spinSpeed = 35 * (1 - decayFactor * 0.8);
-                } else if (spinTime < 3800) {
-                    const decayFactor = (spinTime - 2500) / 1300;
-                    spinSpeed = 7 * (1 - decayFactor * 0.7);
-                } else {
-                    spinSpeed = Math.max(0.3, spinSpeed * 0.90);
-                    
-                    if (spinSpeed < 2) {
-                        // 정확한 가운데 위치 계산 (슬롯 컨테이너 중심: 300px, GIF 중심: 60px)
-                        const centerPosition = -currentOffset + 300;
-                        const nearestItemIndex = Math.round(centerPosition / itemWidth);
-                        const targetOffset = 325 - 55 - (nearestItemIndex * itemWidth); // GIF 중심이 하이라이트 중심에 오도록
-                        
-                        const distance = targetOffset - currentOffset;
-                        
-                        if (Math.abs(distance) < 2) {
-                            currentOffset = targetOffset;
-                            slotStrip.style.transform = `translateX(${currentOffset}px)`;
-                            clearInterval(spinInterval);
-                            
-                            showWinner();
-                            
-                            const allItems = slotStrip.querySelectorAll('.gif-item');
-                            allItems.forEach(item => item.classList.remove('spinning'));
-                            
-                            isSpinning = false;
-                            spinButton.disabled = false;
 
-                            return;
-                        } else {
-                            spinSpeed = Math.min(1.5, Math.abs(distance) * 0.3);
-                            if (distance < 1) spinSpeed = -spinSpeed;
-                            currentOffset += spinSpeed;
-                            slotStrip.style.transform = `translateX(${currentOffset}px)`;
-                            return;
-                        }
-                    }
+            const randomOffset =
+                Math.random() * (START_OFFSET_MAX - START_OFFSET_MIN) + START_OFFSET_MIN;
+
+            setStripOffset(randomOffset);
+            setItemSpinState(false);
+            setTimeout(() => setItemSpinState(true), 10);
+
+            clearInterval(state.spinInterval);
+            state.spinInterval = setInterval(runSpinFrame, TICK_MS);
+        }
+
+        function runSpinFrame() {
+            state.spinTime += TICK_MS;
+            state.spinSpeed = getSpinSpeed(state.spinTime, state.spinSpeed);
+
+            if (state.spinTime >= 3800 && state.spinSpeed < 2) {
+                const targetOffset = getAlignedOffset(getCenteredItemIndex());
+                const distance = targetOffset - state.currentOffset;
+
+                if (Math.abs(distance) < 2) {
+                    finishSpin(targetOffset);
+                    return;
                 }
-                
-                currentOffset -= spinSpeed;
-                slotStrip.style.transform = `translateX(${currentOffset}px)`;
-            }, 16);
+
+                const adjustment = Math.min(1.5, Math.abs(distance) * 0.3);
+                setStripOffset(state.currentOffset + (distance < 0 ? -adjustment : adjustment));
+                return;
+            }
+
+            setStripOffset(state.currentOffset - state.spinSpeed);
         }
 
-        function stopSpin() {
-            // 이 함수는 더 이상 사용하지 않음 (startSpin에서 모든 로직 처리)
+        function finishSpin(targetOffset) {
+            clearInterval(state.spinInterval);
+            state.spinInterval = null;
+            setStripOffset(targetOffset);
+            setItemSpinState(false);
+            state.isSpinning = false;
+            spinButton.disabled = false;
+            showWinner(getWinnerGif());
         }
 
-        function showWinner() {
-            // 가운데에 위치한 GIF index 계산
-            const centerPosition = -currentOffset + 300;
-            const nearestItemIndex = Math.round(centerPosition / itemWidth);
-            const actualIndex = nearestItemIndex % sampleGifs.length;
-            const actualWinnerGif = sampleGifs[actualIndex];
+        function getWinnerGif() {
+            const winnerIndex = ((getCenteredItemIndex() % GIFS.length) + GIFS.length) % GIFS.length;
+            return GIFS[winnerIndex];
+        }
 
+        function showWinner(winnerGif) {
             resultContainer.innerHTML = `
-                <div class="winner-text">🎉 축하합니다! 🎉</div>
+                <div class="winner-text">Congratulations!</div>
             `;
 
-            setTimeout(() => {
-                const overlay = document.createElement('div');
-                overlay.className = 'big-winner-overlay';
-                // 처음엔 첫 프레임 이미지를 보여줌
-                overlay.innerHTML = `
-                    <img class="big-winner-img" id="bigWinnerGif" src="${actualWinnerGif.emoji}">
-                `;
-                document.body.appendChild(overlay);
-
-                const myGif = document.getElementById('bigWinnerGif');
-                const gifDuration = 3000;
-
-
-                // 1초 후 클릭 이벤트 활성화
-                setTimeout(() => {
-                    function removeOverlay() {
-                        overlay.style.animation = 'fadeOutBig 0.5s forwards';
-                        setTimeout(() => {
-                            if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
-                            document.removeEventListener('mousedown', removeOverlay);
-                        }, 1000);
-                    }
-                    document.addEventListener('mousedown', removeOverlay);
-                }, 1000);
-
-                setTimeout( () => {
-                    myGif.src = "gif/phone reel gif 1frame.png.svg";
-                }, gifDuration);
-            }, 500);
+            setTimeout(() => showWinnerOverlay(winnerGif), OVERLAY_SHOW_DELAY_MS);
         }
 
-        // 초기 설정
+        function renderPullHistory() {
+            historyList.innerHTML = '';
+
+            GIFS.forEach((gif) => {
+                const item = document.createElement('li');
+                item.className = 'history-item';
+
+                const name = document.createElement('span');
+                name.className = 'history-name';
+                name.textContent = formatGifName(gif);
+
+                const count = document.createElement('span');
+                count.className = 'history-count';
+                count.textContent = `${pullCounts[gif]} pulls`;
+
+                item.appendChild(name);
+                item.appendChild(count);
+                historyList.appendChild(item);
+            });
+        }
+
+        function formatGifName(gifPath) {
+            return gifPath
+                .split('/')
+                .pop()
+                .replace('.gif', '')
+                .replace(/[-_]+/g, ' ');
+        }
+
+        function showWinnerOverlay(winnerGif) {
+            const overlay = document.createElement('div');
+            overlay.className = 'big-winner-overlay';
+
+            const winnerImage = document.createElement('img');
+            winnerImage.className = 'big-winner-img';
+            winnerImage.src = winnerGif;
+            winnerImage.alt = 'Winning GIF';
+
+            overlay.appendChild(winnerImage);
+            document.body.appendChild(overlay);
+
+            const removeOverlay = () => {
+                overlay.style.animation = 'fadeOutBig 0.5s forwards';
+
+                setTimeout(() => {
+                    overlay.remove();
+                    document.removeEventListener('mousedown', removeOverlay);
+                }, 1000);
+            };
+
+            setTimeout(() => {
+                document.addEventListener('mousedown', removeOverlay);
+            }, OVERLAY_DISMISS_DELAY_MS);
+
+            setTimeout(() => {
+                winnerImage.src = REEL_PLACEHOLDER_URL;
+                pullCounts[winnerGif] += 1;
+                renderPullHistory();
+            }, WINNER_GIF_DURATION_MS);
+        }
+
         setupSlots();
     </script>
 </body>
