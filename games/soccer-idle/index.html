@@ -1,139 +1,242 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="dark">
   <head>
     <meta charset="UTF-8" />
     <meta
       name="viewport"
       content="width=device-width, initial-scale=1.0, viewport-fit=cover"
     />
-    <title>Soccer Idle</title>
+    <title>Goal Kinetic Soccer Idle</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700;900&family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Lexend:wght@500;700;900&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:FILL@0..1"
+      rel="stylesheet"
+    />
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
-    <main class="app-shell">
-      <header class="hud-bar">
-        <a class="back-link" href="../">Games</a>
+    <nav class="top-nav">
+      <div class="nav-inner">
+        <div class="brand-lockup">
+          <a class="brand-mark" href="../">GOAL KINETIC</a>
+          <div class="nav-links desktop-only">
+            <span class="nav-link active">Field</span>
+            <span class="nav-link">Upgrades</span>
+            <span class="nav-link">Leaderboard</span>
+            <span class="nav-link">Stats</span>
+          </div>
+        </div>
+        <div class="nav-actions">
+          <button class="icon-button" type="button" aria-label="Notifications">
+            <span class="material-symbols-outlined">notifications</span>
+          </button>
+          <button class="icon-button" type="button" aria-label="Settings">
+            <span class="material-symbols-outlined">settings</span>
+          </button>
+          <div class="avatar-chip">SK</div>
+        </div>
+      </div>
+    </nav>
 
-        <section class="currency-strip" aria-label="Club resources">
-          <article class="currency-pill cash">
-            <span class="pill-label">Cash</span>
-            <strong id="cashDisplay">$0</strong>
-          </article>
-          <article class="currency-pill goals">
-            <span class="pill-label">Goals</span>
+    <aside class="side-rail desktop-only">
+      <div class="rail-top">
+        <div class="rail-badge">
+          <span class="material-symbols-outlined filled">stadium</span>
+        </div>
+        <div>
+          <div class="rail-title">STADIUM KINETIC</div>
+          <div class="rail-subtitle" id="sidePerSecondLabel">CPS: 0</div>
+        </div>
+      </div>
+
+      <nav class="rail-nav">
+        <a class="rail-link current" href="#">
+          <span class="material-symbols-outlined filled">sports_soccer</span>
+          Stadium
+        </a>
+        <a class="rail-link" href="#upgradeGrid">
+          <span class="material-symbols-outlined">shopping_cart</span>
+          Market
+        </a>
+        <a class="rail-link" href="#">
+          <span class="material-symbols-outlined">groups</span>
+          Squad
+        </a>
+        <a class="rail-link" href="#">
+          <span class="material-symbols-outlined">trophy</span>
+          World Cup
+        </a>
+      </nav>
+
+      <div class="rail-bottom">
+        <button class="prestige-button" type="button">Prestige Later</button>
+        <div class="rail-help">
+          <span>Auto-save on</span>
+          <span>No ads build</span>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main-shell">
+      <section class="hero-row">
+        <div class="hero-copy-card">
+          <p class="eyebrow">The Digital Pitch</p>
+          <h1>TAP. SCORE. UPGRADE. REPEAT.</h1>
+          <p class="hero-copy">
+            Same vibe as the Stitch mockups: neon stadium shell, oversized
+            score readout, and a market panel that feels like a clicker game
+            dashboard instead of a clean website landing page.
+          </p>
+        </div>
+
+        <div class="hero-stats">
+          <article class="hero-stat border-primary">
+            <span class="stat-label">Total Goals</span>
             <strong id="goalsDisplay">0</strong>
           </article>
-          <article class="currency-pill fans">
-            <span class="pill-label">Fans</span>
-            <strong id="fansDisplay">0</strong>
+          <article class="hero-stat border-secondary">
+            <span class="stat-label">Cash</span>
+            <strong id="cashDisplay">$0</strong>
           </article>
-        </section>
-
-        <div class="save-chip">No ads. Auto-save on.</div>
-      </header>
-
-      <section class="arena-panel">
-        <div class="arena-topline">
-          <article class="headline-card">
-            <p class="eyebrow">Soccer Idle</p>
-            <h1>Tap the pitch. Stack upgrades. Farm goals.</h1>
-            <p class="headline-copy">
-              Built like a mobile idle app: juicy shots, fast upgrades, and a
-              club that keeps earning while you watch the stadium light up.
-            </p>
+          <article class="hero-stat wide border-tertiary">
+            <div class="progress-head">
+              <span id="divisionNameDisplay">Sunday League</span>
+              <strong id="divisionProgressText">0 / 25 goals</strong>
+            </div>
+            <div class="progress-track">
+              <div id="divisionProgressFill" class="progress-fill"></div>
+            </div>
           </article>
+        </div>
+      </section>
 
-          <div class="top-metrics">
-            <article class="metric-tile">
+      <section class="score-stage">
+        <div class="big-score-panel">
+          <span class="eyebrow accent-secondary">Tap Score</span>
+          <h2 id="cashDisplayMirror">$0</h2>
+          <div class="score-chip-row">
+            <div class="score-chip">
               <span>Per second</span>
               <strong id="perSecondDisplay">$0</strong>
-            </article>
-            <article class="metric-tile">
+            </div>
+            <div class="score-chip">
               <span>Buzz boost</span>
               <strong id="buzzDisplay">0%</strong>
-            </article>
-            <article class="metric-tile wide">
-              <div class="division-line">
-                <span id="divisionNameDisplay">Sunday League</span>
-                <strong id="divisionProgressText">0 / 25 goals</strong>
-              </div>
-              <div class="progress-track">
-                <div id="divisionProgressFill" class="progress-fill"></div>
-              </div>
-            </article>
+            </div>
+            <div class="score-chip">
+              <span>Fans</span>
+              <strong id="fansDisplay">0</strong>
+            </div>
           </div>
         </div>
 
-        <section id="field" class="field-stage" aria-label="Soccer field">
-          <div class="stadium-halo"></div>
-          <div class="crowd crowd-top"></div>
-          <div class="crowd crowd-bottom"></div>
-          <div class="field-lines"></div>
-          <div class="goal-structure">
-            <div class="crossbar"></div>
-            <div class="net"></div>
+        <section id="field" class="field-card" aria-label="Soccer field">
+          <div class="field-backdrop"></div>
+          <div class="field-glow"></div>
+          <div class="goal-zone">
+            <div class="goal-frame"></div>
+            <div class="goal-net"></div>
             <div class="keeper"></div>
-            <div class="target-ring left"></div>
-            <div class="target-ring right"></div>
+          </div>
+          <div class="pitch-lines"></div>
+          <div class="player-token striker"></div>
+          <div class="player-token winger"></div>
+          <div class="player-token engine"></div>
+
+          <div class="field-hud">
+            <div class="field-chip">Tap grass to shoot</div>
+            <div id="eventTicker" class="field-ticker">Kick off your club.</div>
           </div>
 
-          <div class="player-stack">
-            <div class="player-card captain"></div>
-            <div class="player-card winger"></div>
-            <div class="player-card engine"></div>
-          </div>
-
-          <div class="pitch-overlay">
-            <div class="shot-badge">Tap grass to shoot</div>
-            <div id="eventTicker" class="event-ticker">Kick off your club.</div>
-          </div>
-
-          <div
-            id="ball"
-            class="ball"
-            style="--shot-x: 0px; --shot-y: -280px;"
-          ></div>
+          <div id="ball" class="ball" style="--shot-x: 0px; --shot-y: -280px;"></div>
           <div id="goalFlash" class="goal-flash">GOAL!</div>
           <div id="floatingLayer" class="floating-layer" aria-hidden="true"></div>
 
-          <button id="fieldTapButton" class="field-tap-button" type="button">
-            Shoot
+          <button id="fieldTapButton" class="shoot-button" type="button">
+            Smash Shot
           </button>
         </section>
       </section>
 
-      <section class="shop-sheet">
-        <div class="sheet-handle"></div>
-
-        <div class="shop-summary">
-          <article class="summary-tile">
-            <span>Cash per goal</span>
-            <strong id="cashPerGoalDisplay">$1</strong>
-          </article>
-          <article class="summary-tile">
-            <span>Goals per shot</span>
-            <strong id="goalsPerShotDisplay">1</strong>
-          </article>
-          <article class="summary-tile">
-            <span>Auto shots</span>
-            <strong id="autoShotsDisplay">0</strong>
-          </article>
+      <section class="bottom-grid">
+        <div class="stamina-panel">
+          <div class="panel-header">
+            <span class="panel-title">Stadium Multiplier</span>
+            <span id="buzzMeterText" class="panel-value">0% / 100%</span>
+          </div>
+          <div class="meter-track">
+            <div id="buzzMeterFill" class="meter-fill"></div>
+          </div>
+          <div class="mini-stat-grid">
+            <article class="mini-stat">
+              <span>Cash / goal</span>
+              <strong id="cashPerGoalDisplay">$1</strong>
+            </article>
+            <article class="mini-stat">
+              <span>Goals / shot</span>
+              <strong id="goalsPerShotDisplay">1</strong>
+            </article>
+            <article class="mini-stat">
+              <span>Auto shots</span>
+              <strong id="autoShotsDisplay">0</strong>
+            </article>
+          </div>
         </div>
 
-        <div class="sheet-header">
-          <div>
-            <p class="eyebrow">Upgrade Desk</p>
-            <h2>Make the club print goals</h2>
+        <div class="next-upgrade-card">
+          <div class="next-header">
+            <h3>Next Upgrade</h3>
+            <span id="nextUpgradeBadge" class="badge-pill">Waiting</span>
           </div>
-          <p class="sheet-copy">
-            This is the bottom tray like a mobile game shop. Buy faster shots,
-            bigger payouts, and louder crowds.
+          <h4 id="nextUpgradeName">No upgrade in range</h4>
+          <p id="nextUpgradeDescription">
+            Stack more cash to surface your first target.
           </p>
+          <button id="nextUpgradeButton" class="next-upgrade-button" type="button" disabled>
+            Buy Soon
+          </button>
+        </div>
+      </section>
+
+      <section class="market-section">
+        <div class="market-header">
+          <div>
+            <p class="eyebrow">Upgrade Shop</p>
+            <h2>Invest in your legacy. Dominate the pitch.</h2>
+          </div>
+          <div class="market-total">
+            <span>Total Goals</span>
+            <strong id="marketGoalsDisplay">0</strong>
+          </div>
         </div>
 
         <div id="upgradeGrid" class="upgrade-grid"></div>
       </section>
     </main>
+
+    <nav class="mobile-nav">
+      <button class="mobile-link active" type="button">
+        <span class="material-symbols-outlined filled">stadium</span>
+        <span>Field</span>
+      </button>
+      <button class="mobile-link" type="button">
+        <span class="material-symbols-outlined">shopping_cart</span>
+        <span>Market</span>
+      </button>
+      <button class="mobile-link" type="button">
+        <span class="material-symbols-outlined">groups</span>
+        <span>Squad</span>
+      </button>
+      <button class="mobile-link" type="button">
+        <span class="material-symbols-outlined">leaderboard</span>
+        <span>Leader</span>
+      </button>
+    </nav>
 
     <script src="./script.js"></script>
   </body>

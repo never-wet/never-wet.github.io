@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&amp;family=Plus+Jakarta+Sans:wght@300..800&amp;family=Lexend:wght@300..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "outline-variant": "#484847",
+                        "primary-container": "#52b555",
+                        "surface-container-lowest": "#000000",
+                        "on-secondary-fixed": "#474000",
+                        "on-primary-container": "#002a06",
+                        "on-error": "#450900",
+                        "tertiary-container": "#929bfa",
+                        "inverse-on-surface": "#565555",
+                        "background": "#0e0e0e",
+                        "surface-dim": "#0e0e0e",
+                        "secondary": "#f9e534",
+                        "on-primary": "#005e17",
+                        "on-tertiary-fixed": "#00055d",
+                        "surface-bright": "#2c2c2c",
+                        "on-primary-fixed": "#00480f",
+                        "on-tertiary-fixed-variant": "#252e88",
+                        "error-dim": "#d53d18",
+                        "surface-container-highest": "#262626",
+                        "on-background": "#ffffff",
+                        "on-secondary": "#5b5300",
+                        "surface-container-low": "#131313",
+                        "on-tertiary": "#1b247f",
+                        "surface-tint": "#91f78e",
+                        "surface-container-high": "#20201f",
+                        "on-secondary-fixed-variant": "#665c00",
+                        "primary-fixed": "#91f78e",
+                        "on-surface": "#ffffff",
+                        "on-primary-fixed-variant": "#00691a",
+                        "secondary-fixed-dim": "#ead723",
+                        "outline": "#767575",
+                        "surface-container": "#1a1a1a",
+                        "primary-dim": "#83e881",
+                        "primary": "#91f78e",
+                        "secondary-fixed": "#f9e534",
+                        "on-surface-variant": "#adaaaa",
+                        "tertiary-fixed": "#a2aaff",
+                        "inverse-surface": "#fcf9f8",
+                        "on-secondary-container": "#fff8da",
+                        "tertiary-fixed-dim": "#929bfa",
+                        "error-container": "#b92902",
+                        "secondary-container": "#695f00",
+                        "inverse-primary": "#006f1d",
+                        "surface": "#0e0e0e",
+                        "on-error-container": "#ffd2c8",
+                        "on-tertiary-container": "#0b1574",
+                        "error": "#ff7351",
+                        "primary-fixed-dim": "#83e881",
+                        "secondary-dim": "#ead723"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "fontFamily": {
+                        "headline": ["Space Grotesk"],
+                        "body": ["Plus Jakarta Sans"],
+                        "label": ["Lexend"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .stadium-glow-sm {
+            box-shadow: 0 0 20px -5px rgba(145, 247, 142, 0.3);
+        }
+        .stadium-glow-secondary {
+            box-shadow: 0 0 30px -5px rgba(249, 229, 52, 0.4);
+        }
+        .kinetic-layer:hover {
+            transform: translateY(-4px) scale(1.01);
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body min-h-screen">
+<!-- TopNavBar Shell -->
+<nav class="fixed top-0 w-full z-50 bg-neutral-950/60 backdrop-blur-xl">
+<div class="flex justify-between items-center px-6 py-4 max-w-screen-2xl mx-auto">
+<div class="text-2xl font-black text-green-400 italic font-headline tracking-tighter uppercase">GOAL KINETIC</div>
+<div class="hidden md:flex gap-8 items-center">
+<a class="font-headline tracking-tighter uppercase text-neutral-400 hover:text-green-300 transition-colors" href="#">Field</a>
+<a class="font-headline tracking-tighter uppercase text-green-400 border-b-2 border-green-400 pb-1" href="#">Upgrades</a>
+<a class="font-headline tracking-tighter uppercase text-neutral-400 hover:text-green-300 transition-colors" href="#">Leaderboard</a>
+<a class="font-headline tracking-tighter uppercase text-neutral-400 hover:text-green-300 transition-colors" href="#">Stats</a>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 text-on-surface-variant hover:bg-white/5 transition-all duration-200 rounded-lg">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="p-2 text-on-surface-variant hover:bg-white/5 transition-all duration-200 rounded-lg">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<div class="w-10 h-10 rounded-lg bg-surface-container-highest overflow-hidden border border-outline-variant/30">
+<img alt="Player Profile" data-alt="close up stylized profile avatar of a professional soccer player with neon green accents on dark background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAWkE0guu_OZvxmWLe3Scj9SHxYpVWHx4wI_yATrleKlTdX4Fgqc46h4I2UAfl-EoiihFPiNMFGKuIJrykYRIIlcNnqMgXcTaHb86I0t0UK-xQ5FCaCT85FFCtMTA13xymRhlNH1DZGE4kKn9fK3IQdDqLvRJlQQc8-uU-BF88Nk8sakVyLviegfY8aFVbxIp2_NmxNkTT82ebXDKq4SezPNjqEkW_OOwFiMVplnWOQZ8ETRYtLfSiOtprj-iWHDXUX0j4fdfzrG451"/>
+</div>
+</div>
+</div>
+</nav>
+<!-- SideNavBar Shell -->
+<aside class="h-full w-64 fixed left-0 top-0 bg-neutral-900 hidden lg:flex flex-col py-8 z-40">
+<div class="px-6 mb-12">
+<div class="flex items-center gap-3 mb-6">
+<div class="w-10 h-10 bg-primary-container/20 rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-primary">stadium</span>
+</div>
+<div>
+<div class="text-lg font-black text-white font-label">STADIUM KINETIC</div>
+<div class="text-[10px] font-label text-on-surface-variant uppercase tracking-widest">CPS: 1,200</div>
+</div>
+</div>
+<button class="w-full py-4 bg-secondary text-black font-label text-xs font-black uppercase rounded-lg stadium-glow-secondary hover:scale-105 transition-transform active:scale-95">
+                PRESTIGE NOW
+            </button>
+</div>
+<nav class="flex-1 space-y-2">
+<a class="flex items-center gap-4 text-neutral-500 py-3 px-6 hover:text-white hover:bg-neutral-800 transition-all font-label text-xs font-bold uppercase" href="#">
+<span class="material-symbols-outlined">stadium</span> Stadium
+            </a>
+<a class="flex items-center gap-4 bg-yellow-400 text-black rounded-r-full py-3 px-6 shadow-[0_0_15px_rgba(249,229,52,0.4)] font-label text-xs font-bold uppercase" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">shopping_cart</span> Market
+            </a>
+<a class="flex items-center gap-4 text-neutral-500 py-3 px-6 hover:text-white hover:bg-neutral-800 transition-all font-label text-xs font-bold uppercase" href="#">
+<span class="material-symbols-outlined">groups</span> Squad
+            </a>
+<a class="flex items-center gap-4 text-neutral-500 py-3 px-6 hover:text-white hover:bg-neutral-800 transition-all font-label text-xs font-bold uppercase" href="#">
+<span class="material-symbols-outlined">trophy</span> World Cup
+            </a>
+</nav>
+<div class="mt-auto px-6 space-y-2">
+<a class="flex items-center gap-4 text-neutral-600 py-2 hover:text-white transition-colors font-label text-xs font-bold uppercase" href="#">
+<span class="material-symbols-outlined">help</span> Support
+            </a>
+<a class="flex items-center gap-4 text-neutral-600 py-2 hover:text-white transition-colors font-label text-xs font-bold uppercase" href="#">
+<span class="material-symbols-outlined">logout</span> Log Out
+            </a>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="lg:ml-64 pt-24 pb-12 px-6 lg:px-12">
+<!-- Dashboard Header -->
+<header class="mb-12">
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
+<div>
+<h1 class="text-6xl md:text-8xl font-black font-headline tracking-tighter uppercase leading-none mb-2">
+                        UPGRADE <span class="text-primary">SHOP</span>
+</h1>
+<p class="text-on-surface-variant font-label uppercase tracking-[0.2em] text-sm">Invest in your legacy. Dominate the pitch.</p>
+</div>
+<div class="bg-surface-container-low p-6 rounded-lg border-l-4 border-primary stadium-glow-sm">
+<div class="text-[10px] font-label text-primary uppercase tracking-widest mb-1">TOTAL GOALS</div>
+<div class="text-4xl font-black font-headline tracking-tighter">1,452,080</div>
+</div>
+</div>
+</header>
+<!-- Upgrades Bento Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+<!-- Upgrade Card: Better Cleats (Featured) -->
+<div class="group relative bg-surface-container-low p-8 kinetic-layer overflow-hidden border-l-4 border-secondary">
+<div class="absolute -right-4 -top-4 opacity-5 group-hover:opacity-10 transition-opacity">
+<span class="material-symbols-outlined text-[120px]">footprint</span>
+</div>
+<div class="relative z-10">
+<div class="flex justify-between items-start mb-6">
+<span class="bg-secondary/10 text-secondary px-3 py-1 rounded-full text-[10px] font-black font-label tracking-widest uppercase">Level 12</span>
+<span class="material-symbols-outlined text-secondary">trending_up</span>
+</div>
+<h3 class="text-2xl font-black font-headline tracking-tight uppercase mb-2">Better Cleats</h3>
+<p class="text-on-surface-variant text-sm mb-8 leading-relaxed">Aerodynamic carbon fiber grip for maximum power output per contact.</p>
+<div class="bg-surface-container-highest p-4 mb-8">
+<div class="text-[10px] font-label text-on-surface-variant uppercase tracking-widest mb-1">CURRENT BONUS</div>
+<div class="text-xl font-bold font-headline text-primary">+5 Goals Per Click</div>
+</div>
+<div class="flex items-center justify-between gap-4">
+<div class="flex flex-col">
+<span class="text-[10px] font-label text-on-surface-variant uppercase tracking-widest">COST</span>
+<span class="text-xl font-black font-headline">25,000 G</span>
+</div>
+<button class="px-8 py-3 bg-primary text-on-primary font-black font-label text-xs uppercase rounded hover:stadium-glow-sm transition-all">BUY UPGRADE</button>
+</div>
+</div>
+</div>
+<!-- Upgrade Card: Pro Scout -->
+<div class="group relative bg-surface-container-low p-8 kinetic-layer overflow-hidden border-l-4 border-primary">
+<div class="absolute -right-4 -top-4 opacity-5 group-hover:opacity-10 transition-opacity">
+<span class="material-symbols-outlined text-[120px]">person_search</span>
+</div>
+<div class="relative z-10">
+<div class="flex justify-between items-start mb-6">
+<span class="bg-primary/10 text-primary px-3 py-1 rounded-full text-[10px] font-black font-label tracking-widest uppercase">Level 05</span>
+<span class="material-symbols-outlined text-primary">groups</span>
+</div>
+<h3 class="text-2xl font-black font-headline tracking-tight uppercase mb-2">Pro Scout</h3>
+<p class="text-on-surface-variant text-sm mb-8 leading-relaxed">Automatically identifies high-value talent to increase your base CPS.</p>
+<div class="bg-surface-container-highest p-4 mb-8">
+<div class="text-[10px] font-label text-on-surface-variant uppercase tracking-widest mb-1">CURRENT BONUS</div>
+<div class="text-xl font-bold font-headline text-primary">+150 CPS</div>
+</div>
+<div class="flex items-center justify-between gap-4">
+<div class="flex flex-col">
+<span class="text-[10px] font-label text-on-surface-variant uppercase tracking-widest">COST</span>
+<span class="text-xl font-black font-headline">120,500 G</span>
+</div>
+<button class="px-8 py-3 bg-primary text-on-primary font-black font-label text-xs uppercase rounded hover:stadium-glow-sm transition-all">BUY UPGRADE</button>
+</div>
+</div>
+</div>
+<!-- Upgrade Card: Youth Academy (Locked/Disabled) -->
+<div class="group relative bg-surface-container-low/50 p-8 overflow-hidden grayscale">
+<div class="absolute inset-0 bg-black/40 z-20 flex items-center justify-center backdrop-blur-[1px]">
+<div class="text-center">
+<span class="material-symbols-outlined text-4xl text-on-surface-variant mb-2">lock</span>
+<div class="text-[10px] font-label text-on-surface-variant uppercase tracking-widest">INSUFFICIENT FUNDS</div>
+</div>
+</div>
+<div class="relative z-10">
+<div class="flex justify-between items-start mb-6">
+<span class="bg-neutral-800 text-neutral-400 px-3 py-1 rounded-full text-[10px] font-black font-label tracking-widest uppercase">Locked</span>
+</div>
+<h3 class="text-2xl font-black font-headline tracking-tight uppercase mb-2 text-neutral-500">Youth Academy</h3>
+<p class="text-neutral-600 text-sm mb-8 leading-relaxed">Nurture future legends to exponentially scale your club's reach.</p>
+<div class="bg-neutral-900 p-4 mb-8">
+<div class="text-[10px] font-label text-neutral-600 uppercase tracking-widest mb-1">POTENTIAL BONUS</div>
+<div class="text-xl font-bold font-headline text-neutral-700">+2.5x Multiplier</div>
+</div>
+<div class="flex items-center justify-between gap-4">
+<div class="flex flex-col">
+<span class="text-[10px] font-label text-neutral-600 uppercase tracking-widest">COST</span>
+<span class="text-xl font-black font-headline text-neutral-500">2,500,000 G</span>
+</div>
+<button class="px-8 py-3 bg-neutral-800 text-neutral-600 font-black font-label text-xs uppercase rounded cursor-not-allowed" disabled="">LOCKED</button>
+</div>
+</div>
+</div>
+<!-- Upgrade Card: Star Striker -->
+<div class="group relative bg-surface-container-low p-8 kinetic-layer overflow-hidden border-l-4 border-tertiary">
+<div class="absolute -right-4 -top-4 opacity-5 group-hover:opacity-10 transition-opacity">
+<span class="material-symbols-outlined text-[120px]">sports_soccer</span>
+</div>
+<div class="relative z-10">
+<div class="flex justify-between items-start mb-6">
+<span class="bg-tertiary/10 text-tertiary px-3 py-1 rounded-full text-[10px] font-black font-label tracking-widest uppercase">New Talent</span>
+<span class="material-symbols-outlined text-tertiary">star</span>
+</div>
+<h3 class="text-2xl font-black font-headline tracking-tight uppercase mb-2">Star Striker</h3>
+<p class="text-on-surface-variant text-sm mb-8 leading-relaxed">Sign an elite goal-scoring machine to boost click efficiency by 15%.</p>
+<div class="bg-surface-container-highest p-4 mb-8">
+<div class="text-[10px] font-label text-on-surface-variant uppercase tracking-widest mb-1">CURRENT BONUS</div>
+<div class="text-xl font-bold font-headline text-primary">+20 Goals Per Click</div>
+</div>
+<div class="flex items-center justify-between gap-4">
+<div class="flex flex-col">
+<span class="text-[10px] font-label text-on-surface-variant uppercase tracking-widest">COST</span>
+<span class="text-xl font-black font-headline">500,000 G</span>
+</div>
+<button class="px-8 py-3 bg-primary text-on-primary font-black font-label text-xs uppercase rounded hover:stadium-glow-sm transition-all">BUY UPGRADE</button>
+</div>
+</div>
+</div>
+<!-- Upgrade Card: Stadium Lights -->
+<div class="group relative bg-surface-container-low p-8 kinetic-layer overflow-hidden border-l-4 border-primary">
+<div class="absolute -right-4 -top-4 opacity-5 group-hover:opacity-10 transition-opacity">
+<span class="material-symbols-outlined text-[120px]">wb_incandescent</span>
+</div>
+<div class="relative z-10">
+<div class="flex justify-between items-start mb-6">
+<span class="bg-primary/10 text-primary px-3 py-1 rounded-full text-[10px] font-black font-label tracking-widest uppercase">Level 02</span>
+<span class="material-symbols-outlined text-primary">visibility</span>
+</div>
+<h3 class="text-2xl font-black font-headline tracking-tight uppercase mb-2">Stadium Lights</h3>
+<p class="text-on-surface-variant text-sm mb-8 leading-relaxed">Illuminate the pitch to allow for 24/7 training sessions.</p>
+<div class="bg-surface-container-highest p-4 mb-8">
+<div class="text-[10px] font-label text-on-surface-variant uppercase tracking-widest mb-1">CURRENT BONUS</div>
+<div class="text-xl font-bold font-headline text-primary">+450 CPS</div>
+</div>
+<div class="flex items-center justify-between gap-4">
+<div class="flex flex-col">
+<span class="text-[10px] font-label text-on-surface-variant uppercase tracking-widest">COST</span>
+<span class="text-xl font-black font-headline">85,000 G</span>
+</div>
+<button class="px-8 py-3 bg-primary text-on-primary font-black font-label text-xs uppercase rounded hover:stadium-glow-sm transition-all">BUY UPGRADE</button>
+</div>
+</div>
+</div>
+<!-- Upgrade Card: Training Drills -->
+<div class="group relative bg-surface-container-low p-8 kinetic-layer overflow-hidden border-l-4 border-secondary">
+<div class="absolute -right-4 -top-4 opacity-5 group-hover:opacity-10 transition-opacity">
+<span class="material-symbols-outlined text-[120px]">fitness_center</span>
+</div>
+<div class="relative z-10">
+<div class="flex justify-between items-start mb-6">
+<span class="bg-secondary/10 text-secondary px-3 py-1 rounded-full text-[10px] font-black font-label tracking-widest uppercase">Max Level</span>
+<span class="material-symbols-outlined text-secondary">check_circle</span>
+</div>
+<h3 class="text-2xl font-black font-headline tracking-tight uppercase mb-2">Training Drills</h3>
+<p class="text-on-surface-variant text-sm mb-8 leading-relaxed">High-intensity tactical drills that permanently raise player discipline.</p>
+<div class="bg-surface-container-highest p-4 mb-8">
+<div class="text-[10px] font-label text-on-surface-variant uppercase tracking-widest mb-1">CURRENT BONUS</div>
+<div class="text-xl font-bold font-headline text-primary">+1.5x All CPS</div>
+</div>
+<div class="flex items-center justify-between gap-4">
+<div class="flex flex-col">
+<span class="text-[10px] font-label text-on-surface-variant uppercase tracking-widest">COST</span>
+<span class="text-xl font-black font-headline">MAXED</span>
+</div>
+<button class="px-8 py-3 bg-neutral-800 text-neutral-500 font-black font-label text-xs uppercase rounded cursor-default" disabled="">COMPLETE</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Featured Section: Stadium Expansion -->
+<section class="mt-12">
+<div class="relative w-full h-[400px] overflow-hidden rounded-lg bg-surface-container group">
+<div class="absolute inset-0 z-0">
+<img alt="Stadium Interior" class="w-full h-full object-cover opacity-30 group-hover:scale-105 transition-transform duration-700" data-alt="cinematic wide angle shot of a massive modern soccer stadium interior at night with bright neon green lighting and mist" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA2Qxs1FYjiO9SGs74pWosKMyh9D8qosVq_KSUN1ptp39jNkfxuZU6gRv7Pw5lGKv6iOvR6jYXtFYIWibOSirq0A3HPAhTeJqxZ6TDwm3k_d1upK7i9uWr2nFcKYCD9eDRv0OAtOxnQNdg_0waKSfoH4Q_iMD4AgZzN_2rII2o3_buO0a2mgGhjJc5tPHSE_TrVOzvjqfp0gFcvpWN3xZQDdDVzAZEgf6dJqqeqVGAfhPBYYnD3WAldtU1QfqPeF3__2xL8rPiuLyvD"/>
+<div class="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-transparent"></div>
+</div>
+<div class="relative z-10 h-full flex flex-col justify-center p-12 max-w-2xl">
+<div class="flex items-center gap-2 mb-4">
+<span class="material-symbols-outlined text-secondary" style="font-variation-settings: 'FILL' 1;">workspace_premium</span>
+<span class="text-secondary font-label font-black text-xs uppercase tracking-[0.3em]">Epic Expansion</span>
+</div>
+<h2 class="text-5xl font-black font-headline tracking-tighter uppercase mb-4">The Mega-Arena Expansion</h2>
+<p class="text-on-surface-variant text-lg mb-8">Increase ticket prices, merchandise sales, and overall club prestige by adding a new 10,000-seat wing to your home stadium.</p>
+<div class="flex gap-6 items-center">
+<button class="px-10 py-4 bg-secondary text-black font-black font-label text-sm uppercase rounded stadium-glow-secondary hover:scale-105 transition-transform">
+                            UPGRADE NOW — 1.5M GOALS
+                        </button>
+<div class="text-on-surface-variant font-label text-xs uppercase tracking-widest">
+<span class="text-primary font-bold">+15,000 CPS</span> GLOBAL BOOST
+                        </div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer Shell -->
+<footer class="w-full py-8 mt-auto bg-black border-t border-neutral-800/30">
+<div class="flex flex-col items-center gap-4 w-full">
+<div class="flex gap-8">
+<a class="font-label text-[10px] tracking-widest uppercase text-neutral-600 hover:text-green-400 transition-colors" href="#">Privacy</a>
+<a class="font-label text-[10px] tracking-widest uppercase text-neutral-600 hover:text-green-400 transition-colors" href="#">Terms</a>
+<a class="font-label text-[10px] tracking-widest uppercase text-neutral-600 hover:text-green-400 transition-colors" href="#">Discord</a>
+<a class="font-label text-[10px] tracking-widest uppercase text-neutral-600 hover:text-green-400 transition-colors" href="#">Twitter</a>
+</div>
+<p class="font-label text-[10px] tracking-widest uppercase text-neutral-600">© 2024 STADIUM KINETIC. THE DIGITAL PITCH.</p>
+</div>
+</footer>
+<!-- Mobile Bottom Navigation -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full bg-neutral-900/90 backdrop-blur-md z-50 flex justify-around items-center py-4 px-2">
+<button class="flex flex-col items-center gap-1 text-neutral-500">
+<span class="material-symbols-outlined">stadium</span>
+<span class="text-[8px] font-label font-bold uppercase">Field</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-primary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">shopping_cart</span>
+<span class="text-[8px] font-label font-bold uppercase">Market</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-neutral-500">
+<span class="material-symbols-outlined">groups</span>
+<span class="text-[8px] font-label font-bold uppercase">Squad</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-neutral-500">
+<span class="material-symbols-outlined">leaderboard</span>
+<span class="text-[8px] font-label font-bold uppercase">Leader</span>
+</button>
+</nav>
+</body></html>

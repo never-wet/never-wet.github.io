@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700;900&amp;family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&amp;family=Lexend:wght@300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "outline-variant": "#484847",
+                    "primary-container": "#52b555",
+                    "surface-container-lowest": "#000000",
+                    "on-secondary-fixed": "#474000",
+                    "on-primary-container": "#002a06",
+                    "on-error": "#450900",
+                    "tertiary-container": "#929bfa",
+                    "inverse-on-surface": "#565555",
+                    "background": "#0e0e0e",
+                    "surface-dim": "#0e0e0e",
+                    "secondary": "#f9e534",
+                    "on-primary": "#005e17",
+                    "on-tertiary-fixed": "#00055d",
+                    "surface-bright": "#2c2c2c",
+                    "on-primary-fixed": "#00480f",
+                    "on-tertiary-fixed-variant": "#252e88",
+                    "error-dim": "#d53d18",
+                    "surface-container-highest": "#262626",
+                    "on-background": "#ffffff",
+                    "on-secondary": "#5b5300",
+                    "surface-container-low": "#131313",
+                    "on-tertiary": "#1b247f",
+                    "surface-tint": "#91f78e",
+                    "surface-container-high": "#20201f",
+                    "on-secondary-fixed-variant": "#665c00",
+                    "primary-fixed": "#91f78e",
+                    "on-surface": "#ffffff",
+                    "on-primary-fixed-variant": "#00691a",
+                    "secondary-fixed-dim": "#ead723",
+                    "outline": "#767575",
+                    "surface-container": "#1a1a1a",
+                    "primary-dim": "#83e881",
+                    "primary": "#91f78e",
+                    "secondary-fixed": "#f9e534",
+                    "on-surface-variant": "#adaaaa",
+                    "tertiary-fixed": "#a2aaff",
+                    "inverse-surface": "#fcf9f8",
+                    "on-secondary-container": "#fff8da",
+                    "tertiary-dim": "#8d96f4",
+                    "tertiary": "#a2aaff",
+                    "surface-variant": "#262626",
+                    "tertiary-fixed-dim": "#929bfa",
+                    "error-container": "#b92902",
+                    "secondary-container": "#695f00",
+                    "inverse-primary": "#006f1d",
+                    "surface": "#0e0e0e",
+                    "on-error-container": "#ffd2c8",
+                    "on-tertiary-container": "#0b1574",
+                    "error": "#ff7351",
+                    "primary-fixed-dim": "#83e881",
+                    "secondary-dim": "#ead723"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "fontFamily": {
+                    "headline": ["Space Grotesk"],
+                    "body": ["Plus Jakarta Sans"],
+                    "label": ["Lexend"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .stadium-glow-sm {
+            box-shadow: 0 0 15px rgba(145, 247, 142, 0.15);
+        }
+        .stadium-glow-gold {
+            box-shadow: 0 0 20px rgba(249, 229, 52, 0.2);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body selection:bg-primary selection:text-on-primary">
+<!-- TopNavBar -->
+<nav class="fixed top-0 w-full z-50 bg-neutral-950/60 backdrop-blur-xl">
+<div class="flex justify-between items-center px-6 py-4 max-w-screen-2xl mx-auto">
+<div class="text-2xl font-black text-green-400 italic font-headline tracking-tighter uppercase">
+                GOAL KINETIC
+            </div>
+<div class="hidden md:flex items-center gap-8 font-label text-[10px] tracking-widest uppercase">
+<a class="text-neutral-400 hover:text-green-300 transition-colors" href="#">Field</a>
+<a class="text-neutral-400 hover:text-green-300 transition-colors" href="#">Upgrades</a>
+<a class="text-neutral-400 hover:text-green-300 transition-colors" href="#">Leaderboard</a>
+<a class="text-neutral-400 hover:text-green-300 transition-colors" href="#">Stats</a>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 text-neutral-400 hover:bg-white/5 transition-all duration-200 rounded active:scale-95">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="p-2 text-neutral-400 hover:bg-white/5 transition-all duration-200 rounded active:scale-95">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+</button>
+<div class="w-10 h-10 rounded-lg overflow-hidden border border-primary/20 stadium-glow-sm">
+<img alt="Player Profile" class="w-full h-full object-cover" data-alt="Close up of a futuristic soccer player avatar with neon green glowing highlights on a dark carbon fiber background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBQRBXx-mSS7BaPJDZPn2PCoPJ5K7tt6JWzhNMuNtQ0SDCjsOe7WkwT8oZEUEf1ubkSxR9q9R1gqEJKmvXN3KdI1ZyJUwU87lGGwjFSK7jkYQhu0AGrntaXbP8NjEHt0OCXBb8mASesDY3rirYymtjUIMelnVV-LTJwbgqYfWYRxk9a34l-ZvR1xhcDbuId_QKawfZSrbXuWzBcnhMsLg10r-ABMHyLU2Nkj9yq5Gfi20STLdppUAHvteUvDitrwojAYyMeDxJMQXfi"/>
+</div>
+</div>
+</div>
+</nav>
+<!-- SideNavBar -->
+<aside class="h-full w-64 fixed left-0 top-0 bg-neutral-900 hidden lg:flex flex-col py-8 z-40">
+<div class="px-6 mb-12">
+<div class="flex items-center gap-3 mb-2">
+<div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary text-xl" data-icon="sports_soccer">sports_soccer</span>
+</div>
+<span class="text-lg font-black text-white font-headline">STADIUM KINETIC</span>
+</div>
+<div class="font-label text-xs font-bold uppercase text-on-surface-variant">CPS: 1,200</div>
+</div>
+<nav class="flex-1">
+<ul class="space-y-1">
+<li>
+<a class="flex items-center gap-4 text-neutral-500 py-3 px-6 hover:text-white hover:bg-neutral-800 transition-all font-label text-xs font-bold uppercase" href="#">
+<span class="material-symbols-outlined" data-icon="stadium">stadium</span>
+                        Stadium
+                    </a>
+</li>
+<li>
+<a class="flex items-center gap-4 text-neutral-500 py-3 px-6 hover:text-white hover:bg-neutral-800 transition-all font-label text-xs font-bold uppercase" href="#">
+<span class="material-symbols-outlined" data-icon="shopping_cart">shopping_cart</span>
+                        Market
+                    </a>
+</li>
+<li>
+<a class="flex items-center gap-4 text-neutral-500 py-3 px-6 hover:text-white hover:bg-neutral-800 transition-all font-label text-xs font-bold uppercase" href="#">
+<span class="material-symbols-outlined" data-icon="groups">groups</span>
+                        Squad
+                    </a>
+</li>
+<li>
+<a class="flex items-center gap-4 text-neutral-500 py-3 px-6 hover:text-white hover:bg-neutral-800 transition-all font-label text-xs font-bold uppercase" href="#">
+<span class="material-symbols-outlined" data-icon="trophy">trophy</span>
+                        World Cup
+                    </a>
+</li>
+</ul>
+</nav>
+<div class="px-6 mt-auto space-y-4">
+<button class="w-full bg-secondary text-black rounded-lg py-3 px-6 shadow-[0_0_15px_rgba(249,229,52,0.4)] font-label text-xs font-black uppercase tracking-tighter hover:scale-105 transition-transform active:scale-95">
+                PRESTIGE NOW
+            </button>
+<div class="pt-4 space-y-2">
+<a class="flex items-center gap-4 text-neutral-500 py-2 hover:text-white transition-colors font-label text-[10px] font-bold uppercase" href="#">
+<span class="material-symbols-outlined text-lg" data-icon="help">help</span>
+                    Support
+                </a>
+<a class="flex items-center gap-4 text-neutral-500 py-2 hover:text-white transition-colors font-label text-[10px] font-bold uppercase" href="#">
+<span class="material-symbols-outlined text-lg" data-icon="logout">logout</span>
+                    Log Out
+                </a>
+</div>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="lg:pl-64 pt-24 pb-12 min-h-screen">
+<div class="max-w-6xl mx-auto px-6">
+<!-- Hero Profile Section -->
+<section class="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-12">
+<div class="lg:col-span-4 bg-surface-container-low rounded-lg p-8 relative overflow-hidden group">
+<div class="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent opacity-50"></div>
+<div class="relative z-10 flex flex-col items-center text-center">
+<div class="relative mb-6">
+<div class="w-40 h-40 rounded-xl overflow-hidden border-2 border-primary stadium-glow-sm">
+<img alt="Player Avatar" class="w-full h-full object-cover" data-alt="Sleek digital character portrait with emerald green visor and futuristic soccer jersey in a dimly lit high-tech environment" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBpDlp70LFdFNRVjzmQ6yIygvA-l0NijwExwmysSvG9Jro369-pCXwqbSHBZC6AR8ewLV7E99bg5Uny3l7x06wUoY7HZr4Tg7hVBm0lZEnZkfFkFCa5e6r3vjrPc0qMHhCz0OH3DwaCg9lM-VLfqR-3IL4LlUftGvuzhQ0IY5vm1xYG0CrLqVilCBfZlm2uL9isze5j7WlrqI8Ex5NGgKB8zkRc7NFnKWa9rMG90NVd7M-QpZiYzoBVhbcx3ISQpPEklICgEzCefBAO"/>
+</div>
+<button class="absolute -bottom-2 -right-2 bg-secondary p-2 rounded-lg text-black hover:scale-110 transition-transform active:scale-95">
+<span class="material-symbols-outlined" data-icon="edit">edit</span>
+</button>
+</div>
+<h1 class="text-4xl font-black font-headline tracking-tighter text-white mb-1 uppercase">KINETIC_STRIKER</h1>
+<p class="font-label text-primary text-xs font-bold tracking-widest uppercase mb-6">ELITE DIVISION IV</p>
+<div class="w-full bg-surface-container-highest h-2 rounded-full overflow-hidden mb-2">
+<div class="bg-primary h-full w-[72%] relative">
+<div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent w-20 animate-[sweep_2s_infinite]"></div>
+</div>
+</div>
+<div class="flex justify-between w-full font-label text-[10px] text-on-surface-variant font-bold uppercase">
+<span>LEVEL 48</span>
+<span>72% TO NEXT RANK</span>
+</div>
+</div>
+</div>
+<!-- Stats Bento Grid -->
+<div class="lg:col-span-8 grid grid-cols-1 md:grid-cols-2 gap-4">
+<!-- Total Clicks Card -->
+<div class="bg-surface-container rounded-lg p-6 flex flex-col justify-between group hover:bg-surface-container-high transition-colors">
+<div class="flex justify-between items-start">
+<span class="font-label text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Total Clicks</span>
+<span class="material-symbols-outlined text-primary text-xl" data-icon="ads_click">ads_click</span>
+</div>
+<div class="mt-4">
+<div class="text-4xl font-black font-headline text-white tracking-tighter">1,284,902</div>
+<div class="flex items-center gap-1 text-primary text-[10px] font-bold font-label uppercase mt-1">
+<span class="material-symbols-outlined text-xs" data-icon="trending_up">trending_up</span>
+                                +12k today
+                            </div>
+</div>
+</div>
+<!-- GPS Card -->
+<div class="bg-surface-container rounded-lg p-6 flex flex-col justify-between group hover:bg-surface-container-high transition-colors border-l-4 border-secondary">
+<div class="flex justify-between items-start">
+<span class="font-label text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Goals Per Second</span>
+<span class="material-symbols-outlined text-secondary text-xl" data-icon="bolt">bolt</span>
+</div>
+<div class="mt-4">
+<div class="text-4xl font-black font-headline text-white tracking-tighter">4,850.5</div>
+<div class="text-on-surface-variant text-[10px] font-bold font-label uppercase mt-1">Global Top 5%</div>
+</div>
+</div>
+<!-- Achievements Card -->
+<div class="bg-surface-container rounded-lg p-6 flex flex-col justify-between group hover:bg-surface-container-high transition-colors">
+<div class="flex justify-between items-start">
+<span class="font-label text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Achievements</span>
+<span class="material-symbols-outlined text-tertiary text-xl" data-icon="task_alt">task_alt</span>
+</div>
+<div class="mt-4">
+<div class="text-4xl font-black font-headline text-white tracking-tighter">142<span class="text-surface-container-highest">/</span>180</div>
+<div class="text-on-surface-variant text-[10px] font-bold font-label uppercase mt-1">Platinum Hunter</div>
+</div>
+</div>
+<!-- Time Played Card -->
+<div class="bg-surface-container rounded-lg p-6 flex flex-col justify-between group hover:bg-surface-container-high transition-colors">
+<div class="flex justify-between items-start">
+<span class="font-label text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Playtime</span>
+<span class="material-symbols-outlined text-on-surface-variant text-xl" data-icon="schedule">schedule</span>
+</div>
+<div class="mt-4">
+<div class="text-4xl font-black font-headline text-white tracking-tighter">84<span class="text-xl font-medium text-neutral-600">H</span> 22<span class="text-xl font-medium text-neutral-600">M</span></div>
+<div class="text-on-surface-variant text-[10px] font-bold font-label uppercase mt-1">Joined 3 Months Ago</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Trophy Cabinet -->
+<section class="mb-12">
+<div class="flex items-center justify-between mb-8">
+<h2 class="text-2xl font-black font-headline text-white tracking-tighter uppercase italic flex items-center gap-3">
+<span class="material-symbols-outlined text-secondary" data-icon="military_tech">military_tech</span>
+                        TROPHY CABINET
+                    </h2>
+<button class="font-label text-[10px] font-bold text-primary uppercase tracking-widest hover:underline">View All Milestones</button>
+</div>
+<div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+<!-- Trophy Item 1 -->
+<div class="bg-surface-container-low rounded-lg p-6 flex flex-col items-center justify-center text-center stadium-glow-gold border-t border-secondary/20 group hover:bg-surface-container-high transition-all">
+<span class="material-symbols-outlined text-4xl text-secondary mb-4" data-icon="rewarded_ads" style="font-variation-settings: 'FILL' 1;">rewarded_ads</span>
+<div class="font-label text-[9px] font-black uppercase text-secondary mb-1">Millionaire</div>
+<div class="font-body text-[10px] text-on-surface-variant leading-tight">1M Total Clicks Reached</div>
+</div>
+<!-- Trophy Item 2 -->
+<div class="bg-surface-container-low rounded-lg p-6 flex flex-col items-center justify-center text-center border-t border-primary/20 group hover:bg-surface-container-high transition-all">
+<span class="material-symbols-outlined text-4xl text-primary mb-4" data-icon="verified" style="font-variation-settings: 'FILL' 1;">verified</span>
+<div class="font-label text-[9px] font-black uppercase text-primary mb-1">Elite Striker</div>
+<div class="font-body text-[10px] text-on-surface-variant leading-tight">Reached Division IV</div>
+</div>
+<!-- Trophy Item 3 -->
+<div class="bg-surface-container-low rounded-lg p-6 flex flex-col items-center justify-center text-center border-t border-tertiary/20 group hover:bg-surface-container-high transition-all">
+<span class="material-symbols-outlined text-4xl text-tertiary mb-4" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+<div class="font-label text-[9px] font-black uppercase text-tertiary mb-1">Market Tycoon</div>
+<div class="font-body text-[10px] text-on-surface-variant leading-tight">50 Market Upgrades</div>
+</div>
+<!-- Trophy Item 4 -->
+<div class="bg-surface-container-low rounded-lg p-6 flex flex-col items-center justify-center text-center opacity-40 grayscale group hover:grayscale-0 hover:opacity-100 transition-all border-t border-neutral-700">
+<span class="material-symbols-outlined text-4xl text-neutral-500 mb-4" data-icon="lock">lock</span>
+<div class="font-label text-[9px] font-black uppercase text-neutral-400 mb-1">World Champ</div>
+<div class="font-body text-[10px] text-neutral-600 leading-tight">LOCKED</div>
+</div>
+<!-- Trophy Item 5 -->
+<div class="bg-surface-container-low rounded-lg p-6 flex flex-col items-center justify-center text-center border-t border-primary/20 group hover:bg-surface-container-high transition-all">
+<span class="material-symbols-outlined text-4xl text-primary mb-4" data-icon="timer_10_alt_1" style="font-variation-settings: 'FILL' 1;">timer_10_alt_1</span>
+<div class="font-label text-[9px] font-black uppercase text-primary mb-1">Marathoner</div>
+<div class="font-body text-[10px] text-on-surface-variant leading-tight">50 Hours Active</div>
+</div>
+<!-- Trophy Item 6 -->
+<div class="bg-surface-container-low rounded-lg p-6 flex flex-col items-center justify-center text-center opacity-40 grayscale group hover:grayscale-0 hover:opacity-100 transition-all border-t border-neutral-700">
+<span class="material-symbols-outlined text-4xl text-neutral-500 mb-4" data-icon="lock">lock</span>
+<div class="font-label text-[9px] font-black uppercase text-neutral-400 mb-1">Prestige King</div>
+<div class="font-body text-[10px] text-neutral-600 leading-tight">LOCKED</div>
+</div>
+</div>
+</section>
+<!-- Detailed History / Recent Feats -->
+<section class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+<div class="bg-surface-container-low rounded-lg p-8">
+<h3 class="text-sm font-black font-label text-white uppercase tracking-widest mb-6">Recent Achievements</h3>
+<div class="space-y-4">
+<div class="flex items-center gap-4 p-4 bg-surface-container rounded group hover:translate-x-1 transition-transform">
+<div class="w-12 h-12 bg-primary/20 rounded flex items-center justify-center">
+<span class="material-symbols-outlined text-primary" data-icon="speed">speed</span>
+</div>
+<div>
+<div class="text-xs font-bold text-white uppercase">Sonic Clicks</div>
+<div class="text-[10px] text-on-surface-variant">Hit 15 clicks in a single second</div>
+</div>
+<div class="ml-auto text-[9px] font-bold text-on-surface-variant uppercase">2h ago</div>
+</div>
+<div class="flex items-center gap-4 p-4 bg-surface-container rounded group hover:translate-x-1 transition-transform">
+<div class="w-12 h-12 bg-secondary/20 rounded flex items-center justify-center">
+<span class="material-symbols-outlined text-secondary" data-icon="payments">payments</span>
+</div>
+<div>
+<div class="text-xs font-bold text-white uppercase">Sponsorship Deal</div>
+<div class="text-[10px] text-on-surface-variant">Unlocked first stadium sponsorship</div>
+</div>
+<div class="ml-auto text-[9px] font-bold text-on-surface-variant uppercase">Yesterday</div>
+</div>
+</div>
+</div>
+<div class="bg-surface-container-low rounded-lg p-8 relative overflow-hidden">
+<div class="absolute -right-12 -bottom-12 opacity-5">
+<span class="material-symbols-outlined text-[200px]" data-icon="query_stats">query_stats</span>
+</div>
+<h3 class="text-sm font-black font-label text-white uppercase tracking-widest mb-6">Efficiency Analytics</h3>
+<div class="space-y-6">
+<div>
+<div class="flex justify-between font-label text-[10px] font-bold uppercase mb-2">
+<span class="text-on-surface-variant">Click Efficiency</span>
+<span class="text-primary">88%</span>
+</div>
+<div class="h-1 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-primary w-[88%]"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between font-label text-[10px] font-bold uppercase mb-2">
+<span class="text-on-surface-variant">Upgrade Value ROI</span>
+<span class="text-tertiary">94%</span>
+</div>
+<div class="h-1 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-tertiary w-[94%]"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between font-label text-[10px] font-bold uppercase mb-2">
+<span class="text-on-surface-variant">Prestige Readiness</span>
+<span class="text-secondary">42%</span>
+</div>
+<div class="h-1 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-secondary w-[42%]"></div>
+</div>
+</div>
+</div>
+</div>
+</section>
+</div>
+</main>
+<!-- Footer -->
+<footer class="lg:pl-64 w-full py-8 mt-auto bg-black border-t border-neutral-800/30">
+<div class="flex flex-col items-center gap-4 w-full">
+<div class="font-label text-[10px] tracking-widest uppercase text-neutral-600">
+                © 2024 STADIUM KINETIC. THE DIGITAL PITCH.
+            </div>
+<div class="flex gap-6 font-label text-[10px] tracking-widest uppercase">
+<a class="text-neutral-600 hover:text-green-400 transition-colors" href="#">Privacy</a>
+<a class="text-neutral-600 hover:text-green-400 transition-colors" href="#">Terms</a>
+<a class="text-neutral-600 hover:text-green-400 transition-colors" href="#">Discord</a>
+<a class="text-neutral-600 hover:text-green-400 transition-colors" href="#">Twitter</a>
+</div>
+</div>
+</footer>
+</body></html>

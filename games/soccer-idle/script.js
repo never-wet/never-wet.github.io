@@ -104,16 +104,25 @@ const runtime = {
 
 const elements = {
   cashDisplay: document.getElementById("cashDisplay"),
+  cashDisplayMirror: document.getElementById("cashDisplayMirror"),
   goalsDisplay: document.getElementById("goalsDisplay"),
   perSecondDisplay: document.getElementById("perSecondDisplay"),
+  sidePerSecondLabel: document.getElementById("sidePerSecondLabel"),
   fansDisplay: document.getElementById("fansDisplay"),
   buzzDisplay: document.getElementById("buzzDisplay"),
+  buzzMeterText: document.getElementById("buzzMeterText"),
+  buzzMeterFill: document.getElementById("buzzMeterFill"),
   divisionNameDisplay: document.getElementById("divisionNameDisplay"),
   divisionProgressText: document.getElementById("divisionProgressText"),
   divisionProgressFill: document.getElementById("divisionProgressFill"),
   cashPerGoalDisplay: document.getElementById("cashPerGoalDisplay"),
   goalsPerShotDisplay: document.getElementById("goalsPerShotDisplay"),
   autoShotsDisplay: document.getElementById("autoShotsDisplay"),
+  marketGoalsDisplay: document.getElementById("marketGoalsDisplay"),
+  nextUpgradeBadge: document.getElementById("nextUpgradeBadge"),
+  nextUpgradeName: document.getElementById("nextUpgradeName"),
+  nextUpgradeDescription: document.getElementById("nextUpgradeDescription"),
+  nextUpgradeButton: document.getElementById("nextUpgradeButton"),
   upgradeGrid: document.getElementById("upgradeGrid"),
   field: document.getElementById("field"),
   fieldTapButton: document.getElementById("fieldTapButton"),
@@ -205,6 +214,7 @@ function buildUpgradeCards() {
     const card = document.createElement("article");
     card.className = "upgrade-card";
     card.dataset.id = upgrade.id;
+    card.dataset.icon = upgrade.icon;
     card.innerHTML = `
       <div class="upgrade-head">
         <span class="upgrade-icon">${upgrade.icon}</span>
@@ -221,7 +231,7 @@ function buildUpgradeCards() {
         <div id="fill-${upgrade.id}" class="upgrade-progress-fill"></div>
       </div>
       <div class="upgrade-footer">
-        <span id="cost-${upgrade.id}" class="buy-cost">$0</span>
+        <span id="cost-${upgrade.id}" class="buy-cost">Cost<strong>$0</strong></span>
         <button id="buy-${upgrade.id}" class="buy-button" type="button">Buy</button>
       </div>
     `;
@@ -416,18 +426,26 @@ function spawnRipple(xPercent, yPercent) {
 function render() {
   const cashPerSecond = state.autoShotsPerSecond * state.goalsPerShot * state.cashPerGoal;
   const division = getDivisionInfo();
+  const nextUpgrade = getNextUpgrade();
 
   elements.cashDisplay.textContent = `$${formatNumber(state.cash)}`;
+  elements.cashDisplayMirror.textContent = `$${formatNumber(state.cash)}`;
   elements.goalsDisplay.textContent = formatNumber(state.goals);
   elements.perSecondDisplay.textContent = `$${formatNumber(cashPerSecond)}`;
+  elements.sidePerSecondLabel.textContent = `CPS: ${formatNumber(cashPerSecond)}`;
   elements.fansDisplay.textContent = formatNumber(state.fans);
   elements.buzzDisplay.textContent = `${Math.round(runtime.buzz)}%`;
+  elements.buzzMeterText.textContent = `${Math.round(runtime.buzz)}% / 100%`;
+  elements.buzzMeterFill.style.width = `${runtime.buzz}%`;
   elements.divisionNameDisplay.textContent = division.name;
   elements.divisionProgressText.textContent = `${formatNumber(division.current)} / ${formatNumber(division.target)} goals`;
   elements.divisionProgressFill.style.width = `${division.progress * 100}%`;
   elements.cashPerGoalDisplay.textContent = `$${formatNumber(state.cashPerGoal)}`;
   elements.goalsPerShotDisplay.textContent = formatNumber(state.goalsPerShot);
   elements.autoShotsDisplay.textContent = `${formatNumber(state.autoShotsPerSecond)}/s`;
+  elements.marketGoalsDisplay.textContent = formatNumber(state.goals);
+
+  renderNextUpgrade(nextUpgrade);
 
   upgradeDefinitions.forEach((upgrade) => {
     const cost = getUpgradeCost(upgrade);
@@ -440,10 +458,51 @@ function render() {
 
     button.disabled = state.cash < cost;
     owned.textContent = `Lv. ${state.upgrades[upgrade.id]}`;
-    costLabel.textContent = `$${formatNumber(cost)}`;
+    costLabel.innerHTML = `Cost<strong>$${formatNumber(cost)}</strong>`;
     fill.style.width = `${affordableProgress * 100}%`;
     card.classList.toggle("affordable", state.cash >= cost);
   });
+}
+
+function getNextUpgrade() {
+  const ranked = upgradeDefinitions
+    .map((upgrade) => ({
+      ...upgrade,
+      cost: getUpgradeCost(upgrade),
+      affordable: state.cash >= getUpgradeCost(upgrade),
+    }))
+    .sort((left, right) => left.cost - right.cost);
+
+  return (
+    ranked.find((upgrade) => upgrade.affordable) ||
+    ranked[0] || {
+      name: "No upgrade",
+      description: "Nothing available.",
+      cost: 0,
+      affordable: false,
+      id: null,
+    }
+  );
+}
+
+function renderNextUpgrade(nextUpgrade) {
+  elements.nextUpgradeName.textContent = nextUpgrade.name;
+  elements.nextUpgradeDescription.textContent = nextUpgrade.description;
+
+  if (!nextUpgrade.id) {
+    elements.nextUpgradeBadge.textContent = "Empty";
+    elements.nextUpgradeButton.textContent = "Buy Soon";
+    elements.nextUpgradeButton.disabled = true;
+    elements.nextUpgradeButton.onclick = null;
+    return;
+  }
+
+  elements.nextUpgradeBadge.textContent = nextUpgrade.affordable ? "Affordable" : "Target";
+  elements.nextUpgradeButton.textContent = nextUpgrade.affordable
+    ? `Buy $${formatNumber(nextUpgrade.cost)}`
+    : `Need $${formatNumber(nextUpgrade.cost)}`;
+  elements.nextUpgradeButton.disabled = !nextUpgrade.affordable;
+  elements.nextUpgradeButton.onclick = () => buyUpgrade(nextUpgrade.id);
 }
 
 function getDivisionInfo() {

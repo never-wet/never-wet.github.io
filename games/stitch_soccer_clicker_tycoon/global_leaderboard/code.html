@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Goal Kinetic - Global Leaderboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Plus+Jakarta+Sans:wght@300;400;500;600;700&amp;family=Lexend:wght@300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "outline-variant": "#484847",
+                        "primary-container": "#52b555",
+                        "surface-container-lowest": "#000000",
+                        "on-secondary-fixed": "#474000",
+                        "on-primary-container": "#002a06",
+                        "on-error": "#450900",
+                        "tertiary-container": "#929bfa",
+                        "inverse-on-surface": "#565555",
+                        "background": "#0e0e0e",
+                        "surface-dim": "#0e0e0e",
+                        "secondary": "#f9e534",
+                        "on-primary": "#005e17",
+                        "on-tertiary-fixed": "#00055d",
+                        "surface-bright": "#2c2c2c",
+                        "on-primary-fixed": "#00480f",
+                        "on-tertiary-fixed-variant": "#252e88",
+                        "error-dim": "#d53d18",
+                        "surface-container-highest": "#262626",
+                        "on-background": "#ffffff",
+                        "on-secondary": "#5b5300",
+                        "surface-container-low": "#131313",
+                        "on-tertiary": "#1b247f",
+                        "surface-tint": "#91f78e",
+                        "surface-container-high": "#20201f",
+                        "on-secondary-fixed-variant": "#665c00",
+                        "primary-fixed": "#91f78e",
+                        "on-surface": "#ffffff",
+                        "on-primary-fixed-variant": "#00691a",
+                        "secondary-fixed-dim": "#ead723",
+                        "outline": "#767575",
+                        "surface-container": "#1a1a1a",
+                        "primary-dim": "#83e881",
+                        "primary": "#91f78e",
+                        "secondary-fixed": "#f9e534",
+                        "on-surface-variant": "#adaaaa",
+                        "tertiary-fixed": "#a2aaff",
+                        "inverse-surface": "#fcf9f8",
+                        "on-secondary-container": "#fff8da",
+                        "tertiary-dim": "#8d96f4",
+                        "tertiary": "#a2aaff",
+                        "surface-variant": "#262626",
+                        "tertiary-fixed-dim": "#929bfa",
+                        "error-container": "#b92902",
+                        "secondary-container": "#695f00",
+                        "inverse-primary": "#006f1d",
+                        "surface": "#0e0e0e",
+                        "on-error-container": "#ffd2c8",
+                        "on-tertiary-container": "#0b1574",
+                        "error": "#ff7351",
+                        "primary-fixed-dim": "#83e881",
+                        "secondary-dim": "#ead723"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "fontFamily": {
+                        "headline": ["Space Grotesk"],
+                        "body": ["Plus Jakarta Sans"],
+                        "label": ["Lexend"]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .stadium-glow-sm {
+            box-shadow: 0 0 20px -5px rgba(145, 247, 142, 0.3);
+        }
+        .podium-glow-gold {
+            box-shadow: 0 0 40px -10px rgba(249, 229, 52, 0.5);
+        }
+        .glass-panel {
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body selection:bg-primary selection:text-on-primary">
+<!-- Top Navigation Bar -->
+<nav class="fixed top-0 w-full z-50 bg-neutral-950/60 backdrop-blur-xl">
+<div class="flex justify-between items-center px-6 py-4 max-w-screen-2xl mx-auto">
+<div class="text-2xl font-black text-green-400 italic font-headline tracking-tighter uppercase">
+                GOAL KINETIC
+            </div>
+<div class="hidden md:flex items-center space-x-8">
+<a class="text-neutral-400 hover:text-green-300 transition-colors font-headline tracking-tighter uppercase" href="#">Field</a>
+<a class="text-neutral-400 hover:text-green-300 transition-colors font-headline tracking-tighter uppercase" href="#">Upgrades</a>
+<a class="text-green-400 border-b-2 border-green-400 pb-1 font-headline tracking-tighter uppercase" href="#">Leaderboard</a>
+<a class="text-neutral-400 hover:text-green-300 transition-colors font-headline tracking-tighter uppercase" href="#">Stats</a>
+</div>
+<div class="flex items-center space-x-4">
+<button class="material-symbols-outlined text-on-surface-variant hover:text-primary transition-all active:scale-95">notifications</button>
+<button class="material-symbols-outlined text-on-surface-variant hover:text-primary transition-all active:scale-95">settings</button>
+<div class="h-8 w-8 rounded-full bg-surface-container-highest overflow-hidden border border-outline-variant/30">
+<img alt="Player Profile" data-alt="close-up portrait of a futuristic soccer player with neon green highlights and glowing cybernetic eye piece" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDU139T4YHyW2-2K4oXMHVacGnPgRzhqCY4bELL-xUHr8r3cqQLnUQo8myOSfJpjYTvLzJtwnX-ASEcGmFAC67XmXqKigDLSeW79m2ferSheEtOaDFCCwI0NAAFnoo0TVtcbhguDXGs3TnJcx3_B_O1-uTzlNHzSnzSLbmrJ2ti1NMDD07p3-WY-fadi9TLDJJAbh3Ii0B7hO1M-d69G24lzgq-XxUhah4Pyej-rg5gmRhGUe7DO0Fv9odRoZ_HufB0tQu1FR2R-f8F"/>
+</div>
+</div>
+</div>
+</nav>
+<!-- Side Navigation (Web) -->
+<aside class="hidden md:flex h-full w-64 fixed left-0 top-0 flex-col bg-neutral-900 py-8 z-40 border-r border-outline-variant/10">
+<div class="px-6 mb-12 mt-16">
+<div class="text-lg font-black text-white font-headline tracking-tight">STADIUM KINETIC</div>
+<div class="text-[10px] font-bold uppercase text-primary font-label mt-1">CPS: 1,200</div>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center space-x-4 text-neutral-500 py-3 px-6 hover:text-white group transition-all" href="#">
+<span class="material-symbols-outlined">stadium</span>
+<span class="font-label text-xs font-bold uppercase">Stadium</span>
+</a>
+<a class="flex items-center space-x-4 text-neutral-500 py-3 px-6 hover:text-white group transition-all" href="#">
+<span class="material-symbols-outlined">shopping_cart</span>
+<span class="font-label text-xs font-bold uppercase">Market</span>
+</a>
+<a class="flex items-center space-x-4 text-neutral-500 py-3 px-6 hover:text-white group transition-all" href="#">
+<span class="material-symbols-outlined">groups</span>
+<span class="font-label text-xs font-bold uppercase">Squad</span>
+</a>
+<a class="flex items-center space-x-4 bg-yellow-400 text-black rounded-r-full py-3 px-6 shadow-[0_0_15px_rgba(249,229,52,0.4)]" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">trophy</span>
+<span class="font-label text-xs font-bold uppercase">World Cup</span>
+</a>
+</nav>
+<div class="px-6 mt-auto space-y-4">
+<button class="w-full bg-primary text-on-primary py-3 font-label text-xs font-black rounded-md stadium-glow-sm hover:scale-105 transition-transform uppercase">
+                PRESTIGE NOW
+            </button>
+<div class="space-y-1">
+<a class="flex items-center space-x-4 text-neutral-500 py-2 hover:text-white transition-colors" href="#">
+<span class="material-symbols-outlined text-sm">help</span>
+<span class="font-label text-[10px] font-bold uppercase">Support</span>
+</a>
+<a class="flex items-center space-x-4 text-neutral-500 py-2 hover:text-white transition-colors" href="#">
+<span class="material-symbols-outlined text-sm">logout</span>
+<span class="font-label text-[10px] font-bold uppercase">Log Out</span>
+</a>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="md:pl-64 pt-24 pb-32 px-4 md:px-8 min-h-screen max-w-7xl mx-auto">
+<!-- Header Section -->
+<header class="mb-12 relative">
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
+<div>
+<h1 class="text-6xl md:text-8xl font-black font-headline tracking-tighter uppercase leading-none italic text-white">
+                        THE <span class="text-primary">ELITE</span>
+</h1>
+<p class="font-label text-on-surface-variant text-sm mt-4 tracking-widest uppercase">Global Career Rankings • Season 04</p>
+</div>
+<div class="relative w-full md:w-96 group">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant group-focus-within:text-primary transition-colors">search</span>
+<input class="w-full bg-surface-container border-none rounded-md py-4 pl-12 pr-4 text-xs font-label uppercase focus:ring-2 focus:ring-primary/50 text-on-surface placeholder:text-outline transition-all" placeholder="FIND A PLAYER..." type="text"/>
+</div>
+</div>
+</header>
+<!-- Top 3 Podium (Bento-ish Grid) -->
+<section class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
+<!-- Rank 2: Silver -->
+<div class="order-2 md:order-1 bg-surface-container-low p-8 rounded-md border-t-4 border-neutral-400 relative overflow-hidden group hover:bg-surface-container transition-colors">
+<div class="absolute -right-4 -top-4 opacity-10 group-hover:opacity-20 transition-opacity">
+<span class="material-symbols-outlined text-9xl">workspace_premium</span>
+</div>
+<div class="relative z-10 flex flex-col items-center text-center">
+<div class="w-20 h-20 rounded-full border-4 border-neutral-400 p-1 mb-4">
+<img alt="Rank 2" class="rounded-full" data-alt="avatar of a female elite gamer with chrome headset and glowing violet background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAPkuLKiMFxDVtMXw4zny81kfA4kbRAg3mrpsG5R84qRw5xHMmsXGnN0bqBPba_QHdV7_hx_gslUB9HmDoAuPP5xtbNUSAUtFOYLNDuPhAVMGB2Va6DeLQNBgBStkGp4Snbzt5ecBs8mGcL2yuL8mkbHr4AVcbkLNAzwtMZib4pZwlvJL3O33bR8emz5O5e0Ba5c5jffrrBjY5DtFdTgjki9ZEt95AS95z687tv6k4MXM5MOetmyWq8Qze0kNVyOdRwPxci7IBj0NCA"/>
+</div>
+<span class="font-label text-[10px] font-black bg-neutral-400 text-black px-3 py-1 rounded-full mb-2 uppercase">Rank #2</span>
+<h3 class="font-headline text-2xl font-bold uppercase tracking-tight text-white">StrikerX</h3>
+<div class="mt-4">
+<div class="text-neutral-400 font-label text-[10px] uppercase">Career Goals</div>
+<div class="text-2xl font-headline font-black text-white italic">4.2M</div>
+</div>
+</div>
+</div>
+<!-- Rank 1: Gold -->
+<div class="order-1 md:order-2 bg-surface-container p-10 rounded-md border-t-4 border-secondary podium-glow-gold relative overflow-hidden group transform scale-105 md:-translate-y-4">
+<div class="absolute -right-6 -top-6 opacity-20 group-hover:opacity-30 transition-opacity text-secondary">
+<span class="material-symbols-outlined text-[12rem]" style="font-variation-settings: 'FILL' 1;">trophy</span>
+</div>
+<div class="relative z-10 flex flex-col items-center text-center">
+<div class="w-24 h-24 rounded-full border-4 border-secondary p-1 mb-6">
+<img alt="Rank 1" class="rounded-full" data-alt="avatar of a champion gamer with golden crown and fierce expression with stadium lights background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBGckYJVSA4IOluO3XtzpCZ9u7BCcVx0Mpu780423bWavdcmTokOdqsUMkyvfJLp7wJ004WhAQVEh5ENRrgSptSodRGEorqlMy34hWhMbqO5tGw00RYTL6aJjq-4gvzzYf1BqOxaRO5bz_srdsEB7UkhorK-Wy9YQIzkjzgVQwWv9ORfwaAgguuu8H5gRsMarqGa_BPQpPflfQ00G08VYF5kYumJmMLASB4gtsO7cPYjrJPRpJdSMyUQ1FgBUQMnspuz1ZVEfSRUm0P"/>
+</div>
+<span class="font-label text-xs font-black bg-secondary text-black px-4 py-1.5 rounded-full mb-3 uppercase">World Champion</span>
+<h3 class="font-headline text-4xl font-black uppercase tracking-tighter text-white italic">G.O.A.T_99</h3>
+<div class="mt-6">
+<div class="text-secondary font-label text-xs font-bold uppercase tracking-widest">Total Career Goals</div>
+<div class="text-5xl font-headline font-black text-white italic mt-1">12.8M</div>
+</div>
+</div>
+</div>
+<!-- Rank 3: Bronze -->
+<div class="order-3 bg-surface-container-low p-8 rounded-md border-t-4 border-orange-700/50 relative overflow-hidden group hover:bg-surface-container transition-colors">
+<div class="absolute -right-4 -top-4 opacity-10 group-hover:opacity-20 transition-opacity">
+<span class="material-symbols-outlined text-9xl">military_tech</span>
+</div>
+<div class="relative z-10 flex flex-col items-center text-center">
+<div class="w-20 h-20 rounded-full border-4 border-orange-700/50 p-1 mb-4">
+<img alt="Rank 3" class="rounded-full" data-alt="avatar of a focused pro player with orange tactical glasses and digital interface overlay" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDyJ5QU4vIo4i3FkzL5G9LHSq2dF_AKyeUUQ1exh3Hm-q3F3q8F_b_2TMjTjYsnYLhVu-jomFc7NGYg207MboG1jhrUFibokMWQi9OlDIuMQqBVp1fn9cz3sIv-Sl1UfwZB3MUUgNT36J2rKNrCf5tDdB6VjQ1yp4x4FGq9H5ePMEhT05GW32_6fb0IXRAiF30mIWqSIIJmD-ynenzVFMjURR1E-JhnjyesJi0ClhinfzGdqJSHUgRMZIYrGHGXVzkgVn0r3WmjCGEX"/>
+</div>
+<span class="font-label text-[10px] font-black bg-orange-700/50 text-white px-3 py-1 rounded-full mb-2 uppercase">Rank #3</span>
+<h3 class="font-headline text-2xl font-bold uppercase tracking-tight text-white">Net_Buster</h3>
+<div class="mt-4">
+<div class="text-neutral-400 font-label text-[10px] uppercase">Career Goals</div>
+<div class="text-2xl font-headline font-black text-white italic">3.9M</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Ranked List -->
+<section class="space-y-3">
+<div class="grid grid-cols-12 px-8 py-4 font-label text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">
+<div class="col-span-1">Pos</div>
+<div class="col-span-6 md:col-span-8">Player</div>
+<div class="col-span-5 md:col-span-3 text-right">Goals</div>
+</div>
+<!-- List Item 4 -->
+<div class="grid grid-cols-12 items-center px-8 py-5 bg-surface-container-low hover:bg-surface-container-high transition-all rounded-md group">
+<div class="col-span-1 font-headline font-bold text-xl text-outline-variant group-hover:text-primary transition-colors">04</div>
+<div class="col-span-6 md:col-span-8 flex items-center space-x-4">
+<img alt="Player 4" class="w-10 h-10 rounded-full bg-neutral-800" data-alt="stylized player avatar with neon lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB4Vi0P9NcwhM-TAnMmee8ZIFA0gQH0gnznNHJHCeIpZraQ7GVUYP84NydjEkOtW69czgXYv23xfyZFDxcdYswl2lOgK-l1vP_GKwakSB9NS837dlI8bvLT-8uiJc8vzMsoiE_TsGC2n4S8B6dwJULOL3kXpyaJVf7Qv_FPaD3f9p6wQ3rqztWgsDReq3hJUGnZfUZ6Q8QF68HMh7l6fgYqqeQ5xGkMzIq3ahOxwN2FoyEKBAvcX5U2YSv11_hlGwHFQvHRyAz-4dIG"/>
+<span class="font-headline font-bold text-white tracking-tight uppercase">Kinetic_King</span>
+</div>
+<div class="col-span-5 md:col-span-3 text-right">
+<span class="font-headline font-black text-xl text-white italic">3.1M</span>
+</div>
+</div>
+<!-- List Item 5 -->
+<div class="grid grid-cols-12 items-center px-8 py-5 bg-surface-container-low hover:bg-surface-container-high transition-all rounded-md group">
+<div class="col-span-1 font-headline font-bold text-xl text-outline-variant group-hover:text-primary transition-colors">05</div>
+<div class="col-span-6 md:col-span-8 flex items-center space-x-4">
+<img alt="Player 5" class="w-10 h-10 rounded-full bg-neutral-800" data-alt="stylized player avatar with neon lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA6B_hcSGproyLjc28IrG5Vkygs9CztegtE6YuFWO0LvUyztnaJKzlk7ecU-muDC6MY4J9YpZBqRhs6XYS_QxPD82LMmcRW_CslUd_cqdfS8UaxiJZjWC3s594Gp6uBMRIDsXXqTCwZxqZW6T-sPKU-94Xd8qRHx-eTKyiDGmgGnrWfJS9zCsLjTk6NJIsTViis5ccTurLd-FOiLMY1L7UIuMHavk4wTZdNypUY_NfBqoVMm1GxrpA3oFBx_Jhkvgivam31nwJq9JPG"/>
+<span class="font-headline font-bold text-white tracking-tight uppercase">Turbo_Click</span>
+</div>
+<div class="col-span-5 md:col-span-3 text-right">
+<span class="font-headline font-black text-xl text-white italic">2.8M</span>
+</div>
+</div>
+<!-- List Item 6 -->
+<div class="grid grid-cols-12 items-center px-8 py-5 bg-surface-container-low hover:bg-surface-container-high transition-all rounded-md group">
+<div class="col-span-1 font-headline font-bold text-xl text-outline-variant group-hover:text-primary transition-colors">06</div>
+<div class="col-span-6 md:col-span-8 flex items-center space-x-4">
+<img alt="Player 6" class="w-10 h-10 rounded-full bg-neutral-800" data-alt="stylized player avatar with neon lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDWEmU6vw8hICx1u6ilDkLoIs5KxhqAz-Hn4pwhBCj-621XIHMmcJVfqpU0CRrwbcbM7kmLCUeOhYY7r6Ak7LXcBeYvzEbhU0EFsFMsL00WoMV-OZyKaV8NVFmGj4DYwxAdsC6fjRlEj8nNgGFyf6zvE294QnVD8j-cmf3jO25GqLaIThSj9POn8oiPIFBqUyafy9_kSvZCfjNzASVoMOyi8bHYsR6eA6C9az-qtqTWayptVUWXm7hwsUYHOSETxiEG11m7zNl_6vmL"/>
+<span class="font-headline font-bold text-white tracking-tight uppercase">Stadium_Phantom</span>
+</div>
+<div class="col-span-5 md:col-span-3 text-right">
+<span class="font-headline font-black text-xl text-white italic">2.5M</span>
+</div>
+</div>
+<!-- List Item 7 -->
+<div class="grid grid-cols-12 items-center px-8 py-5 bg-surface-container-low hover:bg-surface-container-high transition-all rounded-md group">
+<div class="col-span-1 font-headline font-bold text-xl text-outline-variant group-hover:text-primary transition-colors">07</div>
+<div class="col-span-6 md:col-span-8 flex items-center space-x-4">
+<img alt="Player 7" class="w-10 h-10 rounded-full bg-neutral-800" data-alt="stylized player avatar with neon lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCEC67mDWcFXr9XbXybrnj-lfMif43Q5HubOtqgJwJi6kBlklbENLI5oQLQFw7MxktUtvqLmweiMhn836a7zwc1OyGQbAP6V7eKK8FeGtHQd86Nr2gomxaI72QODvg1EAbpxulhCYNjRKfsaGHc4WzdJMIP86qGw7cXlDnXWICadO5P-Kkpmtjdmc8U_HxoYsYcLlh0f5zamu6TnlzUJf6FhDV3hiS06MrM9n0BlvNeT7KOCqFTiJNF7N_8XZ8THQCrWiycNarfmOi8"/>
+<span class="font-headline font-bold text-white tracking-tight uppercase">Cyber_Striker</span>
+</div>
+<div class="col-span-5 md:col-span-3 text-right">
+<span class="font-headline font-black text-xl text-white italic">2.1M</span>
+</div>
+</div>
+<!-- More indicator -->
+<div class="py-8 flex justify-center">
+<button class="font-label text-[10px] font-bold text-on-surface-variant hover:text-primary transition-colors tracking-[0.2em] uppercase flex items-center">
+                    Scroll for more <span class="material-symbols-outlined ml-2">expand_more</span>
+</button>
+</div>
+</section>
+</main>
+<!-- Fixed "Your Rank" Footer Canvas -->
+<div class="fixed bottom-0 left-0 md:left-64 right-0 p-4 z-50 pointer-events-none">
+<div class="max-w-4xl mx-auto pointer-events-auto">
+<div class="bg-primary/90 text-on-primary p-5 rounded-md shadow-2xl flex items-center justify-between backdrop-blur-xl border-t border-white/20">
+<div class="flex items-center space-x-6">
+<div class="flex flex-col items-center">
+<span class="font-label text-[8px] font-black uppercase opacity-70">Your Position</span>
+<span class="font-headline font-black text-3xl italic">142nd</span>
+</div>
+<div class="h-10 w-[1px] bg-on-primary/20"></div>
+<div class="flex items-center space-x-3">
+<img alt="You" class="w-10 h-10 rounded-full border-2 border-white/30" data-alt="close-up portrait of a futuristic soccer player with neon green highlights" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAlObXo_8a4Vc8-LzvsiWZZS8hIE1WlTvsQv2ILzbie1iWCt39qNtchg5OUnu32cx1XdOf5-7biQEtbffbPaCb9Zg2GEfWGNSTKYhpJSw600cJucCuv9ljCSxFhU9ujihQy9utvhwqG5zVaSzXOKElmwhueCF5Jt15jag9tCBo771iYe7CeWn77edhyxQlRHR4cGRWPPicvqJML-rgttyRwQtvRFKkQEpdJV0GZ85RIlRx5iHfh6LqOcdKTPYRqmsLQJbJ-ZrZktxiK"/>
+<div>
+<div class="font-headline font-bold uppercase text-lg leading-none tracking-tight">Kinetic_Player_One</div>
+<div class="font-label text-[10px] font-medium uppercase opacity-80 mt-1">Top 12% of global players</div>
+</div>
+</div>
+</div>
+<div class="text-right">
+<div class="font-label text-[8px] font-black uppercase opacity-70">Career Goals</div>
+<div class="font-headline font-black text-2xl italic">842.1K</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Main Footer -->
+<footer class="w-full py-8 mt-auto bg-black border-t border-neutral-800/30">
+<div class="flex flex-col items-center gap-4 w-full">
+<div class="flex items-center space-x-6">
+<a class="text-neutral-600 hover:text-green-400 font-label text-[10px] tracking-widest uppercase transition-colors" href="#">Privacy</a>
+<a class="text-neutral-600 hover:text-green-400 font-label text-[10px] tracking-widest uppercase transition-colors" href="#">Terms</a>
+<a class="text-neutral-600 hover:text-green-400 font-label text-[10px] tracking-widest uppercase transition-colors" href="#">Discord</a>
+<a class="text-neutral-600 hover:text-green-400 font-label text-[10px] tracking-widest uppercase transition-colors" href="#">Twitter</a>
+</div>
+<p class="font-label text-[10px] tracking-widest uppercase text-neutral-600">
+                © 2024 STADIUM KINETIC. THE DIGITAL PITCH.
+            </p>
+</div>
+</footer>
+<!-- Mobile Bottom Nav -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full bg-neutral-900 border-t border-outline-variant/10 px-6 py-3 flex justify-between items-center z-[60] glass-panel">
+<button class="flex flex-col items-center text-neutral-500">
+<span class="material-symbols-outlined">stadium</span>
+<span class="font-label text-[8px] font-bold mt-1 uppercase">Field</span>
+</button>
+<button class="flex flex-col items-center text-neutral-500">
+<span class="material-symbols-outlined">shopping_cart</span>
+<span class="font-label text-[8px] font-bold mt-1 uppercase">Market</span>
+</button>
+<button class="flex flex-col items-center text-primary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">trophy</span>
+<span class="font-label text-[8px] font-bold mt-1 uppercase">Elite</span>
+</button>
+<button class="flex flex-col items-center text-neutral-500">
+<span class="material-symbols-outlined">groups</span>
+<span class="font-label text-[8px] font-bold mt-1 uppercase">Squad</span>
+</button>
+</nav>
+</body></html>
