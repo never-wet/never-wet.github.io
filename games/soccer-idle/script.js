@@ -1,4 +1,4 @@
-const STORAGE_KEY = "neverwet-soccer-idle-save-v2";
+const STORAGE_KEY = "neverwet-soccer-idle-save-v3";
 const MAX_OFFLINE_SECONDS = 60 * 60 * 4;
 const divisionThresholds = [25, 90, 220, 480, 900, 1600, 2600, 4200];
 const divisionNames = [
@@ -11,6 +11,16 @@ const divisionNames = [
   "World Icons",
   "GOAT Era",
 ];
+const squadBlueprint = [
+  { name: "Milo Vega", role: "Captain / Striker", initials: "MV" },
+  { name: "Jae Park", role: "Winger", initials: "JP" },
+  { name: "Noah Cruz", role: "Playmaker", initials: "NC" },
+  { name: "Eli Stone", role: "Finisher", initials: "ES" },
+  { name: "Kai Flores", role: "Midfield Engine", initials: "KF" },
+  { name: "Owen Hart", role: "Defender", initials: "OH" },
+  { name: "Leo Quinn", role: "Set Piece Ace", initials: "LQ" },
+  { name: "Zane Cole", role: "Keeper", initials: "ZC" },
+];
 
 const upgradeDefinitions = [
   {
@@ -18,7 +28,7 @@ const upgradeDefinitions = [
     name: "Ball Boys",
     icon: "⚽",
     description: "More balls, less downtime. Keeps shots flowing constantly.",
-    baseCost: 18,
+    baseCost: 24,
     growth: 1.42,
     effectText: "+0.45 auto shots / sec",
     apply: (state) => {
@@ -30,7 +40,7 @@ const upgradeDefinitions = [
     name: "Finishing Drills",
     icon: "🎯",
     description: "Sharpen strikers so every tap turns into more goals.",
-    baseCost: 30,
+    baseCost: 38,
     growth: 1.55,
     effectText: "+1 goal / shot",
     apply: (state) => {
@@ -42,7 +52,7 @@ const upgradeDefinitions = [
     name: "Shirt Sponsor",
     icon: "💸",
     description: "Cash rolls in harder every time the ball hits the net.",
-    baseCost: 48,
+    baseCost: 60,
     growth: 1.58,
     effectText: "+$1.5 per goal",
     apply: (state) => {
@@ -54,7 +64,7 @@ const upgradeDefinitions = [
     name: "Youth Academy",
     icon: "🌟",
     description: "Fresh talent adds pressure, hype, and future stars.",
-    baseCost: 76,
+    baseCost: 92,
     growth: 1.68,
     effectText: "+0.9 auto shots / sec, +14 fans",
     apply: (state) => {
@@ -67,7 +77,7 @@ const upgradeDefinitions = [
     name: "Night Fixture",
     icon: "🌙",
     description: "Prime-time matches raise payouts and crowd momentum.",
-    baseCost: 120,
+    baseCost: 145,
     growth: 1.74,
     effectText: "+$2.5 per goal, +28 fans",
     apply: (state) => {
@@ -80,12 +90,24 @@ const upgradeDefinitions = [
     name: "Pressing System",
     icon: "🔥",
     description: "Relentless team shape means more chances every second.",
-    baseCost: 185,
+    baseCost: 230,
     growth: 1.8,
     effectText: "+1.5 auto shots / sec, +1 goal / shot",
     apply: (state) => {
       state.autoShotsPerSecond += 1.5;
       state.goalsPerShot += 1;
+    },
+  },
+  {
+    id: "precision-lab",
+    name: "Precision Lab",
+    icon: "🧪",
+    description: "Expensive analytics to trim misses a tiny bit at a time.",
+    baseCost: 250000,
+    growth: 2.4,
+    effectText: "-0.1% miss chance",
+    apply: (state) => {
+      state.missChanceReduction += 0.001;
     },
   },
 ];
@@ -98,8 +120,11 @@ const runtime = {
   lastSaveAt: 0,
   lastAutoVisualAt: 0,
   lastAutoTickerAt: 0,
+  lastRenderedBuzzInt: -1,
+  activeScreen: "field",
   shotAnimationToken: 0,
   flashTimeout: 0,
+  ballResetTimeout: 0,
 };
 
 const elements = {
@@ -123,6 +148,30 @@ const elements = {
   nextUpgradeName: document.getElementById("nextUpgradeName"),
   nextUpgradeDescription: document.getElementById("nextUpgradeDescription"),
   nextUpgradeButton: document.getElementById("nextUpgradeButton"),
+  rankDisplay: document.getElementById("rankDisplay"),
+  leaderboardDivisionDisplay: document.getElementById("leaderboardDivisionDisplay"),
+  leaderboardList: document.getElementById("leaderboardList"),
+  squadCountDisplay: document.getElementById("squadCountDisplay"),
+  captainAvatar: document.getElementById("captainAvatar"),
+  captainNameDisplay: document.getElementById("captainNameDisplay"),
+  captainRoleDisplay: document.getElementById("captainRoleDisplay"),
+  captainLeadershipDisplay: document.getElementById("captainLeadershipDisplay"),
+  captainFinishingDisplay: document.getElementById("captainFinishingDisplay"),
+  captainEnergyDisplay: document.getElementById("captainEnergyDisplay"),
+  squadGrid: document.getElementById("squadGrid"),
+  missChanceDisplay: document.getElementById("missChanceDisplay"),
+  shotsFiredDisplay: document.getElementById("shotsFiredDisplay"),
+  shotsScoredDisplay: document.getElementById("shotsScoredDisplay"),
+  accuracyDisplay: document.getElementById("accuracyDisplay"),
+  lifetimeCashDisplay: document.getElementById("lifetimeCashDisplay"),
+  autoContributionDisplay: document.getElementById("autoContributionDisplay"),
+  precisionLevelDisplay: document.getElementById("precisionLevelDisplay"),
+  fanMomentumDisplay: document.getElementById("fanMomentumDisplay"),
+  shootingPowerDisplay: document.getElementById("shootingPowerDisplay"),
+  teamLeadershipDisplay: document.getElementById("teamLeadershipDisplay"),
+  passingFlowDisplay: document.getElementById("passingFlowDisplay"),
+  disciplineDisplay: document.getElementById("disciplineDisplay"),
+  screens: Array.from(document.querySelectorAll(".screen[data-screen]")),
   upgradeGrid: document.getElementById("upgradeGrid"),
   field: document.getElementById("field"),
   fieldTapButton: document.getElementById("fieldTapButton"),
@@ -130,12 +179,16 @@ const elements = {
   goalFlash: document.getElementById("goalFlash"),
   eventTicker: document.getElementById("eventTicker"),
   floatingLayer: document.getElementById("floatingLayer"),
+  topNavLinks: Array.from(document.querySelectorAll(".nav-link[data-screen-target]")),
+  railLinks: Array.from(document.querySelectorAll(".rail-link[data-screen-target]")),
+  mobileLinks: Array.from(document.querySelectorAll(".mobile-link[data-screen-target]")),
 };
 
 buildUpgradeCards();
 attachEvents();
 applyOfflineProgress();
 render();
+setupScreenNavigation();
 requestAnimationFrame(gameLoop);
 
 function createDefaultState() {
@@ -147,6 +200,12 @@ function createDefaultState() {
     cashPerGoal: 1,
     goalsPerShot: 1,
     autoShotsPerSecond: 0,
+    missChanceReduction: 0,
+    totalShots: 0,
+    totalHits: 0,
+    lifetimeCash: 0,
+    manualShots: 0,
+    autoShots: 0,
     lastActiveAt: Date.now(),
     upgrades: Object.fromEntries(upgradeDefinitions.map((upgrade) => [upgrade.id, 0])),
   };
@@ -201,7 +260,7 @@ function applyOfflineProgress() {
 
   const rewards = resolveShotBatch(offlineShots, { manual: false });
   setTicker(
-    `Welcome back. Your club played ${formatNumber(offlineShots)} auto shots and earned $${formatNumber(rewards.payout)}.`
+    `Welcome back. Your club took ${formatNumber(offlineShots)} shots, scored ${formatNumber(rewards.goals)}, and earned $${formatNumber(rewards.payout)}.`
   );
   spawnRewardBubble(`+$${formatNumber(rewards.payout)}`, 68, 22, "upgrade");
   saveState();
@@ -268,6 +327,41 @@ function attachEvents() {
   });
 }
 
+function setupScreenNavigation() {
+  const navButtons = [...elements.topNavLinks, ...elements.railLinks, ...elements.mobileLinks];
+
+  navButtons.forEach((button) => {
+    button.addEventListener("click", (event) => {
+      event.preventDefault();
+      setActiveScreen(button.dataset.screenTarget);
+    });
+  });
+}
+
+function setActiveScreen(screenName) {
+  if (!screenName || runtime.activeScreen === screenName) {
+    return;
+  }
+
+  runtime.activeScreen = screenName;
+
+  elements.screens.forEach((screen) => {
+    screen.classList.toggle("active", screen.dataset.screen === screenName);
+  });
+
+  elements.topNavLinks.forEach((link) => {
+    link.classList.toggle("active", link.dataset.screenTarget === screenName);
+  });
+
+  elements.railLinks.forEach((link) => {
+    link.classList.toggle("current", link.dataset.screenTarget === screenName);
+  });
+
+  elements.mobileLinks.forEach((link) => {
+    link.classList.toggle("active", link.dataset.screenTarget === screenName);
+  });
+}
+
 function getTapPosition(event) {
   const rect = elements.field.getBoundingClientRect();
   const clientX = event?.clientX ?? rect.left + rect.width * 0.5;
@@ -311,35 +405,100 @@ function buyUpgrade(upgradeId) {
 
 function takeManualShot(originX, originY) {
   runtime.buzz = clamp(runtime.buzz + 12, 0, 100);
-  const rewards = resolveShotBatch(1, { manual: true });
+  state.totalShots += 1;
+  state.manualShots += 1;
+  const hit = rollHitChance();
+  const target = hit ? randomHitTarget() : randomMissTarget();
 
-  animateShot(originX, originY, randomTarget());
-  showGoalFlash(`+$${formatNumber(rewards.payout)}`);
-  pulseStage();
-  spawnRewardBubble(`+$${formatNumber(rewards.payout)}`, originX, originY - 4, "cash");
+  animateShot(originX, originY, target, hit);
   spawnRipple(originX, originY);
+  setTicker(hit ? "Shot away..." : "Risky strike... it might curl wide.");
 
-  setTicker(
-    `Cracking finish. ${formatNumber(rewards.goals)} goal and $${formatNumber(rewards.payout)} from the shot.`
-  );
-
+  queueShotResolution({ manual: true, hit, originX, originY });
   render();
 }
 
 function resolveShotBatch(shots, options = {}) {
+  let totalGoals = 0;
+  let totalPayout = 0;
+  let totalFans = 0;
+
+  for (let shotIndex = 0; shotIndex < shots; shotIndex += 1) {
+    if (!rollHitChance()) {
+      continue;
+    }
+
+    const reward = awardGoals(1, options);
+    totalGoals += reward.goals;
+    totalPayout += reward.payout;
+    totalFans += reward.fanGain;
+  }
+
+  return { goals: totalGoals, payout: totalPayout, fanGain: totalFans };
+}
+
+function awardGoals(goalCount, options = {}) {
   const manualMultiplier = options.manual ? 1 + runtime.buzz / 240 : 1;
-  const goalsMade = shots * state.goalsPerShot;
+  const goalsMade = goalCount * state.goalsPerShot;
   const payout = goalsMade * state.cashPerGoal * manualMultiplier;
   const fanGain = Math.max(1, Math.round(goalsMade * (options.manual ? 2.4 : 0.95)));
 
   state.goals += goalsMade;
   state.cash += payout;
+  state.lifetimeCash += payout;
   state.fans += fanGain;
+  state.totalHits += goalCount;
 
   return { goals: goalsMade, payout, fanGain };
 }
 
-function animateShot(originX, originY, target) {
+function queueShotResolution({ manual, hit, originX, originY }) {
+  window.setTimeout(() => {
+    if (!hit) {
+      setTicker(manual ? "Missed the net. No cash for that shot." : "Auto shot missed the target.");
+      spawnRewardBubble("MISS", originX, originY - 20, "upgrade");
+      render();
+      return;
+    }
+
+    const rewards = awardGoals(1, { manual });
+    showGoalFlash(`+$${formatNumber(rewards.payout)}`);
+    pulseStage();
+    spawnRewardBubble(`+$${formatNumber(rewards.payout)}`, originX, originY - 10, "cash");
+    setTicker(
+      manual
+        ? `Cracking finish. ${formatNumber(rewards.goals)} goal and $${formatNumber(rewards.payout)} on impact.`
+        : `Auto strike hits the net for $${formatNumber(rewards.payout)}.`
+    );
+    render();
+  }, 520);
+}
+
+function queueAutoResolution({ shots, hits, misses }) {
+  window.setTimeout(() => {
+    state.totalShots += shots;
+    state.autoShots += shots;
+
+    if (hits > 0) {
+      const rewards = awardGoals(hits, { manual: false });
+      showGoalFlash(`+$${formatNumber(rewards.payout)}`);
+      pulseStage();
+      spawnRewardBubble(`+$${formatNumber(rewards.payout)}`, 50, 52, "cash");
+      setTicker(
+        misses > 0
+          ? `Auto run: ${formatNumber(hits)} hits, ${formatNumber(misses)} misses, $${formatNumber(rewards.payout)} earned.`
+          : `Auto run lands ${formatNumber(hits)} clean shots for $${formatNumber(rewards.payout)}.`
+      );
+    } else {
+      setTicker(`Auto run missed ${formatNumber(misses)} shots.`);
+      spawnRewardBubble("MISS", 50, 48, "upgrade");
+    }
+
+    render();
+  }, 520);
+}
+
+function animateShot(originX, originY, target, hit) {
   const rect = elements.field.getBoundingClientRect();
   const startX = rect.width * (originX / 100);
   const startY = rect.height * (originY / 100);
@@ -358,12 +517,14 @@ function animateShot(originX, originY, target) {
   elements.ball.style.bottom = "auto";
   elements.ball.style.setProperty("--shot-x", `${shotX}px`);
   elements.ball.style.setProperty("--shot-y", `${shotY}px`);
+  elements.ball.style.zIndex = hit ? "7" : "6";
 
   requestAnimationFrame(() => {
     elements.ball.classList.add("shooting");
   });
 
-  window.setTimeout(() => {
+  window.clearTimeout(runtime.ballResetTimeout);
+  runtime.ballResetTimeout = window.setTimeout(() => {
     if (token !== runtime.shotAnimationToken) {
       return;
     }
@@ -377,12 +538,29 @@ function animateShot(originX, originY, target) {
   }, 560);
 }
 
-function randomTarget() {
-  const rightSide = Math.random() > 0.5;
+function randomHitTarget() {
   return {
-    x: rightSide ? 58 + Math.random() * 15 : 28 + Math.random() * 15,
-    y: 18 + Math.random() * 9,
+    x: 37 + Math.random() * 26,
+    y: 23 + Math.random() * 7,
   };
+}
+
+function randomMissTarget() {
+  const lanes = [
+    { x: 18 + Math.random() * 8, y: 25 + Math.random() * 10 },
+    { x: 74 + Math.random() * 8, y: 25 + Math.random() * 10 },
+    { x: 32 + Math.random() * 36, y: 10 + Math.random() * 6 },
+  ];
+
+  return lanes[Math.floor(Math.random() * lanes.length)];
+}
+
+function getMissChance() {
+  return clamp(0.42 - state.missChanceReduction, 0.08, 0.42);
+}
+
+function rollHitChance() {
+  return Math.random() > getMissChance();
 }
 
 function showGoalFlash(text) {
@@ -424,9 +602,16 @@ function spawnRipple(xPercent, yPercent) {
 }
 
 function render() {
-  const cashPerSecond = state.autoShotsPerSecond * state.goalsPerShot * state.cashPerGoal;
+  const expectedHitRate = 1 - getMissChance();
+  const cashPerSecond =
+    state.autoShotsPerSecond * state.goalsPerShot * state.cashPerGoal * expectedHitRate;
   const division = getDivisionInfo();
   const nextUpgrade = getNextUpgrade();
+  const totalAccuracy = state.totalShots > 0 ? (state.totalHits / state.totalShots) * 100 : 0;
+  const autoContribution = state.totalShots > 0 ? (state.autoShots / state.totalShots) * 100 : 0;
+  const leaderboardRows = buildLeaderboardRows();
+  const squad = buildSquadRows();
+  const teamPerformance = buildTeamPerformance(totalAccuracy);
 
   elements.cashDisplay.textContent = `$${formatNumber(state.cash)}`;
   elements.cashDisplayMirror.textContent = `$${formatNumber(state.cash)}`;
@@ -444,8 +629,25 @@ function render() {
   elements.goalsPerShotDisplay.textContent = formatNumber(state.goalsPerShot);
   elements.autoShotsDisplay.textContent = `${formatNumber(state.autoShotsPerSecond)}/s`;
   elements.marketGoalsDisplay.textContent = formatNumber(state.goals);
+  elements.rankDisplay.textContent = `#${leaderboardRows.find((row) => row.isYou)?.rank ?? 999}`;
+  elements.leaderboardDivisionDisplay.textContent = `${division.name} Division`;
+  elements.squadCountDisplay.textContent = formatNumber(squad.length);
+  elements.missChanceDisplay.textContent = `${(getMissChance() * 100).toFixed(1)}%`;
+  elements.shotsFiredDisplay.textContent = formatNumber(state.totalShots);
+  elements.shotsScoredDisplay.textContent = formatNumber(state.totalHits);
+  elements.accuracyDisplay.textContent = `${formatNumber(totalAccuracy)}%`;
+  elements.lifetimeCashDisplay.textContent = `$${formatNumber(state.lifetimeCash)}`;
+  elements.autoContributionDisplay.textContent = `${formatNumber(autoContribution)}%`;
+  elements.precisionLevelDisplay.textContent = `Lv. ${state.upgrades["precision-lab"] || 0}`;
+  elements.fanMomentumDisplay.textContent = formatNumber(state.fans);
+  elements.shootingPowerDisplay.textContent = formatNumber(teamPerformance.shootingPower);
+  elements.teamLeadershipDisplay.textContent = formatNumber(teamPerformance.leadership);
+  elements.passingFlowDisplay.textContent = formatNumber(teamPerformance.passingFlow);
+  elements.disciplineDisplay.textContent = formatNumber(teamPerformance.discipline);
 
   renderNextUpgrade(nextUpgrade);
+  renderLeaderboard(leaderboardRows);
+  renderSquad(squad);
 
   upgradeDefinitions.forEach((upgrade) => {
     const cost = getUpgradeCost(upgrade);
@@ -462,6 +664,98 @@ function render() {
     fill.style.width = `${affordableProgress * 100}%`;
     card.classList.toggle("affordable", state.cash >= cost);
   });
+}
+
+function buildLeaderboardRows() {
+  const yourScore = Math.round(state.goals + state.fans * 2.2 + state.lifetimeCash * 0.12);
+
+  return [
+    { rank: 1, name: "PIXEL FC", score: 182400, isYou: false },
+    { rank: 2, name: "MEGA BOOTS", score: 149200, isYou: false },
+    { rank: 3, name: "GOAL RUSH", score: 131880, isYou: false },
+    { rank: 4, name: "KINETIC STRIKER", score: yourScore, isYou: true },
+    { rank: 5, name: "NIGHT XI", score: Math.max(4200, yourScore - 2800), isYou: false },
+  ];
+}
+
+function renderLeaderboard(rows) {
+  elements.leaderboardList.innerHTML = rows
+    .map(
+      (row) => `
+        <article class="leader-row${row.isYou ? " you" : ""}">
+          <div class="leader-rank">#${row.rank}</div>
+          <div class="leader-meta">
+            <div class="leader-name">${row.name}</div>
+            <span>${row.isYou ? "Your club" : "Global rival"}</span>
+          </div>
+          <div class="leader-score">${formatNumber(row.score)}</div>
+        </article>
+      `
+    )
+    .join("");
+}
+
+function buildSquadRows() {
+  const leadershipBase = 62 + Math.min(28, state.fans / 35);
+  const powerBase = 58 + state.goalsPerShot * 7;
+  const energyBase = 54 + state.autoShotsPerSecond * 6;
+
+  return squadBlueprint.map((player, index) => ({
+    ...player,
+    leadership: Math.round(clamp(leadershipBase + index * 2 + state.upgrades["youth-academy"] * 3, 40, 99)),
+    power: Math.round(clamp(powerBase + ((index + 1) % 3) * 4 + state.upgrades["pressing-system"] * 2, 42, 99)),
+    energy: Math.round(clamp(energyBase + (7 - index) * 2 + state.upgrades["ball-boys"] * 3, 38, 99)),
+  }));
+}
+
+function renderSquad(players) {
+  const captain = players[0];
+  elements.captainAvatar.textContent = captain.initials;
+  elements.captainNameDisplay.textContent = captain.name;
+  elements.captainRoleDisplay.textContent = captain.role;
+  elements.captainLeadershipDisplay.textContent = captain.leadership;
+  elements.captainFinishingDisplay.textContent = captain.power;
+  elements.captainEnergyDisplay.textContent = captain.energy;
+
+  elements.squadGrid.innerHTML = players
+    .slice(1)
+    .map(
+      (player) => `
+        <article class="player-card">
+          <div class="player-head">
+            <div class="player-avatar">${player.initials}</div>
+            <div>
+              <h3 class="player-name">${player.name}</h3>
+              <p class="player-role">${player.role}</p>
+            </div>
+          </div>
+          <div class="player-meta">
+            <div>
+              <span>Power</span>
+              <strong>${player.power}</strong>
+            </div>
+            <div>
+              <span>Lead</span>
+              <strong>${player.leadership}</strong>
+            </div>
+            <div>
+              <span>Energy</span>
+              <strong>${player.energy}</strong>
+            </div>
+          </div>
+        </article>
+      `
+    )
+    .join("");
+}
+
+function buildTeamPerformance(totalAccuracy) {
+  return {
+    shootingPower: Math.round(clamp(52 + state.goalsPerShot * 8 + state.cashPerGoal * 3.5, 0, 99)),
+    leadership: Math.round(clamp(48 + state.fans / 40 + state.upgrades["youth-academy"] * 4, 0, 99)),
+    passingFlow: Math.round(clamp(45 + state.autoShotsPerSecond * 8 + state.upgrades["pressing-system"] * 5, 0, 99)),
+    discipline: Math.round(clamp(100 - getMissChance() * 100 + totalAccuracy * 0.25, 0, 99)),
+  };
 }
 
 function getNextUpgrade() {
@@ -536,26 +830,43 @@ function gameLoop(now) {
   runtime.lastFrame = now;
 
   runtime.buzz = clamp(runtime.buzz - deltaSeconds * 5.5, 0, 100);
+  const currentBuzzInt = Math.round(runtime.buzz);
   runtime.pendingAutoShots += state.autoShotsPerSecond * deltaSeconds;
 
   const autoShots = Math.floor(runtime.pendingAutoShots);
   if (autoShots > 0) {
     runtime.pendingAutoShots -= autoShots;
-    const rewards = resolveShotBatch(autoShots, { manual: false });
+    let hits = 0;
+
+    for (let shotIndex = 0; shotIndex < autoShots; shotIndex += 1) {
+      if (rollHitChance()) {
+        hits += 1;
+      }
+    }
+
+    const misses = autoShots - hits;
 
     if (now - runtime.lastAutoVisualAt > 420) {
       runtime.lastAutoVisualAt = now;
-      animateShot(50 + (Math.random() * 10 - 5), 78, randomTarget());
-      spawnRewardBubble(`+$${formatNumber(rewards.payout)}`, 50, 62, "cash");
+      const sampleHit = hits > 0 && (misses === 0 || Math.random() > 0.5);
+      animateShot(
+        50 + (Math.random() * 10 - 5),
+        78,
+        sampleHit ? randomHitTarget() : randomMissTarget(),
+        sampleHit
+      );
     }
+
+    queueAutoResolution({ shots: autoShots, hits, misses });
 
     if (now - runtime.lastAutoTickerAt > 2200) {
       runtime.lastAutoTickerAt = now;
-      setTicker(`Your squad keeps scoring on autopilot for $${formatNumber(rewards.payout)}.`);
+      setTicker("Your squad keeps firing on autopilot.");
     }
+  }
 
-    render();
-  } else {
+  if (currentBuzzInt !== runtime.lastRenderedBuzzInt) {
+    runtime.lastRenderedBuzzInt = currentBuzzInt;
     render();
   }
 

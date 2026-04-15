@@ -25,10 +25,11 @@
         <div class="brand-lockup">
           <a class="brand-mark" href="../">GOAL KINETIC</a>
           <div class="nav-links desktop-only">
-            <span class="nav-link active">Field</span>
-            <span class="nav-link">Upgrades</span>
-            <span class="nav-link">Leaderboard</span>
-            <span class="nav-link">Stats</span>
+            <button class="nav-link active" type="button" data-screen-target="field">Field</button>
+            <button class="nav-link" type="button" data-screen-target="upgrades">Upgrades</button>
+            <button class="nav-link" type="button" data-screen-target="squad">Squad</button>
+            <button class="nav-link" type="button" data-screen-target="leaderboard">Leaderboard</button>
+            <button class="nav-link" type="button" data-screen-target="stats">Stats</button>
           </div>
         </div>
         <div class="nav-actions">
@@ -55,22 +56,22 @@
       </div>
 
       <nav class="rail-nav">
-        <a class="rail-link current" href="#">
+        <button class="rail-link current" type="button" data-screen-target="field">
           <span class="material-symbols-outlined filled">sports_soccer</span>
           Stadium
-        </a>
-        <a class="rail-link" href="#upgradeGrid">
+        </button>
+        <button class="rail-link" type="button" data-screen-target="upgrades">
           <span class="material-symbols-outlined">shopping_cart</span>
           Market
-        </a>
-        <a class="rail-link" href="#">
+        </button>
+        <button class="rail-link" type="button" data-screen-target="squad">
           <span class="material-symbols-outlined">groups</span>
           Squad
-        </a>
-        <a class="rail-link" href="#">
+        </button>
+        <button class="rail-link" type="button" data-screen-target="leaderboard">
           <span class="material-symbols-outlined">trophy</span>
           World Cup
-        </a>
+        </button>
       </nav>
 
       <div class="rail-bottom">
@@ -83,128 +84,90 @@
     </aside>
 
     <main class="main-shell">
-      <section class="hero-row">
-        <div class="hero-copy-card">
-          <p class="eyebrow">The Digital Pitch</p>
-          <h1>TAP. SCORE. UPGRADE. REPEAT.</h1>
-          <p class="hero-copy">
-            Same vibe as the Stitch mockups: neon stadium shell, oversized
-            score readout, and a market panel that feels like a clicker game
-            dashboard instead of a clean website landing page.
-          </p>
-        </div>
-
-        <div class="hero-stats">
-          <article class="hero-stat border-primary">
-            <span class="stat-label">Total Goals</span>
-            <strong id="goalsDisplay">0</strong>
-          </article>
-          <article class="hero-stat border-secondary">
-            <span class="stat-label">Cash</span>
-            <strong id="cashDisplay">$0</strong>
-          </article>
-          <article class="hero-stat wide border-tertiary">
-            <div class="progress-head">
-              <span id="divisionNameDisplay">Sunday League</span>
-              <strong id="divisionProgressText">0 / 25 goals</strong>
-            </div>
-            <div class="progress-track">
-              <div id="divisionProgressFill" class="progress-fill"></div>
-            </div>
-          </article>
-        </div>
-      </section>
-
-      <section class="score-stage">
-        <div class="big-score-panel">
-          <span class="eyebrow accent-secondary">Tap Score</span>
-          <h2 id="cashDisplayMirror">$0</h2>
-          <div class="score-chip-row">
-            <div class="score-chip">
-              <span>Per second</span>
-              <strong id="perSecondDisplay">$0</strong>
-            </div>
-            <div class="score-chip">
-              <span>Buzz boost</span>
-              <strong id="buzzDisplay">0%</strong>
-            </div>
-            <div class="score-chip">
-              <span>Fans</span>
-              <strong id="fansDisplay">0</strong>
-            </div>
-          </div>
-        </div>
-
-        <section id="field" class="field-card" aria-label="Soccer field">
-          <div class="field-backdrop"></div>
-          <div class="field-glow"></div>
-          <div class="goal-zone">
-            <div class="goal-frame"></div>
-            <div class="goal-net"></div>
-            <div class="keeper"></div>
-          </div>
-          <div class="pitch-lines"></div>
-          <div class="player-token striker"></div>
-          <div class="player-token winger"></div>
-          <div class="player-token engine"></div>
-
-          <div class="field-hud">
-            <div class="field-chip">Tap grass to shoot</div>
-            <div id="eventTicker" class="field-ticker">Kick off your club.</div>
+      <section class="screen active" data-screen="field">
+        <section class="hero-row">
+          <div class="hero-copy-card">
+            <p class="eyebrow">The Digital Pitch</p>
+            <h1>TAP. SCORE. UPGRADE. REPEAT.</h1>
+            <p class="hero-copy">
+              The main stadium screen is now its own page inside the app. Tap
+              shots here, then jump to the other tabs for a separate upgrades,
+              leaderboard, and stats view.
+            </p>
           </div>
 
-          <div id="ball" class="ball" style="--shot-x: 0px; --shot-y: -280px;"></div>
-          <div id="goalFlash" class="goal-flash">GOAL!</div>
-          <div id="floatingLayer" class="floating-layer" aria-hidden="true"></div>
+          <div class="hero-stats">
+            <article class="hero-stat border-primary">
+              <span class="stat-label">Total Goals</span>
+              <strong id="goalsDisplay">0</strong>
+            </article>
+            <article class="hero-stat border-secondary">
+              <span class="stat-label">Cash</span>
+              <strong id="cashDisplay">$0</strong>
+            </article>
+            <article class="hero-stat wide border-tertiary">
+              <div class="progress-head">
+                <span id="divisionNameDisplay">Sunday League</span>
+                <strong id="divisionProgressText">0 / 25 goals</strong>
+              </div>
+              <div class="progress-track">
+                <div id="divisionProgressFill" class="progress-fill"></div>
+              </div>
+            </article>
+          </div>
+        </section>
 
-          <button id="fieldTapButton" class="shoot-button" type="button">
-            Smash Shot
-          </button>
+        <section class="score-stage">
+          <div class="big-score-panel">
+            <span class="eyebrow accent-secondary">Tap Score</span>
+            <h2 id="cashDisplayMirror">$0</h2>
+            <div class="score-chip-row">
+              <div class="score-chip">
+                <span>Per second</span>
+                <strong id="perSecondDisplay">$0</strong>
+              </div>
+              <div class="score-chip">
+                <span>Buzz boost</span>
+                <strong id="buzzDisplay">0%</strong>
+              </div>
+              <div class="score-chip">
+                <span>Fans</span>
+                <strong id="fansDisplay">0</strong>
+              </div>
+            </div>
+          </div>
+
+          <section id="field" class="field-card" aria-label="Soccer field">
+            <div class="field-backdrop"></div>
+            <div class="field-glow"></div>
+            <div class="goal-zone">
+              <div class="goal-frame"></div>
+              <div class="goal-net"></div>
+              <div class="keeper"></div>
+            </div>
+            <div class="pitch-lines"></div>
+            <div class="player-token striker"></div>
+            <div class="player-token winger"></div>
+            <div class="player-token engine"></div>
+
+            <div class="field-hud">
+              <div class="field-chip">Tap grass to shoot</div>
+              <div id="eventTicker" class="field-ticker">Kick off your club.</div>
+            </div>
+
+            <div id="ball" class="ball" style="--shot-x: 0px; --shot-y: -280px;"></div>
+            <div id="goalFlash" class="goal-flash">GOAL!</div>
+            <div id="floatingLayer" class="floating-layer" aria-hidden="true"></div>
+
+            <button id="fieldTapButton" class="shoot-button" type="button">
+              Smash Shot
+            </button>
+          </section>
         </section>
       </section>
 
-      <section class="bottom-grid">
-        <div class="stamina-panel">
-          <div class="panel-header">
-            <span class="panel-title">Stadium Multiplier</span>
-            <span id="buzzMeterText" class="panel-value">0% / 100%</span>
-          </div>
-          <div class="meter-track">
-            <div id="buzzMeterFill" class="meter-fill"></div>
-          </div>
-          <div class="mini-stat-grid">
-            <article class="mini-stat">
-              <span>Cash / goal</span>
-              <strong id="cashPerGoalDisplay">$1</strong>
-            </article>
-            <article class="mini-stat">
-              <span>Goals / shot</span>
-              <strong id="goalsPerShotDisplay">1</strong>
-            </article>
-            <article class="mini-stat">
-              <span>Auto shots</span>
-              <strong id="autoShotsDisplay">0</strong>
-            </article>
-          </div>
-        </div>
-
-        <div class="next-upgrade-card">
-          <div class="next-header">
-            <h3>Next Upgrade</h3>
-            <span id="nextUpgradeBadge" class="badge-pill">Waiting</span>
-          </div>
-          <h4 id="nextUpgradeName">No upgrade in range</h4>
-          <p id="nextUpgradeDescription">
-            Stack more cash to surface your first target.
-          </p>
-          <button id="nextUpgradeButton" class="next-upgrade-button" type="button" disabled>
-            Buy Soon
-          </button>
-        </div>
-      </section>
-
-      <section class="market-section">
-        <div class="market-header">
+      <section class="screen" data-screen="upgrades">
+        <section class="screen-header">
           <div>
             <p class="eyebrow">Upgrade Shop</p>
             <h2>Invest in your legacy. Dominate the pitch.</h2>
@@ -213,28 +176,222 @@
             <span>Total Goals</span>
             <strong id="marketGoalsDisplay">0</strong>
           </div>
-        </div>
+        </section>
+
+        <section class="upgrades-overview">
+          <div class="stamina-panel">
+            <div class="panel-header">
+              <span class="panel-title">Stadium Multiplier</span>
+              <span id="buzzMeterText" class="panel-value">0% / 100%</span>
+            </div>
+            <div class="meter-track">
+              <div id="buzzMeterFill" class="meter-fill"></div>
+            </div>
+            <div class="mini-stat-grid">
+              <article class="mini-stat">
+                <span>Cash / goal</span>
+                <strong id="cashPerGoalDisplay">$1</strong>
+              </article>
+              <article class="mini-stat">
+                <span>Goals / shot</span>
+                <strong id="goalsPerShotDisplay">1</strong>
+              </article>
+              <article class="mini-stat">
+                <span>Auto shots</span>
+                <strong id="autoShotsDisplay">0</strong>
+              </article>
+            </div>
+          </div>
+
+          <div class="next-upgrade-card">
+            <div class="next-header">
+              <h3>Next Upgrade</h3>
+              <span id="nextUpgradeBadge" class="badge-pill">Waiting</span>
+            </div>
+            <h4 id="nextUpgradeName">No upgrade in range</h4>
+            <p id="nextUpgradeDescription">
+              Stack more cash to surface your first target.
+            </p>
+            <button id="nextUpgradeButton" class="next-upgrade-button" type="button" disabled>
+              Buy Soon
+            </button>
+          </div>
+        </section>
 
         <div id="upgradeGrid" class="upgrade-grid"></div>
+      </section>
+
+      <section class="screen" data-screen="leaderboard">
+        <section class="screen-header">
+          <div>
+            <p class="eyebrow">Global Leaderboard</p>
+            <h2>See where your club lands tonight.</h2>
+          </div>
+          <div class="market-total border-secondary">
+            <span>Your Rank</span>
+            <strong id="rankDisplay">#999</strong>
+          </div>
+        </section>
+
+        <section class="leaderboard-shell">
+          <div class="leaderboard-card spotlight">
+            <p class="stat-label">Weekly Push</p>
+            <h3 id="leaderboardDivisionDisplay">Sunday League Grinder</h3>
+            <p>
+              Your club climbs the table as total goals and fan count rise. This
+              screen is separate now, not just the same section with a different
+              yellow highlight.
+            </p>
+          </div>
+
+          <div class="leaderboard-list" id="leaderboardList"></div>
+        </section>
+      </section>
+
+      <section class="screen" data-screen="squad">
+        <section class="screen-header">
+          <div>
+            <p class="eyebrow">Club Squad</p>
+            <h2>Meet the people carrying the club.</h2>
+          </div>
+          <div class="market-total border-primary">
+            <span>Squad Size</span>
+            <strong id="squadCountDisplay">8</strong>
+          </div>
+        </section>
+
+        <section class="squad-layout">
+          <div class="squad-spotlight">
+            <p class="stat-label">Captain</p>
+            <div class="captain-chip">
+              <div id="captainAvatar" class="player-avatar large">C</div>
+              <div>
+                <h3 id="captainNameDisplay">Milo Vega</h3>
+                <p id="captainRoleDisplay">Captain / Striker</p>
+              </div>
+            </div>
+            <div class="captain-stats">
+              <div>
+                <span>Leadership</span>
+                <strong id="captainLeadershipDisplay">86</strong>
+              </div>
+              <div>
+                <span>Finishing</span>
+                <strong id="captainFinishingDisplay">84</strong>
+              </div>
+              <div>
+                <span>Energy</span>
+                <strong id="captainEnergyDisplay">88</strong>
+              </div>
+            </div>
+          </div>
+
+          <div id="squadGrid" class="squad-grid"></div>
+        </section>
+      </section>
+
+      <section class="screen" data-screen="stats">
+        <section class="screen-header">
+          <div>
+            <p class="eyebrow">Team Performance</p>
+            <h2>How strong the whole team is playing.</h2>
+          </div>
+          <div class="market-total border-tertiary">
+            <span>Miss Chance</span>
+            <strong id="missChanceDisplay">42.0%</strong>
+          </div>
+        </section>
+
+        <section class="stats-grid">
+          <article class="stat-card wide">
+            <p class="stat-label">Team Snapshot</p>
+            <div class="stats-columns">
+              <div>
+                <span>Shots Fired</span>
+                <strong id="shotsFiredDisplay">0</strong>
+              </div>
+              <div>
+                <span>Shots Scored</span>
+                <strong id="shotsScoredDisplay">0</strong>
+              </div>
+              <div>
+                <span>Shot Accuracy</span>
+                <strong id="accuracyDisplay">0%</strong>
+              </div>
+            </div>
+          </article>
+
+          <article class="stat-card">
+            <p class="stat-label">Shooting Power</p>
+            <strong id="shootingPowerDisplay">0</strong>
+            <p>How hard and cleanly the team strikes the ball.</p>
+          </article>
+
+          <article class="stat-card">
+            <p class="stat-label">Leadership</p>
+            <strong id="teamLeadershipDisplay">0</strong>
+            <p>Command and organization across the whole squad.</p>
+          </article>
+
+          <article class="stat-card">
+            <p class="stat-label">Passing Flow</p>
+            <strong id="passingFlowDisplay">0</strong>
+            <p>How smoothly chances are built before each shot.</p>
+          </article>
+
+          <article class="stat-card">
+            <p class="stat-label">Discipline</p>
+            <strong id="disciplineDisplay">0</strong>
+            <p>Composure under pressure and reduced sloppy misses.</p>
+          </article>
+
+          <article class="stat-card">
+            <p class="stat-label">Economy</p>
+            <strong id="lifetimeCashDisplay">$0</strong>
+            <p>Total lifetime cash generated by the club.</p>
+          </article>
+
+          <article class="stat-card">
+            <p class="stat-label">Automation</p>
+            <strong id="autoContributionDisplay">0%</strong>
+            <p>Share of shots being fired automatically.</p>
+          </article>
+
+          <article class="stat-card">
+            <p class="stat-label">Precision Lab</p>
+            <strong id="precisionLevelDisplay">Lv. 0</strong>
+            <p>Each buy lowers miss chance by only 0.1%.</p>
+          </article>
+
+          <article class="stat-card">
+            <p class="stat-label">Fan Momentum</p>
+            <strong id="fanMomentumDisplay">0</strong>
+            <p>Current fan growth based on goals and upgrades.</p>
+          </article>
+        </section>
       </section>
     </main>
 
     <nav class="mobile-nav">
-      <button class="mobile-link active" type="button">
+      <button class="mobile-link active" type="button" data-screen-target="field">
         <span class="material-symbols-outlined filled">stadium</span>
         <span>Field</span>
       </button>
-      <button class="mobile-link" type="button">
+      <button class="mobile-link" type="button" data-screen-target="upgrades">
         <span class="material-symbols-outlined">shopping_cart</span>
         <span>Market</span>
       </button>
-      <button class="mobile-link" type="button">
+      <button class="mobile-link" type="button" data-screen-target="squad">
         <span class="material-symbols-outlined">groups</span>
         <span>Squad</span>
       </button>
-      <button class="mobile-link" type="button">
+      <button class="mobile-link" type="button" data-screen-target="leaderboard">
         <span class="material-symbols-outlined">leaderboard</span>
         <span>Leader</span>
+      </button>
+      <button class="mobile-link" type="button" data-screen-target="stats">
+        <span class="material-symbols-outlined">query_stats</span>
+        <span>Stats</span>
       </button>
     </nav>
 

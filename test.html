@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&amp;family=Public+Sans:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-tertiary-fixed-variant": "#4f4635",
+                        "on-secondary-container": "#656464",
+                        "on-primary-fixed-variant": "#802631",
+                        "on-primary": "#ffffff",
+                        "surface-variant": "#e7e2d9",
+                        "on-error": "#ffffff",
+                        "error": "#ba1a1a",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-container-high": "#ece8df",
+                        "surface": "#fef9f0",
+                        "on-primary-container": "#ffacaf",
+                        "on-tertiary-fixed": "#221b0d",
+                        "on-secondary-fixed": "#1b1c1c",
+                        "outline": "#897272",
+                        "on-primary-fixed": "#40000c",
+                        "outline-variant": "#dcc0c0",
+                        "surface-bright": "#fef9f0",
+                        "on-tertiary-container": "#cec0ab",
+                        "on-tertiary": "#ffffff",
+                        "primary-container": "#8c2f39",
+                        "surface-tint": "#9f3e47",
+                        "on-error-container": "#93000a",
+                        "tertiary-container": "#584e3e",
+                        "inverse-on-surface": "#f5f0e7",
+                        "secondary": "#5f5e5e",
+                        "secondary-fixed": "#e4e2e1",
+                        "secondary-fixed-dim": "#c8c6c5",
+                        "tertiary-fixed": "#efe1cb",
+                        "on-surface": "#1d1c16",
+                        "on-secondary-fixed-variant": "#474746",
+                        "inverse-surface": "#32302a",
+                        "secondary-container": "#e4e2e1",
+                        "surface-container-low": "#f8f3ea",
+                        "tertiary-fixed-dim": "#d3c5b0",
+                        "surface-dim": "#ded9d1",
+                        "on-surface-variant": "#564242",
+                        "on-secondary": "#ffffff",
+                        "on-background": "#1d1c16",
+                        "inverse-primary": "#ffb3b5",
+                        "surface-container": "#f2ede4",
+                        "primary-fixed": "#ffdada",
+                        "tertiary": "#403728",
+                        "error-container": "#ffdad6",
+                        "primary": "#6d1824",
+                        "background": "#fef9f0",
+                        "surface-container-highest": "#e7e2d9",
+                        "primary-fixed-dim": "#ffb3b5"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0px",
+                        "lg": "0px",
+                        "xl": "0px",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Newsreader", "serif"],
+                        "body": ["Public Sans", "sans-serif"],
+                        "label": ["Public Sans", "sans-serif"]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .grain-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+            opacity: 0.03;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-body selection:bg-primary-fixed selection:text-on-primary-fixed overflow-x-hidden">
+<div class="grain-overlay"></div>
+<!-- Navigation Shell (TopNavBar from JSON) -->
+<header class="bg-[#fef9f0] dark:bg-[#1d1c16] flex justify-between items-center w-full px-8 py-4 max-w-full fixed top-0 z-50">
+<div class="text-2xl font-bold font-['Newsreader'] tracking-tighter text-[#1d1c16] dark:text-[#fef9f0]">THE ARCHIVAL RECORD</div>
+<nav class="hidden md:flex gap-8">
+<a class="font-['Newsreader'] uppercase tracking-widest text-sm text-[#6d1824] dark:text-[#fef9f0] border-b-2 border-[#6d1824] pb-1 hover:text-[#6d1824] dark:hover:text-[#fef9f0] transition-colors duration-300" href="#">Dossiers</a>
+<a class="font-['Newsreader'] uppercase tracking-widest text-sm text-[#5f5e5e] dark:text-[#a8a7a7] pb-1 hover:text-[#6d1824] dark:hover:text-[#fef9f0] transition-colors duration-300" href="#">Timeline</a>
+<a class="font-['Newsreader'] uppercase tracking-widest text-sm text-[#5f5e5e] dark:text-[#a8a7a7] pb-1 hover:text-[#6d1824] dark:hover:text-[#fef9f0] transition-colors duration-300" href="#">Maps</a>
+<a class="font-['Newsreader'] uppercase tracking-widest text-sm text-[#5f5e5e] dark:text-[#a8a7a7] pb-1 hover:text-[#6d1824] dark:hover:text-[#fef9f0] transition-colors duration-300" href="#">Classified</a>
+</nav>
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-[#1d1c16] dark:text-[#fef9f0] cursor-pointer" data-icon="account_circle">account_circle</span>
+</div>
+</header>
+<!-- SideNavBar (from JSON) -->
+<aside class="fixed left-0 top-0 h-full z-40 flex flex-col pt-24 bg-[#f2ede4] dark:bg-[#1d1c16] w-64 hidden lg:flex">
+<div class="px-8 mb-12">
+<div class="font-['Newsreader'] text-xl italic text-[#403728]">PROJECT: RECORD</div>
+<div class="font-['Public_Sans'] text-[10px] font-bold uppercase tracking-tighter opacity-60">FILE NO. 1914-1945</div>
+</div>
+<div class="flex flex-col gap-1">
+<div class="text-[#5f5e5e] dark:text-[#a8a7a7] px-4 py-3 hover:bg-[#e8e3da] dark:hover:bg-[#2d2c26] font-['Public_Sans'] text-xs font-bold uppercase tracking-tighter flex items-center gap-3">
+<span class="material-symbols-outlined scale-75" data-icon="folder_open">folder_open</span> Introduction
+            </div>
+<div class="bg-[#fef9f0] dark:bg-[#2d2c26] text-[#6d1824] dark:text-[#f8f3ea] border-l-4 border-[#6d1824] px-4 py-3 ml-2 rounded-l-md font-['Public_Sans'] text-xs font-bold uppercase tracking-tighter flex items-center gap-3 translate-x-1 transition-transform">
+<span class="material-symbols-outlined scale-75" data-icon="history_edu">history_edu</span> Origins
+            </div>
+<div class="text-[#5f5e5e] dark:text-[#a8a7a7] px-4 py-3 hover:bg-[#e8e3da] dark:hover:bg-[#2d2c26] font-['Public_Sans'] text-xs font-bold uppercase tracking-tighter flex items-center gap-3">
+<span class="material-symbols-outlined scale-75" data-icon="military_tech">military_tech</span> Conflict
+            </div>
+<div class="text-[#5f5e5e] dark:text-[#a8a7a7] px-4 py-3 hover:bg-[#e8e3da] dark:hover:bg-[#2d2c26] font-['Public_Sans'] text-xs font-bold uppercase tracking-tighter flex items-center gap-3">
+<span class="material-symbols-outlined scale-75" data-icon="public">public</span> Aftermath
+            </div>
+<div class="text-[#5f5e5e] dark:text-[#a8a7a7] px-4 py-3 hover:bg-[#e8e3da] dark:hover:bg-[#2d2c26] font-['Public_Sans'] text-xs font-bold uppercase tracking-tighter flex items-center gap-3">
+<span class="material-symbols-outlined scale-75" data-icon="inventory_2">inventory_2</span> Sources
+            </div>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="lg:ml-64 pt-24 pb-24 min-h-screen px-6 md:px-12 max-w-[1440px] mx-auto">
+<!-- Heading Section -->
+<header class="mb-16 mt-12 max-w-4xl">
+<div class="inline-block bg-primary text-on-primary px-3 py-1 mb-6 text-[10px] font-bold tracking-[0.2em] uppercase">Comparative Dossier: Vol 04</div>
+<h1 class="font-headline text-5xl md:text-7xl font-bold tracking-tighter leading-[0.9] text-on-surface mb-6 uppercase">
+                Comparative Ideologies and Alliances
+            </h1>
+<p class="font-body text-on-surface-variant max-w-2xl text-lg leading-relaxed">
+                An objective examination of the philosophical foundations, geopolitical structures, and strategic alliances that defined the two primary belligerent blocs of the mid-20th century conflict.
+            </p>
+</header>
+<!-- Split Layout Comparison -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-0 relative border-t border-b border-outline-variant border-opacity-20">
+<!-- Central Divider (Stark) -->
+<div class="hidden md:block absolute left-1/2 top-0 bottom-0 w-[1px] bg-outline-variant opacity-30 z-10"></div>
+<!-- Allied Powers Column -->
+<section class="py-12 md:pr-12 border-b md:border-b-0 border-outline-variant border-opacity-20">
+<div class="flex items-center gap-4 mb-10">
+<span class="material-symbols-outlined text-primary text-3xl" data-icon="account_balance">account_balance</span>
+<h2 class="font-headline text-3xl font-bold uppercase tracking-tight">The Allied Powers</h2>
+</div>
+<!-- Portrait Artifact -->
+<div class="aspect-[16/9] mb-8 bg-surface-container-highest relative overflow-hidden group border border-outline-variant border-opacity-10">
+<img alt="Historic Portrait Placeholder" class="w-full h-full object-cover grayscale brightness-90 group-hover:sepia transition-all duration-700" data-alt="Gritty historical black and white composite of 1940s world leaders and a weathered map background with ink stains" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAzEsPvrL4irS0PPaRmXkOTcKc8jA5NARrc_wllPI9WW1UwNXf_yIbsXTkNP-GStpxn4oAAqNIV7mQQN4Yxn8s9DtyBK2QupuBCB91a3Qu4mPWH7Au0_5tglgJNfOd0LXDBpQ0tnkq4B6OR-3WRoGLL35NyPgxmQs3M-pCM6dQs33ofXaub2zmVikxNw-IwWyqTaxrPrSiAswJSiX5maXhhOQUVcH_CfZIydJO6DhHi4xQydE844p2F7VBhWXVzz5Wa1kd95AwBmXA"/>
+<div class="absolute bottom-4 left-4 bg-surface px-4 py-2 shadow-sm">
+<span class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant italic">Ref: Archive-A1941</span>
+</div>
+</div>
+<div class="space-y-12">
+<div class="space-y-4">
+<h3 class="font-label text-xs font-extrabold uppercase tracking-widest text-primary">Core Ideologies</h3>
+<p class="font-body text-on-surface leading-relaxed">
+                            Primarily rooted in <span class="font-bold">Liberal Democracy</span>, the preservation of national sovereignty, and the containment of expansionist totalitarian regimes. Later codified in the Atlantic Charter.
+                        </p>
+</div>
+<div class="space-y-4">
+<h3 class="font-label text-xs font-extrabold uppercase tracking-widest text-primary">Key Belligerents</h3>
+<ul class="font-body text-on-surface space-y-6">
+<li class="pl-4 border-l-2 border-primary-container">
+<span class="block font-bold uppercase text-sm">United Kingdom</span>
+<span class="text-on-surface-variant text-sm italic">Status: Constitutional Monarchy</span>
+</li>
+<li class="pl-4 border-l-2 border-primary-container">
+<span class="block font-bold uppercase text-sm">United States</span>
+<span class="text-on-surface-variant text-sm italic">Status: Federal Republic</span>
+</li>
+<li class="pl-4 border-l-2 border-primary-container">
+<span class="block font-bold uppercase text-sm">Soviet Union</span>
+<span class="text-on-surface-variant text-sm italic">Status: Marxist-Leninist State (Strategic Alignment)</span>
+</li>
+</ul>
+</div>
+<div class="bg-surface-container-low p-8 border-l-4 border-primary">
+<h3 class="font-label text-xs font-extrabold uppercase tracking-widest text-primary mb-4 italic">Strategic Mandate</h3>
+<p class="font-headline text-xl italic leading-snug">
+                            "The establishment of a wider and permanent system of general security."
+                        </p>
+</div>
+</div>
+</section>
+<!-- Axis Powers Column -->
+<section class="py-12 md:pl-12">
+<div class="flex items-center gap-4 mb-10">
+<span class="material-symbols-outlined text-tertiary text-3xl" data-icon="military_tech">military_tech</span>
+<h2 class="font-headline text-3xl font-bold uppercase tracking-tight text-on-surface">The Axis Powers</h2>
+</div>
+<!-- Portrait Artifact -->
+<div class="aspect-[16/9] mb-8 bg-surface-container-highest relative overflow-hidden group border border-outline-variant border-opacity-10">
+<img alt="Historic Portrait Placeholder" class="w-full h-full object-cover grayscale brightness-75 group-hover:sepia transition-all duration-700" data-alt="Close up of a weathered vintage typewriter with a German document in the background and dramatic low-key lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCz4-byVFbWNX87ER0Sqa-7yhrMATSpwOOWvurLNuc6dCG5kwdhARitOSTlFVkCoW_s3aPihE-5Cf_RJzUKDwOGS1fJGBWqiIOSIuIS0mkVYBNe73Eaf7KRHRNQlUz3IY7vIk2MZhDKrFGH5_EdZ75eqiAhQenuUtfyq0A-lkkMe7MNIdD17_bsXq_O-9ymvUPlMGGLBWpJJ0vPYgP4oM_EW_3kY8eL9tbgnWBhIPklpLvkcrDONoBpn_2S5rtHQUfF80p3qSBvMoA"/>
+<div class="absolute bottom-4 left-4 bg-surface px-4 py-2 shadow-sm">
+<span class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant italic">Ref: Classified-X1940</span>
+</div>
+</div>
+<div class="space-y-12">
+<div class="space-y-4">
+<h3 class="font-label text-xs font-extrabold uppercase tracking-widest text-tertiary">Core Ideologies</h3>
+<p class="font-body text-on-surface leading-relaxed">
+                            Centered on <span class="font-bold">Authoritarianism</span>, extreme nationalism, and racial purity. Characterized by military expansionism under the "Lebensraum" and "Greater East Asia Co-Prosperity" doctrines.
+                        </p>
+</div>
+<div class="space-y-4">
+<h3 class="font-label text-xs font-extrabold uppercase tracking-widest text-tertiary">Key Belligerents</h3>
+<ul class="font-body text-on-surface space-y-6">
+<li class="pl-4 border-l-2 border-tertiary">
+<span class="block font-bold uppercase text-sm">Germany</span>
+<span class="text-on-surface-variant text-sm italic">Status: National Socialist Dictatorship</span>
+</li>
+<li class="pl-4 border-l-2 border-tertiary">
+<span class="block font-bold uppercase text-sm">Italy</span>
+<span class="text-on-surface-variant text-sm italic">Status: Fascist Regime</span>
+</li>
+<li class="pl-4 border-l-2 border-tertiary">
+<span class="block font-bold uppercase text-sm">Empire of Japan</span>
+<span class="text-on-surface-variant text-sm italic">Status: Military Shogunate/Absolute Monarchy</span>
+</li>
+</ul>
+</div>
+<div class="bg-surface-container-highest p-8 border-l-4 border-tertiary">
+<h3 class="font-label text-xs font-extrabold uppercase tracking-widest text-tertiary mb-4 italic">Strategic Mandate</h3>
+<p class="font-headline text-xl italic leading-snug">
+                            "Recognition and establishment of a new order in Europe and Greater East Asia."
+                        </p>
+</div>
+</div>
+</section>
+</div>
+<!-- Comparative Summary Grid -->
+<section class="mt-24">
+<h3 class="font-headline text-3xl font-bold uppercase mb-12 text-center">Summary Analysis</h3>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+<div class="p-8 bg-surface-container-low border border-outline-variant border-opacity-10">
+<div class="text-primary mb-4"><span class="material-symbols-outlined" data-icon="groups">groups</span></div>
+<h4 class="font-label text-xs font-extrabold uppercase mb-4 tracking-widest">Global Reach</h4>
+<p class="font-body text-sm text-on-surface-variant">The Allied powers controlled vast colonial networks and significant industrial manufacturing bases across North America and Eurasia.</p>
+</div>
+<div class="p-8 bg-surface-container-low border border-outline-variant border-opacity-10">
+<div class="text-primary mb-4"><span class="material-symbols-outlined" data-icon="architecture">architecture</span></div>
+<h4 class="font-label text-xs font-extrabold uppercase mb-4 tracking-widest">Internal Cohesion</h4>
+<p class="font-body text-sm text-on-surface-variant">Allied cooperation was often fractious, particularly between Western democracies and the USSR, while Axis cohesion was largely transactional.</p>
+</div>
+<div class="p-8 bg-surface-container-low border border-outline-variant border-opacity-10">
+<div class="text-primary mb-4"><span class="material-symbols-outlined" data-icon="timeline">timeline</span></div>
+<h4 class="font-label text-xs font-extrabold uppercase mb-4 tracking-widest">Post-War Vision</h4>
+<p class="font-body text-sm text-on-surface-variant">The Allies prioritized a new global institutional framework (UN), while the Axis sought a permanent division of the world into regional spheres of influence.</p>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer (from JSON) -->
+<footer class="bg-[#fef9f0] dark:bg-[#1d1c16] fixed bottom-0 left-0 w-full flex justify-between items-center px-12 py-6 z-50 border-t border-[#ded9d1] dark:border-[#403728] border-opacity-20">
+<div class="font-['Public_Sans'] text-[10px] tracking-widest uppercase opacity-60 text-[#5f5e5e] dark:text-[#a8a7a7]">
+            PROPERTY OF <span class="font-bold text-[#6d1824]">THE ARCHIVAL RECORD</span> // CLASSIFIED
+        </div>
+<div class="flex gap-8">
+<a class="font-['Public_Sans'] text-[10px] tracking-widest uppercase opacity-60 text-[#5f5e5e] dark:text-[#a8a7a7] no-underline hover:opacity-100 transition-opacity" href="#">Access Record</a>
+<a class="font-['Public_Sans'] text-[10px] tracking-widest uppercase opacity-60 text-[#5f5e5e] dark:text-[#a8a7a7] no-underline hover:opacity-100 transition-opacity" href="#">Citation Guide</a>
+<a class="font-['Public_Sans'] text-[10px] tracking-widest uppercase opacity-60 text-[#5f5e5e] dark:text-[#a8a7a7] no-underline hover:opacity-100 transition-opacity" href="#">Full Index</a>
+</div>
+</footer>
+</body></html>
+
+<!-- Section Header - WWII -->
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&amp;family=Public+Sans:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-tertiary-fixed-variant": "#4f4635",
+                    "on-secondary-container": "#656464",
+                    "on-primary-fixed-variant": "#802631",
+                    "on-primary": "#ffffff",
+                    "surface-variant": "#e7e2d9",
+                    "on-error": "#ffffff",
+                    "error": "#ba1a1a",
+                    "surface-container-lowest": "#ffffff",
+                    "surface-container-high": "#ece8df",
+                    "surface": "#fef9f0",
+                    "on-primary-container": "#ffacaf",
+                    "on-tertiary-fixed": "#221b0d",
+                    "on-secondary-fixed": "#1b1c1c",
+                    "outline": "#897272",
+                    "on-primary-fixed": "#40000c",
+                    "outline-variant": "#dcc0c0",
+                    "surface-bright": "#fef9f0",
+                    "on-tertiary-container": "#cec0ab",
+                    "on-tertiary": "#ffffff",
+                    "primary-container": "#8c2f39",
+                    "surface-tint": "#9f3e47",
+                    "on-error-container": "#93000a",
+                    "tertiary-container": "#584e3e",
+                    "inverse-on-surface": "#f5f0e7",
+                    "secondary": "#5f5e5e",
+                    "secondary-fixed": "#e4e2e1",
+                    "secondary-fixed-dim": "#c8c6c5",
+                    "tertiary-fixed": "#efe1cb",
+                    "on-surface": "#1d1c16",
+                    "on-secondary-fixed-variant": "#474746",
+                    "inverse-surface": "#32302a",
+                    "secondary-container": "#e4e2e1",
+                    "surface-container-low": "#f8f3ea",
+                    "tertiary-fixed-dim": "#d3c5b0",
+                    "surface-dim": "#ded9d1",
+                    "on-surface-variant": "#564242",
+                    "on-secondary": "#ffffff",
+                    "on-background": "#1d1c16",
+                    "inverse-primary": "#ffb3b5",
+                    "surface-container": "#f2ede4",
+                    "primary-fixed": "#ffdada",
+                    "tertiary": "#403728",
+                    "error-container": "#ffdad6",
+                    "primary": "#6d1824",
+                    "background": "#fef9f0",
+                    "surface-container-highest": "#e7e2d9",
+                    "primary-fixed-dim": "#ffb3b5"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0rem",
+                    "lg": "0rem",
+                    "xl": "0rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Newsreader"],
+                    "body": ["Public Sans"],
+                    "label": ["Public Sans"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .paper-grain {
+            position: relative;
+        }
+        .paper-grain::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            opacity: 0.04;
+            pointer-events: none;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+            z-index: 10;
+        }
+        .asymmetric-clip {
+            clip-path: polygon(0 0, 100% 0, 95% 100%, 0% 100%);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body selection:bg-primary-container selection:text-on-primary-container paper-grain min-h-screen">
+<!-- TopNavBar Component -->
+<nav class="fixed top-0 left-0 w-full z-50 bg-[#fef9f0] dark:bg-[#1d1c16] flex justify-between items-center px-8 py-4 max-w-full">
+<div class="text-2xl font-bold font-headline tracking-tighter text-[#1d1c16] dark:text-[#fef9f0]">THE ARCHIVAL RECORD</div>
+<div class="hidden md:flex items-center gap-8">
+<a class="font-headline uppercase tracking-widest text-sm text-[#5f5e5e] dark:text-[#a8a7a7] pb-1 hover:text-[#6d1824] dark:hover:text-[#fef9f0] transition-colors duration-300" href="#">Dossiers</a>
+<a class="font-headline uppercase tracking-widest text-sm text-[#6d1824] dark:text-[#fef9f0] border-b-2 border-[#6d1824] pb-1 hover:text-[#6d1824] dark:hover:text-[#fef9f0] transition-colors duration-300" href="#">Timeline</a>
+<a class="font-headline uppercase tracking-widest text-sm text-[#5f5e5e] dark:text-[#a8a7a7] pb-1 hover:text-[#6d1824] dark:hover:text-[#fef9f0] transition-colors duration-300" href="#">Maps</a>
+<a class="font-headline uppercase tracking-widest text-sm text-[#5f5e5e] dark:text-[#a8a7a7] pb-1 hover:text-[#6d1824] dark:hover:text-[#fef9f0] transition-colors duration-300" href="#">Classified</a>
+</div>
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-primary cursor-pointer">account_circle</span>
+</div>
+</nav>
+<!-- SideNavBar Component -->
+<aside class="fixed left-0 top-0 h-full z-40 flex flex-col pt-24 bg-[#f2ede4] dark:bg-[#1d1c16] w-64 translate-x-[-100%] lg:translate-x-0 transition-transform duration-500">
+<div class="px-6 mb-12">
+<div class="font-headline text-xl italic text-[#403728]">PROJECT: RECORD</div>
+<div class="font-body text-xs font-bold uppercase tracking-tighter text-[#6d1824] dark:text-[#fef9f0]">FILE NO. 1914-1945</div>
+</div>
+<nav class="flex flex-col gap-1">
+<a class="flex items-center gap-3 text-[#5f5e5e] dark:text-[#a8a7a7] px-4 py-3 font-body text-xs font-bold uppercase tracking-tighter hover:bg-[#e8e3da] dark:hover:bg-[#2d2c26] transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="folder_open">folder_open</span>
+                Introduction
+            </a>
+<a class="flex items-center gap-3 text-[#5f5e5e] dark:text-[#a8a7a7] px-4 py-3 font-body text-xs font-bold uppercase tracking-tighter hover:bg-[#e8e3da] dark:hover:bg-[#2d2c26] transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="history_edu">history_edu</span>
+                Origins
+            </a>
+<a class="flex items-center gap-3 bg-[#fef9f0] dark:bg-[#2d2c26] text-[#6d1824] dark:text-[#f8f3ea] border-l-4 border-[#6d1824] px-4 py-3 ml-2 rounded-l-md font-body text-xs font-bold uppercase tracking-tighter translate-x-1 transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="military_tech">military_tech</span>
+                Conflict
+            </a>
+<a class="flex items-center gap-3 text-[#5f5e5e] dark:text-[#a8a7a7] px-4 py-3 font-body text-xs font-bold uppercase tracking-tighter hover:bg-[#e8e3da] dark:hover:bg-[#2d2c26] transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="public">public</span>
+                Aftermath
+            </a>
+<a class="flex items-center gap-3 text-[#5f5e5e] dark:text-[#a8a7a7] px-4 py-3 font-body text-xs font-bold uppercase tracking-tighter hover:bg-[#e8e3da] dark:hover:bg-[#2d2c26] transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="inventory_2">inventory_2</span>
+                Sources
+            </a>
+</nav>
+</aside>
+<!-- Main Content: Chapter Slide -->
+<main class="lg:pl-64 min-h-screen pt-16 flex flex-col items-center justify-center">
+<!-- Full-Bleed Map Section -->
+<section class="relative w-full h-[870px] overflow-hidden flex items-center justify-center px-8 lg:px-24">
+<!-- Map Background with Artifact Frame logic -->
+<div class="absolute inset-0 z-0">
+<img alt="Map of Europe theater" class="w-full h-full object-cover filter grayscale sepia brightness-[0.85] contrast-[1.1]" data-alt="Large-scale muted archival 1940s vintage military map of the European theater on yellowed paper with ink markings and faded borders" data-location="Europe" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAlfrMDZPqOJjV_KaqaNEB2-zdnSl5jfS4bel-wI_Dwh_uU85k9Y_W77pgSMtSyD3k9GMFVKNHjTr79GYWoAjkkEu7MjJaVmTl_kXzyIrtJv5_54pFlwLGkc7Bm8Rwil_Xb3LcciqfqNYSC2xIXSUVeloFsPyipxSgy_TBokSu3EbyDPBmU88z15xyZqztyBZlnbO-kJPZYLrRFddlSFvY9SggH9ngPsK1PAuIXb5tJsP2z41FDZorxH5ELDjmlj4GXt3v6fhAis8E"/>
+<!-- Tonal Overlay for Text Legibility -->
+<div class="absolute inset-0 bg-surface/40 backdrop-blur-[2px]"></div>
+</div>
+<!-- Impactful Header Layout (Asymmetric) -->
+<div class="relative z-20 w-full max-w-7xl flex flex-col md:flex-row items-start md:items-end justify-between gap-12">
+<div class="flex flex-col max-w-2xl">
+<span class="font-body text-sm font-bold uppercase tracking-[0.4em] text-primary mb-4 block">Archive Classification: 1939 — 1945</span>
+<h1 class="font-headline text-6xl md:text-8xl lg:text-9xl font-black text-on-background tracking-tighter leading-[0.85] uppercase">
+                        CHAPTER II:<br/>
+<span class="text-primary italic">GLOBAL</span><br/>
+                        CONFLAGRATION
+                    </h1>
+</div>
+<div class="md:w-1/3 flex flex-col gap-6 md:mb-12">
+<div class="h-[2px] w-16 bg-primary"></div>
+<p class="font-body text-sm leading-relaxed text-on-surface-variant max-w-xs">
+                        The definitive record of the mobilization, campaigns, and strategic shifting of borders across the European continent. Verified through Department 4 archives.
+                    </p>
+<button class="w-fit px-8 py-4 bg-primary text-on-primary font-body text-xs font-bold uppercase tracking-widest shadow-inner hover:opacity-90 transition-opacity">
+                        Enter Dossier
+                    </button>
+</div>
+</div>
+<!-- Technical Data Watermark (Stark Archival Detail) -->
+<div class="absolute bottom-12 right-12 z-20 hidden md:block text-right">
+<p class="font-body text-[10px] uppercase tracking-widest text-on-surface/40 leading-tight">
+                    Reference Map 044-B<br/>
+                    Strategic Deployment Grid<br/>
+                    Restricted Access
+                </p>
+</div>
+</section>
+<!-- Secondary Context Grid (Bento/Asymmetric) -->
+<section class="w-full max-w-7xl px-8 lg:px-24 py-32 grid grid-cols-1 md:grid-cols-12 gap-8 bg-surface">
+<div class="md:col-span-7 flex flex-col justify-center">
+<h2 class="font-headline text-4xl md:text-5xl font-bold tracking-tight mb-8 text-on-surface">The Geography of Total War</h2>
+<div class="flex flex-col gap-12 border-l border-primary/20 pl-8">
+<div class="space-y-2">
+<span class="font-body text-xs font-bold text-primary uppercase tracking-widest">Document 201</span>
+<p class="font-body text-lg text-on-surface-variant leading-relaxed italic">
+                            "The maps were not merely paper; they were the fluid blueprints of a world being dismantled and reconstructed in real-time."
+                        </p>
+</div>
+<p class="font-body text-sm text-secondary leading-loose max-w-lg">
+                        Our digital archive restores the original clarity of military cartography. Each line represents a verified movement of the front, meticulously cross-referenced with telegrams and field reports from the front lines of the 1940s.
+                    </p>
+</div>
+</div>
+<div class="md:col-span-5 relative group">
+<div class="bg-surface-container-highest p-4">
+<img alt="Historical Portrait" class="w-full aspect-[3/4] object-cover grayscale transition-all duration-700 group-hover:sepia" data-alt="Close-up archival portrait of a high-ranking military officer in 1940s uniform, grainy black and white film texture, intense gaze" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBh7Zv2oyoml5wzhSgmFj3OeEtKa-GQgVnAPyLGX6ZO4E-7fQVG8KNgNm6iEQG0mYrlYLoMARC-HwlYcF4lfcdCYncps-RwZ3QxfPpLa5iIIEtuEqAEjj5tIt1u66v2_iWfnMAlLa-axzjqGrxt2VOBT3fam0sJaC0n2hNngq04RHUrjb_OKzPYAWXXsooOITjN7JnYHvPOl-E--wGNtHplWQzWAIKJVCjTfPiQmoBxVWl3BBq0NkR9CH7wgFHuU_5EMNemcUfgUxs"/>
+</div>
+<div class="absolute -bottom-6 -left-6 bg-surface p-4 shadow-sm max-w-[200px]">
+<span class="font-body text-[10px] font-bold uppercase tracking-widest text-primary">Biographical Entry</span>
+<p class="font-headline text-sm italic text-on-surface mt-1">Field Marshall Identification File</p>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer Component -->
+<footer class="fixed bottom-0 left-0 w-full flex justify-between items-center px-12 py-6 z-50 bg-[#fef9f0] dark:bg-[#1d1c16] border-t border-[#ded9d1] dark:border-[#403728] border-opacity-20">
+<div class="font-body text-[10px] tracking-widest uppercase opacity-60 text-[#5f5e5e] dark:text-[#a8a7a7]">
+            PROPERTY OF <span class="font-bold text-[#6d1824]">THE ARCHIVAL RECORD</span> // CLASSIFIED
+        </div>
+<div class="flex gap-8">
+<a class="font-body text-[10px] tracking-widest uppercase opacity-60 text-[#5f5e5e] dark:text-[#a8a7a7] no-underline hover:opacity-100 transition-opacity" href="#">Access Record</a>
+<a class="font-body text-[10px] tracking-widest uppercase opacity-60 text-[#5f5e5e] dark:text-[#a8a7a7] no-underline hover:opacity-100 transition-opacity" href="#">Citation Guide</a>
+<a class="font-body text-[10px] tracking-widest uppercase opacity-60 text-[#5f5e5e] dark:text-[#a8a7a7] no-underline hover:opacity-100 transition-opacity" href="#">Full Index</a>
+</div>
+</footer>
+</body></html>
+
+<!-- Content Slide - WWI Technologies -->
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>The Archival Record - The Dawn of Modern Warfare</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&amp;family=Public+Sans:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "on-tertiary-fixed-variant": "#4f4635",
+            "on-secondary-container": "#656464",
+            "on-primary-fixed-variant": "#802631",
+            "on-primary": "#ffffff",
+            "surface-variant": "#e7e2d9",
+            "on-error": "#ffffff",
+            "error": "#ba1a1a",
+            "surface-container-lowest": "#ffffff",
+            "surface-container-high": "#ece8df",
+            "surface": "#fef9f0",
+            "on-primary-container": "#ffacaf",
+            "on-tertiary-fixed": "#221b0d",
+            "on-secondary-fixed": "#1b1c1c",
+            "outline": "#897272",
+            "on-primary-fixed": "#40000c",
+            "outline-variant": "#dcc0c0",
+            "surface-bright": "#fef9f0",
+            "on-tertiary-container": "#cec0ab",
+            "on-tertiary": "#ffffff",
+            "primary-container": "#8c2f39",
+            "surface-tint": "#9f3e47",
+            "on-error-container": "#93000a",
+            "tertiary-container": "#584e3e",
+            "inverse-on-surface": "#f5f0e7",
+            "secondary": "#5f5e5e",
+            "secondary-fixed": "#e4e2e1",
+            "secondary-fixed-dim": "#c8c6c5",
+            "tertiary-fixed": "#efe1cb",
+            "on-surface": "#1d1c16",
+            "on-secondary-fixed-variant": "#474746",
+            "inverse-surface": "#32302a",
+            "secondary-container": "#e4e2e1",
+            "surface-container-low": "#f8f3ea",
+            "tertiary-fixed-dim": "#d3c5b0",
+            "surface-dim": "#ded9d1",
+            "on-surface-variant": "#564242",
+            "on-secondary": "#ffffff",
+            "on-background": "#1d1c16",
+            "inverse-primary": "#ffb3b5",
+            "surface-container": "#f2ede4",
+            "primary-fixed": "#ffdada",
+            "tertiary": "#403728",
+            "error-container": "#ffdad6",
+            "primary": "#6d1824",
+            "background": "#fef9f0",
+            "surface-container-highest": "#e7e2d9",
+            "primary-fixed-dim": "#ffb3b5"
+          },
+          "fontFamily": {
+            "headline": ["Newsreader", "serif"],
+            "body": ["Public Sans", "sans-serif"],
+            "label": ["Public Sans", "sans-serif"]
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+    .grain-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 9999;
+      opacity: 0.03;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+    }
+    .historical-photo {
+      filter: grayscale(100%) contrast(120%) brightness(90%);
+      transition: filter 0.5s ease;
+    }
+    .historical-photo:hover {
+      filter: grayscale(0%) sepia(20%) contrast(110%);
+    }
+  </style>
+</head>
+<body class="bg-background text-on-surface font-body selection:bg-primary-container selection:text-on-primary-container">
+<div class="grain-overlay"></div>
+<!-- Top Navigation (Shell) -->
+<nav class="fixed top-0 left-0 w-full z-50 bg-[#fef9f0] dark:bg-[#1d1c16] flex justify-between items-center px-8 py-4 max-w-full">
+<div class="text-2xl font-bold font-['Newsreader'] tracking-tighter text-[#1d1c16] dark:text-[#fef9f0]">THE ARCHIVAL RECORD</div>
+<div class="hidden md:flex gap-8 font-['Newsreader'] uppercase tracking-widest text-sm">
+<a class="text-[#6d1824] dark:text-[#fef9f0] border-b-2 border-[#6d1824] pb-1 hover:text-[#6d1824] transition-colors duration-300" href="#">Dossiers</a>
+<a class="text-[#5f5e5e] dark:text-[#a8a7a7] pb-1 hover:text-[#6d1824] transition-colors duration-300" href="#">Timeline</a>
+<a class="text-[#5f5e5e] dark:text-[#a8a7a7] pb-1 hover:text-[#6d1824] transition-colors duration-300" href="#">Maps</a>
+<a class="text-[#5f5e5e] dark:text-[#a8a7a7] pb-1 hover:text-[#6d1824] transition-colors duration-300" href="#">Classified</a>
+</div>
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-[#6d1824] cursor-pointer">account_circle</span>
+</div>
+</nav>
+<!-- Side Navigation (Shell) -->
+<aside class="fixed left-0 top-0 h-full z-40 flex flex-col pt-20 bg-[#f2ede4] dark:bg-[#1d1c16] w-64 border-r-0">
+<div class="px-6 mb-8">
+<h2 class="font-['Newsreader'] text-xl italic text-[#403728]">PROJECT: RECORD</h2>
+<p class="font-['Public_Sans'] text-xs font-bold uppercase tracking-tighter text-[#5f5e5e]">FILE NO. 1914-1945</p>
+</div>
+<div class="flex flex-col gap-1">
+<div class="bg-[#fef9f0] dark:bg-[#2d2c26] text-[#6d1824] dark:text-[#f8f3ea] border-l-4 border-[#6d1824] px-4 py-3 ml-2 rounded-l-md flex items-center gap-3 font-['Public_Sans'] text-xs font-bold uppercase tracking-tighter translate-x-1 transition-transform cursor-pointer">
+<span class="material-symbols-outlined text-lg">folder_open</span>
+<span>Introduction</span>
+</div>
+<div class="text-[#5f5e5e] dark:text-[#a8a7a7] px-4 py-3 mx-2 hover:bg-[#e8e3da] dark:hover:bg-[#2d2c26] flex items-center gap-3 font-['Public_Sans'] text-xs font-bold uppercase tracking-tighter transition-colors cursor-pointer">
+<span class="material-symbols-outlined text-lg">history_edu</span>
+<span>Origins</span>
+</div>
+<div class="text-[#5f5e5e] dark:text-[#a8a7a7] px-4 py-3 mx-2 hover:bg-[#e8e3da] dark:hover:bg-[#2d2c26] flex items-center gap-3 font-['Public_Sans'] text-xs font-bold uppercase tracking-tighter transition-colors cursor-pointer">
+<span class="material-symbols-outlined text-lg">military_tech</span>
+<span>Conflict</span>
+</div>
+<div class="text-[#5f5e5e] dark:text-[#a8a7a7] px-4 py-3 mx-2 hover:bg-[#e8e3da] dark:hover:bg-[#2d2c26] flex items-center gap-3 font-['Public_Sans'] text-xs font-bold uppercase tracking-tighter transition-colors cursor-pointer">
+<span class="material-symbols-outlined text-lg">public</span>
+<span>Aftermath</span>
+</div>
+<div class="text-[#5f5e5e] dark:text-[#a8a7a7] px-4 py-3 mx-2 hover:bg-[#e8e3da] dark:hover:bg-[#2d2c26] flex items-center gap-3 font-['Public_Sans'] text-xs font-bold uppercase tracking-tighter transition-colors cursor-pointer">
+<span class="material-symbols-outlined text-lg">inventory_2</span>
+<span>Sources</span>
+</div>
+</div>
+</aside>
+<!-- Main Canvas -->
+<main class="ml-64 pt-24 pb-20 px-12 min-h-screen">
+<!-- Presentation Slide Container -->
+<div class="max-w-6xl mx-auto grid grid-cols-12 gap-12 mt-16">
+<!-- Left Column: Imagery & Asymmetry -->
+<div class="col-span-12 lg:col-span-5 relative">
+<div class="bg-surface-container-highest p-1 shadow-sm mb-12">
+<img alt="A heavy armored tank traversing a muddy battlefield with debris" class="historical-photo w-full aspect-[4/5] object-cover" data-alt="dramatic high-contrast black and white photograph of a Mark IV tank crossing a shell-shocked muddy landscape in 1917" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAZlCTIH5HdDfHpeosritK7v95-KqNulgx0hU5G-FDQasHwQs-j_XlwjytfiavAMu0ogtv80fC_Ru--cLBP45T_VKrHMCLTQJLJ5WJ7m-Pw9i5IseoUeb5itUnouZH3vja6lSNekME1-gU-20jP2HZhSaPZJYi6Rkieg3e9Xw_b5NB1uxZ0CfckjIj5d5Te5B18UTt2PyVSDWF0Yfb-Z6Ah7KLzV-SBTw6UosaFckcoJJ9TQRq36dhmUtimIPiLtfmqnTBjaI8wf8E"/>
+</div>
+<!-- Clipped Note (Archival Note Box) -->
+<div class="absolute -bottom-8 -right-8 w-64 bg-surface-container-low p-6 shadow-xl transform rotate-2 border-l-4 border-primary">
+<div class="flex items-center gap-2 mb-3">
+<span class="material-symbols-outlined text-primary text-sm">push_pin</span>
+<span class="font-label text-[10px] uppercase tracking-widest text-on-surface-variant font-bold">Archival Note</span>
+</div>
+<p class="font-headline text-sm italic leading-relaxed text-tertiary">
+            "The ground itself seemed to rebel. No longer was warfare a test of men, but a test of industrial endurance and chemical resistance."
+          </p>
+<div class="mt-4 pt-4 border-t border-outline-variant opacity-30">
+<p class="font-label text-[8px] uppercase">Field Dispatch #402 / Intelligence Div.</p>
+</div>
+</div>
+</div>
+<!-- Right Column: Text Content -->
+<div class="col-span-12 lg:col-span-7 flex flex-col justify-center">
+<div class="mb-16">
+<span class="font-label text-xs uppercase tracking-[0.4em] text-primary font-black mb-4 block">Volume I: The Great War</span>
+<h1 class="font-headline text-7xl md:text-8xl leading-none tracking-tighter text-on-surface">
+            The Dawn of <br/>Modern Warfare
+          </h1>
+<div class="w-24 h-1 bg-primary mt-8"></div>
+</div>
+<div class="space-y-12 pr-12">
+<!-- Bullet Point 1 -->
+<div class="group border-b border-outline-variant pb-8 last:border-0">
+<div class="flex items-start gap-6">
+<span class="font-headline text-3xl text-primary opacity-40 group-hover:opacity-100 transition-opacity">01.</span>
+<div>
+<h3 class="font-headline text-2xl mb-2 text-on-surface">The Steel Leviathans</h3>
+<p class="font-body text-on-surface-variant text-lg leading-relaxed max-w-md">
+                  Introduction of armored tanks broke the stalemate of the trenches, turning static defense into mechanical maneuver.
+                </p>
+</div>
+</div>
+</div>
+<!-- Bullet Point 2 -->
+<div class="group border-b border-outline-variant pb-8 last:border-0">
+<div class="flex items-start gap-6">
+<span class="font-headline text-3xl text-primary opacity-40 group-hover:opacity-100 transition-opacity">02.</span>
+<div>
+<h3 class="font-headline text-2xl mb-2 text-on-surface">Invisible Death</h3>
+<p class="font-body text-on-surface-variant text-lg leading-relaxed max-w-md">
+                  Chemical agents introduced a terrifying psychological dimension to the front, necessitating the first universal use of respirators.
+                </p>
+</div>
+</div>
+</div>
+<!-- Bullet Point 3 -->
+<div class="group border-b border-outline-variant pb-8 last:border-0">
+<div class="flex items-start gap-6">
+<span class="font-headline text-3xl text-primary opacity-40 group-hover:opacity-100 transition-opacity">03.</span>
+<div>
+<h3 class="font-headline text-2xl mb-2 text-on-surface">Subterranean Grids</h3>
+<p class="font-body text-on-surface-variant text-lg leading-relaxed max-w-md">
+                  Trench warfare redefined the geography of combat, creating elaborate underground cities stretching across entire continents.
+                </p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Additional Artifact Overlay -->
+<section class="mt-32 border-t border-outline-variant pt-20 grid grid-cols-1 md:grid-cols-3 gap-8">
+<div class="bg-surface-container-low p-8 border border-surface-variant">
+<img alt="Antique gas mask on a wooden surface" class="historical-photo w-full h-48 object-cover mb-4" data-alt="studio photograph of a vintage 1910s gas mask with circular glass eye pieces on a weathered wooden desk" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCh5MRE-9TzTL9-Q0b2T9sZMowBo8dtrmTqoL7b1uLPmkeBy5mz2LO6homvB-rINMK-JnE8JEIi18tBnVKmLuf4SuftBywG6YNdZSmQFfGSoBKvAhgVB78aDWbK5dk8g4UdsxIlXTln-cWIrCdoGsXL49OSYIdxZAwAuED7Mc4SOu2bk_Sd7mQZvFMkBmi0eTWOXneJ8l27h3Yhi6r0IS_XvBEvY1h1LyJDZlBVgq6G37m7CHMKOlCflB08O_kyTTs6eof_SFF8EmE"/>
+<h4 class="font-label font-bold text-xs uppercase tracking-widest mb-2">Artifact #GA-19</h4>
+<p class="font-body text-sm text-on-surface-variant">Standard issue protective mask, circa 1915. Recovered from the Somme sector.</p>
+</div>
+<div class="md:col-span-2 flex flex-col justify-end pb-8">
+<div class="max-w-xl">
+<p class="font-headline text-3xl italic text-tertiary mb-6">
+            "We were no longer soldiers, we were technicians of destruction."
+          </p>
+<button class="bg-primary text-on-primary px-8 py-3 font-label text-xs uppercase tracking-[0.2em] font-bold shadow-inner">
+            Examine Classified Documents
+          </button>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer (Shell) -->
+<footer class="fixed bottom-0 left-0 w-full flex justify-between items-center px-12 py-6 z-50 bg-[#fef9f0] dark:bg-[#1d1c16] border-t border-[#ded9d1] dark:border-[#403728] border-opacity-20">
+<div class="font-['Public_Sans'] text-[10px] tracking-widest uppercase opacity-60 text-[#5f5e5e] dark:text-[#a8a7a7]">
+      PROPERTY OF <span class="font-bold text-[#6d1824]">THE ARCHIVAL RECORD</span> // CLASSIFIED
+    </div>
+<div class="flex gap-8 font-['Public_Sans'] text-[10px] tracking-widest uppercase opacity-60">
+<a class="no-underline text-[#5f5e5e] hover:opacity-100 transition-opacity" href="#">Access Record</a>
+<a class="no-underline text-[#5f5e5e] hover:opacity-100 transition-opacity" href="#">Citation Guide</a>
+<a class="no-underline text-[#5f5e5e] hover:opacity-100 transition-opacity" href="#">Full Index</a>
+</div>
+</footer>
+</body></html>
+
+<!-- Title Slide - World War History -->
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&amp;family=Public+Sans:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+                  "on-tertiary-fixed-variant": "#4f4635",
+                  "on-secondary-container": "#656464",
+                  "on-primary-fixed-variant": "#802631",
+                  "on-primary": "#ffffff",
+                  "surface-variant": "#e7e2d9",
+                  "on-error": "#ffffff",
+                  "error": "#ba1a1a",
+                  "surface-container-lowest": "#ffffff",
+                  "surface-container-high": "#ece8df",
+                  "surface": "#fef9f0",
+                  "on-primary-container": "#ffacaf",
+                  "on-tertiary-fixed": "#221b0d",
+                  "on-secondary-fixed": "#1b1c1c",
+                  "outline": "#897272",
+                  "on-primary-fixed": "#40000c",
+                  "outline-variant": "#dcc0c0",
+                  "surface-bright": "#fef9f0",
+                  "on-tertiary-container": "#cec0ab",
+                  "on-tertiary": "#ffffff",
+                  "primary-container": "#8c2f39",
+                  "surface-tint": "#9f3e47",
+                  "on-error-container": "#93000a",
+                  "tertiary-container": "#584e3e",
+                  "inverse-on-surface": "#f5f0e7",
+                  "secondary": "#5f5e5e",
+                  "secondary-fixed": "#e4e2e1",
+                  "secondary-fixed-dim": "#c8c6c5",
+                  "tertiary-fixed": "#efe1cb",
+                  "on-surface": "#1d1c16",
+                  "on-secondary-fixed-variant": "#474746",
+                  "inverse-surface": "#32302a",
+                  "secondary-container": "#e4e2e1",
+                  "surface-container-low": "#f8f3ea",
+                  "tertiary-fixed-dim": "#d3c5b0",
+                  "surface-dim": "#ded9d1",
+                  "on-surface-variant": "#564242",
+                  "on-secondary": "#ffffff",
+                  "on-background": "#1d1c16",
+                  "inverse-primary": "#ffb3b5",
+                  "surface-container": "#f2ede4",
+                  "primary-fixed": "#ffdada",
+                  "tertiary": "#403728",
+                  "error-container": "#ffdad6",
+                  "primary": "#6d1824",
+                  "background": "#fef9f0",
+                  "surface-container-highest": "#e7e2d9",
+                  "primary-fixed-dim": "#ffb3b5"
+          },
+          "borderRadius": {
+                  "DEFAULT": "0px",
+                  "lg": "0px",
+                  "xl": "0px",
+                  "full": "9999px"
+          },
+          "fontFamily": {
+                  "headline": ["Newsreader", "serif"],
+                  "body": ["Public Sans", "sans-serif"],
+                  "label": ["Public Sans", "sans-serif"]
+          }
+        },
+      },
+    }
+  </script>
+<style>body {
+    background-color: #fef9f0;
+    background-image: radial-gradient(at 0% 0%, rgba(109, 24, 36, 0.03) 0, transparent 50%), radial-gradient(at 50% 0%, rgba(64, 55, 40, 0.05) 0, transparent 50%);
+    font-family: "Public Sans", sans-serif
+    }
+.paper-texture {
+    background-image: url(https://lh3.googleusercontent.com/aida-public/AB6AXuAJbLrvEcahMA8Eu0xFayxflu2FwCuSorytwE8_CEQNrxzcZTjY1JQgMTi2Faec0UrOv0fps_0q14SdR3PtVQEH7O4pvyV5k3EGkq2Xa0s2MVOtZSqWNE-VO_xYWX_bRoxSMeompYX_987-AISm7su0rh-fCj-O9_R1tjrGzScPPGjuIhqOygN7fviteCpLuzJTCnOsYMWRxh5dZ_1VgaW6mJhh7ErnqcxyOGsDSBTei4zo1mbxbXzenlXHTr6hawMCv239NOszbW0);
+    opacity: 0.3;
+    pointer-events: none
+    }
+.archival-stamp {
+    border: 4px double #6d1824;
+    color: #6d1824;
+    padding: 8px 16px;
+    transform: rotate(-15deg);
+    opacity: 0.2;
+    font-weight: 800;
+    letter-spacing: 0.1em
+    }
+.material-symbols-outlined {
+    font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24
+    }</style>
+</head>
+<body class="bg-surface text-on-surface min-h-screen relative flex flex-col overflow-x-hidden">
+<div class="fixed inset-0 paper-texture z-0"></div>
+<!-- TopNavBar (Shared Component) -->
+<header class="fixed top-0 left-0 right-0 z-50 bg-[#fef9f0] dark:bg-[#1d1c16] flex justify-between items-center w-full px-8 py-4 max-w-full">
+<div class="text-2xl font-bold font-['Newsreader'] tracking-tighter text-[#1d1c16] dark:text-[#fef9f0]">
+      THE ARCHIVAL RECORD
+    </div>
+<nav class="hidden md:flex gap-8 items-center">
+<a class="font-['Newsreader'] uppercase tracking-widest text-sm text-[#5f5e5e] dark:text-[#a8a7a7] pb-1 hover:text-[#6d1824] dark:hover:text-[#fef9f0] transition-colors duration-300" href="#">Dossiers</a>
+<a class="font-['Newsreader'] uppercase tracking-widest text-sm text-[#5f5e5e] dark:text-[#a8a7a7] pb-1 hover:text-[#6d1824] dark:hover:text-[#fef9f0] transition-colors duration-300" href="#">Timeline</a>
+<a class="font-['Newsreader'] uppercase tracking-widest text-sm text-[#5f5e5e] dark:text-[#a8a7a7] pb-1 hover:text-[#6d1824] dark:hover:text-[#fef9f0] transition-colors duration-300" href="#">Maps</a>
+<a class="font-['Newsreader'] uppercase tracking-widest text-sm text-[#5f5e5e] dark:text-[#a8a7a7] pb-1 hover:text-[#6d1824] dark:hover:text-[#fef9f0] transition-colors duration-300" href="#">Classified</a>
+</nav>
+<div class="flex items-center gap-4 text-[#6d1824]">
+<span class="material-symbols-outlined cursor-pointer" data-icon="account_circle">account_circle</span>
+</div>
+</header>
+<!-- SideNavBar (Shared Component - Specific to Archive Management) -->
+<aside class="fixed left-0 top-0 h-full z-40 flex flex-col pt-24 bg-[#f2ede4] dark:bg-[#1d1c16] h-full w-64 border-r-0 hidden lg:flex">
+<div class="px-8 mb-12">
+<div class="font-['Newsreader'] text-xl italic text-[#403728]">PROJECT: RECORD</div>
+<div class="font-['Public_Sans'] text-xs font-bold uppercase tracking-tighter text-[#5f5e5e]">FILE NO. 1914-1945</div>
+</div>
+<nav class="flex flex-col flex-1">
+<a class="bg-[#fef9f0] dark:bg-[#2d2c26] text-[#6d1824] dark:text-[#f8f3ea] border-l-4 border-[#6d1824] px-4 py-3 ml-2 rounded-l-md flex items-center gap-3 font-['Public_Sans'] text-xs font-bold uppercase tracking-tighter" href="#">
+<span class="material-symbols-outlined text-lg" data-icon="folder_open">folder_open</span> Introduction
+      </a>
+<a class="text-[#5f5e5e] dark:text-[#a8a7a7] px-4 py-3 hover:bg-[#e8e3da] dark:hover:bg-[#2d2c26] flex items-center gap-3 font-['Public_Sans'] text-xs font-bold uppercase tracking-tighter" href="#">
+<span class="material-symbols-outlined text-lg" data-icon="history_edu">history_edu</span> Origins
+      </a>
+<a class="text-[#5f5e5e] dark:text-[#a8a7a7] px-4 py-3 hover:bg-[#e8e3da] dark:hover:bg-[#2d2c26] flex items-center gap-3 font-['Public_Sans'] text-xs font-bold uppercase tracking-tighter" href="#">
+<span class="material-symbols-outlined text-lg" data-icon="military_tech">military_tech</span> Conflict
+      </a>
+<a class="text-[#5f5e5e] dark:text-[#a8a7a7] px-4 py-3 hover:bg-[#e8e3da] dark:hover:bg-[#2d2c26] flex items-center gap-3 font-['Public_Sans'] text-xs font-bold uppercase tracking-tighter" href="#">
+<span class="material-symbols-outlined text-lg" data-icon="public">public</span> Aftermath
+      </a>
+<a class="text-[#5f5e5e] dark:text-[#a8a7a7] px-4 py-3 hover:bg-[#e8e3da] dark:hover:bg-[#2d2c26] flex items-center gap-3 font-['Public_Sans'] text-xs font-bold uppercase tracking-tighter" href="#">
+<span class="material-symbols-outlined text-lg" data-icon="inventory_2">inventory_2</span> Sources
+      </a>
+</nav>
+</aside>
+<!-- Main Content Canvas -->
+<main class="flex-1 lg:pl-64 pt-24 pb-20 relative z-10">
+<div class="max-w-6xl mx-auto px-8 py-12 md:py-24 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+<!-- Text Side -->
+<div class="lg:col-span-7 flex flex-col items-start">
+<!-- Archival Stamp Overlay (Visual Polish) -->
+<div class="archival-stamp font-headline mb-8 inline-block">
+          DECLASS. 1945
+        </div>
+<h1 class="font-headline text-6xl md:text-8xl font-extrabold text-on-surface leading-[0.9] tracking-tighter mb-8">
+          The Great Conflicts: <br/>
+<span class="text-primary italic">A Century of War</span>
+</h1>
+<div class="h-1 w-24 bg-primary mb-8"></div>
+<p class="font-body text-xl md:text-2xl text-on-surface-variant max-w-xl mb-12 leading-relaxed">
+          A comprehensive analysis of the global shifts from 1914 to 1945. Documenting the strategic, social, and human dimensions of total war.
+        </p>
+<div class="flex flex-wrap gap-4">
+<button class="px-8 py-4 bg-primary text-on-primary font-body font-bold uppercase tracking-widest text-sm hover:opacity-90 transition-opacity">
+            Open File Case
+          </button>
+<button class="px-8 py-4 border border-outline border-opacity-20 text-on-surface font-body font-bold uppercase tracking-widest text-sm hover:bg-surface-container-low transition-colors">
+            View Chronology
+          </button>
+</div>
+</div>
+<!-- Image Side (Artifact) -->
+<div class="lg:col-span-5 relative group">
+<div class="absolute -top-6 -left-6 archival-stamp z-20 text-[10px] rotate-12 opacity-40">
+          ARCHIVE REF: 00-1914
+        </div>
+<div class="bg-surface-container-highest p-4 border border-on-surface-variant border-opacity-10 shadow-2xl relative z-10 rotate-1">
+<div class="overflow-hidden bg-on-surface h-[500px]">
+<img alt="Historical Archive Photo" class="w-full h-full object-cover grayscale brightness-75 contrast-125 hover:scale-105 transition-transform duration-700" data-alt="Stark high-contrast black and white historical photograph of World War I soldiers in a muddy trench with dramatic shadows and grainy texture" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD8_S6ONKHh_Pwud-TM43XWvo4pwHPIK5DWM6A_H07DOdHumT2Ct7COqLJdYUAOrVn4hmVRXmu3guw0RBgrfkffZyIpJsRNh_va8iUOaUNMMZqGgmZ_I4C05Inem1cCWj8-zxLU1T0v-3iw00h3Z0QM-CHBFbNJ_WP2RiemaTD9yV3ZdJf8ytKkEkSe2hAbeR44C5f_f_LB22worSUCwoWztNhKYckIbcrDgkhj2SDg5M0qaPDjbWEuooo-D5ijHEpa2mDsdeoHUCI"/>
+</div>
+<div class="pt-4 flex justify-between items-end">
+<div>
+<p class="font-headline italic text-on-surface-variant text-sm">Case Study #01-A</p>
+<p class="font-label text-[10px] uppercase tracking-tighter text-secondary">Western Front, Circa 1916</p>
+</div>
+<div class="text-primary opacity-20">
+<span class="material-symbols-outlined text-4xl" data-icon="token">token</span>
+</div>
+</div>
+</div>
+<!-- Stacked Paper Effect -->
+<div class="absolute inset-0 bg-surface-container-low -z-10 translate-x-3 translate-y-3 border border-on-surface-variant border-opacity-5"></div>
+<div class="absolute inset-0 bg-surface-container -z-20 translate-x-6 translate-y-6 border border-on-surface-variant border-opacity-5"></div>
+</div>
+</div>
+<!-- Secondary Context Bar (Asymmetric Grid Element) -->
+<div class="max-w-6xl mx-auto px-8 mt-12 md:mt-0 grid grid-cols-1 md:grid-cols-3 gap-8">
+<div class="bg-surface-container-low p-8 border-l-4 border-primary">
+<span class="font-label text-[10px] uppercase tracking-[0.2em] text-on-tertiary-fixed-variant block mb-4">Phase One</span>
+<h3 class="font-headline text-2xl font-bold mb-2">The Great War</h3>
+<p class="font-body text-xs text-on-surface-variant leading-relaxed">The collapse of empires and the birth of modern mechanized slaughter in the fields of Europe.</p>
+</div>
+<div class="bg-surface-container-low p-8 border-l-4 border-tertiary">
+<span class="font-label text-[10px] uppercase tracking-[0.2em] text-on-tertiary-fixed-variant block mb-4">Interlude</span>
+<h3 class="font-headline text-2xl font-bold mb-2">The Long Armistice</h3>
+<p class="font-body text-xs text-on-surface-variant leading-relaxed">Two decades of precarious peace, economic upheaval, and the rise of ideological extremism.</p>
+</div>
+<div class="bg-surface-container-low p-8 border-l-4 border-primary">
+<span class="font-label text-[10px] uppercase tracking-[0.2em] text-on-tertiary-fixed-variant block mb-4">Phase Two</span>
+<h3 class="font-headline text-2xl font-bold mb-2">Global Total War</h3>
+<p class="font-body text-xs text-on-surface-variant leading-relaxed">The systematic mobilization of entire societies and the ultimate shift in the world's power axis.</p>
+</div>
+</div>
+</main>
+<!-- Footer (Shared Component) -->
+<footer class="fixed bottom-0 left-0 w-full flex justify-between items-center px-12 py-6 z-50 bg-[#fef9f0] dark:bg-[#1d1c16] border-t border-[#ded9d1] dark:border-[#403728] border-opacity-20">
+<div class="font-['Public_Sans'] text-[10px] tracking-widest uppercase opacity-60 text-[#5f5e5e] dark:text-[#a8a7a7]">
+      PROPERTY OF <span class="font-bold text-[#6d1824]">THE ARCHIVAL RECORD</span> // CLASSIFIED
+    </div>
+<div class="flex gap-8">
+<a class="font-['Public_Sans'] text-[10px] tracking-widest uppercase opacity-60 text-[#5f5e5e] hover:opacity-100 transition-opacity" href="#">Access Record</a>
+<a class="font-['Public_Sans'] text-[10px] tracking-widest uppercase opacity-60 text-[#5f5e5e] hover:opacity-100 transition-opacity" href="#">Citation Guide</a>
+<a class="font-['Public_Sans'] text-[10px] tracking-widest uppercase opacity-60 text-[#5f5e5e] hover:opacity-100 transition-opacity" href="#">Full Index</a>
+</div>
+</footer>
+<!-- Separation Logic (Visual Component from JSON) -->
+<div class="fixed top-[72px] left-0 bg-[#f2ede4] dark:bg-[#2d2c26] h-[2px] w-full z-50"></div>
+</body></html>

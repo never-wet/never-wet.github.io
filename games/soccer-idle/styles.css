@@ -44,6 +44,7 @@ button {
 
 button {
   border: 0;
+  cursor: pointer;
 }
 
 .material-symbols-outlined {
@@ -93,6 +94,7 @@ button {
   text-transform: uppercase;
   letter-spacing: -0.03em;
   font: 700 0.95rem/1 "Space Grotesk", sans-serif;
+  background: transparent;
 }
 
 .nav-link.active {
@@ -188,10 +190,13 @@ button {
   align-items: center;
   gap: 14px;
   padding: 14px 18px;
+  border: 0;
   color: var(--text-muted);
+  background: transparent;
   text-decoration: none;
   font-size: 0.76rem;
   font-weight: 700;
+  text-align: left;
 }
 
 .rail-link:hover {
@@ -238,6 +243,22 @@ button {
 .main-shell {
   margin-left: 256px;
   padding: 108px 28px 96px;
+}
+
+.screen {
+  display: none;
+}
+
+.screen.active {
+  display: block;
+}
+
+.screen-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 20px;
+  margin-bottom: 24px;
 }
 
 .hero-row,
@@ -815,14 +836,38 @@ button {
   padding: 0;
 }
 
-.market-header {
-  margin-bottom: 22px;
+.worldcup-placeholder {
+  margin-top: 28px;
 }
 
-.market-header h2 {
+.worldcup-card {
+  padding: 28px;
+  border-radius: 8px;
+  border-left: 4px solid var(--tertiary);
+  background: var(--surface-low);
+}
+
+.worldcup-card h2 {
+  margin: 0;
+  text-transform: uppercase;
+  font: 900 clamp(2rem, 5vw, 3.8rem)/0.95 "Space Grotesk", sans-serif;
+  letter-spacing: -0.06em;
+}
+
+.worldcup-card p:last-child {
+  color: var(--text-soft);
+  line-height: 1.6;
+}
+
+.screen-header h2 {
   font-size: clamp(2.2rem, 5vw, 4.8rem);
   line-height: 0.92;
   max-width: 12ch;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: -0.07em;
+  font-family: "Space Grotesk", sans-serif;
+  font-weight: 900;
 }
 
 .market-total {
@@ -839,6 +884,239 @@ button {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 18px;
+}
+
+.upgrades-overview,
+.leaderboard-shell,
+.stats-grid,
+.squad-layout {
+  display: grid;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.upgrades-overview,
+.leaderboard-shell,
+.squad-layout {
+  grid-template-columns: 1.2fr 0.85fr;
+}
+
+.leaderboard-card,
+.leaderboard-list,
+.stat-card,
+.squad-spotlight,
+.squad-grid,
+.player-card {
+  background: var(--surface-low);
+  border-radius: 8px;
+}
+
+.leaderboard-card,
+.leaderboard-list,
+.stat-card,
+.squad-spotlight,
+.squad-grid {
+  padding: 24px;
+}
+
+.squad-spotlight {
+  border-left: 4px solid var(--primary);
+}
+
+.captain-chip {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-top: 14px;
+}
+
+.captain-chip h3 {
+  margin: 0;
+  text-transform: uppercase;
+  font: 900 clamp(2rem, 4vw, 3rem)/0.95 "Space Grotesk", sans-serif;
+  letter-spacing: -0.06em;
+}
+
+.captain-chip p {
+  margin: 6px 0 0;
+  color: var(--text-soft);
+}
+
+.player-avatar {
+  display: grid;
+  place-items: center;
+  width: 62px;
+  height: 62px;
+  border-radius: 999px;
+  border: 3px solid rgba(145, 247, 142, 0.45);
+  background: radial-gradient(circle at 35% 30%, #3a6f4c, #102117 70%);
+  color: var(--text-main);
+  font: 900 1rem/1 "Space Grotesk", sans-serif;
+  box-shadow: var(--green-glow);
+}
+
+.player-avatar.large {
+  width: 96px;
+  height: 96px;
+  font-size: 1.8rem;
+}
+
+.captain-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 20px;
+}
+
+.captain-stats div,
+.player-card {
+  padding: 16px;
+  border-radius: 8px;
+  background: var(--surface);
+}
+
+.captain-stats span,
+.player-meta span {
+  color: var(--text-soft);
+  font: 700 0.64rem/1.3 "Lexend", sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+}
+
+.captain-stats strong,
+.player-meta strong {
+  display: block;
+  margin-top: 6px;
+  font: 900 1.7rem/1 "Space Grotesk", sans-serif;
+  letter-spacing: -0.05em;
+}
+
+.squad-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.player-card {
+  display: grid;
+  gap: 14px;
+}
+
+.player-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.player-name {
+  margin: 0;
+  text-transform: uppercase;
+  font: 900 1.15rem/1 "Space Grotesk", sans-serif;
+  letter-spacing: -0.04em;
+}
+
+.player-role {
+  margin: 4px 0 0;
+  color: var(--text-soft);
+  font-size: 0.9rem;
+}
+
+.player-meta {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.leaderboard-card.spotlight {
+  border-left: 4px solid var(--secondary);
+}
+
+.leaderboard-card h3,
+.stat-card strong {
+  margin: 8px 0 0;
+  font-family: "Space Grotesk", sans-serif;
+  font-weight: 900;
+  letter-spacing: -0.06em;
+}
+
+.leaderboard-card h3 {
+  font-size: clamp(2rem, 4vw, 3.2rem);
+  text-transform: uppercase;
+}
+
+.leaderboard-card p:last-child,
+.stat-card p:last-child {
+  color: var(--text-soft);
+  line-height: 1.6;
+}
+
+.leaderboard-list {
+  display: grid;
+  gap: 12px;
+}
+
+.leader-row {
+  display: grid;
+  grid-template-columns: 52px 1fr auto;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 8px;
+  background: var(--surface);
+}
+
+.leader-row.you {
+  border-left: 4px solid var(--primary);
+  box-shadow: var(--green-glow);
+}
+
+.leader-rank,
+.leader-meta span,
+.stats-columns span {
+  color: var(--text-soft);
+  font: 700 0.68rem/1.3 "Lexend", sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+}
+
+.leader-name,
+.leader-score {
+  font-family: "Space Grotesk", sans-serif;
+  font-weight: 900;
+  letter-spacing: -0.04em;
+}
+
+.leader-name {
+  font-size: 1.1rem;
+}
+
+.leader-score {
+  font-size: 1.5rem;
+}
+
+.stats-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.stat-card {
+  border-left: 4px solid var(--primary);
+}
+
+.stat-card.wide {
+  grid-column: 1 / -1;
+}
+
+.stats-columns {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 14px;
+}
+
+.stats-columns strong,
+.stat-card strong {
+  display: block;
+  font-size: clamp(1.8rem, 4vw, 3rem);
 }
 
 .upgrade-card {
@@ -1059,16 +1337,24 @@ button {
 @media (max-width: 980px) {
   .hero-row,
   .score-stage,
-  .bottom-grid {
+  .bottom-grid,
+  .upgrades-overview,
+  .leaderboard-shell,
+  .stats-grid,
+  .squad-layout {
     grid-template-columns: 1fr;
   }
 
   .hero-stats,
-  .mini-stat-grid {
+  .mini-stat-grid,
+  .stats-columns,
+  .captain-stats,
+  .player-meta,
+  .squad-grid {
     grid-template-columns: 1fr;
   }
 
-  .market-header,
+  .screen-header,
   .panel-header,
   .progress-head {
     flex-direction: column;
@@ -1105,7 +1391,7 @@ button {
     max-width: 100%;
   }
 
-  .market-header h2 {
+  .screen-header h2 {
     max-width: none;
   }
 
@@ -1120,7 +1406,7 @@ button {
     bottom: 0;
     z-index: 60;
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(5, 1fr);
     padding: 10px 8px calc(10px + env(safe-area-inset-bottom));
     background: rgba(22, 22, 22, 0.95);
     backdrop-filter: blur(16px);
@@ -1133,11 +1419,11 @@ button {
     gap: 4px;
     color: var(--text-muted);
     background: transparent;
-    font: 800 0.55rem/1 "Lexend", sans-serif;
+    font: 800 0.48rem/1 "Lexend", sans-serif;
     text-transform: uppercase;
   }
 
-  .mobile-link.active {
+.mobile-link.active {
     color: var(--primary);
   }
 }
