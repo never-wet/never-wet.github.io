@@ -163,6 +163,7 @@ normalizeRivalClubs();
 const runtime = {
   buzz: 0,
   pendingAutoShots: 0,
+  recentManualShotTimes: [],
   lastFrame: performance.now(),
   lastSaveAt: 0,
   lastAutoVisualAt: 0,
@@ -454,12 +455,22 @@ function getPrestigeDiscountRate(nextPrestigeCount = state.prestigeCount || 0) {
 
 function getBuzzTapGain() {
   const amplifierLevel = state.prestigeShopUpgrades?.["buzz-amplifier"] || 0;
-  return 5.5 + amplifierLevel * 0.7;
+  return 2.6 + amplifierLevel * 0.45;
 }
 
 function getBuzzDecayPerSecond() {
   const coreLevel = state.prestigeShopUpgrades?.["stadium-core"] || 0;
-  return Math.max(1.25, 2.8 - coreLevel * 0.22);
+  return Math.max(4.2, 8.2 - coreLevel * 0.26);
+}
+
+function getCurrentClicksPerSecond(nowMs = performance.now()) {
+  const windowMs = 1000;
+  runtime.recentManualShotTimes = runtime.recentManualShotTimes.filter(
+    (timestamp) => nowMs - timestamp <= windowMs
+  );
+
+  const manualRate = runtime.recentManualShotTimes.length / (windowMs / 1000);
+  return manualRate + state.autoShotsPerSecond;
 }
 
 function canPrestige() {
@@ -1168,6 +1179,7 @@ function benchPlayer(playerId) {
 
 function takeManualShot(originX, originY) {
   runtime.buzz = clamp(runtime.buzz + getBuzzTapGain(), 0, 100);
+  runtime.recentManualShotTimes.push(performance.now());
   state.totalShots += 1;
   state.manualShots += 1;
   const hit = rollHitChance();
@@ -1371,6 +1383,7 @@ function render() {
   const expectedHitRate = 1 - getMissChance();
   const cashPerSecond =
     state.autoShotsPerSecond * state.goalsPerShot * state.cashPerGoal * expectedHitRate;
+  const clicksPerSecond = getCurrentClicksPerSecond();
   const division = getDivisionInfo();
   const nextUpgrade = getNextUpgrade();
   const totalAccuracy = state.totalShots > 0 ? (state.totalHits / state.totalShots) * 100 : 0;
@@ -1390,7 +1403,7 @@ function render() {
   updateHeroCashDisplay(formattedCash);
   elements.goalsDisplay.textContent = formatNumber(state.goals);
   elements.perSecondDisplay.textContent = `$${formatNumber(cashPerSecond)}`;
-  elements.sidePerSecondLabel.textContent = `CPS: ${formatNumber(cashPerSecond)}`;
+  elements.sidePerSecondLabel.textContent = `CPS: ${formatNumber(clicksPerSecond)}`;
   elements.fansDisplay.textContent = formatNumber(state.fans);
   elements.buzzDisplay.textContent = `${Math.round(runtime.buzz)}%`;
   elements.buzzMeterText.textContent = `${Math.round(runtime.buzz)}% / 100%`;
@@ -2056,6 +2069,7 @@ function getDivisionInfo() {
 function gameLoop(now) {
   const deltaSeconds = Math.min((now - runtime.lastFrame) / 1000, 0.25);
   runtime.lastFrame = now;
+  getCurrentClicksPerSecond(now);
 
   runtime.buzz = clamp(runtime.buzz - deltaSeconds * getBuzzDecayPerSecond(), 0, 100);
   const currentBuzzInt = Math.round(runtime.buzz);
