@@ -17,6 +17,30 @@
             --shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
         }
 
+        body[data-theme="sunset"] {
+            --bg-top: #231126;
+            --bg-mid: #6f2850;
+            --bg-bottom: #f08f58;
+            --panel: rgba(35, 17, 38, 0.66);
+            --gold: #ffd18a;
+        }
+
+        body[data-theme="arcade"] {
+            --bg-top: #05131d;
+            --bg-mid: #10374d;
+            --bg-bottom: #17a36b;
+            --panel: rgba(5, 19, 29, 0.7);
+            --gold: #9dffcf;
+        }
+
+        body[data-theme="royal"] {
+            --bg-top: #130f1d;
+            --bg-mid: #2a2448;
+            --bg-bottom: #8a6d2f;
+            --panel: rgba(19, 15, 29, 0.72);
+            --gold: #ffe28f;
+        }
+
         * {
             box-sizing: border-box;
         }
@@ -87,6 +111,18 @@
             line-height: 1.5;
         }
 
+        .hero-toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 18px;
+            align-items: center;
+        }
+
+        .hero-toolbar button {
+            width: auto;
+        }
+
         .main-grid {
             display: grid;
             grid-template-columns: minmax(0, 1.65fr) minmax(320px, 1fr);
@@ -102,10 +138,24 @@
             padding: 18px;
         }
 
+        .systems-grid,
+        .lab-grid {
+            display: grid;
+            gap: 16px;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        }
+
         .section-title {
             margin: 0 0 14px;
             font-size: 1.05rem;
             letter-spacing: 0.06em;
+            text-transform: uppercase;
+        }
+
+        .mini-title {
+            margin: 0 0 12px;
+            font-size: 0.95rem;
+            letter-spacing: 0.08em;
             text-transform: uppercase;
         }
 
@@ -235,6 +285,21 @@
             background: rgba(255, 255, 255, 0.12);
             border: 1px solid rgba(255, 255, 255, 0.14);
         }
+
+        .tiny-button {
+            padding: 10px 12px;
+            border-radius: 12px;
+            font-size: 0.88rem;
+        }
+
+        .compact-controls {
+            gap: 10px;
+        }
+
+        .compact-controls button {
+            flex: 1 1 180px;
+        }
+
         .result-container,
         .stats-grid,
         .results-grid,
@@ -380,6 +445,333 @@
             padding: 12px;
             display: grid;
             gap: 8px;
+        }
+
+        .secondary-meta {
+            color: var(--muted);
+            font-size: 0.88rem;
+        }
+
+        .collection-actions,
+        .result-actions,
+        .showcase-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .banner-list {
+            display: grid;
+            gap: 10px;
+        }
+
+        .banner-tile {
+            display: grid;
+            gap: 10px;
+            padding: 14px;
+            border-radius: 18px;
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            background: rgba(255, 255, 255, 0.06);
+            text-align: left;
+        }
+
+        .banner-tile.active {
+            border-color: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.16) inset, 0 0 20px rgba(255, 255, 255, 0.08);
+        }
+
+        .banner-top,
+        .showcase-head,
+        .achievement-top,
+        .odds-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .banner-name {
+            font-size: 1.02rem;
+            font-weight: bold;
+        }
+
+        .banner-featured,
+        .badge-row,
+        .theme-list,
+        .sound-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .variant-chip,
+        .theme-chip {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8px 12px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.09);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            font-size: 0.82rem;
+            color: var(--text);
+        }
+
+        .theme-chip {
+            width: auto;
+            cursor: pointer;
+        }
+
+        .theme-chip.active {
+            border-color: rgba(255, 255, 255, 0.34);
+            background: rgba(255, 255, 255, 0.18);
+        }
+
+        .theme-chip.locked {
+            opacity: 0.55;
+        }
+
+        .resource-card,
+        .showcase-card,
+        .daily-card,
+        .challenge-card,
+        .drought-card {
+            display: grid;
+            gap: 12px;
+            padding: 16px;
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+        }
+
+        .resource-count {
+            font-size: clamp(1.4rem, 3vw, 2.4rem);
+            font-weight: 900;
+        }
+
+        .craft-grid,
+        .achievement-grid,
+        .odds-grid,
+        .chart-grid {
+            display: grid;
+            gap: 10px;
+        }
+
+        .craft-card,
+        .achievement-card,
+        .odds-card,
+        .chart-card {
+            padding: 14px;
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+        }
+
+        .achievement-card.locked {
+            opacity: 0.58;
+            filter: grayscale(1);
+        }
+
+        .achievement-title {
+            font-weight: bold;
+        }
+
+        .achievement-reward {
+            color: var(--gold);
+            font-size: 0.86rem;
+        }
+
+        .odds-bar-track,
+        .chart-bar-track {
+            width: 100%;
+            height: 10px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.08);
+            overflow: hidden;
+        }
+
+        .odds-bar-fill,
+        .chart-bar-fill {
+            height: 100%;
+            border-radius: inherit;
+        }
+
+        .chart-grid {
+            grid-template-columns: repeat(auto-fit, minmax(72px, 1fr));
+        }
+
+        .chart-card {
+            display: grid;
+            gap: 8px;
+            text-align: center;
+        }
+
+        .chart-column {
+            height: 120px;
+            display: flex;
+            align-items: end;
+            justify-content: center;
+        }
+
+        .chart-bar {
+            width: 30px;
+            border-radius: 14px 14px 6px 6px;
+            min-height: 16px;
+            box-shadow: 0 0 16px rgba(255, 255, 255, 0.08);
+        }
+
+        .chart-caption,
+        .muted-line {
+            color: var(--muted);
+            font-size: 0.82rem;
+        }
+
+        .showcase-card {
+            min-height: 180px;
+        }
+
+        .showcase-media {
+            width: min(220px, 100%);
+            aspect-ratio: 1 / 1;
+            border-radius: 18px;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+        }
+
+        .showcase-media img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .showcase-empty {
+            color: var(--muted);
+            display: grid;
+            place-items: center;
+            min-height: 120px;
+            border: 1px dashed rgba(255, 255, 255, 0.18);
+            border-radius: 18px;
+        }
+
+        .favorite-pill {
+            color: var(--gold);
+            font-size: 0.82rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .setting-row {
+            display: grid;
+            gap: 8px;
+            padding: 12px 14px;
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+        }
+
+        .setting-row label {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .setting-row input[type="range"] {
+            width: 100%;
+        }
+
+        .result-image.variant-shiny,
+        .showcase-media img.variant-shiny,
+        .collection-card img.variant-shiny {
+            filter: saturate(1.2) brightness(1.08);
+            box-shadow: 0 0 24px rgba(255, 235, 133, 0.25);
+        }
+
+        .result-image.variant-alt,
+        .showcase-media img.variant-alt,
+        .collection-card img.variant-alt {
+            filter: hue-rotate(35deg) saturate(1.3);
+            box-shadow: 0 0 24px rgba(122, 232, 255, 0.22);
+        }
+
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 10020;
+            display: grid;
+            place-items: center;
+            padding: 20px;
+            background: rgba(3, 7, 18, 0.78);
+            backdrop-filter: blur(10px);
+        }
+
+        .modal-card {
+            width: min(1040px, 100%);
+            max-height: min(88vh, 920px);
+            overflow: auto;
+            padding: 22px;
+            border-radius: 26px;
+            background: linear-gradient(180deg, rgba(255,255,255,0.14), rgba(255,255,255,0.06));
+            border: 1px solid rgba(255,255,255,0.16);
+            box-shadow: var(--shadow);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            align-items: start;
+            margin-bottom: 18px;
+        }
+
+        .modal-header h2 {
+            margin: 0 0 6px;
+        }
+
+        .album-grid,
+        .batch-grid {
+            display: grid;
+            gap: 14px;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        }
+
+        .album-card,
+        .reveal-card {
+            display: grid;
+            gap: 10px;
+            padding: 14px;
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+        }
+
+        .album-card.locked {
+            opacity: 0.5;
+            filter: grayscale(1);
+        }
+
+        .album-card img,
+        .reveal-card img {
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            object-fit: cover;
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .reveal-card {
+            opacity: 0;
+            transform: translateY(18px) scale(0.98);
+            animation: revealCardIn 0.45s ease forwards;
+        }
+
+        @keyframes revealCardIn {
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
         }
 
         .big-winner-overlay {
@@ -1246,7 +1638,10 @@
 <body>
     <div class="page">
         <section class="hero">
-            <a class="hero-back" href="../">Back To Games</a>
+            <div class="hero-toolbar">
+                <a class="hero-back" href="../">Back To Games</a>
+                <button class="ghost-button tiny-button" id="openAlbumButton" type="button">Open Album</button>
+            </div>
             <h1>Reels Pull</h1>
             <p>Spin for GIF drops, build your collection, trigger pity for better luck, and keep a saved history of every pull. Big hits show up in the slot, in the collection, in the recent feed, and in shareable result cards.</p>
         </section>
@@ -1304,6 +1699,71 @@
             <h2 class="section-title">Collection</h2>
             <div class="collection-grid" id="collectionGrid"></div>
         </section>
+
+        <section class="panel">
+            <h2 class="section-title">Control Center</h2>
+            <div class="systems-grid">
+                <section class="subpanel">
+                    <h3 class="mini-title">Featured Banners</h3>
+                    <div class="banner-list" id="bannerList"></div>
+                    <p class="helper-text" id="bannerDescription">Choose a banner to tilt the odds a little.</p>
+                </section>
+
+                <section class="subpanel">
+                    <h3 class="mini-title">Workshop</h3>
+                    <div class="resource-card" id="resourceCard"></div>
+                    <div class="craft-grid" id="craftGrid"></div>
+                </section>
+
+                <section class="subpanel">
+                    <h3 class="mini-title">Daily + Challenge</h3>
+                    <div class="daily-card" id="dailyCard"></div>
+                    <div class="controls compact-controls">
+                        <button class="secondary-button" id="claimDailyButton" type="button">Claim Daily Pull</button>
+                        <button class="ghost-button" id="startChallengeButton" type="button">Start Challenge</button>
+                        <button class="ghost-button" id="abandonChallengeButton" type="button">Reset Challenge</button>
+                    </div>
+                    <div class="challenge-card" id="challengeCard"></div>
+                </section>
+
+                <section class="subpanel">
+                    <h3 class="mini-title">Showcase + Settings</h3>
+                    <div class="showcase-card" id="showcaseCard"></div>
+                    <div class="theme-list" id="themeList"></div>
+                    <div class="sound-list" id="soundList"></div>
+                </section>
+            </div>
+        </section>
+
+        <section class="panel">
+            <h2 class="section-title">Achievements</h2>
+            <div class="achievement-grid" id="achievementGrid"></div>
+        </section>
+
+        <section class="panel">
+            <h2 class="section-title">Signal Lab</h2>
+            <div class="lab-grid">
+                <section class="subpanel">
+                    <h3 class="mini-title">Odds</h3>
+                    <div class="odds-grid" id="oddsGrid"></div>
+                </section>
+
+                <section class="subpanel">
+                    <h3 class="mini-title">Drought</h3>
+                    <div class="drought-card" id="droughtCard"></div>
+                </section>
+
+                <section class="subpanel">
+                    <h3 class="mini-title">Rare Hit Chart</h3>
+                    <div class="chart-grid" id="rareHitChart"></div>
+                </section>
+
+                <section class="subpanel">
+                    <h3 class="mini-title">Banner History</h3>
+                    <ul class="recent-list" id="bannerHistoryList"></ul>
+                </section>
+            </div>
+        </section>
     </div>
 
     <script>
@@ -1320,6 +1780,10 @@
         const BIG_PULL_RANK = 6;
         const MIN_SPIN_STEPS = 30;
         const THUMBNAIL_SYNC_DURATION_MS = 4000;
+        const BATCH_REVEAL_DELAY_MS = 220;
+        const EXPORT_CAPTURE_DELAY_MS = 2800;
+        const HIGH_TIER_EXPORT_CAPTURE_DELAY_MS = 3600;
+        const LOOP_EXPORT_CAPTURE_DELAY_MS = 120;
         const GIFS = [
             { key: "absmal", name: "Abysmal", path: "gif/absmal.gif", rarity: "Glitched", weight: 30, color: "#68758f", rank: 1 },
             { key: "common", name: "Common", path: "gif/common.gif", rarity: "Common", weight: 28, color: "#7a8da5", rank: 2 },
@@ -1337,28 +1801,146 @@
             insane: { loopPath: "gif/insane-loop.gif", firstPlayDurationMs: 4000 },
             godlike: { loopPath: "gif/godlike-loop.gif", firstPlayDurationMs: 4000 }
         };
+        const BANNERS = [
+            {
+                key: "signal",
+                name: "Signal Drift",
+                accent: "#52baf7",
+                description: "The clean baseline banner. Good for filling out the whole collection.",
+                featuredKeys: ["common", "rare", "legendary"],
+                multipliers: {}
+            },
+            {
+                key: "chaos",
+                name: "Chaos Static",
+                accent: "#ff4f81",
+                description: "A noisier banner that leans into Glitched, Exotic, and Insane pulls.",
+                featuredKeys: ["absmal", "exotic", "insane"],
+                multipliers: { absmal: 1.35, exotic: 1.3, insane: 1.3, common: 0.9, uncommon: 0.92 }
+            },
+            {
+                key: "mythic",
+                name: "Mythic Voltage",
+                accent: "#d166ff",
+                description: "Pushes the middle-top end with better Mythic and Legendary rates.",
+                featuredKeys: ["mythic", "legendary", "unreal"],
+                multipliers: { mythic: 1.35, legendary: 1.28, unreal: 1.12, absmal: 0.9, common: 0.9 }
+            },
+            {
+                key: "celestial",
+                name: "Celestial Crown",
+                accent: "#ffd76a",
+                description: "The premium chase banner. Slightly kinder to the top end, but still brutal.",
+                featuredKeys: ["legendary", "unreal", "godlike"],
+                multipliers: { legendary: 1.2, unreal: 1.15, insane: 1.1, godlike: 1.08, absmal: 0.95, common: 0.92 }
+            }
+        ];
+        const VARIANT_TYPES = [
+            { key: "alt", label: "Alt", chance: 0.006, minRank: 5, accent: "#7ae8ff" },
+            { key: "shiny", label: "Shiny", chance: 0.018, minRank: 3, accent: "#ffe97a" }
+        ];
+        const DUPLICATE_SIGNAL_BY_RANK = {
+            1: 1,
+            2: 1,
+            3: 2,
+            4: 3,
+            5: 5,
+            6: 7,
+            7: 10,
+            8: 18,
+            9: 40,
+            10: 120
+        };
+        const CRAFT_OPTIONS = [
+            {
+                key: "legend-cache",
+                name: "Craft Legendary+",
+                cost: 140,
+                minRank: 7,
+                description: "Turn duplicate signal into a guaranteed Legendary or better."
+            },
+            {
+                key: "unreal-cache",
+                name: "Craft Unreal+",
+                cost: 320,
+                minRank: 8,
+                description: "A brutal spend, but it guarantees Unreal or better."
+            },
+            {
+                key: "insane-signal",
+                name: "Craft Insane+",
+                cost: 760,
+                minRank: 9,
+                description: "A late-game burn for Insane or Godlike only."
+            }
+        ];
+        const CHALLENGE_POOL = [
+            { key: "legend-sprint", name: "Legend Sprint", targetRank: 7, spins: 12, reward: 120 },
+            { key: "unreal-rush", name: "Unreal Rush", targetRank: 8, spins: 18, reward: 220 },
+            { key: "god-hunt", name: "God Hunt", targetRank: 10, spins: 35, reward: 700 }
+        ];
+        const THEMES = [
+            { key: "classic", name: "Classic Signal", unlock: (stats) => true },
+            { key: "sunset", name: "Sunset Heat", unlock: (stats) => stats.totalPulls >= 25 },
+            { key: "arcade", name: "Arcade Bloom", unlock: (stats) => getBestPullRankFromStats(stats) >= 8 },
+            { key: "royal", name: "Royal Gold", unlock: (stats) => getBestPullRankFromStats(stats) >= 10 }
+        ];
+        const ACHIEVEMENTS = [
+            { key: "first_pull", name: "First Signal", description: "Make your first pull.", reward: 20, unlock: (stats) => stats.totalPulls >= 1 },
+            { key: "collector_5", name: "Collector Five", description: "Unlock 5 different GIFs.", reward: 30, unlock: (stats) => stats.unlocked.length >= 5 },
+            { key: "collector_all", name: "Archive Complete", description: "Unlock every base GIF.", reward: 180, unlock: (stats) => stats.unlocked.length >= GIFS.length },
+            { key: "legendary_hit", name: "Crowd Goes Wild", description: "Pull Legendary or better.", reward: 45, unlock: (stats) => getBestPullRankFromStats(stats) >= 7 },
+            { key: "unreal_hit", name: "Break Reality", description: "Pull Unreal or better.", reward: 70, unlock: (stats) => getBestPullRankFromStats(stats) >= 8 },
+            { key: "insane_hit", name: "Insane Pull", description: "Pull Insane or better.", reward: 120, unlock: (stats) => getBestPullRankFromStats(stats) >= 9 },
+            { key: "godlike_hit", name: "Touch Godlike", description: "Pull Godlike.", reward: 400, unlock: (stats) => getBestPullRankFromStats(stats) >= 10 },
+            { key: "daily_3", name: "Daily Habit", description: "Reach a 3-day daily streak.", reward: 35, unlock: (stats) => stats.dailyStreak >= 3 },
+            { key: "challenge_clear", name: "Challenge Clear", description: "Beat any challenge mode run.", reward: 90, unlock: (stats) => stats.challengeWins >= 1 },
+            { key: "variant_pull", name: "Variant Hunter", description: "Pull a shiny or alt version.", reward: 55, unlock: (stats) => stats.totalShinyPulls + stats.totalAltPulls >= 1 },
+            { key: "crafter", name: "Workshop Mode", description: "Spend 200 signal in crafting.", reward: 50, unlock: (stats) => stats.totalSignalSpent >= 200 },
+            { key: "showcase_set", name: "Spotlight Ready", description: "Set a favorite showcase GIF.", reward: 15, unlock: (stats) => Boolean(stats.favoriteKey) }
+        ];
 
         const slotStrip = document.getElementById("slotStrip");
         const slotContainer = document.querySelector(".slot-container");
         const singlePullButton = document.getElementById("singlePullButton");
         const multiPullButton = document.getElementById("multiPullButton");
         const resetProgressButton = document.getElementById("resetProgressButton");
+        const openAlbumButton = document.getElementById("openAlbumButton");
         const resultContainer = document.getElementById("resultContainer");
         const resultsGrid = document.getElementById("resultsGrid");
         const statsGrid = document.getElementById("statsGrid");
         const historyList = document.getElementById("historyList");
         const recentList = document.getElementById("recentList");
         const collectionGrid = document.getElementById("collectionGrid");
+        const bannerList = document.getElementById("bannerList");
+        const bannerDescription = document.getElementById("bannerDescription");
+        const resourceCard = document.getElementById("resourceCard");
+        const craftGrid = document.getElementById("craftGrid");
+        const dailyCard = document.getElementById("dailyCard");
+        const claimDailyButton = document.getElementById("claimDailyButton");
+        const startChallengeButton = document.getElementById("startChallengeButton");
+        const abandonChallengeButton = document.getElementById("abandonChallengeButton");
+        const challengeCard = document.getElementById("challengeCard");
+        const showcaseCard = document.getElementById("showcaseCard");
+        const themeList = document.getElementById("themeList");
+        const soundList = document.getElementById("soundList");
+        const achievementGrid = document.getElementById("achievementGrid");
+        const oddsGrid = document.getElementById("oddsGrid");
+        const droughtCard = document.getElementById("droughtCard");
+        const rareHitChart = document.getElementById("rareHitChart");
+        const bannerHistoryList = document.getElementById("bannerHistoryList");
         const luckStatus = document.getElementById("luckStatus");
         const saveStatus = document.getElementById("saveStatus");
 
         const gifMap = Object.fromEntries(GIFS.map((gif) => [gif.key, gif]));
+        const bannerMap = Object.fromEntries(BANNERS.map((banner) => [banner.key, banner]));
         let thumbnailSyncTimeoutId = null;
 
         const state = {
             isSpinning: false,
             currentOffset: 0,
             spinAnimationFrame: null,
+            batchRevealTimeoutId: null,
             lastSpinSoundIndex: null,
             spinStartTime: 0,
             spinDuration: 0,
@@ -1366,6 +1948,7 @@
             spinTargetOffset: 0,
             targetIndex: null,
             pendingResults: [],
+            pendingMeta: null,
             latestResults: [],
             stats: createDefaultStats()
         };
@@ -1373,9 +1956,17 @@
         singlePullButton.addEventListener("click", () => startSpin(1));
         multiPullButton.addEventListener("click", () => startSpin(10));
         resetProgressButton.addEventListener("click", resetProgress);
+        claimDailyButton.addEventListener("click", claimDailyPull);
+        startChallengeButton.addEventListener("click", startChallengeMode);
+        abandonChallengeButton.addEventListener("click", abandonChallengeMode);
+        openAlbumButton.addEventListener("click", openAlbumOverlay);
 
         setupSlots();
         loadProgress();
+        applyTheme();
+        if (syncAchievements(true).length > 0) {
+            persistProgress();
+        }
         alignReelOnLoad();
         renderAll();
         startThumbnailSyncClock();
@@ -1388,7 +1979,33 @@
                 counts: Object.fromEntries(GIFS.map((gif) => [gif.key, 0])),
                 unlocked: [],
                 recent: [],
-                bestPullKey: null
+                bestPullKey: null,
+                bestPullVariant: "",
+                signalDust: 0,
+                activeBannerKey: BANNERS[0].key,
+                bannerHistory: [],
+                achievementKeys: [],
+                achievementDates: {},
+                favoriteKey: "",
+                favoriteVariant: "",
+                firstPullDates: {},
+                variantCounts: Object.fromEntries(GIFS.map((gif) => [gif.key, { shiny: 0, alt: 0 }])),
+                totalShinyPulls: 0,
+                totalAltPulls: 0,
+                dailyStreak: 0,
+                lastDailyClaimDate: "",
+                selectedTheme: THEMES[0].key,
+                soundEnabled: true,
+                soundVolume: 78,
+                spinSoundsEnabled: true,
+                resultSoundsEnabled: true,
+                challenge: null,
+                challengeWins: 0,
+                totalSignalSpent: 0,
+                totalLuckScore: 0,
+                currentDrought: 0,
+                longestDrought: 0,
+                rareHitHistory: []
             };
         }
 
@@ -1430,21 +2047,114 @@
             return gifItem;
         }
 
-        function startSpin(pullCount) {
+        function getVariantConfig(variantKey) {
+            return VARIANT_TYPES.find((variant) => variant.key === variantKey) || null;
+        }
+
+        function getVariantLabel(variantKey) {
+            const variant = getVariantConfig(variantKey);
+            return variant ? variant.label : "";
+        }
+
+        function getResultDisplayName(result) {
+            const variantLabel = getVariantLabel(result.variantKey);
+            return variantLabel ? `${variantLabel} ${result.name}` : result.name;
+        }
+
+        function getResultRarityLabel(result) {
+            const variantLabel = getVariantLabel(result.variantKey);
+            return variantLabel ? `${variantLabel} ${result.rarity}` : result.rarity;
+        }
+
+        function getResultAccentColor(result) {
+            const variant = getVariantConfig(result.variantKey);
+            return variant ? variant.accent : result.color;
+        }
+
+        function getResultImageClass(result) {
+            return result.variantKey ? `result-image variant-${result.variantKey}` : "result-image";
+        }
+
+        function getResultScore(result) {
+            const variantBonus = result.variantKey === "alt" ? 0.22 : result.variantKey === "shiny" ? 0.12 : 0;
+            return result.rank + variantBonus;
+        }
+
+        function rollVariantForGif(gif) {
+            for (const variant of VARIANT_TYPES) {
+                if (gif.rank >= variant.minRank && Math.random() < variant.chance) {
+                    return variant.key;
+                }
+            }
+
+            return "";
+        }
+
+        function createPulledResult(gif, context = {}) {
+            return {
+                ...gif,
+                source: context.source || "pull",
+                bannerKey: context.bannerKey || state.stats.activeBannerKey,
+                acquiredAt: context.acquiredAt || new Date().toISOString(),
+                variantKey: context.variantKey ?? rollVariantForGif(gif)
+            };
+        }
+
+        function normalizePulledResult(result, context = {}) {
+            if (result && result.acquiredAt && Object.prototype.hasOwnProperty.call(result, "variantKey")) {
+                return {
+                    ...result,
+                    source: result.source || context.source || "pull",
+                    bannerKey: result.bannerKey || context.bannerKey || state.stats.activeBannerKey
+                };
+            }
+
+            return createPulledResult(result, context);
+        }
+
+        function buildSpinResults(pullCount, options = {}) {
+            const source = options.source || "pull";
+            const bannerKey = options.bannerKey || state.stats.activeBannerKey;
+
+            if (Array.isArray(options.presetResults) && options.presetResults.length > 0) {
+                return options.presetResults.map((result) => normalizePulledResult(result, { source, bannerKey }));
+            }
+
+            return Array.from({ length: pullCount }, () => rollGif({ source, bannerKey }));
+        }
+
+        function startSpin(pullCount, options = {}) {
             if (state.isSpinning) {
                 return;
             }
 
-            state.pendingResults = Array.from({ length: pullCount }, () => rollGif());
+            if (state.batchRevealTimeoutId !== null) {
+                clearTimeout(state.batchRevealTimeoutId);
+                state.batchRevealTimeoutId = null;
+            }
+
+            state.pendingResults = buildSpinResults(pullCount, options);
+            state.pendingMeta = {
+                source: options.source || "pull",
+                bannerKey: options.bannerKey || state.stats.activeBannerKey,
+                startedAt: new Date().toISOString(),
+                craftKey: options.craftKey || "",
+                daily: Boolean(options.daily)
+            };
             state.isSpinning = true;
             state.targetIndex = null;
             resultContainer.innerHTML = createResultBanner(
                 pullCount === 10 ? "10-pull in progress" : "Single pull in progress",
-                "The reel is spinning. The winner popup appears when it lands."
+                options.source === "craft"
+                    ? "The workshop is forcing a crafted result onto the reel."
+                    : options.daily
+                        ? "Your daily pull is spinning now."
+                        : "The reel is spinning. The winner popup appears when it lands."
             );
 
             singlePullButton.disabled = true;
             multiPullButton.disabled = true;
+            resetProgressButton.disabled = true;
             playSpinClickSound();
             startSpinLoopSound();
 
@@ -1563,20 +2273,20 @@
             }
 
             const image = document.createElement("img");
-            image.className = "big-winner-img";
+            image.className = `big-winner-img ${getResultImageClass(primaryResult)}`;
             image.src = getFreshGifUrl(primaryResult.path);
-            image.alt = primaryResult.name;
+            image.alt = getResultDisplayName(primaryResult);
 
             const title = document.createElement("h2");
-            title.textContent = primaryResult.name;
-            title.style.color = primaryResult.color;
+            title.textContent = getResultDisplayName(primaryResult);
+            title.style.color = getResultAccentColor(primaryResult);
 
             const subtitle = document.createElement("p");
             subtitle.textContent = allResults.length === 10
                 ? overlayCount > 1
-                    ? `${primaryResult.rarity} drop ${overlayIndex + 1} of ${overlayCount} rare highlights in this 10-pull`
-                    : `${primaryResult.rarity} drop as the best pull in your 10-pull`
-                : `${primaryResult.rarity} drop`;
+                    ? `${getResultRarityLabel(primaryResult)} drop ${overlayIndex + 1} of ${overlayCount} rare highlights in this 10-pull`
+                    : `${getResultRarityLabel(primaryResult)} drop as the best pull in your 10-pull`
+                : `${getResultRarityLabel(primaryResult)} drop`;
 
             const shareRow = document.createElement("div");
             shareRow.className = "share-actions";
@@ -1586,6 +2296,12 @@
             copyButton.textContent = "Copy Results";
             copyButton.addEventListener("click", () => shareResults(allResults));
             shareRow.appendChild(copyButton);
+
+            const exportButton = document.createElement("button");
+            exportButton.className = "ghost-button";
+            exportButton.textContent = "Export PNG";
+            exportButton.addEventListener("click", () => exportResultCard(primaryResult));
+            shareRow.appendChild(exportButton);
 
             if (navigator.share) {
                 const nativeShareButton = document.createElement("button");
@@ -1687,47 +2403,137 @@
             state.latestResults = results;
 
             results.forEach((result) => {
+                const wasUnlocked = state.stats.unlocked.includes(result.key);
+                const duplicateSignalAwarded = wasUnlocked ? getDuplicateSignalReward(result) : 0;
+
                 state.stats.totalPulls += 1;
                 state.stats.counts[result.key] += 1;
+                state.stats.totalLuckScore += getResultScore(result);
+                state.stats.signalDust += duplicateSignalAwarded;
 
-                if (!state.stats.unlocked.includes(result.key)) {
+                result.isNewUnlock = !wasUnlocked;
+                result.duplicateSignalAwarded = duplicateSignalAwarded;
+
+                if (!wasUnlocked) {
                     state.stats.unlocked.push(result.key);
+                    if (!state.stats.firstPullDates[result.key]) {
+                        state.stats.firstPullDates[result.key] = result.acquiredAt;
+                    }
                 }
 
-                state.stats.recent.unshift(result.key);
+                if (result.variantKey) {
+                    ensureVariantCountEntry(result.key);
+                    state.stats.variantCounts[result.key][result.variantKey] += 1;
+                    if (result.variantKey === "shiny") {
+                        state.stats.totalShinyPulls += 1;
+                    }
+                    if (result.variantKey === "alt") {
+                        state.stats.totalAltPulls += 1;
+                    }
+                }
+
+                state.stats.recent.unshift(createRecentEntry(result));
                 state.stats.recent = state.stats.recent.slice(0, RECENT_PULL_LIMIT);
 
-                if (!state.stats.bestPullKey || result.rank > gifMap[state.stats.bestPullKey].rank) {
+                if (!state.stats.bestPullKey || getResultScore(result) > getResultScore({ ...gifMap[state.stats.bestPullKey], variantKey: state.stats.bestPullVariant || "" })) {
                     state.stats.bestPullKey = result.key;
+                    state.stats.bestPullVariant = result.variantKey || "";
                 }
 
                 if (result.rank >= BIG_PULL_RANK) {
                     state.stats.pityCounter = 0;
+                    state.stats.currentDrought = 0;
                 } else {
                     state.stats.pityCounter += 1;
+                    state.stats.currentDrought += 1;
+                    state.stats.longestDrought = Math.max(state.stats.longestDrought, state.stats.currentDrought);
+                }
+
+                if (getOverlayEffectClass(result)) {
+                    state.stats.rareHitHistory.push({
+                        key: result.key,
+                        rank: result.rank,
+                        variantKey: result.variantKey || "",
+                        bannerKey: result.bannerKey,
+                        at: result.acquiredAt,
+                        pullNumber: state.stats.totalPulls
+                    });
+                    state.stats.rareHitHistory = state.stats.rareHitHistory.slice(-24);
                 }
             });
 
-            persistProgress();
-            renderAll();
+            recordBannerSession(results);
+            updateChallengeAfterResults(results);
+            syncAchievements();
+            state.pendingMeta = null;
             state.isSpinning = false;
             singlePullButton.disabled = false;
             multiPullButton.disabled = false;
+            resetProgressButton.disabled = false;
+            persistProgress();
+            renderAll();
+            if (results.length === 10) {
+                state.batchRevealTimeoutId = setTimeout(() => {
+                    state.batchRevealTimeoutId = null;
+                    if (!state.isSpinning) {
+                        showBatchRevealOverlay(results);
+                    }
+                }, BATCH_REVEAL_DELAY_MS);
+            }
         }
 
-        function rollGif() {
+        function ensureVariantCountEntry(key) {
+            if (!state.stats.variantCounts[key]) {
+                state.stats.variantCounts[key] = { shiny: 0, alt: 0 };
+            }
+        }
+
+        function getDuplicateSignalReward(result) {
+            const base = DUPLICATE_SIGNAL_BY_RANK[result.rank] || 1;
+            if (result.variantKey === "alt") {
+                return Math.round(base * 2.6);
+            }
+            if (result.variantKey === "shiny") {
+                return Math.round(base * 1.8);
+            }
+            return base;
+        }
+
+        function getActiveBanner() {
+            return bannerMap[state.stats.activeBannerKey] || BANNERS[0];
+        }
+
+        function getBannerName(bannerKey) {
+            return (bannerMap[bannerKey] || BANNERS[0]).name;
+        }
+
+        function getWeightedPoolForBanner(bannerKey, pityBoost = 1) {
+            const banner = bannerMap[bannerKey] || BANNERS[0];
+
+            return GIFS.map((gif) => {
+                let weight = gif.weight * (banner.multipliers[gif.key] || 1);
+                if (gif.rank >= BIG_PULL_RANK) {
+                    weight *= pityBoost;
+                }
+                return { gif, weight };
+            });
+        }
+
+        function getCurrentWeightedPool() {
+            return getWeightedPoolForBanner(state.stats.activeBannerKey, 1);
+        }
+
+        function rollGif(options = {}) {
             const pityBoost = getPityBoost();
-            const pool = GIFS.map((gif) => ({
-                gif,
-                weight: gif.rank >= BIG_PULL_RANK ? gif.weight * pityBoost : gif.weight
-            }));
+            const bannerKey = options.bannerKey || state.stats.activeBannerKey;
+            const pool = getWeightedPoolForBanner(bannerKey, pityBoost);
 
             if (state.stats.pityCounter >= PITY_GUARANTEE) {
-                const guaranteePool = GIFS.filter((gif) => gif.rank >= BIG_PULL_RANK);
-                return weightedPick(guaranteePool.map((gif) => ({ gif, weight: gif.weight })));
+                const guaranteePool = getWeightedPoolForBanner(bannerKey, 1).filter((entry) => entry.gif.rank >= BIG_PULL_RANK);
+                return createPulledResult(weightedPick(guaranteePool), options);
             }
 
-            return weightedPick(pool);
+            return createPulledResult(weightedPick(pool), options);
         }
 
         function weightedPick(pool) {
@@ -1792,7 +2598,7 @@
         }
 
         function getHighlightResult(results) {
-            return results.reduce((best, current) => current.rank > best.rank ? current : best, results[0]);
+            return results.reduce((best, current) => getResultScore(current) > getResultScore(best) ? current : best, results[0]);
         }
 
         function getOverlayQueue(results) {
@@ -1803,34 +2609,84 @@
             const rareResults = results
                 .map((result, index) => ({ result, index }))
                 .filter(({ result }) => Boolean(getOverlayEffectClass(result)))
-                .sort((left, right) => (right.result.rank - left.result.rank) || (left.index - right.index))
+                .sort((left, right) => (getResultScore(right.result) - getResultScore(left.result)) || (left.index - right.index))
                 .map(({ result }) => result);
 
             return rareResults.length > 0 ? rareResults : [getHighlightResult(results)];
         }
 
+        function normalizeRecentEntry(entry) {
+            if (!entry) {
+                return null;
+            }
+
+            if (typeof entry === "string") {
+                return {
+                    key: entry,
+                    variantKey: "",
+                    bannerKey: BANNERS[0].key,
+                    at: ""
+                };
+            }
+
+            return {
+                key: entry.key,
+                variantKey: entry.variantKey || "",
+                bannerKey: entry.bannerKey || BANNERS[0].key,
+                at: entry.at || ""
+            };
+        }
+
+        function createRecentEntry(result) {
+            return {
+                key: result.key,
+                variantKey: result.variantKey || "",
+                bannerKey: result.bannerKey || state.stats.activeBannerKey,
+                at: result.acquiredAt || new Date().toISOString()
+            };
+        }
+
         function renderAll() {
             const thumbnailSyncCycle = getThumbnailSyncCycle();
+            applyTheme();
             renderStats();
             renderPullHistory();
             renderRecentPulls();
             renderCollection(thumbnailSyncCycle);
             renderResultsGrid(thumbnailSyncCycle);
+            renderBannerList();
+            renderWorkshop();
+            renderDailyCard();
+            renderChallengeCard();
+            renderShowcase(thumbnailSyncCycle);
+            renderThemeList();
+            renderSoundSettings();
+            renderAchievements();
+            renderOddsGrid();
+            renderDroughtCard();
+            renderRareHitChart();
+            renderBannerHistory();
             renderLuckMeter();
             syncVisibleGifThumbnails(thumbnailSyncCycle);
         }
 
         function renderStats() {
             const mostPulled = getMostPulledGif();
-            const bestPull = state.stats.bestPullKey ? gifMap[state.stats.bestPullKey] : null;
+            const bestPullRank = getBestPullRankFromStats(state.stats);
+            const activeBanner = getActiveBanner();
+            const avgLuck = state.stats.totalPulls > 0 ? (state.stats.totalLuckScore / state.stats.totalPulls).toFixed(2) : "0.00";
 
             statsGrid.innerHTML = "";
 
             [
                 ["Total Pulls", String(state.stats.totalPulls)],
+                ["Signal Dust", String(state.stats.signalDust)],
                 ["Unlocked", `${state.stats.unlocked.length}/${GIFS.length}`],
+                ["Current Banner", activeBanner.name],
                 ["Most Pulled", mostPulled ? `${mostPulled.name} (${state.stats.counts[mostPulled.key]})` : "None yet"],
-                ["Rarest Pull", bestPull ? bestPull.name : "None yet"]
+                ["Best Pull", state.stats.bestPullKey ? getResultDisplayName({ ...gifMap[state.stats.bestPullKey], variantKey: state.stats.bestPullVariant || "" }) : "None yet"],
+                ["Luck Score", avgLuck],
+                ["Achievements", `${state.stats.achievementKeys.length}/${ACHIEVEMENTS.length}`]
             ].forEach(([label, value]) => {
                 const card = document.createElement("div");
                 card.className = "card";
@@ -1873,16 +2729,22 @@
                 return;
             }
 
-            state.stats.recent.forEach((key, index) => {
-                const gif = gifMap[key];
+            state.stats.recent.forEach((entry, index) => {
+                const recentEntry = normalizeRecentEntry(entry);
+                const gif = gifMap[recentEntry.key];
+                if (!gif) {
+                    return;
+                }
+
+                const labelResult = { ...gif, variantKey: recentEntry.variantKey };
                 const item = document.createElement("li");
                 item.className = "recent-item";
                 item.innerHTML = `
                     <div class="recent-left">
                         <span class="dot" style="background:${gif.color}"></span>
-                        <span>#${state.stats.totalPulls - index} ${gif.name}</span>
+                        <span>#${Math.max(state.stats.totalPulls - index, 1)} ${getResultDisplayName(labelResult)}</span>
                     </div>
-                    <span class="rarity-badge" style="background:${gif.color}">${gif.rarity}</span>
+                    <span class="rarity-badge" style="background:${getResultAccentColor(labelResult)}">${getResultRarityLabel(labelResult)}</span>
                 `;
                 recentList.appendChild(item);
             });
@@ -1894,6 +2756,7 @@
             GIFS.forEach((gif) => {
                 const unlocked = state.stats.unlocked.includes(gif.key);
                 const count = state.stats.counts[gif.key];
+                const variantCounts = state.stats.variantCounts[gif.key] || { shiny: 0, alt: 0 };
                 const card = document.createElement("article");
                 card.className = `collection-card${unlocked ? "" : " locked"}`;
                 card.innerHTML = `
@@ -1902,8 +2765,26 @@
                         <strong>${gif.name}</strong>
                         <span class="rarity-badge" style="background:${gif.color}">${gif.rarity}</span>
                         <span class="collection-state">${unlocked ? `${count} owned pulls` : "Locked"}</span>
+                        <div class="badge-row">
+                            ${variantCounts.shiny > 0 ? `<span class="variant-chip">Shiny x${variantCounts.shiny}</span>` : ""}
+                            ${variantCounts.alt > 0 ? `<span class="variant-chip">Alt x${variantCounts.alt}</span>` : ""}
+                            ${state.stats.favoriteKey === gif.key ? `<span class="favorite-pill">Showcase</span>` : ""}
+                        </div>
+                        <span class="secondary-meta">${unlocked && state.stats.firstPullDates[gif.key] ? `First pull: ${formatDate(state.stats.firstPullDates[gif.key])}` : "First pull: not yet"}</span>
+                        <div class="collection-actions">
+                            <button class="ghost-button tiny-button" type="button" ${unlocked ? "" : "disabled"}>${state.stats.favoriteKey === gif.key ? "Favorited" : "Set Favorite"}</button>
+                            <button class="ghost-button tiny-button" type="button" ${unlocked ? "" : "disabled"}>Export PNG</button>
+                        </div>
                     </div>
                 `;
+
+                const [favoriteButton, exportButton] = card.querySelectorAll("button");
+                favoriteButton.addEventListener("click", () => setFavoriteGif(gif.key));
+                exportButton.addEventListener("click", () => exportResultCard(createPulledResult(gif, {
+                    source: "export",
+                    bannerKey: state.stats.activeBannerKey,
+                    variantKey: state.stats.favoriteKey === gif.key ? state.stats.favoriteVariant || "" : ""
+                })));
                 collectionGrid.appendChild(card);
             });
         }
@@ -1923,16 +2804,333 @@
                 const card = document.createElement("article");
                 card.className = "card pull-card";
                 card.innerHTML = `
-                    <img src="${getSyncedGifUrl(gif.path, syncCycle)}" alt="${gif.name}" data-sync-gif="${gif.path}" data-sync-cycle="${syncCycle}">
-                    <div class="pull-name">${gif.name}</div>
-                    <div class="pull-meta">
-                        <span class="rarity-badge" style="background:${gif.color}">${gif.rarity}</span>
-                        <button class="ghost-button" type="button">Share Card</button>
+                    <img class="${getResultImageClass(gif)}" src="${getSyncedGifUrl(gif.path, syncCycle)}" alt="${getResultDisplayName(gif)}" data-sync-gif="${gif.path}" data-sync-cycle="${syncCycle}">
+                    <div class="pull-name">${getResultDisplayName(gif)}</div>
+                    <div class="badge-row">
+                        <span class="rarity-badge" style="background:${getResultAccentColor(gif)}">${getResultRarityLabel(gif)}</span>
+                        ${gif.isNewUnlock ? `<span class="variant-chip">New</span>` : ""}
+                        ${gif.duplicateSignalAwarded > 0 ? `<span class="variant-chip">+${gif.duplicateSignalAwarded} signal</span>` : ""}
+                    </div>
+                    <span class="secondary-meta">${getBannerName(gif.bannerKey)} banner${gif.variantKey ? ` | ${getVariantLabel(gif.variantKey)} version` : ""}</span>
+                    <div class="result-actions">
+                        <button class="ghost-button tiny-button" type="button">Share Card</button>
+                        <button class="ghost-button tiny-button" type="button">Export PNG</button>
+                        <button class="ghost-button tiny-button" type="button">Favorite</button>
                     </div>
                 `;
 
-                card.querySelector("button").addEventListener("click", () => shareResults([gif]));
+                const [shareButton, exportButton, favoriteButton] = card.querySelectorAll("button");
+                shareButton.addEventListener("click", () => shareResults([gif]));
+                exportButton.addEventListener("click", () => exportResultCard(gif));
+                favoriteButton.addEventListener("click", () => setFavoriteGif(gif.key, gif.variantKey || ""));
                 resultsGrid.appendChild(card);
+            });
+        }
+
+        function renderBannerList() {
+            const activeBanner = getActiveBanner();
+            bannerList.innerHTML = "";
+
+            BANNERS.forEach((banner) => {
+                const button = document.createElement("button");
+                button.type = "button";
+                button.className = `banner-tile${banner.key === activeBanner.key ? " active" : ""}`;
+                button.style.borderColor = banner.key === activeBanner.key ? `${banner.accent}` : "";
+                button.innerHTML = `
+                    <div class="banner-top">
+                        <span class="banner-name">${banner.name}</span>
+                        <span class="variant-chip" style="border-color:${banner.accent}; color:${banner.accent}">${banner.key === activeBanner.key ? "Active" : "Select"}</span>
+                    </div>
+                    <span class="secondary-meta">${banner.description}</span>
+                    <div class="banner-featured">
+                        ${banner.featuredKeys.map((key) => `<span class="variant-chip">${gifMap[key].name}</span>`).join("")}
+                    </div>
+                `;
+                button.addEventListener("click", () => setActiveBanner(banner.key));
+                bannerList.appendChild(button);
+            });
+
+            bannerDescription.textContent = `${activeBanner.name}: ${activeBanner.description}`;
+        }
+
+        function renderWorkshop() {
+            resourceCard.innerHTML = `
+                <span class="stat-label">Signal Dust</span>
+                <span class="resource-count">${state.stats.signalDust}</span>
+                <span class="secondary-meta">Duplicates break down into signal you can spend on guaranteed crafted pulls.</span>
+                <div class="badge-row">
+                    <span class="variant-chip">Spent ${state.stats.totalSignalSpent}</span>
+                    <span class="variant-chip">Shiny ${state.stats.totalShinyPulls}</span>
+                    <span class="variant-chip">Alt ${state.stats.totalAltPulls}</span>
+                </div>
+            `;
+
+            craftGrid.innerHTML = "";
+            CRAFT_OPTIONS.forEach((option) => {
+                const card = document.createElement("div");
+                card.className = "craft-card";
+                const canAfford = state.stats.signalDust >= option.cost && !state.isSpinning;
+                card.innerHTML = `
+                    <div class="achievement-top">
+                        <strong>${option.name}</strong>
+                        <span class="achievement-reward">${option.cost} signal</span>
+                    </div>
+                    <span class="secondary-meta">${option.description}</span>
+                    <button class="ghost-button tiny-button" type="button" ${canAfford ? "" : "disabled"}>Craft</button>
+                `;
+                card.querySelector("button").addEventListener("click", () => craftGuaranteedPull(option));
+                craftGrid.appendChild(card);
+            });
+        }
+
+        function renderDailyCard() {
+            const canClaim = canClaimDailyPull();
+            const nextText = canClaim ? "Daily pull ready right now." : "Daily already claimed. Come back after your local date rolls over.";
+            dailyCard.innerHTML = `
+                <span class="stat-label">Daily Streak</span>
+                <span class="resource-count">${state.stats.dailyStreak}</span>
+                <span class="secondary-meta">${nextText}</span>
+                <div class="badge-row">
+                    <span class="variant-chip">Last claim: ${state.stats.lastDailyClaimDate || "Never"}</span>
+                    <span class="variant-chip">${canClaim ? "Ready" : "Claimed"}</span>
+                </div>
+            `;
+            claimDailyButton.disabled = !canClaim || state.isSpinning;
+        }
+
+        function renderChallengeCard() {
+            const challenge = state.stats.challenge;
+
+            if (!challenge) {
+                challengeCard.innerHTML = `
+                    <span class="stat-label">Challenge Mode</span>
+                    <strong>No active challenge.</strong>
+                    <span class="secondary-meta">Start one and try to hit the target rarity before you run out of spins.</span>
+                `;
+                startChallengeButton.disabled = state.isSpinning;
+                abandonChallengeButton.disabled = true;
+                return;
+            }
+
+            challengeCard.innerHTML = `
+                <span class="stat-label">${challenge.name}</span>
+                <strong>${getRankLabel(challenge.targetRank)} or better in ${challenge.totalSpins} spins</strong>
+                <span class="secondary-meta">${challenge.status === "active"
+                    ? `${challenge.spinsLeft} spins left | reward ${challenge.reward} signal`
+                    : challenge.status === "won"
+                        ? `Cleared | reward ${challenge.reward} signal paid out`
+                        : "Failed run | reset to try again"}</span>
+                <div class="badge-row">
+                    <span class="variant-chip">Reward ${challenge.reward}</span>
+                    <span class="variant-chip">${challenge.status.toUpperCase()}</span>
+                </div>
+            `;
+
+            startChallengeButton.disabled = state.isSpinning || challenge.status === "active";
+            abandonChallengeButton.disabled = state.isSpinning || !challenge;
+        }
+
+        function renderShowcase(syncCycle = getThumbnailSyncCycle()) {
+            const favoriteGif = state.stats.favoriteKey ? gifMap[state.stats.favoriteKey] : null;
+            const favoriteVariant = state.stats.favoriteVariant || "";
+            const bestGif = state.stats.bestPullKey ? gifMap[state.stats.bestPullKey] : null;
+            const selected = favoriteGif
+                ? { ...favoriteGif, variantKey: favoriteVariant }
+                : bestGif
+                    ? { ...bestGif, variantKey: state.stats.bestPullVariant || "" }
+                    : null;
+
+            if (!selected) {
+                showcaseCard.innerHTML = `<div class="showcase-empty">Pull something good and set it as your showcase.</div>`;
+                return;
+            }
+
+            showcaseCard.innerHTML = `
+                <div class="showcase-head">
+                    <div>
+                        <span class="stat-label">Showcase</span>
+                        <div class="pull-name">${getResultDisplayName(selected)}</div>
+                    </div>
+                    <span class="favorite-pill">${favoriteGif ? "Favorite" : "Best Pull"}</span>
+                </div>
+                <div class="showcase-media">
+                    <img class="${getResultImageClass(selected)}" src="${getSyncedGifUrl(selected.path, syncCycle)}" alt="${getResultDisplayName(selected)}" data-sync-gif="${selected.path}" data-sync-cycle="${syncCycle}">
+                </div>
+                <span class="secondary-meta">${getResultRarityLabel(selected)} | ${getBannerName(state.stats.activeBannerKey)} banner active</span>
+                <div class="showcase-actions">
+                    <button class="ghost-button tiny-button" type="button">Export PNG</button>
+                    <button class="ghost-button tiny-button" type="button" ${favoriteGif ? "" : "disabled"}>Clear Favorite</button>
+                </div>
+            `;
+
+            const [exportButton, clearButton] = showcaseCard.querySelectorAll("button");
+            exportButton.addEventListener("click", () => exportResultCard(selected));
+            clearButton.addEventListener("click", clearFavoriteGif);
+        }
+
+        function renderThemeList() {
+            themeList.innerHTML = "";
+
+            THEMES.forEach((theme) => {
+                const unlocked = theme.unlock(state.stats);
+                const button = document.createElement("button");
+                button.type = "button";
+                button.className = `theme-chip${state.stats.selectedTheme === theme.key ? " active" : ""}${unlocked ? "" : " locked"}`;
+                button.textContent = unlocked ? theme.name : `${theme.name} Locked`;
+                button.disabled = !unlocked;
+                button.addEventListener("click", () => setTheme(theme.key));
+                themeList.appendChild(button);
+            });
+        }
+
+        function renderSoundSettings() {
+            soundList.innerHTML = `
+                <div class="setting-row">
+                    <label><span>Master Sound</span><input id="soundEnabledInput" type="checkbox" ${state.stats.soundEnabled ? "checked" : ""}></label>
+                    <span class="secondary-meta">Turns all reel, tick, and result sounds on or off.</span>
+                </div>
+                <div class="setting-row">
+                    <label><span>Volume</span><strong id="soundVolumeValue">${state.stats.soundVolume}%</strong></label>
+                    <input id="soundVolumeInput" type="range" min="0" max="100" value="${state.stats.soundVolume}">
+                </div>
+                <div class="setting-row">
+                    <label><span>Spin Ticks</span><input id="spinSoundsInput" type="checkbox" ${state.stats.spinSoundsEnabled ? "checked" : ""}></label>
+                    <label><span>Win Fanfare</span><input id="resultSoundsInput" type="checkbox" ${state.stats.resultSoundsEnabled ? "checked" : ""}></label>
+                </div>
+            `;
+
+            soundList.querySelector("#soundEnabledInput").addEventListener("change", (event) => {
+                state.stats.soundEnabled = event.target.checked;
+                if (!state.stats.soundEnabled) {
+                    stopSpinLoopSound();
+                }
+                persistProgress();
+            });
+            soundList.querySelector("#soundVolumeInput").addEventListener("input", (event) => {
+                state.stats.soundVolume = clampNumber(event.target.value, 0, 100, createDefaultStats().soundVolume);
+                soundList.querySelector("#soundVolumeValue").textContent = `${state.stats.soundVolume}%`;
+            });
+            soundList.querySelector("#soundVolumeInput").addEventListener("change", () => persistProgress());
+            soundList.querySelector("#spinSoundsInput").addEventListener("change", (event) => {
+                state.stats.spinSoundsEnabled = event.target.checked;
+                if (!state.stats.spinSoundsEnabled) {
+                    stopSpinLoopSound();
+                }
+                persistProgress();
+            });
+            soundList.querySelector("#resultSoundsInput").addEventListener("change", (event) => {
+                state.stats.resultSoundsEnabled = event.target.checked;
+                persistProgress();
+            });
+        }
+
+        function renderAchievements() {
+            achievementGrid.innerHTML = "";
+
+            ACHIEVEMENTS.forEach((achievement) => {
+                const unlocked = state.stats.achievementKeys.includes(achievement.key);
+                const card = document.createElement("article");
+                card.className = `achievement-card${unlocked ? "" : " locked"}`;
+                card.innerHTML = `
+                    <div class="achievement-top">
+                        <span class="achievement-title">${achievement.name}</span>
+                        <span class="achievement-reward">+${achievement.reward} signal</span>
+                    </div>
+                    <span class="secondary-meta">${achievement.description}</span>
+                    <span class="muted-line">${unlocked ? `Unlocked ${formatDate(state.stats.achievementDates[achievement.key])}` : "Locked"}</span>
+                `;
+                achievementGrid.appendChild(card);
+            });
+        }
+
+        function renderOddsGrid() {
+            oddsGrid.innerHTML = "";
+            const pool = getWeightedPoolForBanner(state.stats.activeBannerKey, getPityBoost());
+            const totalWeight = pool.reduce((sum, entry) => sum + entry.weight, 0);
+
+            pool
+                .slice()
+                .sort((left, right) => left.gif.rank - right.gif.rank)
+                .forEach((entry) => {
+                    const percent = totalWeight > 0 ? (entry.weight / totalWeight) * 100 : 0;
+                    const card = document.createElement("div");
+                    card.className = "odds-card";
+                    card.innerHTML = `
+                        <div class="odds-row">
+                            <span>${entry.gif.name}</span>
+                            <strong>${percent.toFixed(2)}%</strong>
+                        </div>
+                        <div class="odds-bar-track">
+                            <div class="odds-bar-fill" style="width:${Math.max(percent, 2)}%; background:${entry.gif.color}"></div>
+                        </div>
+                    `;
+                    oddsGrid.appendChild(card);
+                });
+        }
+
+        function renderDroughtCard() {
+            droughtCard.innerHTML = `
+                <span class="stat-label">Drought Tracking</span>
+                <strong>Current drought: ${state.stats.currentDrought}</strong>
+                <span class="secondary-meta">Longest drought: ${state.stats.longestDrought}</span>
+                <span class="secondary-meta">Average rank score: ${state.stats.totalPulls > 0 ? (state.stats.totalLuckScore / state.stats.totalPulls).toFixed(2) : "0.00"}</span>
+                <div class="badge-row">
+                    <span class="variant-chip">Challenge wins ${state.stats.challengeWins}</span>
+                    <span class="variant-chip">Best rank ${getBestPullRankFromStats(state.stats) || 0}</span>
+                </div>
+            `;
+        }
+
+        function renderRareHitChart() {
+            rareHitChart.innerHTML = "";
+
+            if (state.stats.rareHitHistory.length === 0) {
+                const helper = document.createElement("div");
+                helper.className = "helper-text";
+                helper.textContent = "Rare hit bars appear after you land Unreal, Insane, or Godlike pulls.";
+                rareHitChart.appendChild(helper);
+                return;
+            }
+
+            state.stats.rareHitHistory.slice(-8).forEach((hit) => {
+                const gif = gifMap[hit.key];
+                const card = document.createElement("div");
+                card.className = "chart-card";
+                card.innerHTML = `
+                    <div class="chart-column">
+                        <div class="chart-bar" style="height:${Math.max(hit.rank * 10, 18)}px; background:${gif.color}"></div>
+                    </div>
+                    <strong>${gif.name}</strong>
+                    <span class="chart-caption">#${hit.pullNumber}</span>
+                `;
+                rareHitChart.appendChild(card);
+            });
+        }
+
+        function renderBannerHistory() {
+            bannerHistoryList.innerHTML = "";
+
+            if (state.stats.bannerHistory.length === 0) {
+                const item = document.createElement("li");
+                item.className = "recent-item";
+                item.textContent = "No banner sessions logged yet.";
+                bannerHistoryList.appendChild(item);
+                return;
+            }
+
+            state.stats.bannerHistory.slice(0, 8).forEach((entry) => {
+                const banner = bannerMap[entry.bannerKey] || BANNERS[0];
+                const gif = gifMap[entry.bestKey] || GIFS[0];
+                const item = document.createElement("li");
+                item.className = "recent-item";
+                item.innerHTML = `
+                    <div class="recent-left">
+                        <span class="dot" style="background:${banner.accent}"></span>
+                        <span>${banner.name} | ${getResultDisplayName({ ...gif, variantKey: entry.bestVariant || "" })}</span>
+                    </div>
+                    <span class="rarity-badge" style="background:${gif.color}">${entry.pullCount} pull${entry.pullCount === 1 ? "" : "s"}</span>
+                `;
+                bannerHistoryList.appendChild(item);
             });
         }
 
@@ -1981,8 +3179,581 @@
         }
 
         function buildShareText(results) {
-            const pulls = results.map((gif) => `${gif.rarity} ${gif.name}`).join(", ");
-            return `Reels Pull results: ${pulls}. Total pulls: ${state.stats.totalPulls}.`;
+            const pulls = results.map((gif) => `${getResultRarityLabel(gif)} ${getResultDisplayName(gif)}`).join(", ");
+            return `Reels Pull results: ${pulls}. Banner: ${getActiveBanner().name}. Total pulls: ${state.stats.totalPulls}.`;
+        }
+
+        function formatDate(value) {
+            if (!value) {
+                return "Unknown";
+            }
+
+            const parsed = new Date(value);
+            if (Number.isNaN(parsed.getTime())) {
+                return String(value);
+            }
+
+            return parsed.toLocaleDateString(undefined, {
+                year: "numeric",
+                month: "short",
+                day: "numeric"
+            });
+        }
+
+        function getTodayKey() {
+            return getRelativeDayKey(0);
+        }
+
+        function getRelativeDayKey(dayOffset) {
+            const date = new Date();
+            date.setHours(12, 0, 0, 0);
+            date.setDate(date.getDate() + dayOffset);
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, "0");
+            const day = String(date.getDate()).padStart(2, "0");
+            return `${year}-${month}-${day}`;
+        }
+
+        function canClaimDailyPull() {
+            return state.stats.lastDailyClaimDate !== getTodayKey();
+        }
+
+        function getBestPullRankFromStats(stats) {
+            return stats.bestPullKey && gifMap[stats.bestPullKey] ? gifMap[stats.bestPullKey].rank : 0;
+        }
+
+        function getRankLabel(rank) {
+            const match = GIFS.find((gif) => gif.rank === rank);
+            return match ? match.rarity : `Rank ${rank}`;
+        }
+
+        function clampNumber(value, min, max, fallback) {
+            const numeric = Number(value);
+            if (!Number.isFinite(numeric)) {
+                return fallback;
+            }
+
+            return Math.min(max, Math.max(min, numeric));
+        }
+
+        function setActiveBanner(bannerKey) {
+            if (state.isSpinning || !bannerMap[bannerKey]) {
+                return;
+            }
+
+            state.stats.activeBannerKey = bannerKey;
+            persistProgress();
+            renderAll();
+        }
+
+        function setFavoriteGif(key, variantKey = "") {
+            if (!gifMap[key] || !state.stats.unlocked.includes(key)) {
+                return;
+            }
+
+            state.stats.favoriteKey = key;
+            state.stats.favoriteVariant = variantKey;
+            syncAchievements(true);
+            persistProgress();
+            renderAll();
+        }
+
+        function clearFavoriteGif() {
+            state.stats.favoriteKey = "";
+            state.stats.favoriteVariant = "";
+            persistProgress();
+            renderAll();
+        }
+
+        function setTheme(themeKey) {
+            const theme = THEMES.find((entry) => entry.key === themeKey);
+            if (!theme || !theme.unlock(state.stats)) {
+                return;
+            }
+
+            state.stats.selectedTheme = theme.key;
+            applyTheme();
+            persistProgress();
+            renderAll();
+        }
+
+        function applyTheme() {
+            const selectedTheme = THEMES.find((theme) => theme.key === state.stats.selectedTheme && theme.unlock(state.stats))
+                ? state.stats.selectedTheme
+                : THEMES[0].key;
+
+            state.stats.selectedTheme = selectedTheme;
+
+            if (selectedTheme === THEMES[0].key) {
+                document.body.removeAttribute("data-theme");
+            } else {
+                document.body.dataset.theme = selectedTheme;
+            }
+        }
+
+        function claimDailyPull() {
+            if (!canClaimDailyPull() || state.isSpinning) {
+                return;
+            }
+
+            const today = getTodayKey();
+            state.stats.dailyStreak = state.stats.lastDailyClaimDate === getRelativeDayKey(-1)
+                ? state.stats.dailyStreak + 1
+                : 1;
+            state.stats.lastDailyClaimDate = today;
+            syncAchievements(true);
+            persistProgress();
+            renderAll();
+            startSpin(1, { source: "daily", daily: true });
+        }
+
+        function getNextChallengeTemplate() {
+            const index = (state.stats.challengeWins + state.stats.totalPulls) % CHALLENGE_POOL.length;
+            return CHALLENGE_POOL[index];
+        }
+
+        function startChallengeMode() {
+            if (state.isSpinning) {
+                return;
+            }
+
+            const template = getNextChallengeTemplate();
+            state.stats.challenge = {
+                ...template,
+                totalSpins: template.spins,
+                spinsLeft: template.spins,
+                status: "active",
+                startedAt: new Date().toISOString()
+            };
+            persistProgress();
+            renderAll();
+        }
+
+        function abandonChallengeMode() {
+            if (!state.stats.challenge) {
+                return;
+            }
+
+            state.stats.challenge = null;
+            persistProgress();
+            renderAll();
+        }
+
+        function updateChallengeAfterResults(results) {
+            const challenge = state.stats.challenge;
+            if (!challenge || challenge.status !== "active") {
+                return;
+            }
+
+            if (results.some((result) => result.rank >= challenge.targetRank)) {
+                challenge.status = "won";
+                challenge.spinsLeft = Math.max(challenge.spinsLeft - results.length, 0);
+                state.stats.signalDust += challenge.reward;
+                state.stats.challengeWins += 1;
+                flashSaveStatus(`${challenge.name} cleared! +${challenge.reward} signal`);
+                return;
+            }
+
+            challenge.spinsLeft = Math.max(challenge.spinsLeft - results.length, 0);
+            if (challenge.spinsLeft === 0) {
+                challenge.status = "failed";
+                flashSaveStatus(`${challenge.name} failed`);
+            }
+        }
+
+        function recordBannerSession(results) {
+            const bestResult = getHighlightResult(results);
+            state.stats.bannerHistory.unshift({
+                at: new Date().toISOString(),
+                bannerKey: state.pendingMeta?.bannerKey || state.stats.activeBannerKey,
+                bestKey: bestResult.key,
+                bestVariant: bestResult.variantKey || "",
+                pullCount: results.length,
+                rareCount: results.filter((result) => Boolean(getOverlayEffectClass(result))).length
+            });
+            state.stats.bannerHistory = state.stats.bannerHistory.slice(0, 20);
+        }
+
+        function syncAchievements(silent = false) {
+            const newlyUnlocked = [];
+
+            ACHIEVEMENTS.forEach((achievement) => {
+                if (state.stats.achievementKeys.includes(achievement.key)) {
+                    return;
+                }
+
+                if (!achievement.unlock(state.stats)) {
+                    return;
+                }
+
+                state.stats.achievementKeys.push(achievement.key);
+                state.stats.achievementDates[achievement.key] = new Date().toISOString();
+                state.stats.signalDust += achievement.reward;
+                newlyUnlocked.push(achievement.name);
+            });
+
+            if (!silent && newlyUnlocked.length > 0) {
+                flashSaveStatus(`Achievement unlocked: ${newlyUnlocked.join(", ")}`);
+            }
+
+            return newlyUnlocked;
+        }
+
+        function rollGuaranteedFromRank(minRank, bannerKey = state.stats.activeBannerKey) {
+            const pool = getWeightedPoolForBanner(bannerKey, 1).filter((entry) => entry.gif.rank >= minRank);
+            return createPulledResult(weightedPick(pool), { source: "craft", bannerKey });
+        }
+
+        function craftGuaranteedPull(option) {
+            if (state.isSpinning || state.stats.signalDust < option.cost) {
+                return;
+            }
+
+            state.stats.signalDust -= option.cost;
+            state.stats.totalSignalSpent += option.cost;
+            syncAchievements(true);
+            persistProgress();
+            renderAll();
+            startSpin(1, {
+                source: "craft",
+                craftKey: option.key,
+                presetResults: [rollGuaranteedFromRank(option.minRank, state.stats.activeBannerKey)]
+            });
+        }
+
+        function createModalShell(title, subtitle, options = {}) {
+            const overlay = document.createElement("div");
+            overlay.className = "modal-overlay";
+
+            const card = document.createElement("div");
+            card.className = "modal-card";
+
+            const header = document.createElement("div");
+            header.className = "modal-header";
+            header.innerHTML = `
+                <div>
+                    <h2>${title}</h2>
+                    <p class="helper-text">${subtitle}</p>
+                </div>
+            `;
+
+            const closeButton = document.createElement("button");
+            closeButton.className = "ghost-button tiny-button";
+            closeButton.type = "button";
+            closeButton.textContent = options.closeLabel || "Close";
+            header.appendChild(closeButton);
+            card.appendChild(header);
+            overlay.appendChild(card);
+
+            const closeModal = () => {
+                overlay.removeEventListener("mousedown", handleDismiss);
+                document.removeEventListener("keydown", handleKeyDismiss);
+                overlay.remove();
+            };
+
+            const handleDismiss = (event) => {
+                if (event.target === overlay) {
+                    closeModal();
+                }
+            };
+
+            const handleKeyDismiss = (event) => {
+                if (event.code === "Escape") {
+                    closeModal();
+                }
+            };
+
+            closeButton.addEventListener("click", closeModal);
+            overlay.addEventListener("mousedown", handleDismiss);
+            document.addEventListener("keydown", handleKeyDismiss);
+            document.body.appendChild(overlay);
+
+            return { overlay, card, closeModal };
+        }
+
+        function openAlbumOverlay() {
+            const { card } = createModalShell("Collection Album", "Every unlocked GIF, first-pull dates, and variant counts in one place.");
+            const grid = document.createElement("div");
+            grid.className = "album-grid";
+            const syncCycle = getThumbnailSyncCycle();
+
+            GIFS.forEach((gif) => {
+                const unlocked = state.stats.unlocked.includes(gif.key);
+                const variants = state.stats.variantCounts[gif.key] || { shiny: 0, alt: 0 };
+                const cardNode = document.createElement("article");
+                cardNode.className = `album-card${unlocked ? "" : " locked"}`;
+                cardNode.innerHTML = `
+                    <img src="${getSyncedGifUrl(gif.path, syncCycle)}" alt="${gif.name}" data-sync-gif="${gif.path}" data-sync-cycle="${syncCycle}">
+                    <strong>${gif.name}</strong>
+                    <span class="rarity-badge" style="background:${gif.color}">${gif.rarity}</span>
+                    <span class="secondary-meta">${unlocked ? `First pull ${formatDate(state.stats.firstPullDates[gif.key])}` : "Locked silhouette"}</span>
+                    <div class="badge-row">
+                        ${variants.shiny > 0 ? `<span class="variant-chip">Shiny x${variants.shiny}</span>` : ""}
+                        ${variants.alt > 0 ? `<span class="variant-chip">Alt x${variants.alt}</span>` : ""}
+                        ${state.stats.favoriteKey === gif.key ? `<span class="favorite-pill">Favorite</span>` : ""}
+                    </div>
+                `;
+                grid.appendChild(cardNode);
+            });
+
+            card.appendChild(grid);
+        }
+
+        function showBatchRevealOverlay(results) {
+            const { card } = createModalShell("10-Pull Reveal", "A full batch board for your latest 10-pull.");
+            const grid = document.createElement("div");
+            grid.className = "batch-grid";
+            const syncCycle = getThumbnailSyncCycle();
+
+            results.forEach((result, index) => {
+                const revealCard = document.createElement("article");
+                revealCard.className = "reveal-card";
+                revealCard.style.animationDelay = `${index * 55}ms`;
+                revealCard.innerHTML = `
+                    <img class="${getResultImageClass(result)}" src="${getSyncedGifUrl(result.path, syncCycle)}" alt="${getResultDisplayName(result)}" data-sync-gif="${result.path}" data-sync-cycle="${syncCycle}">
+                    <strong>${getResultDisplayName(result)}</strong>
+                    <span class="rarity-badge" style="background:${getResultAccentColor(result)}">${getResultRarityLabel(result)}</span>
+                    <span class="secondary-meta">${result.duplicateSignalAwarded > 0 ? `Duplicate -> +${result.duplicateSignalAwarded} signal` : result.isNewUnlock ? "New unlock" : "Tracked pull"}</span>
+                `;
+                grid.appendChild(revealCard);
+            });
+
+            const actions = document.createElement("div");
+            actions.className = "showcase-actions";
+            actions.innerHTML = `
+                <button class="ghost-button tiny-button" type="button">Export Batch PNG</button>
+            `;
+            actions.querySelector("button").addEventListener("click", () => exportBatchCard(results));
+
+            card.append(grid, actions);
+        }
+
+        function loadImageAsset(source) {
+            return new Promise((resolve, reject) => {
+                const image = new Image();
+                image.onload = () => resolve(image);
+                image.onerror = reject;
+                image.src = source;
+            });
+        }
+
+        function getExportPreviewConfig(result) {
+            const lateLoopConfig = getLateLoopConfig(result);
+            if (lateLoopConfig) {
+                return {
+                    path: lateLoopConfig.loopPath,
+                    captureDelayMs: LOOP_EXPORT_CAPTURE_DELAY_MS
+                };
+            }
+
+            const captureDelayMs = result.rank >= 7
+                ? HIGH_TIER_EXPORT_CAPTURE_DELAY_MS
+                : EXPORT_CAPTURE_DELAY_MS;
+
+            return {
+                path: result.path,
+                captureDelayMs
+            };
+        }
+
+        function getExportCanvasFilter(result) {
+            if (result.variantKey === "shiny") {
+                return "saturate(1.2) brightness(1.08)";
+            }
+
+            if (result.variantKey === "alt") {
+                return "hue-rotate(35deg) saturate(1.3)";
+            }
+
+            return "none";
+        }
+
+        function captureAnimatedExportFrame(result) {
+            const { path, captureDelayMs } = getExportPreviewConfig(result);
+
+            return new Promise((resolve, reject) => {
+                const holder = document.createElement("div");
+                holder.style.position = "fixed";
+                holder.style.left = "8px";
+                holder.style.top = "8px";
+                holder.style.width = "180px";
+                holder.style.height = "180px";
+                holder.style.overflow = "hidden";
+                holder.style.opacity = "0.001";
+                holder.style.pointerEvents = "none";
+                holder.style.zIndex = "2147483647";
+                holder.style.borderRadius = "20px";
+                holder.style.background = "transparent";
+                holder.style.transform = "translateZ(0)";
+                holder.style.contain = "paint";
+                holder.setAttribute("aria-hidden", "true");
+
+                const image = new Image();
+                image.style.width = "100%";
+                image.style.height = "100%";
+                image.style.objectFit = "cover";
+                image.style.display = "block";
+
+                let settled = false;
+
+                const cleanup = () => {
+                    if (holder.isConnected) {
+                        holder.remove();
+                    }
+                };
+
+                image.onload = () => {
+                    holder.appendChild(image);
+                    document.body.appendChild(holder);
+
+                    requestAnimationFrame(() => {
+                        window.setTimeout(() => {
+                            if (settled) {
+                                return;
+                            }
+
+                            settled = true;
+                            resolve({
+                                image,
+                                cleanup
+                            });
+                        }, Math.max(0, captureDelayMs));
+                    });
+                };
+
+                image.onerror = (error) => {
+                    if (settled) {
+                        return;
+                    }
+
+                    settled = true;
+                    cleanup();
+                    reject(error);
+                };
+
+                image.src = getFreshGifUrl(path);
+            });
+        }
+
+        function downloadCanvasAsPng(canvas, fileName) {
+            const link = document.createElement("a");
+            link.href = canvas.toDataURL("image/png");
+            link.download = fileName;
+            link.click();
+        }
+
+        async function exportResultCard(result) {
+            let artCapture = null;
+
+            try {
+                saveStatus.textContent = "Capturing result frame...";
+                const canvas = document.createElement("canvas");
+                canvas.width = 1080;
+                canvas.height = 1350;
+                const context = canvas.getContext("2d");
+                const accent = getResultAccentColor(result);
+                const gradient = context.createLinearGradient(0, 0, 1080, 1350);
+                gradient.addColorStop(0, "#08131f");
+                gradient.addColorStop(0.58, "#17314f");
+                gradient.addColorStop(1, accent);
+                context.fillStyle = gradient;
+                context.fillRect(0, 0, canvas.width, canvas.height);
+
+                context.fillStyle = "rgba(255,255,255,0.08)";
+                context.fillRect(64, 64, 952, 1222);
+                context.strokeStyle = "rgba(255,255,255,0.16)";
+                context.lineWidth = 4;
+                context.strokeRect(64, 64, 952, 1222);
+
+                context.fillStyle = "#f5f7fb";
+                context.font = "700 34px Trebuchet MS";
+                context.fillText("REELS PULL", 96, 120);
+
+                context.fillStyle = accent;
+                context.font = "900 72px Trebuchet MS";
+                context.fillText(getResultDisplayName(result).toUpperCase(), 96, 220);
+
+                context.fillStyle = "rgba(245,247,251,0.78)";
+                context.font = "600 34px Trebuchet MS";
+                context.fillText(`${getResultRarityLabel(result)} | ${getBannerName(result.bannerKey || state.stats.activeBannerKey)}`, 96, 276);
+
+                artCapture = await captureAnimatedExportFrame(result);
+                context.save();
+                context.filter = getExportCanvasFilter(result);
+                context.drawImage(artCapture.image, 126, 336, 828, 828);
+                context.restore();
+
+                context.fillStyle = "#f5f7fb";
+                context.font = "600 30px Trebuchet MS";
+                context.fillText(`Total pulls: ${state.stats.totalPulls}`, 96, 1240);
+                context.fillText(`Signal dust: ${state.stats.signalDust}`, 96, 1280);
+
+                downloadCanvasAsPng(canvas, `${result.key}-${result.variantKey || "base"}-${Date.now()}.png`);
+                flashSaveStatus("Card exported");
+            } catch (error) {
+                flashSaveStatus("Card export failed");
+            } finally {
+                artCapture?.cleanup();
+            }
+        }
+
+        async function exportBatchCard(results) {
+            let artCaptures = [];
+
+            try {
+                saveStatus.textContent = "Capturing batch frames...";
+                const canvas = document.createElement("canvas");
+                canvas.width = 1400;
+                canvas.height = 900;
+                const context = canvas.getContext("2d");
+                const gradient = context.createLinearGradient(0, 0, 1400, 1400);
+                gradient.addColorStop(0, "#08131f");
+                gradient.addColorStop(1, "#1d5b7e");
+                context.fillStyle = gradient;
+                context.fillRect(0, 0, canvas.width, canvas.height);
+
+                context.fillStyle = "#f5f7fb";
+                context.font = "900 58px Trebuchet MS";
+                context.fillText("REELS PULL 10-PULL", 70, 100);
+                context.font = "600 28px Trebuchet MS";
+                context.fillStyle = "rgba(245,247,251,0.78)";
+                context.fillText(getActiveBanner().name, 70, 145);
+
+                const cellSize = 220;
+                const gap = 20;
+                const startX = 70;
+                const startY = 190;
+                const columns = 5;
+                artCaptures = await Promise.all(results.map((result) => captureAnimatedExportFrame(result)));
+
+                for (let index = 0; index < results.length; index += 1) {
+                    const result = results[index];
+                    const image = artCaptures[index].image;
+                    const col = index % columns;
+                    const row = Math.floor(index / columns);
+                    const x = startX + col * (cellSize + gap);
+                    const y = startY + row * (cellSize + 96);
+                    context.fillStyle = "rgba(255,255,255,0.08)";
+                    context.fillRect(x - 10, y - 10, cellSize + 20, cellSize + 86);
+                    context.save();
+                    context.filter = getExportCanvasFilter(result);
+                    context.drawImage(image, x, y, cellSize, cellSize);
+                    context.restore();
+                    context.fillStyle = getResultAccentColor(result);
+                    context.font = "800 22px Trebuchet MS";
+                    context.fillText(getResultDisplayName(result), x, y + cellSize + 38);
+                    context.fillStyle = "rgba(245,247,251,0.8)";
+                    context.font = "600 18px Trebuchet MS";
+                    context.fillText(getResultRarityLabel(result), x, y + cellSize + 70);
+                }
+
+                downloadCanvasAsPng(canvas, `reels-pull-batch-${Date.now()}.png`);
+                flashSaveStatus("Batch card exported");
+            } catch (error) {
+                flashSaveStatus("Batch export failed");
+            } finally {
+                artCaptures.forEach((capture) => capture.cleanup());
+            }
         }
 
         function createRareCelebration(effectClass) {
@@ -2127,20 +3898,39 @@
         function getFreshGifUrl(path) {
             return `${path}?play=${Date.now()}-${Math.random().toString(16).slice(2)}`;
         }
+
         function persistProgress() {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(state.stats));
-            flashSaveStatus("Progress saved");
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(state.stats));
+                flashSaveStatus("Progress saved");
+            } catch (error) {
+                flashSaveStatus("Progress save failed");
+            }
         }
 
+        let saveStatusTimeoutId = null;
         function flashSaveStatus(message) {
             saveStatus.textContent = message;
-            setTimeout(() => {
+            if (saveStatusTimeoutId !== null) {
+                clearTimeout(saveStatusTimeoutId);
+            }
+            saveStatusTimeoutId = setTimeout(() => {
                 saveStatus.textContent = "Progress saves automatically";
+                saveStatusTimeoutId = null;
             }, 1500);
         }
 
         function loadProgress() {
-            const raw = localStorage.getItem(STORAGE_KEY);
+            let raw = null;
+
+            try {
+                raw = localStorage.getItem(STORAGE_KEY);
+            } catch (error) {
+                state.stats = createDefaultStats();
+                saveStatus.textContent = "Progress storage is unavailable";
+                return;
+            }
+
             if (!raw) {
                 return;
             }
@@ -2149,16 +3939,60 @@
 
             try {
                 const parsed = JSON.parse(raw);
+                const normalizedVariantCounts = Object.fromEntries(
+                    GIFS.map((gif) => [
+                        gif.key,
+                        {
+                            shiny: Number(parsed.variantCounts?.[gif.key]?.shiny || 0),
+                            alt: Number(parsed.variantCounts?.[gif.key]?.alt || 0)
+                        }
+                    ])
+                );
                 state.stats = {
                     ...defaults,
                     ...parsed,
-                    counts: {
-                        ...defaults.counts,
-                        ...(parsed.counts || {})
-                    },
+                    totalPulls: Math.max(0, clampNumber(parsed.totalPulls, 0, Number.MAX_SAFE_INTEGER, defaults.totalPulls)),
+                    pityCounter: Math.max(0, clampNumber(parsed.pityCounter, 0, Number.MAX_SAFE_INTEGER, defaults.pityCounter)),
+                    counts: Object.fromEntries(
+                        GIFS.map((gif) => [gif.key, Math.max(0, clampNumber(parsed.counts?.[gif.key], 0, Number.MAX_SAFE_INTEGER, defaults.counts[gif.key]))])
+                    ),
+                    variantCounts: normalizedVariantCounts,
                     unlocked: Array.isArray(parsed.unlocked) ? parsed.unlocked.filter((key) => gifMap[key]) : [],
-                    recent: Array.isArray(parsed.recent) ? parsed.recent.filter((key) => gifMap[key]).slice(0, RECENT_PULL_LIMIT) : []
+                    recent: Array.isArray(parsed.recent)
+                        ? parsed.recent.map(normalizeRecentEntry).filter((entry) => entry && gifMap[entry.key]).slice(0, RECENT_PULL_LIMIT)
+                        : [],
+                    bannerHistory: Array.isArray(parsed.bannerHistory)
+                        ? parsed.bannerHistory.filter((entry) => entry && gifMap[entry.bestKey]).slice(0, 20)
+                        : [],
+                    achievementKeys: Array.isArray(parsed.achievementKeys)
+                        ? parsed.achievementKeys.filter((key) => ACHIEVEMENTS.some((achievement) => achievement.key === key))
+                        : [],
+                    achievementDates: parsed.achievementDates || {},
+                    firstPullDates: parsed.firstPullDates || {},
+                    rareHitHistory: Array.isArray(parsed.rareHitHistory)
+                        ? parsed.rareHitHistory.filter((entry) => entry && gifMap[entry.key]).slice(-24)
+                        : [],
+                    soundEnabled: typeof parsed.soundEnabled === "boolean" ? parsed.soundEnabled : defaults.soundEnabled,
+                    spinSoundsEnabled: typeof parsed.spinSoundsEnabled === "boolean" ? parsed.spinSoundsEnabled : defaults.spinSoundsEnabled,
+                    resultSoundsEnabled: typeof parsed.resultSoundsEnabled === "boolean" ? parsed.resultSoundsEnabled : defaults.resultSoundsEnabled,
+                    soundVolume: clampNumber(parsed.soundVolume, 0, 100, defaults.soundVolume),
+                    signalDust: Math.max(0, clampNumber(parsed.signalDust, 0, Number.MAX_SAFE_INTEGER, defaults.signalDust)),
+                    dailyStreak: Math.max(0, clampNumber(parsed.dailyStreak, 0, Number.MAX_SAFE_INTEGER, defaults.dailyStreak)),
+                    totalSignalSpent: Math.max(0, clampNumber(parsed.totalSignalSpent, 0, Number.MAX_SAFE_INTEGER, defaults.totalSignalSpent)),
+                    totalLuckScore: Math.max(0, clampNumber(parsed.totalLuckScore, 0, Number.MAX_SAFE_INTEGER, defaults.totalLuckScore)),
+                    currentDrought: Math.max(0, clampNumber(parsed.currentDrought, 0, Number.MAX_SAFE_INTEGER, defaults.currentDrought)),
+                    longestDrought: Math.max(0, clampNumber(parsed.longestDrought, 0, Number.MAX_SAFE_INTEGER, defaults.longestDrought)),
+                    challengeWins: Math.max(0, clampNumber(parsed.challengeWins, 0, Number.MAX_SAFE_INTEGER, defaults.challengeWins)),
+                    totalShinyPulls: Math.max(0, clampNumber(parsed.totalShinyPulls, 0, Number.MAX_SAFE_INTEGER, defaults.totalShinyPulls)),
+                    totalAltPulls: Math.max(0, clampNumber(parsed.totalAltPulls, 0, Number.MAX_SAFE_INTEGER, defaults.totalAltPulls))
                 };
+                state.stats.activeBannerKey = bannerMap[state.stats.activeBannerKey] ? state.stats.activeBannerKey : defaults.activeBannerKey;
+                state.stats.selectedTheme = THEMES.some((theme) => theme.key === state.stats.selectedTheme) ? state.stats.selectedTheme : defaults.selectedTheme;
+                state.stats.favoriteKey = gifMap[state.stats.favoriteKey] && state.stats.unlocked.includes(state.stats.favoriteKey)
+                    ? state.stats.favoriteKey
+                    : "";
+                state.stats.favoriteVariant = state.stats.favoriteKey && getVariantConfig(state.stats.favoriteVariant) ? state.stats.favoriteVariant : "";
+                state.stats.challenge = normalizeChallengeState(parsed.challenge, defaults.challenge);
                 saveStatus.textContent = "Saved progress loaded";
             } catch (error) {
                 state.stats = defaults;
@@ -2166,21 +4000,63 @@
             }
         }
 
+        function normalizeChallengeState(challenge, fallback = null) {
+            if (!challenge || !challenge.key) {
+                return fallback;
+            }
+
+            const template = CHALLENGE_POOL.find((entry) => entry.key === challenge.key);
+            if (!template) {
+                return fallback;
+            }
+
+            const totalSpins = Math.max(1, clampNumber(challenge.totalSpins ?? template.spins, 1, Number.MAX_SAFE_INTEGER, template.spins));
+            const spinsLeft = Math.max(0, clampNumber(challenge.spinsLeft ?? template.spins, 0, totalSpins, template.spins));
+            const status = ["active", "won", "failed"].includes(challenge.status) ? challenge.status : "active";
+
+            return {
+                ...template,
+                totalSpins,
+                spinsLeft,
+                status,
+                startedAt: challenge.startedAt || ""
+            };
+        }
+
         function resetProgress() {
-            if (!window.confirm("Reset all pull history, collection progress, and pity?")) {
+            if (state.isSpinning) {
+                return;
+            }
+
+            if (!window.confirm("Reset all pull history, collection progress, workshop currency, and pity?")) {
                 return;
             }
 
             stopSpinLoopSound();
-            localStorage.removeItem(STORAGE_KEY);
+            if (state.batchRevealTimeoutId !== null) {
+                clearTimeout(state.batchRevealTimeoutId);
+                state.batchRevealTimeoutId = null;
+            }
+            try {
+                localStorage.removeItem(STORAGE_KEY);
+            } catch (error) {
+                saveStatus.textContent = "Progress storage is unavailable";
+            }
             state.stats = createDefaultStats();
             state.latestResults = [];
+            state.pendingMeta = null;
+            resetProgressButton.disabled = false;
+            applyTheme();
             resultContainer.innerHTML = createResultBanner("Progress reset", "Everything is cleared. Time to start over.");
             flashSaveStatus("Progress reset");
             renderAll();
         }
 
         function playSpinClickSound() {
+            if (!state.stats.soundEnabled || !state.stats.spinSoundsEnabled) {
+                return;
+            }
+
             playToneSequence([
                 [180, 0.05, 0.0],
                 [260, 0.06, 0.04],
@@ -2198,7 +4074,7 @@
         }
 
         function syncSpinTickSound() {
-            if (!state.isSpinning) {
+            if (!state.isSpinning || !state.stats.soundEnabled || !state.stats.spinSoundsEnabled) {
                 return;
             }
 
@@ -2233,6 +4109,10 @@
         }
 
         function playResultSound(result) {
+            if (!state.stats.soundEnabled || !state.stats.resultSoundsEnabled) {
+                return;
+            }
+
             let notes;
             let gain;
 
@@ -2300,11 +4180,12 @@
 
         function playToneSequence(notes, maxGain = 0.08) {
             const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-            if (!AudioContextClass) {
+            if (!AudioContextClass || !state.stats.soundEnabled || maxGain <= 0) {
                 return;
             }
 
             const context = new AudioContextClass();
+            const volumeScale = Math.max(0, Math.min(state.stats.soundVolume / 100, 1));
 
             notes.forEach(([frequency, duration, delay]) => {
                 const oscillator = context.createOscillator();
@@ -2312,7 +4193,7 @@
                 oscillator.type = "triangle";
                 oscillator.frequency.value = frequency;
                 gain.gain.setValueAtTime(0.0001, context.currentTime + delay);
-                gain.gain.exponentialRampToValueAtTime(maxGain, context.currentTime + delay + 0.01);
+                gain.gain.exponentialRampToValueAtTime(Math.max(0.0001, maxGain * volumeScale), context.currentTime + delay + 0.01);
                 gain.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + delay + duration);
                 oscillator.connect(gain);
                 gain.connect(context.destination);
