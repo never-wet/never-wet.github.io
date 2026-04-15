@@ -3,150 +3,306 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GIF 뽑기 게임</title>
+    <title>Reels Pull</title>
     <style>
+        :root {
+            --bg-top: #09111f;
+            --bg-mid: #112443;
+            --bg-bottom: #1d5b7e;
+            --panel: rgba(9, 17, 31, 0.64);
+            --panel-border: rgba(255, 255, 255, 0.12);
+            --text: #f5f7fb;
+            --muted: rgba(245, 247, 251, 0.72);
+            --gold: #ffd76a;
+            --shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: 'Arial', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             margin: 0;
-            padding: 20px;
             min-height: 100vh;
+            padding: 28px;
+            font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+            color: var(--text);
+            background:
+                radial-gradient(circle at top, rgba(122, 231, 255, 0.18), transparent 30%),
+                radial-gradient(circle at bottom right, rgba(255, 215, 106, 0.15), transparent 28%),
+                linear-gradient(155deg, var(--bg-top), var(--bg-mid) 55%, var(--bg-bottom));
+        }
+
+        .page {
+            width: min(1180px, 100%);
+            margin: 0 auto;
+            display: grid;
+            gap: 24px;
+        }
+
+        .hero,
+        .panel,
+        .subpanel {
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 24px;
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(12px);
+        }
+
+        .hero {
+            padding: 28px;
+        }
+
+        .hero h1 {
+            margin: 0 0 12px;
+            font-size: clamp(2.2rem, 4vw, 3.6rem);
+            letter-spacing: 0.04em;
+        }
+
+        .hero p {
+            margin: 0;
+            max-width: 700px;
+            color: var(--muted);
+            line-height: 1.5;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1.65fr) minmax(320px, 1fr);
+            gap: 24px;
+            align-items: start;
+        }
+
+        .panel {
+            padding: 22px;
+        }
+
+        .subpanel {
+            padding: 18px;
+        }
+
+        .section-title {
+            margin: 0 0 14px;
+            font-size: 1.05rem;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+        }
+
+        .play-panel,
+        .side-stack {
+            display: grid;
+            gap: 20px;
+        }
+
+        .status-bar,
+        .controls,
+        .share-actions {
             display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+            flex-wrap: wrap;
+            gap: 12px;
         }
 
-        .game-container {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-            text-align: center;
-        }
-
-        h1 {
-            color: white;
-            margin-bottom: 30px;
-            font-size: 2.5em;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        .pill {
+            padding: 10px 14px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.09);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: var(--muted);
+            font-size: 0.92rem;
         }
 
         .slot-container {
-            width: 600px;
-            height: 120px;
-            border: 4px solid #fff;
-            border-radius: 15px;
+            width: 100%;
+            height: 134px;
             overflow: hidden;
             position: relative;
-            background: rgba(0, 0, 0, 0.2);
-            margin-bottom: 30px;
-            box-shadow: inset 0 4px 8px rgba(0, 0, 0, 0.3);
+            border-radius: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(0, 0, 0, 0.18));
         }
 
         .slot-strip {
             display: flex;
             height: 100%;
             position: relative;
-            transition: transform 0.1s linear;
+            will-change: transform;
         }
 
-        .slot-strip.stopping {
-            transition: transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        .slot-strip.spinning .gif-card-mini {
+            filter: brightness(1.05);
+        }
+
+        .slot-strip.spinning .gif-card-mini img {
+            transform: scale(1.04);
+            opacity: 0.95;
         }
 
         .gif-item {
             min-width: 120px;
-            height: 112px;
-            background: #f0f0f0;
-            border-right: 2px solid #ddd;
+            height: 100%;
+            padding: 8px;
             display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 14px;
-            color: #666;
-            position: relative;
-            overflow: hidden;
+            align-items: stretch;
         }
 
-        .gif-item img {
+        .gif-card-mini {
+            width: 100%;
+            border-radius: 16px;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.09);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            position: relative;
+        }
+
+        .gif-card-mini img,
+        .pull-card img,
+        .collection-card img,
+        .big-winner-img {
             width: 100%;
             height: 100%;
             object-fit: cover;
+            display: block;
         }
 
-        .gif-item.spinning img {
-            animation-play-state: paused;
-            opacity: 0.8;
+        .gif-card-mini img {
+            transition: transform 0.16s linear, opacity 0.16s linear;
         }
 
         .center-highlight {
             position: absolute;
+            top: 8px;
+            bottom: 8px;
             left: 50%;
-            top: 0;
-            bottom: 0;
-            width: 120px;
+            width: 104px;
             transform: translateX(-50%);
-            border: 3px solid #ffd700;
-            border-radius: 10px;
-            box-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
+            border-radius: 16px;
+            border: 3px solid var(--gold);
+            box-shadow: 0 0 26px rgba(255, 215, 106, 0.55);
             pointer-events: none;
-            z-index: 10;
         }
 
-        .spin-button {
-            background: linear-gradient(145deg, #ff6b6b, #ee5a52);
+        button {
+            border: 0;
+            border-radius: 16px;
+            padding: 14px 18px;
+            font: inherit;
             color: white;
-            border: none;
-            padding: 15px 40px;
-            font-size: 18px;
-            font-weight: bold;
-            border-radius: 50px;
             cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
-            text-transform: uppercase;
-            letter-spacing: 1px;
+            transition: transform 0.18s ease, box-shadow 0.18s ease, opacity 0.18s ease;
         }
 
-        .spin-button:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 25px rgba(255, 107, 107, 0.6);
+        button:hover:not(:disabled) {
+            transform: translateY(-2px);
         }
 
-        .spin-button:disabled {
-            background: #666;
+        button:disabled {
             cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
+            opacity: 0.5;
+        }
+
+        .primary-button {
+            background: linear-gradient(135deg, #ff7b72, #ff5449);
+            box-shadow: 0 12px 24px rgba(255, 84, 73, 0.24);
+        }
+
+        .secondary-button {
+            background: linear-gradient(135deg, #52baf7, #2f83ff);
+            box-shadow: 0 12px 24px rgba(47, 131, 255, 0.24);
+        }
+
+        .ghost-button {
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+        }
+        .result-container,
+        .stats-grid,
+        .results-grid,
+        .collection-grid {
+            display: grid;
+            gap: 12px;
         }
 
         .result-container {
-            margin-top: 30px;
-            min-height: 100px;
+            min-height: 88px;
+        }
+
+        .winner-banner,
+        .card,
+        .history-item,
+        .recent-item,
+        .collection-card {
+            border-radius: 18px;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+        }
+
+        .winner-title {
+            margin: 0 0 6px;
+            font-size: 1.2rem;
+            color: var(--gold);
+        }
+
+        .winner-subtitle,
+        .helper-text,
+        .stat-label,
+        .collection-state {
+            color: var(--muted);
+        }
+
+        .winner-subtitle,
+        .helper-text,
+        .collection-state {
+            margin: 0;
+        }
+
+        .results-grid {
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        }
+
+        .stats-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .stat-label {
+            display: block;
+            font-size: 0.85rem;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .stat-value,
+        .pull-name {
+            font-size: 1.12rem;
+            font-weight: bold;
+        }
+
+        .pull-card {
+            display: grid;
+            gap: 10px;
+        }
+
+        .pull-card img,
+        .collection-card img,
+        .big-winner-img {
+            aspect-ratio: 1 / 1;
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .pull-meta,
+        .history-item,
+        .recent-item {
             display: flex;
-            flex-direction: column;
             align-items: center;
-            justify-content: center;
+            justify-content: space-between;
+            gap: 12px;
         }
 
-        .history-container {
-            margin-top: 24px;
-            padding: 20px;
-            border-radius: 16px;
-            background: rgba(0, 0, 0, 0.18);
-            text-align: left;
-        }
-
-        .history-title {
-            margin: 0 0 14px;
-            color: white;
-            font-size: 18px;
-            letter-spacing: 0.04em;
-        }
-
-        .history-list {
+        .history-list,
+        .recent-list {
             list-style: none;
             margin: 0;
             padding: 0;
@@ -154,225 +310,1426 @@
             gap: 10px;
         }
 
-        .history-item {
+        .history-left,
+        .recent-left {
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            gap: 16px;
-            padding: 10px 14px;
-            border-radius: 12px;
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
+            gap: 10px;
         }
 
-        .history-name {
-            text-transform: capitalize;
-            font-weight: bold;
+        .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            flex-shrink: 0;
         }
 
         .history-count {
-            color: #ffd700;
-            font-variant-numeric: tabular-nums;
-        }
-
-        .winner-gif {
-            max-width: 150px;
-            max-height: 100px;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-            transform: scale(0);
-            animation: popIn 0.5s ease-out forwards;
-        }
-
-        @keyframes popIn {
-            0% {
-                transform: scale(0) rotate(180deg);
-                opacity: 0;
-            }
-            50% {
-                transform: scale(1.1) rotate(0deg);
-                opacity: 1;
-            }
-            100% {
-                transform: scale(1) rotate(0deg);
-                opacity: 1;
-            }
-        }
-
-        .winner-text {
-            color: #ffd700;
-            font-size: 24px;
+            color: var(--gold);
             font-weight: bold;
-            margin-bottom: 20px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-            animation: glow 2s ease-in-out infinite alternate;
         }
 
-        @keyframes glow {
-            from {
-                text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5), 0 0 10px #ffd700;
-            }
-            to {
-                text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5), 0 0 20px #ffd700, 0 0 30px #ffd700;
-            }
-        }
-
-        .placeholder-gif {
-            width: 100px;
-            height: 100px;
-            background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #f9ca24, #f0932b);
-            border-radius: 10px;
-            display: flex;
+        .rarity-badge {
+            display: inline-flex;
             align-items: center;
             justify-content: center;
+            padding: 7px 10px;
+            border-radius: 999px;
             color: white;
+            font-size: 0.75rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
             font-weight: bold;
-            font-size: 14px;
-            text-align: center;
+        }
+
+        .collection-grid {
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+        }
+
+        .collection-card {
+            overflow: hidden;
+            padding: 0;
+        }
+
+        .collection-card.locked {
+            filter: grayscale(1) saturate(0.2);
+            opacity: 0.55;
+        }
+
+        .collection-info {
+            padding: 12px;
+            display: grid;
+            gap: 8px;
         }
 
         .big-winner-overlay {
             position: fixed;
-            left: 0; top: 0; right: 0; bottom: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            inset: 0;
+            display: grid;
+            place-items: center;
+            background: rgba(3, 7, 18, 0.72);
             z-index: 9999;
-            background: rgba(0,0,0,0.5);
-            animation: fadeIn 0.5s;
+            padding: 20px;
+            animation: fadeIn 0.35s ease;
         }
 
-        @keyframes play-once {
-          from {
-            background-position: 0 0;
-          }
-          to {
-            background-position: 100% 0;
-          }
+        .big-winner-overlay.unreal {
+            background:
+                radial-gradient(circle at 50% 50%, rgba(255, 126, 107, 0.2), transparent 40%),
+                rgba(3, 7, 18, 0.76);
         }
 
-        .big-winner-img {
-            width: 320px;
-            height: 320px;
-            border-radius: 30px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
-            background: white;
-            animation: popInBig 0.5s;
-            animation-name: play-once;
-            animation-duration: 2s;
-            animation-iteration-count: 1;
-
+        .unreal-beams,
+        .insane-rings,
+        .godlike-burst,
+        .unreal-banner,
+        .insane-banner,
+        .godlike-banner,
+        .godlike-particles {
+            pointer-events: none;
         }
-        @keyframes popInBig {
-            0% { transform: scale(0.2) rotate(-30deg); opacity: 0; }
-            60% { transform: scale(1.1) rotate(0deg); opacity: 1; }
+
+        .unreal-beams {
+            position: absolute;
+            inset: 0;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .unreal-beams::before,
+        .unreal-beams::after {
+            content: "";
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            width: 140vmax;
+            height: 18vmax;
+            transform-origin: center;
+            background: linear-gradient(90deg, transparent, rgba(255, 126, 107, 0.34), transparent);
+            filter: blur(8px);
+        }
+
+        .unreal-beams::before {
+            transform: translate(-50%, -50%) rotate(22deg);
+            animation: unrealSweepA 1.2s ease-in-out infinite alternate;
+        }
+
+        .unreal-beams::after {
+            transform: translate(-50%, -50%) rotate(-22deg);
+            animation: unrealSweepB 1.2s ease-in-out infinite alternate;
+        }
+
+        .unreal-banner,
+        .insane-banner,
+        .godlike-banner {
+            position: absolute;
+            left: 50%;
+            top: 11%;
+            transform: translateX(-50%);
+            z-index: 2;
+            font-size: clamp(2.1rem, 6vw, 4.8rem);
+            font-weight: 900;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        .unreal-banner {
+            color: #ffd3ca;
+            text-shadow: 0 0 18px rgba(255, 126, 107, 0.72), 0 0 42px rgba(255, 126, 107, 0.4);
+            animation: unrealBannerFlicker 0.9s ease-in-out infinite alternate;
+        }
+
+        .big-winner-overlay.insane {
+            background:
+                radial-gradient(circle at 50% 50%, rgba(255, 79, 129, 0.26), transparent 42%),
+                rgba(3, 7, 18, 0.78);
+        }
+
+        .insane-rings {
+            position: absolute;
+            inset: 0;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .insane-rings::before,
+        .insane-rings::after {
+            content: "";
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            border-radius: 50%;
+            border: 10px solid rgba(255, 79, 129, 0.3);
+            transform: translate(-50%, -50%);
+        }
+
+        .insane-rings::before {
+            width: 30vmax;
+            height: 30vmax;
+            animation: insaneRingPulse 1.3s ease-out infinite;
+        }
+
+        .insane-rings::after {
+            width: 52vmax;
+            height: 52vmax;
+            animation: insaneRingPulse 1.3s ease-out infinite 0.25s;
+        }
+
+        .insane-banner {
+            color: #ffd7e5;
+            text-shadow: 0 0 18px rgba(255, 79, 129, 0.78), 0 0 48px rgba(255, 79, 129, 0.45);
+            animation: insaneBannerPop 0.45s ease-out, insaneBannerShake 0.45s ease-in-out infinite alternate;
+        }
+
+        .godlike-banner {
+            top: 8%;
+            color: #fff7cc;
+            text-shadow:
+                0 0 12px rgba(255, 255, 255, 0.55),
+                0 0 28px rgba(255, 215, 106, 0.9),
+                0 0 72px rgba(255, 215, 106, 0.65);
+            animation: godlikeBannerPop 0.7s ease-out, godlikeBannerPulse 1.2s ease-in-out infinite alternate;
+        }
+
+        .insane-flash {
+            position: absolute;
+            inset: 0;
+            z-index: 2;
+            pointer-events: none;
+            background:
+                radial-gradient(circle at 50% 50%, rgba(255, 79, 129, 0.22), transparent 34%),
+                radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.16), transparent 18%);
+            animation: insaneFlash 0.7s ease-out infinite alternate;
+        }
+
+        .godlike-flash {
+            position: absolute;
+            inset: 0;
+            z-index: 2;
+            pointer-events: none;
+            background:
+                radial-gradient(circle at 50% 50%, rgba(255, 215, 106, 0.28), transparent 30%),
+                radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.18), transparent 16%);
+            animation: godlikeFlash 0.9s ease-out infinite alternate;
+        }
+
+        .tier-slam {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 12;
+            pointer-events: none;
+            font-size: clamp(3.8rem, 12vw, 8rem);
+            font-weight: 900;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            white-space: nowrap;
+            animation: tierSlamIn 0.38s cubic-bezier(0.18, 0.9, 0.2, 1), tierSlamPulse 0.9s ease-in-out infinite alternate;
+        }
+
+        .tier-slam.insane {
+            color: #ffd8ea;
+            text-shadow:
+                0 0 18px rgba(255, 255, 255, 0.35),
+                0 0 32px rgba(255, 79, 129, 0.92),
+                0 0 90px rgba(255, 79, 129, 0.55);
+        }
+
+        .tier-slam.godlike {
+            color: #fff4bf;
+            text-shadow:
+                0 0 22px rgba(255, 255, 255, 0.45),
+                0 0 42px rgba(255, 215, 106, 1),
+                0 0 120px rgba(255, 215, 106, 0.7);
+        }
+
+        .tier-impact {
+            position: fixed;
+            inset: 0;
+            z-index: 20;
+            display: grid;
+            place-items: center;
+            pointer-events: none;
+        }
+
+        .tier-impact-text {
+            font-size: clamp(4.2rem, 13vw, 9rem);
+            font-weight: 900;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            white-space: nowrap;
+            animation: tierImpactIn 0.42s cubic-bezier(0.18, 0.9, 0.2, 1), tierImpactPulse 0.9s ease-in-out infinite alternate;
+        }
+
+        .tier-impact.unreal .tier-impact-text {
+            color: #ffd9d0;
+            text-shadow: 0 0 20px rgba(255, 126, 107, 0.8), 0 0 56px rgba(255, 126, 107, 0.48);
+        }
+
+        .tier-impact.insane .tier-impact-text {
+            color: #ffe0ed;
+            text-shadow: 0 0 20px rgba(255, 79, 129, 0.88), 0 0 70px rgba(255, 79, 129, 0.56);
+        }
+
+        .tier-impact.godlike .tier-impact-text {
+            color: #fff4bf;
+            text-shadow: 0 0 24px rgba(255, 215, 106, 0.96), 0 0 84px rgba(255, 215, 106, 0.64);
+        }
+
+        .big-winner-overlay.godlike {
+            background:
+                radial-gradient(circle at 50% 50%, rgba(255, 215, 106, 0.3), transparent 45%),
+                rgba(3, 7, 18, 0.82);
+        }
+
+        .godlike-burst {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 0;
+        }
+
+        .godlike-burst::before,
+        .godlike-burst::after {
+            content: "";
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            width: 120vmax;
+            height: 120vmax;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+        }
+
+        .godlike-burst::before {
+            background:
+                conic-gradient(
+                    from 0deg,
+                    rgba(255, 255, 255, 0),
+                    rgba(255, 215, 106, 0.06),
+                    rgba(255, 255, 255, 0),
+                    rgba(255, 215, 106, 0.22),
+                    rgba(255, 255, 255, 0),
+                    rgba(255, 215, 106, 0.16),
+                    rgba(255, 255, 255, 0)
+                );
+            animation: godlikeBurstSpin 2.2s linear infinite;
+        }
+
+        .godlike-burst::after {
+            background:
+                radial-gradient(circle, rgba(255, 255, 255, 0.34), rgba(255, 215, 106, 0.18) 18%, rgba(255, 215, 106, 0.02) 34%, transparent 54%);
+            animation: godlikePulse 1.4s ease-in-out infinite alternate;
+        }
+
+        .godlike-particles {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .godlike-particle {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255,255,255,0.95), rgba(255,215,106,0.72) 58%, rgba(255,215,106,0) 100%);
+            box-shadow: 0 0 18px rgba(255, 215, 106, 0.55);
+            animation: godlikeParticleFloat 2.8s ease-in-out infinite;
+        }
+
+        .overlay-card {
+            width: min(380px, 100%);
+            padding: 18px;
+            border-radius: 28px;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.06));
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            box-shadow: var(--shadow);
+            text-align: center;
+            backdrop-filter: blur(12px);
+            position: relative;
+            overflow: hidden;
+            z-index: 12;
+        }
+
+        .godlike-banner::after {
+            content: "GODLIKE";
+            position: absolute;
+            inset: 0;
+            color: rgba(255, 215, 106, 0.3);
+            filter: blur(14px);
+            transform: scale(1.06);
+            z-index: -1;
+        }
+
+        .overlay-card::before {
+            content: "";
+            position: absolute;
+            inset: -30%;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .overlay-card.unreal {
+            border-color: rgba(255, 126, 107, 0.55);
+            box-shadow: 0 0 38px rgba(255, 126, 107, 0.28), var(--shadow);
+        }
+
+        .overlay-card.unreal::before {
+            background:
+                linear-gradient(120deg, transparent 30%, rgba(255, 255, 255, 0.28) 50%, transparent 70%);
+            opacity: 1;
+            animation: shimmerSweep 1.5s linear infinite;
+        }
+
+        .overlay-card.insane {
+            border-color: rgba(255, 79, 129, 0.62);
+            box-shadow: 0 0 46px rgba(255, 79, 129, 0.34), var(--shadow);
+            animation: insanePulse 0.8s ease-in-out infinite alternate;
+        }
+
+        .overlay-card.insane::before {
+            background:
+                radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.24), transparent 10%),
+                radial-gradient(circle at 70% 20%, rgba(255, 255, 255, 0.18), transparent 8%),
+                radial-gradient(circle at 20% 80%, rgba(255, 255, 255, 0.2), transparent 9%),
+                radial-gradient(circle at 80% 75%, rgba(255, 255, 255, 0.22), transparent 10%);
+            opacity: 1;
+            animation: sparkleFloat 2s linear infinite;
+        }
+
+        .overlay-card.godlike {
+            border-color: rgba(255, 215, 106, 0.75);
+            box-shadow: 0 0 58px rgba(255, 215, 106, 0.45), 0 0 120px rgba(255, 215, 106, 0.18), var(--shadow);
+            animation: godlikeGlow 1.2s ease-in-out infinite alternate;
+        }
+
+        .overlay-card.godlike::before {
+            background:
+                conic-gradient(
+                    from 0deg,
+                    rgba(255, 255, 255, 0.0),
+                    rgba(255, 215, 106, 0.38),
+                    rgba(255, 255, 255, 0.0),
+                    rgba(255, 215, 106, 0.42),
+                    rgba(255, 255, 255, 0.0)
+                );
+            opacity: 1;
+            animation: haloSpin 2.4s linear infinite;
+        }
+
+        .overlay-card h2 {
+            margin: 16px 0 6px;
+            font-size: 1.8rem;
+        }
+
+        .overlay-card p {
+            margin: 0;
+            color: var(--muted);
+        }
+
+        .overlay-close-hint {
+            margin-top: 14px;
+            font-size: 0.9rem;
+            color: rgba(245, 247, 251, 0.78);
+        }
+
+        .overlay-celebration {
+            position: absolute;
+            inset: 0;
+            overflow: hidden;
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        .celebration-label {
+            position: absolute;
+            left: 50%;
+            z-index: 2;
+            font-size: clamp(2.3rem, 7vw, 5.3rem);
+            font-weight: 900;
+            letter-spacing: 0.22em;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        .celebration-unreal {
+            z-index: 3;
+            background:
+                radial-gradient(circle at 50% 50%, rgba(255, 126, 107, 0.24), transparent 40%),
+                linear-gradient(135deg, rgba(255, 126, 107, 0.08), transparent 34%, rgba(255, 126, 107, 0.08));
+        }
+
+        .celebration-unreal::before {
+            content: "";
+            position: absolute;
+            inset: -12%;
+            background:
+                radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.14), rgba(255, 126, 107, 0.14) 22%, transparent 44%),
+                radial-gradient(circle at 50% 50%, rgba(255, 126, 107, 0.14), transparent 58%);
+            animation: unrealFlarePulse 1.2s ease-in-out infinite alternate;
+        }
+
+        .celebration-unreal .celebration-label {
+            top: 12%;
+            z-index: 4;
+            font-size: clamp(3rem, 8vw, 5.8rem);
+            letter-spacing: 0.18em;
+            color: #ffe0d8;
+            text-shadow:
+                0 0 18px rgba(255, 255, 255, 0.3),
+                0 0 28px rgba(255, 126, 107, 0.96),
+                0 0 82px rgba(255, 126, 107, 0.62);
+            animation: unrealLabelBlast 0.42s ease-out, unrealLabelFloat 1s ease-in-out infinite alternate;
+        }
+
+        .celebration-beam {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            z-index: 3;
+            width: 155vmax;
+            height: 14vmax;
+            transform-origin: center;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.18) 32%, rgba(255, 126, 107, 0.68) 50%, rgba(255, 255, 255, 0.18) 68%, transparent);
+            filter: blur(12px);
+            mix-blend-mode: screen;
+            opacity: 0.96;
+        }
+
+        .celebration-beam.beam-a {
+            transform: translate(-50%, -50%) rotate(18deg);
+            animation: unrealBeamSweepA 1.2s ease-in-out infinite alternate;
+        }
+
+        .celebration-beam.beam-b {
+            transform: translate(-50%, -50%) rotate(-18deg);
+            animation: unrealBeamSweepB 1.15s ease-in-out infinite alternate;
+        }
+
+        .celebration-beam.beam-c {
+            transform: translate(-50%, -50%) rotate(0deg);
+            animation: unrealBeamSweepC 1.05s ease-in-out infinite alternate;
+        }
+
+        .celebration-insane {
+            z-index: 3;
+            background:
+                radial-gradient(circle at 50% 50%, rgba(255, 79, 129, 0.26), transparent 40%),
+                linear-gradient(135deg, rgba(255, 79, 129, 0.08), transparent 34%, rgba(255, 79, 129, 0.08));
+        }
+
+        .celebration-insane::before,
+        .celebration-insane::after {
+            content: "";
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            width: 165vmax;
+            height: 20vmax;
+            transform-origin: center;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.12) 30%, rgba(255, 79, 129, 0.58) 50%, rgba(255, 255, 255, 0.12) 70%, transparent);
+            filter: blur(12px);
+            mix-blend-mode: screen;
+            opacity: 0.9;
+        }
+
+        .celebration-insane::before {
+            transform: translate(-50%, -50%) rotate(32deg);
+            animation: insaneSlashA 1s ease-in-out infinite alternate;
+        }
+
+        .celebration-insane::after {
+            transform: translate(-50%, -50%) rotate(-32deg);
+            animation: insaneSlashB 0.92s ease-in-out infinite alternate;
+        }
+
+        .celebration-insane .celebration-label {
+            top: 12%;
+            z-index: 4;
+            font-size: clamp(3rem, 8.4vw, 6rem);
+            letter-spacing: 0.18em;
+            color: #ffe2ef;
+            text-shadow:
+                0 0 20px rgba(255, 255, 255, 0.34),
+                0 0 30px rgba(255, 79, 129, 1),
+                0 0 90px rgba(255, 79, 129, 0.7);
+            animation: insaneLabelJolt 0.42s ease-out, insaneLabelShake 0.52s ease-in-out infinite alternate;
+        }
+
+        .celebration-core {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            z-index: 3;
+            width: 28vmax;
+            height: 28vmax;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.42), rgba(255, 79, 129, 0.44) 34%, rgba(255, 79, 129, 0.12) 56%, transparent 74%);
+            filter: blur(1px);
+            mix-blend-mode: screen;
+            animation: insaneCorePulse 1.1s ease-in-out infinite alternate;
+        }
+
+        .celebration-ring {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            z-index: 3;
+            border-radius: 50%;
+            border: 12px solid rgba(255, 79, 129, 0.7);
+            box-shadow: 0 0 30px rgba(255, 79, 129, 0.5);
+            transform: translate(-50%, -50%) scale(0.48);
+            opacity: 0;
+        }
+
+        .celebration-ring.ring-a {
+            width: 26vmax;
+            height: 26vmax;
+            animation: insaneShockwave 1.8s ease-out infinite;
+        }
+
+        .celebration-ring.ring-b {
+            width: 40vmax;
+            height: 40vmax;
+            animation: insaneShockwave 1.8s ease-out infinite 0.32s;
+        }
+
+        .celebration-ring.ring-c {
+            width: 54vmax;
+            height: 54vmax;
+            animation: insaneShockwave 1.8s ease-out infinite 0.64s;
+        }
+
+        .celebration-godlike {
+            z-index: 3;
+            background:
+                radial-gradient(circle at 50% 50%, rgba(255, 215, 106, 0.28), transparent 46%),
+                linear-gradient(180deg, rgba(255, 215, 106, 0.08), transparent 28%, rgba(255, 215, 106, 0.08));
+        }
+
+        .celebration-godlike::before {
+            content: "";
+            position: absolute;
+            inset: -14%;
+            background:
+                radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.18), rgba(255, 215, 106, 0.12) 20%, transparent 42%),
+                radial-gradient(circle at 50% 50%, rgba(255, 215, 106, 0.16), transparent 58%);
+            animation: godlikeScreenFlare 1.55s ease-in-out infinite alternate;
+        }
+
+        .celebration-godlike .celebration-label {
+            top: 9%;
+            z-index: 4;
+            font-size: clamp(2.8rem, 7vw, 5.4rem);
+            color: #fff7d0;
+            text-shadow:
+                0 0 18px rgba(255, 255, 255, 0.45),
+                0 0 32px rgba(255, 215, 106, 0.98),
+                0 0 86px rgba(255, 215, 106, 0.7);
+            animation: godlikeLabelRise 0.7s ease-out, godlikeLabelPulse 1.15s ease-in-out infinite alternate;
+        }
+
+        .celebration-sunburst {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            z-index: 2;
+            width: 128vmax;
+            height: 128vmax;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            background:
+                repeating-conic-gradient(
+                    from 0deg,
+                    rgba(255, 215, 106, 0) 0deg 10deg,
+                    rgba(255, 215, 106, 0.34) 10deg 16deg,
+                    rgba(255, 255, 255, 0) 16deg 26deg
+                );
+            opacity: 0.95;
+            animation: godlikeSunburstSpin 7s linear infinite;
+        }
+
+        .celebration-halo {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            z-index: 3;
+            width: 48vmax;
+            height: 48vmax;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.4), rgba(255, 215, 106, 0.34) 24%, rgba(255, 215, 106, 0.08) 48%, transparent 68%);
+            animation: godlikeHaloPulse 1.35s ease-in-out infinite alternate;
+        }
+
+        .celebration-stars {
+            position: absolute;
+            inset: 0;
+            z-index: 3;
+        }
+
+        .celebration-star {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 1), rgba(255, 215, 106, 0.78) 58%, rgba(255, 215, 106, 0) 100%);
+            box-shadow: 0 0 20px rgba(255, 215, 106, 0.56);
+            animation: godlikeStarDrift 2.4s ease-in-out infinite;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes shimmerSweep {
+            from { transform: translateX(-22%) rotate(18deg); }
+            to { transform: translateX(22%) rotate(18deg); }
+        }
+
+        @keyframes unrealSweepA {
+            from { transform: translate(-50%, -50%) rotate(10deg) scaleX(0.86); opacity: 0.45; }
+            to { transform: translate(-50%, -50%) rotate(28deg) scaleX(1.12); opacity: 1; }
+        }
+
+        @keyframes unrealSweepB {
+            from { transform: translate(-50%, -50%) rotate(-10deg) scaleX(0.86); opacity: 0.45; }
+            to { transform: translate(-50%, -50%) rotate(-28deg) scaleX(1.12); opacity: 1; }
+        }
+
+        @keyframes unrealBannerFlicker {
+            from { transform: translateX(-50%) scale(0.98); opacity: 0.86; }
+            to { transform: translateX(-50%) scale(1.03); opacity: 1; }
+        }
+
+        @keyframes insanePulse {
+            from { transform: scale(1); }
+            to { transform: scale(1.018); }
+        }
+
+        @keyframes insaneRingPulse {
+            0% { transform: translate(-50%, -50%) scale(0.72); opacity: 0; }
+            20% { opacity: 0.9; }
+            100% { transform: translate(-50%, -50%) scale(1.18); opacity: 0; }
+        }
+
+        @keyframes insaneBannerShake {
+            from { transform: translateX(-50%) translateY(0) rotate(-1deg); }
+            to { transform: translateX(-50%) translateY(-3px) rotate(1deg); }
+        }
+
+        @keyframes insaneBannerPop {
+            0% { transform: translateX(-50%) scale(0.78); opacity: 0; }
+            100% { transform: translateX(-50%) scale(1); opacity: 1; }
+        }
+
+        @keyframes insaneFlash {
+            from { opacity: 0.28; transform: scale(0.96); }
+            to { opacity: 0.72; transform: scale(1.08); }
+        }
+
+        @keyframes sparkleFloat {
+            from { transform: translateY(0); }
+            to { transform: translateY(-14px); }
+        }
+
+        @keyframes godlikeGlow {
+            from { transform: scale(1); }
+            to { transform: scale(1.025); }
+        }
+
+        @keyframes haloSpin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes godlikeBurstSpin {
+            from { transform: translate(-50%, -50%) rotate(0deg) scale(1); }
+            to { transform: translate(-50%, -50%) rotate(360deg) scale(1.06); }
+        }
+
+        @keyframes godlikePulse {
+            from { opacity: 0.75; transform: translate(-50%, -50%) scale(0.94); }
+            to { opacity: 1; transform: translate(-50%, -50%) scale(1.08); }
+        }
+
+        @keyframes godlikeParticleFloat {
+            0% { transform: translateY(22px) scale(0.7); opacity: 0; }
+            18% { opacity: 1; }
+            100% { transform: translateY(-44px) scale(1.28); opacity: 0; }
+        }
+
+        @keyframes godlikeBannerPop {
+            0% { transform: translateX(-50%) scale(0.7); opacity: 0; }
+            100% { transform: translateX(-50%) scale(1); opacity: 1; }
+        }
+
+        @keyframes godlikeBannerPulse {
+            from { letter-spacing: 0.2em; transform: translateX(-50%) translateY(0); }
+            to { letter-spacing: 0.28em; transform: translateX(-50%) translateY(-4px); }
+        }
+
+        @keyframes godlikeFlash {
+            from { opacity: 0.34; transform: scale(0.92); }
+            to { opacity: 0.9; transform: scale(1.12); }
+        }
+
+        @keyframes tierSlamIn {
+            0% { transform: translate(-50%, -50%) scale(0.35); opacity: 0; }
+            60% { transform: translate(-50%, -50%) scale(1.12); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        }
+
+        @keyframes tierSlamPulse {
+            from { letter-spacing: 0.16em; }
+            to { letter-spacing: 0.22em; }
+        }
+
+        @keyframes tierImpactIn {
+            0% { transform: scale(0.3) rotate(-4deg); opacity: 0; }
+            55% { transform: scale(1.14) rotate(1deg); opacity: 1; }
             100% { transform: scale(1) rotate(0deg); opacity: 1; }
         }
-        @keyframes fadeOutBig {
-            0% { opacity: 1; transform: scale(1);}
-            100% { opacity: 0; transform: scale(0.7);}
+
+        @keyframes tierImpactPulse {
+            from { transform: scale(1); }
+            to { transform: scale(1.04); }
         }
-        @keyframes fadeIn {
-            0% { opacity: 0;}
-            100% { opacity: 1;}
+
+        @keyframes unrealFlarePulse {
+            from { opacity: 0.34; transform: scale(0.96); }
+            to { opacity: 0.82; transform: scale(1.08); }
+        }
+
+        @keyframes unrealLabelBlast {
+            0% { transform: translateX(-50%) scale(0.44) rotate(-6deg); opacity: 0; }
+            70% { transform: translateX(-50%) scale(1.1) rotate(2deg); opacity: 1; }
+            100% { transform: translateX(-50%) scale(1) rotate(0deg); opacity: 1; }
+        }
+
+        @keyframes unrealLabelFloat {
+            from { transform: translateX(-50%) translateY(0) scale(0.98); }
+            to { transform: translateX(-50%) translateY(-8px) scale(1.02); }
+        }
+
+        @keyframes unrealBeamSweepA {
+            from { transform: translate(-50%, -50%) rotate(12deg) scaleX(0.84); opacity: 0.44; }
+            to { transform: translate(-50%, -50%) rotate(24deg) scaleX(1.1); opacity: 1; }
+        }
+
+        @keyframes unrealBeamSweepB {
+            from { transform: translate(-50%, -50%) rotate(-12deg) scaleX(0.82); opacity: 0.38; }
+            to { transform: translate(-50%, -50%) rotate(-24deg) scaleX(1.14); opacity: 1; }
+        }
+
+        @keyframes unrealBeamSweepC {
+            from { transform: translate(-50%, -50%) rotate(0deg) scaleX(0.72); opacity: 0.26; }
+            to { transform: translate(-50%, -50%) rotate(0deg) scaleX(1.18); opacity: 0.8; }
+        }
+
+        @keyframes insaneLabelJolt {
+            0% { transform: translateX(-50%) scale(0.4) rotate(-8deg); opacity: 0; }
+            70% { transform: translateX(-50%) scale(1.12) rotate(2deg); opacity: 1; }
+            100% { transform: translateX(-50%) scale(1) rotate(0deg); opacity: 1; }
+        }
+
+        @keyframes insaneLabelShake {
+            from { transform: translateX(-50%) translateX(-7px) rotate(-1.4deg); }
+            to { transform: translateX(-50%) translateX(7px) rotate(1.4deg); }
+        }
+
+        @keyframes insaneCorePulse {
+            from { transform: translate(-50%, -50%) scale(0.92); opacity: 0.76; }
+            to { transform: translate(-50%, -50%) scale(1.08); opacity: 1; }
+        }
+
+        @keyframes insaneSlashA {
+            from { transform: translate(-50%, -50%) rotate(22deg) scaleX(0.82); opacity: 0.36; }
+            to { transform: translate(-50%, -50%) rotate(36deg) scaleX(1.18); opacity: 1; }
+        }
+
+        @keyframes insaneSlashB {
+            from { transform: translate(-50%, -50%) rotate(-22deg) scaleX(0.82); opacity: 0.34; }
+            to { transform: translate(-50%, -50%) rotate(-36deg) scaleX(1.18); opacity: 1; }
+        }
+
+        @keyframes insaneShockwave {
+            0% { transform: translate(-50%, -50%) scale(0.48); opacity: 0; }
+            18% { opacity: 0.95; }
+            100% { transform: translate(-50%, -50%) scale(1.08); opacity: 0; }
+        }
+
+        @keyframes godlikeLabelRise {
+            0% { transform: translateX(-50%) scale(0.58); opacity: 0; }
+            65% { transform: translateX(-50%) scale(1.12); opacity: 1; }
+            100% { transform: translateX(-50%) scale(1); opacity: 1; }
+        }
+
+        @keyframes godlikeLabelPulse {
+            from { transform: translateX(-50%) translateY(0); letter-spacing: 0.2em; }
+            to { transform: translateX(-50%) translateY(-5px); letter-spacing: 0.26em; }
+        }
+
+        @keyframes godlikeSunburstSpin {
+            from { transform: translate(-50%, -50%) rotate(0deg) scale(1); }
+            to { transform: translate(-50%, -50%) rotate(360deg) scale(1.04); }
+        }
+
+        @keyframes godlikeHaloPulse {
+            from { transform: translate(-50%, -50%) scale(0.94); opacity: 0.7; }
+            to { transform: translate(-50%, -50%) scale(1.08); opacity: 1; }
+        }
+
+        @keyframes godlikeScreenFlare {
+            from { opacity: 0.42; transform: scale(0.96); }
+            to { opacity: 0.88; transform: scale(1.08); }
+        }
+
+        @keyframes godlikeStarDrift {
+            0% { transform: translateY(20px) scale(0.68); opacity: 0; }
+            22% { opacity: 1; }
+            100% { transform: translateY(-34px) scale(1.22); opacity: 0; }
+        }
+
+        @media (max-width: 920px) {
+            body {
+                padding: 18px;
+            }
+
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .controls {
+                flex-direction: column;
+            }
+
+            button {
+                width: 100%;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="game-container">
-        <h1>🎰 GIF 뽑기 게임</h1>
+    <div class="page">
+        <section class="hero">
+            <h1>Reels Pull</h1>
+            <p>Spin for GIF drops, build your collection, trigger pity for better luck, and keep a saved history of every pull. Big hits show up in the slot, in the collection, in the recent feed, and in shareable result cards.</p>
+        </section>
 
-        <div class="slot-container">
-            <div class="slot-strip" id="slotStrip">
-                <!-- GIF items will be dynamically added here -->
-            </div>
-            <div class="center-highlight"></div>
-            
+        <div class="main-grid">
+            <section class="panel play-panel">
+                <div class="status-bar">
+                    <div class="pill" id="luckStatus">Luck meter loading...</div>
+                    <div class="pill" id="saveStatus">Progress saves automatically</div>
+                </div>
+
+                <div class="slot-container">
+                    <div class="slot-strip" id="slotStrip"></div>
+                    <div class="center-highlight"></div>
+                </div>
+
+                <div class="controls">
+                    <button class="primary-button" id="singlePullButton">Single Pull</button>
+                    <button class="secondary-button" id="multiPullButton">10 Pulls</button>
+                    <button class="ghost-button" id="resetProgressButton">Reset Progress</button>
+                </div>
+
+                <div class="result-container" id="resultContainer">
+                    <div class="winner-banner">
+                        <h2 class="winner-title">Ready to pull</h2>
+                        <p class="winner-subtitle">Press a button to start your first spin.</p>
+                    </div>
+                </div>
+
+                <div class="subpanel">
+                    <h2 class="section-title">Latest Results</h2>
+                    <div class="results-grid" id="resultsGrid"></div>
+                </div>
+            </section>
+
+            <aside class="side-stack">
+                <section class="panel">
+                    <h2 class="section-title">Account Stats</h2>
+                    <div class="stats-grid" id="statsGrid"></div>
+                </section>
+
+                <section class="panel">
+                    <h2 class="section-title">Pull Counts</h2>
+                    <ul class="history-list" id="historyList"></ul>
+                </section>
+
+                <section class="panel">
+                    <h2 class="section-title">Recent Pulls</h2>
+                    <ul class="recent-list" id="recentList"></ul>
+                </section>
+            </aside>
         </div>
-        
 
-        <button class="spin-button" id="spinButton">🎰 SPIN!</button>
-
-        <div class="result-container" id="resultContainer">
-            <div style="color: white; opacity: 0.7;">SPIN 버튼을 눌러서 GIF를 뽑아보세요!</div>
-        </div>
-
-        <div class="history-container">
-            <h2 class="history-title">Pull History</h2>
-            <ul class="history-list" id="historyList"></ul>
-        </div>
+        <section class="panel">
+            <h2 class="section-title">Collection</h2>
+            <div class="collection-grid" id="collectionGrid"></div>
+        </section>
     </div>
 
     <script>
-        const GIFS = [
-            "gif/absmal.gif",
-            "gif/common.gif",
-            "gif/uncommon.gif",
-            "gif/rare.gif",
-            "gif/exotic.gif",
-            "gif/mythic.gif",
-            "gif/legendary.gif",
-            "gif/unreal.gif",
-            "gif/insane.gif",
-            "gif/godlike.gif"
-        ];
-
+        const STORAGE_KEY = "reels-pull-save-v1";
         const REEL_PLACEHOLDER_URL = "gif/phone reel gif 1frame.png.svg";
         const ITEM_WIDTH = 120;
-        const REEL_REPEAT_COUNT = 5;
-        const START_OFFSET_MIN = -720;
-        const START_OFFSET_MAX = -120;
+        const REEL_REPEAT_COUNT = 18;
         const TICK_MS = 16;
-        const SLOT_CENTER = 300;
-        const HIGHLIGHT_CENTER_OFFSET = 270;
-        const OVERLAY_SHOW_DELAY_MS = 500;
-        const OVERLAY_DISMISS_DELAY_MS = 1000;
-        const WINNER_GIF_DURATION_MS = 3000;
+        const OVERLAY_SHOW_DELAY_MS = 350;
+        const OVERLAY_DISMISS_DELAY_MS = 900;
+        const RECENT_PULL_LIMIT = 10;
+        const PITY_START = 18;
+        const PITY_GUARANTEE = 30;
+        const BIG_PULL_RANK = 6;
+        const MIN_SPIN_STEPS = 30;
+        const THUMBNAIL_SYNC_DURATION_MS = 4000;
+        const GIFS = [
+            { key: "absmal", name: "Abysmal", path: "gif/absmal.gif", rarity: "Glitched", weight: 24, color: "#68758f", rank: 1 },
+            { key: "common", name: "Common", path: "gif/common.gif", rarity: "Common", weight: 22, color: "#7a8da5", rank: 2 },
+            { key: "uncommon", name: "Uncommon", path: "gif/uncommon.gif", rarity: "Uncommon", weight: 16, color: "#45b97c", rank: 3 },
+            { key: "rare", name: "Rare", path: "gif/rare.gif", rarity: "Rare", weight: 12, color: "#48a0ff", rank: 4 },
+            { key: "exotic", name: "Exotic", path: "gif/exotic.gif", rarity: "Exotic", weight: 9, color: "#19d0c4", rank: 5 },
+            { key: "mythic", name: "Mythic", path: "gif/mythic.gif", rarity: "Mythic", weight: 7, color: "#d166ff", rank: 6 },
+            { key: "legendary", name: "Legendary", path: "gif/legendary.gif", rarity: "Legendary", weight: 5, color: "#ffb347", rank: 7 },
+            { key: "unreal", name: "Unreal", path: "gif/unreal.gif", rarity: "Unreal", weight: 3, color: "#ff7e6b", rank: 8 },
+            { key: "insane", name: "Insane", path: "gif/insane.gif", rarity: "Insane", weight: 1.5, color: "#ff4f81", rank: 9 },
+            { key: "godlike", name: "Godlike", path: "gif/godlike.gif", rarity: "Godlike", weight: 0.8, color: "#ffd76a", rank: 10 }
+        ];
+        const RARE_GIF_LOOP_CONFIG = {
+            unreal: { loopPath: "gif/unreal-loop.gif", firstPlayDurationMs: 3990 },
+            insane: { loopPath: "gif/insane-loop.gif", firstPlayDurationMs: 4000 },
+            godlike: { loopPath: "gif/godlike-loop.gif", firstPlayDurationMs: 4000 }
+        };
 
-        const slotStrip = document.getElementById('slotStrip');
-        const spinButton = document.getElementById('spinButton');
-        const resultContainer = document.getElementById('resultContainer');
-        const historyList = document.getElementById('historyList');
-        const pullCounts = Object.fromEntries(GIFS.map((gif) => [gif, 0]));
+        const slotStrip = document.getElementById("slotStrip");
+        const slotContainer = document.querySelector(".slot-container");
+        const singlePullButton = document.getElementById("singlePullButton");
+        const multiPullButton = document.getElementById("multiPullButton");
+        const resetProgressButton = document.getElementById("resetProgressButton");
+        const resultContainer = document.getElementById("resultContainer");
+        const resultsGrid = document.getElementById("resultsGrid");
+        const statsGrid = document.getElementById("statsGrid");
+        const historyList = document.getElementById("historyList");
+        const recentList = document.getElementById("recentList");
+        const collectionGrid = document.getElementById("collectionGrid");
+        const luckStatus = document.getElementById("luckStatus");
+        const saveStatus = document.getElementById("saveStatus");
+
+        const gifMap = Object.fromEntries(GIFS.map((gif) => [gif.key, gif]));
+        let thumbnailSyncTimeoutId = null;
 
         const state = {
             isSpinning: false,
             currentOffset: 0,
-            spinSpeed: 12,
-            spinTime: 0,
-            spinInterval: null
+            spinAnimationFrame: null,
+            lastSpinSoundIndex: null,
+            spinStartTime: 0,
+            spinDuration: 0,
+            spinStartOffset: 0,
+            spinTargetOffset: 0,
+            targetIndex: null,
+            pendingResults: [],
+            latestResults: [],
+            stats: createDefaultStats()
         };
 
-        spinButton.addEventListener('click', startSpin);
+        singlePullButton.addEventListener("click", () => startSpin(1));
+        multiPullButton.addEventListener("click", () => startSpin(10));
+        resetProgressButton.addEventListener("click", resetProgress);
+
+        setupSlots();
+        loadProgress();
+        alignReelOnLoad();
+        renderAll();
+        startThumbnailSyncClock();
+        window.addEventListener("resize", alignReelOnLoad);
+
+        function createDefaultStats() {
+            return {
+                totalPulls: 0,
+                pityCounter: 0,
+                counts: Object.fromEntries(GIFS.map((gif) => [gif.key, 0])),
+                unlocked: [],
+                recent: [],
+                bestPullKey: null
+            };
+        }
 
         function setupSlots() {
             const totalItems = GIFS.length * REEL_REPEAT_COUNT;
-
-            slotStrip.innerHTML = '';
-            renderPullHistory();
+            slotStrip.innerHTML = "";
 
             for (let index = 0; index < totalItems; index += 1) {
-                slotStrip.appendChild(createSlotItem(index % GIFS.length));
+                slotStrip.appendChild(createSlotItem(GIFS[index % GIFS.length]));
             }
         }
 
-        function createSlotItem(gifIndex) {
-            const gifItem = document.createElement('div');
-            gifItem.className = 'gif-item';
-            gifItem.dataset.gifIndex = gifIndex;
+        function alignReelOnLoad() {
+            const centerLoop = Math.floor(REEL_REPEAT_COUNT / 2) * GIFS.length;
+            setStripOffset(getAlignedOffset(centerLoop));
+        }
 
-            const placeholder = document.createElement('div');
-            placeholder.className = 'placeholder-gif';
+        function normalizeReelPosition() {
+            const loopSize = GIFS.length;
+            const centerLoop = Math.floor(REEL_REPEAT_COUNT / 2) * loopSize;
+            const centeredIndex = getCurrentCenteredIndex();
+            const normalizedIndex = ((centeredIndex % loopSize) + loopSize) % loopSize;
+            setStripOffset(getAlignedOffset(centerLoop + normalizedIndex));
+        }
 
-            const placeholderImage = document.createElement('img');
-            placeholderImage.src = REEL_PLACEHOLDER_URL;
-            placeholderImage.alt = '';
-            placeholderImage.draggable = false;
+        function createSlotItem(gif) {
+            const gifItem = document.createElement("div");
+            gifItem.className = "gif-item";
 
-            placeholder.appendChild(placeholderImage);
-            gifItem.appendChild(placeholder);
+            const card = document.createElement("div");
+            card.className = "gif-card-mini";
 
+            const image = document.createElement("img");
+            image.src = REEL_PLACEHOLDER_URL;
+            image.alt = gif.name;
+
+            card.appendChild(image);
+            gifItem.appendChild(card);
             return gifItem;
+        }
+
+        function startSpin(pullCount) {
+            if (state.isSpinning) {
+                return;
+            }
+
+            state.pendingResults = Array.from({ length: pullCount }, () => rollGif());
+            state.isSpinning = true;
+            state.targetIndex = null;
+            resultContainer.innerHTML = createResultBanner(
+                pullCount === 10 ? "10-pull in progress" : "Single pull in progress",
+                "The reel is spinning. The winner popup appears when it lands."
+            );
+
+            singlePullButton.disabled = true;
+            multiPullButton.disabled = true;
+            playSpinClickSound();
+            startSpinLoopSound();
+
+            const focusGif = getHighlightResult(state.pendingResults);
+            state.targetIndex = getSpinTargetIndex(focusGif);
+            state.spinStartOffset = state.currentOffset;
+            state.spinTargetOffset = getAlignedOffset(state.targetIndex);
+            state.spinDuration = pullCount === 10 ? 4600 : 3600;
+            state.spinStartTime = 0;
+
+            if (state.spinAnimationFrame !== null) {
+                cancelAnimationFrame(state.spinAnimationFrame);
+            }
+
+            slotStrip.classList.add("spinning");
+            state.spinAnimationFrame = requestAnimationFrame(runSpinFrame);
+        }
+
+        function runSpinFrame(timestamp) {
+            if (!state.spinStartTime) {
+                state.spinStartTime = timestamp;
+            }
+
+            const elapsed = timestamp - state.spinStartTime;
+            const progress = Math.min(elapsed / state.spinDuration, 1);
+            const easedProgress = easeOutCubic(progress);
+            const nextOffset =
+                state.spinStartOffset +
+                (state.spinTargetOffset - state.spinStartOffset) * easedProgress;
+
+            setStripOffset(nextOffset);
+            syncSpinTickSound();
+
+            if (progress >= 1) {
+                finishSpin(state.spinTargetOffset);
+                return;
+            }
+
+            state.spinAnimationFrame = requestAnimationFrame(runSpinFrame);
+        }
+
+        function finishSpin(targetOffset) {
+            if (state.spinAnimationFrame !== null) {
+                cancelAnimationFrame(state.spinAnimationFrame);
+                state.spinAnimationFrame = null;
+            }
+
+            stopSpinLoopSound();
+
+            slotStrip.classList.remove("spinning");
+            state.targetIndex = null;
+            state.spinStartTime = 0;
+            setStripOffset(targetOffset);
+            normalizeReelPosition();
+
+            const finalResults = [...state.pendingResults];
+            state.pendingResults = [];
+            showPendingResults(finalResults);
+        }
+        function showPendingResults(results) {
+            const leadResult = getHighlightResult(results);
+            const overlayQueue = getOverlayQueue(results);
+            resultContainer.innerHTML = createResultBanner(
+                results.length === 10 ? `${leadResult.name} leads the 10-pull` : `${leadResult.name} pulled`,
+                results.length === 10
+                    ? overlayQueue.length > 1
+                        ? `${leadResult.rarity} is the best pull in this batch. ${overlayQueue.length} rare popups are queued.`
+                        : `${leadResult.rarity} is the best pull in this batch. Close the popup to lock it in.`
+                    : "Close the winner popup to lock in the result."
+            );
+
+            setTimeout(() => showWinnerOverlaySequence(overlayQueue, results), OVERLAY_SHOW_DELAY_MS);
+        }
+
+        function showWinnerOverlaySequence(overlayQueue, allResults) {
+            const queue = overlayQueue.length > 0 ? overlayQueue : [getHighlightResult(allResults)];
+
+            const showNextOverlay = (index) => {
+                const primaryResult = queue[index];
+                const isLastOverlay = index === queue.length - 1;
+
+                showWinnerOverlay(primaryResult, allResults, {
+                    finalizeOnClose: isLastOverlay,
+                    overlayIndex: index,
+                    overlayCount: queue.length,
+                    onClose: isLastOverlay ? null : () => showNextOverlay(index + 1)
+                });
+            };
+
+            showNextOverlay(0);
+        }
+
+        function showWinnerOverlay(primaryResult, allResults, options = {}) {
+            const {
+                finalizeOnClose = true,
+                overlayIndex = 0,
+                overlayCount = 1,
+                onClose = null
+            } = options;
+            const overlay = document.createElement("div");
+            overlay.className = "big-winner-overlay";
+
+            const card = document.createElement("div");
+            card.className = "overlay-card";
+            const effectClass = getOverlayEffectClass(primaryResult);
+            const celebration = createRareCelebration(effectClass);
+            const lateLoopConfig = getLateLoopConfig(primaryResult);
+
+            if (effectClass) {
+                overlay.classList.add(effectClass);
+                card.classList.add(effectClass);
+            }
+
+            if (celebration) {
+                overlay.appendChild(celebration);
+            }
+
+            const image = document.createElement("img");
+            image.className = "big-winner-img";
+            image.src = getFreshGifUrl(primaryResult.path);
+            image.alt = primaryResult.name;
+
+            const title = document.createElement("h2");
+            title.textContent = primaryResult.name;
+            title.style.color = primaryResult.color;
+
+            const subtitle = document.createElement("p");
+            subtitle.textContent = allResults.length === 10
+                ? overlayCount > 1
+                    ? `${primaryResult.rarity} drop ${overlayIndex + 1} of ${overlayCount} rare highlights in this 10-pull`
+                    : `${primaryResult.rarity} drop as the best pull in your 10-pull`
+                : `${primaryResult.rarity} drop`;
+
+            const shareRow = document.createElement("div");
+            shareRow.className = "share-actions";
+
+            const copyButton = document.createElement("button");
+            copyButton.className = "ghost-button";
+            copyButton.textContent = "Copy Results";
+            copyButton.addEventListener("click", () => shareResults(allResults));
+            shareRow.appendChild(copyButton);
+
+            if (navigator.share) {
+                const nativeShareButton = document.createElement("button");
+                nativeShareButton.className = "ghost-button";
+                nativeShareButton.textContent = "Share";
+                nativeShareButton.addEventListener("click", () => shareResults(allResults, true));
+                shareRow.appendChild(nativeShareButton);
+            }
+
+            const closeHint = document.createElement("p");
+            closeHint.className = "overlay-close-hint";
+            closeHint.textContent = overlayCount > 1 && overlayIndex < overlayCount - 1
+                ? "Click outside, or press Space, Enter, or Esc to see the next rare hit."
+                : "Click outside, or press Space, Enter, or Esc to close.";
+
+            card.append(image, title, subtitle, shareRow, closeHint);
+            overlay.appendChild(card);
+            document.body.appendChild(overlay);
+            playResultSound(primaryResult);
+
+            let hasSettled = false;
+            let canDismiss = false;
+            let lateLoopTimeoutId = null;
+
+            if (lateLoopConfig) {
+                lateLoopTimeoutId = setTimeout(() => {
+                    if (hasSettled) {
+                        return;
+                    }
+
+                    image.src = getFreshGifUrl(lateLoopConfig.loopPath);
+                }, lateLoopConfig.firstPlayDurationMs);
+            }
+
+            const removeOverlay = () => {
+                overlay.remove();
+                overlay.removeEventListener("mousedown", handleDismiss);
+                card.removeEventListener("mousedown", stopCardDismiss);
+                document.removeEventListener("keydown", handleKeyDismiss);
+                if (lateLoopTimeoutId !== null) {
+                    clearTimeout(lateLoopTimeoutId);
+                    lateLoopTimeoutId = null;
+                }
+            };
+
+            const settleOverlay = () => {
+                if (hasSettled) {
+                    return;
+                }
+
+                hasSettled = true;
+                image.src = REEL_PLACEHOLDER_URL;
+                removeOverlay();
+                if (finalizeOnClose) {
+                    finalizeResults(allResults);
+                }
+                if (onClose) {
+                    onClose();
+                }
+            };
+
+            const handleDismiss = (event) => {
+                if (!canDismiss) {
+                    return;
+                }
+
+                if (card.contains(event.target)) {
+                    return;
+                }
+
+                settleOverlay();
+            };
+
+            const stopCardDismiss = (event) => {
+                event.stopPropagation();
+            };
+
+            const handleKeyDismiss = (event) => {
+                if (!canDismiss) {
+                    return;
+                }
+
+                if (event.code === "Space" || event.code === "Escape" || event.code === "Enter") {
+                    event.preventDefault();
+                    settleOverlay();
+                }
+            };
+
+            card.addEventListener("mousedown", stopCardDismiss);
+            overlay.addEventListener("mousedown", handleDismiss);
+
+            setTimeout(() => {
+                canDismiss = true;
+                document.addEventListener("keydown", handleKeyDismiss);
+            }, OVERLAY_DISMISS_DELAY_MS);
+        }
+
+        function finalizeResults(results) {
+            state.latestResults = results;
+
+            results.forEach((result) => {
+                state.stats.totalPulls += 1;
+                state.stats.counts[result.key] += 1;
+
+                if (!state.stats.unlocked.includes(result.key)) {
+                    state.stats.unlocked.push(result.key);
+                }
+
+                state.stats.recent.unshift(result.key);
+                state.stats.recent = state.stats.recent.slice(0, RECENT_PULL_LIMIT);
+
+                if (!state.stats.bestPullKey || result.rank > gifMap[state.stats.bestPullKey].rank) {
+                    state.stats.bestPullKey = result.key;
+                }
+
+                if (result.rank >= BIG_PULL_RANK) {
+                    state.stats.pityCounter = 0;
+                } else {
+                    state.stats.pityCounter += 1;
+                }
+            });
+
+            persistProgress();
+            renderAll();
+            state.isSpinning = false;
+            singlePullButton.disabled = false;
+            multiPullButton.disabled = false;
+        }
+
+        function rollGif() {
+            const pityBoost = getPityBoost();
+            const pool = GIFS.map((gif) => ({
+                gif,
+                weight: gif.rank >= BIG_PULL_RANK ? gif.weight * pityBoost : gif.weight
+            }));
+
+            if (state.stats.pityCounter >= PITY_GUARANTEE) {
+                const guaranteePool = GIFS.filter((gif) => gif.rank >= BIG_PULL_RANK);
+                return weightedPick(guaranteePool.map((gif) => ({ gif, weight: gif.weight })));
+            }
+
+            return weightedPick(pool);
+        }
+
+        function weightedPick(pool) {
+            const totalWeight = pool.reduce((sum, entry) => sum + entry.weight, 0);
+            let cursor = Math.random() * totalWeight;
+
+            for (const entry of pool) {
+                cursor -= entry.weight;
+                if (cursor <= 0) {
+                    return entry.gif;
+                }
+            }
+
+            return pool[pool.length - 1].gif;
+        }
+
+        function getPityBoost() {
+            if (state.stats.pityCounter < PITY_START) {
+                return 1;
+            }
+
+            const overflow = state.stats.pityCounter - PITY_START + 1;
+            return 1 + overflow * 0.22;
         }
 
         function setStripOffset(offset) {
@@ -380,167 +1737,571 @@
             slotStrip.style.transform = `translateX(${offset}px)`;
         }
 
-        function setItemSpinState(isActive) {
-            slotStrip
-                .querySelectorAll('.gif-item')
-                .forEach((item) => item.classList.toggle('spinning', isActive));
-        }
-
-        function getCenteredItemIndex() {
-            const centerPosition = -state.currentOffset + SLOT_CENTER;
-            return Math.round(centerPosition / ITEM_WIDTH);
+        function easeOutCubic(progress) {
+            // One continuous deceleration curve:
+            // starts fast, then smoothly slows down the entire rest of the spin.
+            return 1 - Math.pow(1 - progress, 3.2);
         }
 
         function getAlignedOffset(itemIndex) {
-            return HIGHLIGHT_CENTER_OFFSET - (itemIndex * ITEM_WIDTH);
+            return getSlotCenter() - ITEM_WIDTH / 2 - (itemIndex * ITEM_WIDTH);
         }
 
-        function getSpinSpeed(elapsedMs, currentSpeed) {
-            if (elapsedMs < 1200) {
-                return 35;
+        function getSlotCenter() {
+            return slotContainer.clientWidth / 2;
+        }
+
+        function getCurrentCenteredIndex() {
+            return Math.round(getCurrentCenteredIndexFloat());
+        }
+
+        function getCurrentCenteredIndexFloat() {
+            return (-state.currentOffset + getSlotCenter() - ITEM_WIDTH / 2) / ITEM_WIDTH;
+        }
+
+        function getSpinTargetIndex(targetGif) {
+            const currentIndex = getCurrentCenteredIndexFloat();
+            const gifIndex = GIFS.findIndex((gif) => gif.key === targetGif.key);
+            const loopSize = GIFS.length;
+            const baseIndex = Math.floor(currentIndex) + MIN_SPIN_STEPS;
+            const normalizedBaseIndex = ((baseIndex % loopSize) + loopSize) % loopSize;
+            const delta = (gifIndex - normalizedBaseIndex + loopSize) % loopSize;
+
+            return baseIndex + delta;
+        }
+
+        function getHighlightResult(results) {
+            return results.reduce((best, current) => current.rank > best.rank ? current : best, results[0]);
+        }
+
+        function getOverlayQueue(results) {
+            if (results.length !== 10) {
+                return [getHighlightResult(results)];
             }
 
-            if (elapsedMs < 2500) {
-                const decayFactor = (elapsedMs - 1200) / 1300;
-                return 35 * (1 - decayFactor * 0.8);
-            }
+            const rareResults = results
+                .map((result, index) => ({ result, index }))
+                .filter(({ result }) => Boolean(getOverlayEffectClass(result)))
+                .sort((left, right) => (right.result.rank - left.result.rank) || (left.index - right.index))
+                .map(({ result }) => result);
 
-            if (elapsedMs < 3800) {
-                const decayFactor = (elapsedMs - 2500) / 1300;
-                return 7 * (1 - decayFactor * 0.7);
-            }
-
-            return Math.max(0.3, currentSpeed * 0.9);
+            return rareResults.length > 0 ? rareResults : [getHighlightResult(results)];
         }
 
-        function startSpin() {
-            if (state.isSpinning) {
-                return;
-            }
-
-            state.isSpinning = true;
-            state.spinSpeed = 35;
-            state.spinTime = 0;
-            spinButton.disabled = true;
-            resultContainer.innerHTML = '';
-
-            const randomOffset =
-                Math.random() * (START_OFFSET_MAX - START_OFFSET_MIN) + START_OFFSET_MIN;
-
-            setStripOffset(randomOffset);
-            setItemSpinState(false);
-            setTimeout(() => setItemSpinState(true), 10);
-
-            clearInterval(state.spinInterval);
-            state.spinInterval = setInterval(runSpinFrame, TICK_MS);
+        function renderAll() {
+            const thumbnailSyncCycle = getThumbnailSyncCycle();
+            renderStats();
+            renderPullHistory();
+            renderRecentPulls();
+            renderCollection(thumbnailSyncCycle);
+            renderResultsGrid(thumbnailSyncCycle);
+            renderLuckMeter();
+            syncVisibleGifThumbnails(thumbnailSyncCycle);
         }
 
-        function runSpinFrame() {
-            state.spinTime += TICK_MS;
-            state.spinSpeed = getSpinSpeed(state.spinTime, state.spinSpeed);
+        function renderStats() {
+            const mostPulled = getMostPulledGif();
+            const bestPull = state.stats.bestPullKey ? gifMap[state.stats.bestPullKey] : null;
 
-            if (state.spinTime >= 3800 && state.spinSpeed < 2) {
-                const targetOffset = getAlignedOffset(getCenteredItemIndex());
-                const distance = targetOffset - state.currentOffset;
+            statsGrid.innerHTML = "";
 
-                if (Math.abs(distance) < 2) {
-                    finishSpin(targetOffset);
-                    return;
-                }
-
-                const adjustment = Math.min(1.5, Math.abs(distance) * 0.3);
-                setStripOffset(state.currentOffset + (distance < 0 ? -adjustment : adjustment));
-                return;
-            }
-
-            setStripOffset(state.currentOffset - state.spinSpeed);
-        }
-
-        function finishSpin(targetOffset) {
-            clearInterval(state.spinInterval);
-            state.spinInterval = null;
-            setStripOffset(targetOffset);
-            setItemSpinState(false);
-            state.isSpinning = false;
-            spinButton.disabled = false;
-            showWinner(getWinnerGif());
-        }
-
-        function getWinnerGif() {
-            const winnerIndex = ((getCenteredItemIndex() % GIFS.length) + GIFS.length) % GIFS.length;
-            return GIFS[winnerIndex];
-        }
-
-        function showWinner(winnerGif) {
-            resultContainer.innerHTML = `
-                <div class="winner-text">Congratulations!</div>
-            `;
-
-            setTimeout(() => showWinnerOverlay(winnerGif), OVERLAY_SHOW_DELAY_MS);
-        }
-
-        function renderPullHistory() {
-            historyList.innerHTML = '';
-
-            GIFS.forEach((gif) => {
-                const item = document.createElement('li');
-                item.className = 'history-item';
-
-                const name = document.createElement('span');
-                name.className = 'history-name';
-                name.textContent = formatGifName(gif);
-
-                const count = document.createElement('span');
-                count.className = 'history-count';
-                count.textContent = `${pullCounts[gif]} pulls`;
-
-                item.appendChild(name);
-                item.appendChild(count);
-                historyList.appendChild(item);
+            [
+                ["Total Pulls", String(state.stats.totalPulls)],
+                ["Unlocked", `${state.stats.unlocked.length}/${GIFS.length}`],
+                ["Most Pulled", mostPulled ? `${mostPulled.name} (${state.stats.counts[mostPulled.key]})` : "None yet"],
+                ["Rarest Pull", bestPull ? bestPull.name : "None yet"]
+            ].forEach(([label, value]) => {
+                const card = document.createElement("div");
+                card.className = "card";
+                card.innerHTML = `
+                    <span class="stat-label">${label}</span>
+                    <span class="stat-value">${value}</span>
+                `;
+                statsGrid.appendChild(card);
             });
         }
 
-        function formatGifName(gifPath) {
-            return gifPath
-                .split('/')
-                .pop()
-                .replace('.gif', '')
-                .replace(/[-_]+/g, ' ');
+        function renderPullHistory() {
+            historyList.innerHTML = "";
+
+            GIFS
+                .slice()
+                .sort((a, b) => a.rank - b.rank)
+                .forEach((gif) => {
+                    const item = document.createElement("li");
+                    item.className = "history-item";
+                    item.innerHTML = `
+                        <div class="history-left">
+                            <span class="dot" style="background:${gif.color}"></span>
+                            <span>${gif.name}</span>
+                        </div>
+                        <span class="history-count">${state.stats.counts[gif.key]} pulls</span>
+                    `;
+                    historyList.appendChild(item);
+                });
         }
 
-        function showWinnerOverlay(winnerGif) {
-            const overlay = document.createElement('div');
-            overlay.className = 'big-winner-overlay';
+        function renderRecentPulls() {
+            recentList.innerHTML = "";
 
-            const winnerImage = document.createElement('img');
-            winnerImage.className = 'big-winner-img';
-            winnerImage.src = winnerGif;
-            winnerImage.alt = 'Winning GIF';
+            if (state.stats.recent.length === 0) {
+                const item = document.createElement("li");
+                item.className = "recent-item";
+                item.textContent = "No pulls yet.";
+                recentList.appendChild(item);
+                return;
+            }
 
-            overlay.appendChild(winnerImage);
-            document.body.appendChild(overlay);
-
-            const removeOverlay = () => {
-                overlay.style.animation = 'fadeOutBig 0.5s forwards';
-
-                setTimeout(() => {
-                    overlay.remove();
-                    document.removeEventListener('mousedown', removeOverlay);
-                }, 1000);
-            };
-
-            setTimeout(() => {
-                document.addEventListener('mousedown', removeOverlay);
-            }, OVERLAY_DISMISS_DELAY_MS);
-
-            setTimeout(() => {
-                winnerImage.src = REEL_PLACEHOLDER_URL;
-                pullCounts[winnerGif] += 1;
-                renderPullHistory();
-            }, WINNER_GIF_DURATION_MS);
+            state.stats.recent.forEach((key, index) => {
+                const gif = gifMap[key];
+                const item = document.createElement("li");
+                item.className = "recent-item";
+                item.innerHTML = `
+                    <div class="recent-left">
+                        <span class="dot" style="background:${gif.color}"></span>
+                        <span>#${state.stats.totalPulls - index} ${gif.name}</span>
+                    </div>
+                    <span class="rarity-badge" style="background:${gif.color}">${gif.rarity}</span>
+                `;
+                recentList.appendChild(item);
+            });
         }
 
-        setupSlots();
+        function renderCollection(syncCycle = getThumbnailSyncCycle()) {
+            collectionGrid.innerHTML = "";
+
+            GIFS.forEach((gif) => {
+                const unlocked = state.stats.unlocked.includes(gif.key);
+                const count = state.stats.counts[gif.key];
+                const card = document.createElement("article");
+                card.className = `collection-card${unlocked ? "" : " locked"}`;
+                card.innerHTML = `
+                    <img src="${getSyncedGifUrl(gif.path, syncCycle)}" alt="${gif.name}" data-sync-gif="${gif.path}" data-sync-cycle="${syncCycle}">
+                    <div class="collection-info">
+                        <strong>${gif.name}</strong>
+                        <span class="rarity-badge" style="background:${gif.color}">${gif.rarity}</span>
+                        <span class="collection-state">${unlocked ? `${count} owned pulls` : "Locked"}</span>
+                    </div>
+                `;
+                collectionGrid.appendChild(card);
+            });
+        }
+
+        function renderResultsGrid(syncCycle = getThumbnailSyncCycle()) {
+            resultsGrid.innerHTML = "";
+
+            if (state.latestResults.length === 0) {
+                const helper = document.createElement("div");
+                helper.className = "helper-text";
+                helper.textContent = "Your latest single or 10-pull results will show here.";
+                resultsGrid.appendChild(helper);
+                return;
+            }
+
+            state.latestResults.forEach((gif) => {
+                const card = document.createElement("article");
+                card.className = "card pull-card";
+                card.innerHTML = `
+                    <img src="${getSyncedGifUrl(gif.path, syncCycle)}" alt="${gif.name}" data-sync-gif="${gif.path}" data-sync-cycle="${syncCycle}">
+                    <div class="pull-name">${gif.name}</div>
+                    <div class="pull-meta">
+                        <span class="rarity-badge" style="background:${gif.color}">${gif.rarity}</span>
+                        <button class="ghost-button" type="button">Share Card</button>
+                    </div>
+                `;
+
+                card.querySelector("button").addEventListener("click", () => shareResults([gif]));
+                resultsGrid.appendChild(card);
+            });
+        }
+
+        function renderLuckMeter() {
+            const pullsUntilPity = Math.max(PITY_GUARANTEE - state.stats.pityCounter, 0);
+            const boost = getPityBoost();
+            luckStatus.textContent =
+                state.stats.pityCounter >= PITY_GUARANTEE
+                    ? "Pity ready: next pull is Mythic or better"
+                    : `Luck meter: ${state.stats.pityCounter} dry pulls, rare boost x${boost.toFixed(2)} (${pullsUntilPity} to guarantee)`;
+        }
+
+        function getMostPulledGif() {
+            const candidates = GIFS.filter((gif) => state.stats.counts[gif.key] > 0);
+            if (candidates.length === 0) {
+                return null;
+            }
+
+            return candidates.reduce((best, current) =>
+                state.stats.counts[current.key] > state.stats.counts[best.key] ? current : best
+            );
+        }
+
+        function createResultBanner(title, subtitle) {
+            return `
+                <div class="winner-banner">
+                    <h2 class="winner-title">${title}</h2>
+                    <p class="winner-subtitle">${subtitle}</p>
+                </div>
+            `;
+        }
+
+        async function shareResults(results, useNativeShare = false) {
+            const text = buildShareText(results);
+
+            try {
+                if (useNativeShare && navigator.share) {
+                    await navigator.share({ title: "Reels Pull Results", text });
+                } else if (navigator.clipboard && navigator.clipboard.writeText) {
+                    await navigator.clipboard.writeText(text);
+                    flashSaveStatus("Results copied to clipboard");
+                }
+            } catch (error) {
+                flashSaveStatus("Sharing was cancelled");
+            }
+        }
+
+        function buildShareText(results) {
+            const pulls = results.map((gif) => `${gif.rarity} ${gif.name}`).join(", ");
+            return `Reels Pull results: ${pulls}. Total pulls: ${state.stats.totalPulls}.`;
+        }
+
+        function createRareCelebration(effectClass) {
+            if (!effectClass) {
+                return null;
+            }
+
+            const celebration = document.createElement("div");
+            celebration.className = `overlay-celebration celebration-${effectClass}`;
+
+            if (effectClass === "unreal") {
+                ["beam-a", "beam-b", "beam-c"].forEach((beamClass) => {
+                    const beam = document.createElement("div");
+                    beam.className = `celebration-beam ${beamClass}`;
+                    celebration.appendChild(beam);
+                });
+                celebration.appendChild(createCelebrationLabel("UNREAL", "unreal"));
+                return celebration;
+            }
+
+            if (effectClass === "insane") {
+                const core = document.createElement("div");
+                core.className = "celebration-core";
+                celebration.appendChild(core);
+
+                ["ring-a", "ring-b", "ring-c"].forEach((ringClass) => {
+                    const ring = document.createElement("div");
+                    ring.className = `celebration-ring ${ringClass}`;
+                    celebration.appendChild(ring);
+                });
+
+                celebration.appendChild(createCelebrationLabel("INSANE", "insane"));
+                return celebration;
+            }
+
+            if (effectClass === "godlike") {
+                const sunburst = document.createElement("div");
+                sunburst.className = "celebration-sunburst";
+                celebration.appendChild(sunburst);
+
+                const halo = document.createElement("div");
+                halo.className = "celebration-halo";
+                celebration.appendChild(halo);
+
+                celebration.appendChild(createGodlikeStars());
+                celebration.appendChild(createCelebrationLabel("GODLIKE", "godlike"));
+                return celebration;
+            }
+
+            return celebration;
+        }
+
+        function createCelebrationLabel(text, modifierClass) {
+            const label = document.createElement("div");
+            label.className = `celebration-label ${modifierClass}`;
+            label.textContent = text;
+            return label;
+        }
+
+        function createGodlikeStars() {
+            const stars = document.createElement("div");
+            stars.className = "celebration-stars";
+
+            const starConfigs = [
+                ["18%", "64%", "0s"],
+                ["27%", "34%", "0.18s"],
+                ["35%", "72%", "0.46s"],
+                ["45%", "24%", "0.12s"],
+                ["55%", "78%", "0.62s"],
+                ["64%", "38%", "0.26s"],
+                ["73%", "66%", "0.54s"],
+                ["82%", "28%", "0.36s"]
+            ];
+
+            starConfigs.forEach(([left, top, delay]) => {
+                const star = document.createElement("div");
+                star.className = "celebration-star";
+                star.style.left = left;
+                star.style.top = top;
+                star.style.animationDelay = delay;
+                stars.appendChild(star);
+            });
+
+            return stars;
+        }
+
+        function getOverlayEffectClass(result) {
+            if (result.rank >= 10) {
+                return "godlike";
+            }
+
+            if (result.rank >= 9) {
+                return "insane";
+            }
+
+            if (result.rank >= 8) {
+                return "unreal";
+            }
+
+            return "";
+        }
+
+        function getLateLoopConfig(result) {
+            return RARE_GIF_LOOP_CONFIG[result.key] || null;
+        }
+
+        function getThumbnailSyncCycle(now = Date.now()) {
+            return Math.floor(now / THUMBNAIL_SYNC_DURATION_MS);
+        }
+
+        function getSyncedGifUrl(path, syncCycle = getThumbnailSyncCycle()) {
+            return `${path}?sync=${syncCycle}`;
+        }
+
+        function syncVisibleGifThumbnails(syncCycle = getThumbnailSyncCycle()) {
+            document.querySelectorAll("img[data-sync-gif]").forEach((image) => {
+                const path = image.dataset.syncGif;
+                if (!path || image.dataset.syncCycle === String(syncCycle)) {
+                    return;
+                }
+
+                image.dataset.syncCycle = String(syncCycle);
+                image.src = getSyncedGifUrl(path, syncCycle);
+            });
+        }
+
+        function startThumbnailSyncClock() {
+            if (thumbnailSyncTimeoutId !== null) {
+                clearTimeout(thumbnailSyncTimeoutId);
+            }
+
+            const now = Date.now();
+            const nextCycle = getThumbnailSyncCycle(now) + 1;
+            const delay = nextCycle * THUMBNAIL_SYNC_DURATION_MS - now;
+
+            thumbnailSyncTimeoutId = setTimeout(() => {
+                syncVisibleGifThumbnails(nextCycle);
+                startThumbnailSyncClock();
+            }, delay);
+        }
+
+        function getFreshGifUrl(path) {
+            return `${path}?play=${Date.now()}-${Math.random().toString(16).slice(2)}`;
+        }
+        function persistProgress() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(state.stats));
+            flashSaveStatus("Progress saved");
+        }
+
+        function flashSaveStatus(message) {
+            saveStatus.textContent = message;
+            setTimeout(() => {
+                saveStatus.textContent = "Progress saves automatically";
+            }, 1500);
+        }
+
+        function loadProgress() {
+            const raw = localStorage.getItem(STORAGE_KEY);
+            if (!raw) {
+                return;
+            }
+
+            const defaults = createDefaultStats();
+
+            try {
+                const parsed = JSON.parse(raw);
+                state.stats = {
+                    ...defaults,
+                    ...parsed,
+                    counts: {
+                        ...defaults.counts,
+                        ...(parsed.counts || {})
+                    },
+                    unlocked: Array.isArray(parsed.unlocked) ? parsed.unlocked.filter((key) => gifMap[key]) : [],
+                    recent: Array.isArray(parsed.recent) ? parsed.recent.filter((key) => gifMap[key]).slice(0, RECENT_PULL_LIMIT) : []
+                };
+                saveStatus.textContent = "Saved progress loaded";
+            } catch (error) {
+                state.stats = defaults;
+                saveStatus.textContent = "Save data reset due to an error";
+            }
+        }
+
+        function resetProgress() {
+            if (!window.confirm("Reset all pull history, collection progress, and pity?")) {
+                return;
+            }
+
+            stopSpinLoopSound();
+            localStorage.removeItem(STORAGE_KEY);
+            state.stats = createDefaultStats();
+            state.latestResults = [];
+            resultContainer.innerHTML = createResultBanner("Progress reset", "Everything is cleared. Time to start over.");
+            flashSaveStatus("Progress reset");
+            renderAll();
+        }
+
+        function playSpinClickSound() {
+            playToneSequence([
+                [180, 0.05, 0.0],
+                [260, 0.06, 0.04],
+                [360, 0.07, 0.1],
+                [460, 0.08, 0.16]
+            ]);
+        }
+
+        function startSpinLoopSound() {
+            state.lastSpinSoundIndex = Math.floor(getCurrentCenteredIndexFloat());
+        }
+
+        function stopSpinLoopSound() {
+            state.lastSpinSoundIndex = null;
+        }
+
+        function syncSpinTickSound() {
+            if (!state.isSpinning) {
+                return;
+            }
+
+            const currentIndex = Math.floor(getCurrentCenteredIndexFloat());
+
+            if (state.lastSpinSoundIndex === null) {
+                state.lastSpinSoundIndex = currentIndex;
+                return;
+            }
+
+            if (currentIndex <= state.lastSpinSoundIndex) {
+                return;
+            }
+
+            const stepsCrossed = currentIndex - state.lastSpinSoundIndex;
+            const progress = state.spinDuration > 0 && state.spinStartTime
+                ? Math.min((performance.now() - state.spinStartTime) / state.spinDuration, 1)
+                : 0;
+            const baseFrequency = Math.max(220, 760 - progress * 220);
+            const gain = Math.max(0.05, 0.085 - progress * 0.025);
+
+            for (let step = 0; step < stepsCrossed; step += 1) {
+                const delay = step * 0.01;
+                const stepPitch = Math.max(180, baseFrequency - step * 10);
+                playToneSequence([
+                    [stepPitch, 0.024, delay],
+                    [stepPitch + 95, 0.016, delay + 0.008]
+                ], gain);
+            }
+
+            state.lastSpinSoundIndex = currentIndex;
+        }
+
+        function playResultSound(result) {
+            let notes;
+            let gain;
+
+            if (result.rank >= 10) {
+                notes = [
+                    [261.6, 0.16, 0.0],
+                    [392.0, 0.2, 0.05],
+                    [523.3, 0.28, 0.12],
+                    [783.99, 0.42, 0.24],
+                    [1046.5, 0.58, 0.4],
+                    [1568.0, 0.82, 0.62],
+                    [2093.0, 1.05, 0.88]
+                ];
+                gain = 0.2;
+            } else if (result.rank >= 9) {
+                notes = [
+                    [329.6, 0.12, 0.0],
+                    [493.9, 0.16, 0.06],
+                    [659.3, 0.24, 0.15],
+                    [987.8, 0.38, 0.3],
+                    [1318.5, 0.56, 0.5]
+                ];
+                gain = 0.16;
+            } else if (result.rank >= 8) {
+                notes = [
+                    [311.1, 0.11, 0.0],
+                    [466.2, 0.14, 0.06],
+                    [622.3, 0.22, 0.16],
+                    [932.3, 0.34, 0.3]
+                ];
+                gain = 0.14;
+            } else if (result.rank >= 7) {
+                notes = [
+                    [293.7, 0.1, 0.0],
+                    [440.0, 0.13, 0.06],
+                    [587.3, 0.18, 0.14],
+                    [880.0, 0.28, 0.28]
+                ];
+                gain = 0.125;
+            } else if (result.rank >= BIG_PULL_RANK) {
+                notes = [
+                    [349.2, 0.09, 0.0],
+                    [523.3, 0.12, 0.08],
+                    [698.5, 0.18, 0.18],
+                    [880.0, 0.24, 0.3]
+                ];
+                gain = 0.11;
+            } else if (result.rank >= 4) {
+                notes = [
+                    [330, 0.05, 0.0],
+                    [392, 0.06, 0.08],
+                    [494, 0.08, 0.16]
+                ];
+                gain = 0.082;
+            } else {
+                notes = [
+                    [262, 0.045, 0.0],
+                    [330, 0.05, 0.07]
+                ];
+                gain = 0.07;
+            }
+
+            playToneSequence(notes, gain);
+        }
+
+        function playToneSequence(notes, maxGain = 0.08) {
+            const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+            if (!AudioContextClass) {
+                return;
+            }
+
+            const context = new AudioContextClass();
+
+            notes.forEach(([frequency, duration, delay]) => {
+                const oscillator = context.createOscillator();
+                const gain = context.createGain();
+                oscillator.type = "triangle";
+                oscillator.frequency.value = frequency;
+                gain.gain.setValueAtTime(0.0001, context.currentTime + delay);
+                gain.gain.exponentialRampToValueAtTime(maxGain, context.currentTime + delay + 0.01);
+                gain.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + delay + duration);
+                oscillator.connect(gain);
+                gain.connect(context.destination);
+                oscillator.start(context.currentTime + delay);
+                oscillator.stop(context.currentTime + delay + duration);
+            });
+
+            const maxDelay = Math.max(...notes.map((note) => note[2] + note[1]));
+            setTimeout(() => context.close().catch(() => {}), (maxDelay + 0.2) * 1000);
+        }
     </script>
 </body>
 </html>
