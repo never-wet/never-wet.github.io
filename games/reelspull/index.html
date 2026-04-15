@@ -54,6 +54,26 @@
             padding: 28px;
         }
 
+        .hero-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 18px;
+            padding: 10px 14px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.09);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: var(--text);
+            text-decoration: none;
+            transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease;
+        }
+
+        .hero-back:hover {
+            transform: translateY(-2px);
+            background: rgba(255, 255, 255, 0.13);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
         .hero h1 {
             margin: 0 0 12px;
             font-size: clamp(2.2rem, 4vw, 3.6rem);
@@ -1226,6 +1246,7 @@
 <body>
     <div class="page">
         <section class="hero">
+            <a class="hero-back" href="../">Back To Games</a>
             <h1>Reels Pull</h1>
             <p>Spin for GIF drops, build your collection, trigger pity for better luck, and keep a saved history of every pull. Big hits show up in the slot, in the collection, in the recent feed, and in shareable result cards.</p>
         </section>
