@@ -11,15 +11,41 @@ const divisionNames = [
   "World Icons",
   "GOAT Era",
 ];
+const playerTierBands = [
+  { id: "sss", label: "SSS", minOverall: 270 },
+  { id: "ss", label: "SS", minOverall: 252 },
+  { id: "s", label: "S", minOverall: 234 },
+  { id: "a", label: "A", minOverall: 216 },
+  { id: "b", label: "B", minOverall: 198 },
+  { id: "c", label: "C", minOverall: 180 },
+  { id: "d", label: "D", minOverall: 162 },
+  { id: "e", label: "E", minOverall: 0 },
+];
+const lineupSlots = [
+  { id: "lw", shortLabel: "LW", title: "Left Wing" },
+  { id: "st", shortLabel: "ST", title: "Striker" },
+  { id: "rw", shortLabel: "RW", title: "Right Wing" },
+  { id: "cm1", shortLabel: "CM", title: "Left Midfield" },
+  { id: "cm2", shortLabel: "CM", title: "Center Midfield" },
+  { id: "cm3", shortLabel: "CM", title: "Right Midfield" },
+  { id: "lb", shortLabel: "LB", title: "Left Back" },
+  { id: "cb1", shortLabel: "CB", title: "Center Back" },
+  { id: "cb2", shortLabel: "CB", title: "Center Back" },
+  { id: "rb", shortLabel: "RB", title: "Right Back" },
+  { id: "gk", shortLabel: "GK", title: "Goalkeeper" },
+];
 const squadBlueprint = [
-  { name: "Milo Vega", role: "Captain / Striker", initials: "MV" },
-  { name: "Jae Park", role: "Winger", initials: "JP" },
-  { name: "Noah Cruz", role: "Playmaker", initials: "NC" },
-  { name: "Eli Stone", role: "Finisher", initials: "ES" },
-  { name: "Kai Flores", role: "Midfield Engine", initials: "KF" },
-  { name: "Owen Hart", role: "Defender", initials: "OH" },
-  { name: "Leo Quinn", role: "Set Piece Ace", initials: "LQ" },
-  { name: "Zane Cole", role: "Keeper", initials: "ZC" },
+  { name: "Eli Stone", role: "Left Wing", initials: "ES", preferredSlot: "lw", powerBase: 74, leadershipBase: 60, energyBase: 71 },
+  { name: "Milo Vega", role: "Captain / Striker", initials: "MV", preferredSlot: "st", powerBase: 77, leadershipBase: 81, energyBase: 73 },
+  { name: "Jae Park", role: "Right Wing", initials: "JP", preferredSlot: "rw", powerBase: 73, leadershipBase: 62, energyBase: 75 },
+  { name: "Kai Flores", role: "Left Midfielder", initials: "KF", preferredSlot: "cm1", powerBase: 66, leadershipBase: 68, energyBase: 78 },
+  { name: "Leo Quinn", role: "Central Midfielder", initials: "LQ", preferredSlot: "cm2", powerBase: 64, leadershipBase: 69, energyBase: 70 },
+  { name: "Noah Cruz", role: "Playmaker", initials: "NC", preferredSlot: "cm3", powerBase: 69, leadershipBase: 72, energyBase: 68 },
+  { name: "Rafa Mendez", role: "Left Back", initials: "RM", preferredSlot: "lb", powerBase: 56, leadershipBase: 63, energyBase: 72 },
+  { name: "Owen Hart", role: "Center Back", initials: "OH", preferredSlot: "cb1", powerBase: 61, leadershipBase: 67, energyBase: 60 },
+  { name: "Sung Min", role: "Center Back", initials: "SM", preferredSlot: "cb2", powerBase: 59, leadershipBase: 65, energyBase: 62 },
+  { name: "Tariq Boone", role: "Right Back", initials: "TB", preferredSlot: "rb", powerBase: 57, leadershipBase: 61, energyBase: 74 },
+  { name: "Zane Cole", role: "Goalkeeper", initials: "ZC", preferredSlot: "gk", powerBase: 51, leadershipBase: 71, energyBase: 64 },
 ];
 const playerCatalog = buildPlayerCatalog();
 
@@ -114,6 +140,7 @@ const upgradeDefinitions = [
 ];
 
 const state = loadState();
+normalizeLineupAssignments();
 const runtime = {
   buzz: 0,
   pendingAutoShots: 0,
@@ -123,6 +150,7 @@ const runtime = {
   lastAutoTickerAt: 0,
   lastRenderedBuzzInt: -1,
   activeScreen: "field",
+  selectedLineupSlot: "st",
   shotAnimationToken: 0,
   flashTimeout: 0,
   ballResetTimeout: 0,
@@ -159,7 +187,11 @@ const elements = {
   captainLeadershipDisplay: document.getElementById("captainLeadershipDisplay"),
   captainFinishingDisplay: document.getElementById("captainFinishingDisplay"),
   captainEnergyDisplay: document.getElementById("captainEnergyDisplay"),
+  lineupCountDisplay: document.getElementById("lineupCountDisplay"),
+  lineupHintDisplay: document.getElementById("lineupHintDisplay"),
+  lineupGrid: document.getElementById("lineupGrid"),
   squadGrid: document.getElementById("squadGrid"),
+  squadStatusMessage: document.getElementById("squadStatusMessage"),
   transferCountDisplay: document.getElementById("transferCountDisplay"),
   marketBalanceDisplay: document.getElementById("marketBalanceDisplay"),
   marketStatusMessage: document.getElementById("marketStatusMessage"),
@@ -198,11 +230,15 @@ setActiveScreen("field", true);
 window.goalKineticShowScreen = (screenName) => setActiveScreen(screenName);
 window.goalKineticSwitchScreen = (screenName) => setActiveScreen(screenName);
 window.goalKineticBuyPlayer = (playerId) => buyPlayer(playerId);
+window.goalKineticSelectLineupSlot = (slotId) => selectLineupSlot(slotId);
+window.goalKineticAssignLineupPlayer = (playerId) => assignPlayerToLineup(playerId);
+window.goalKineticBenchLineupPlayer = (playerId) => benchPlayer(playerId);
+window.goalKineticClearLineupSlot = (slotId) => clearLineupSlot(slotId);
 requestAnimationFrame(gameLoop);
 
 function createDefaultState() {
   return {
-    version: 3,
+    version: 4,
     cash: 0,
     goals: 0,
     fans: 0,
@@ -217,6 +253,7 @@ function createDefaultState() {
     autoShots: 0,
     ownedPlayerIds: [],
     starterTransferGrantClaimed: false,
+    lineupAssignments: buildDefaultLineupAssignments(),
     lastActiveAt: Date.now(),
     upgrades: Object.fromEntries(upgradeDefinitions.map((upgrade) => [upgrade.id, 0])),
   };
@@ -244,6 +281,73 @@ function loadState() {
     console.warn("Could not load Soccer Idle save", error);
     return createDefaultState();
   }
+}
+
+function getStarterPlayerId(index) {
+  return `starter-${index}`;
+}
+
+function buildDefaultLineupAssignments() {
+  const assignments = Object.fromEntries(lineupSlots.map((slot) => [slot.id, null]));
+
+  squadBlueprint.forEach((player, index) => {
+    const targetSlotId = player.preferredSlot;
+    if (targetSlotId && assignments[targetSlotId] === null) {
+      assignments[targetSlotId] = getStarterPlayerId(index);
+      return;
+    }
+
+    const fallbackSlot = lineupSlots.find((slot) => assignments[slot.id] === null);
+    if (fallbackSlot) {
+      assignments[fallbackSlot.id] = getStarterPlayerId(index);
+    }
+  });
+
+  return assignments;
+}
+
+function normalizeLineupAssignments() {
+  const rosterIds = new Set([
+    ...squadBlueprint.map((_, index) => getStarterPlayerId(index)),
+    ...state.ownedPlayerIds,
+  ]);
+  const fallbackAssignments = buildDefaultLineupAssignments();
+  const normalized = {};
+  const seenPlayerIds = new Set();
+
+  lineupSlots.forEach((slot) => {
+    const savedPlayerId = state.lineupAssignments?.[slot.id];
+    const fallbackPlayerId = fallbackAssignments[slot.id];
+
+    if (savedPlayerId && rosterIds.has(savedPlayerId) && !seenPlayerIds.has(savedPlayerId)) {
+      normalized[slot.id] = savedPlayerId;
+      seenPlayerIds.add(savedPlayerId);
+      return;
+    }
+
+    if (fallbackPlayerId && rosterIds.has(fallbackPlayerId) && !seenPlayerIds.has(fallbackPlayerId)) {
+      normalized[slot.id] = fallbackPlayerId;
+      seenPlayerIds.add(fallbackPlayerId);
+      return;
+    }
+
+    normalized[slot.id] = null;
+  });
+
+  const remainingRosterIds = [...rosterIds].filter((playerId) => !seenPlayerIds.has(playerId));
+  lineupSlots.forEach((slot) => {
+    if (normalized[slot.id]) {
+      return;
+    }
+
+    const nextPlayerId = remainingRosterIds.shift();
+    normalized[slot.id] = nextPlayerId || null;
+    if (nextPlayerId) {
+      seenPlayerIds.add(nextPlayerId);
+    }
+  });
+
+  state.lineupAssignments = normalized;
 }
 
 function saveState() {
@@ -367,6 +471,52 @@ function attachEvents() {
 
   elements.transferMarketGrid.addEventListener("click", handleTransferPress);
   elements.transferMarketGrid.addEventListener("pointerup", handleTransferPress);
+
+  const handleLineupPress = (event) => {
+    const target = event.target instanceof Element ? event.target : null;
+    const clearButton = target?.closest("[data-clear-slot]");
+    if (clearButton) {
+      event.preventDefault();
+      event.stopPropagation();
+      clearLineupSlot(clearButton.dataset.clearSlot);
+      return;
+    }
+
+    const slotButton = target?.closest("[data-lineup-slot]");
+    if (!slotButton) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+    selectLineupSlot(slotButton.dataset.lineupSlot);
+  };
+
+  elements.lineupGrid?.addEventListener("click", handleLineupPress);
+  elements.lineupGrid?.addEventListener("pointerdown", handleLineupPress);
+
+  const handleRosterPress = (event) => {
+    const target = event.target instanceof Element ? event.target : null;
+    const benchButton = target?.closest("[data-bench-player-id]");
+    if (benchButton) {
+      event.preventDefault();
+      event.stopPropagation();
+      benchPlayer(benchButton.dataset.benchPlayerId);
+      return;
+    }
+
+    const assignButton = target?.closest("[data-assign-player-id]");
+    if (!assignButton) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+    assignPlayerToLineup(assignButton.dataset.assignPlayerId);
+  };
+
+  elements.squadGrid?.addEventListener("click", handleRosterPress);
+  elements.squadGrid?.addEventListener("pointerdown", handleRosterPress);
 }
 
 function setupScreenNavigation() {
@@ -488,6 +638,135 @@ function buyPlayer(playerId) {
   spawnRewardBubble(player.initials, 50, 72, "upgrade");
   render();
   saveState();
+}
+
+function getLineupSlot(slotId) {
+  return lineupSlots.find((slot) => slot.id === slotId) || null;
+}
+
+function findPlayerAssignedSlot(playerId) {
+  return (
+    lineupSlots.find((slot) => state.lineupAssignments?.[slot.id] === playerId)?.id ||
+    null
+  );
+}
+
+function getNextLineupTarget(playerId) {
+  const currentSlotId = findPlayerAssignedSlot(playerId);
+  if (runtime.selectedLineupSlot && getLineupSlot(runtime.selectedLineupSlot)) {
+    return runtime.selectedLineupSlot;
+  }
+
+  return (
+    currentSlotId ||
+    lineupSlots.find((slot) => !state.lineupAssignments?.[slot.id])?.id ||
+    "st"
+  );
+}
+
+function getPlayerName(playerId) {
+  const starterIndex = squadBlueprint.findIndex((_, index) => getStarterPlayerId(index) === playerId);
+  if (starterIndex >= 0) {
+    return squadBlueprint[starterIndex].name;
+  }
+
+  return playerCatalog.find((player) => player.id === playerId)?.name || "Player";
+}
+
+function getPlayerTier(overall) {
+  return playerTierBands.find((tier) => overall >= tier.minOverall) || playerTierBands[playerTierBands.length - 1];
+}
+
+function setSquadStatus(message) {
+  if (elements.squadStatusMessage) {
+    elements.squadStatusMessage.textContent = message;
+  }
+}
+
+function selectLineupSlot(slotId) {
+  const slot = getLineupSlot(slotId);
+  if (!slot) {
+    return;
+  }
+
+  runtime.selectedLineupSlot = slot.id;
+  setSquadStatus(`Selected ${slot.title}. Choose a player below to fill that spot.`);
+  render();
+}
+
+function assignPlayerToLineup(playerId) {
+  const validRosterIds = new Set([
+    ...squadBlueprint.map((_, index) => getStarterPlayerId(index)),
+    ...state.ownedPlayerIds,
+  ]);
+  if (!validRosterIds.has(playerId)) {
+    return;
+  }
+
+  const targetSlotId = getNextLineupTarget(playerId);
+  const targetSlot = getLineupSlot(targetSlotId);
+  if (!targetSlot) {
+    return;
+  }
+
+  const currentSlotId = findPlayerAssignedSlot(playerId);
+  const displacedPlayerId = state.lineupAssignments[targetSlotId];
+
+  if (currentSlotId === targetSlotId) {
+    runtime.selectedLineupSlot = targetSlotId;
+    setSquadStatus(`${getPlayerName(playerId)} is already starting at ${targetSlot.shortLabel}.`);
+    render();
+    return;
+  }
+
+  if (currentSlotId) {
+    state.lineupAssignments[currentSlotId] =
+      displacedPlayerId && displacedPlayerId !== playerId ? displacedPlayerId : null;
+  }
+
+  state.lineupAssignments[targetSlotId] = playerId;
+  runtime.selectedLineupSlot = targetSlotId;
+
+  const displacementNote =
+    displacedPlayerId && displacedPlayerId !== playerId && !currentSlotId
+      ? ` ${getPlayerName(displacedPlayerId)} moved to the bench.`
+      : "";
+
+  setSquadStatus(
+    `${getPlayerName(playerId)} locked into ${targetSlot.shortLabel}.${displacementNote}`
+  );
+  render();
+  saveState();
+}
+
+function clearLineupSlot(slotId) {
+  const slot = getLineupSlot(slotId);
+  if (!slot) {
+    return;
+  }
+
+  const playerId = state.lineupAssignments[slotId];
+  state.lineupAssignments[slotId] = null;
+  runtime.selectedLineupSlot = slotId;
+  setSquadStatus(
+    playerId
+      ? `${getPlayerName(playerId)} moved to the bench from ${slot.shortLabel}.`
+      : `${slot.title} is empty. Pick a player below to fill it.`
+  );
+  render();
+  saveState();
+}
+
+function benchPlayer(playerId) {
+  const slotId = findPlayerAssignedSlot(playerId);
+  if (!slotId) {
+    runtime.selectedLineupSlot = getNextLineupTarget(playerId);
+    setSquadStatus(`${getPlayerName(playerId)} is already on the bench.`);
+    render();
+    return;
+  }
+
+  clearLineupSlot(slotId);
 }
 
 function takeManualShot(originX, originY) {
@@ -701,7 +980,8 @@ function render() {
   const autoContribution = state.totalShots > 0 ? (state.autoShots / state.totalShots) * 100 : 0;
   const leaderboardRows = buildLeaderboardRows();
   const squad = buildSquadRows();
-  const teamPerformance = buildTeamPerformance(totalAccuracy, squad);
+  const activeLineupPlayers = getActiveLineupPlayers(squad);
+  const teamPerformance = buildTeamPerformance(totalAccuracy, activeLineupPlayers);
   const availablePlayers = playerCatalog.filter((player) => !state.ownedPlayerIds.includes(player.id));
 
   elements.cashDisplay.textContent = `$${formatNumber(state.cash)}`;
@@ -744,7 +1024,7 @@ function render() {
 
   renderNextUpgrade(nextUpgrade);
   renderLeaderboard(leaderboardRows);
-  renderSquad(squad);
+  renderSquad(squad, activeLineupPlayers);
   renderTransferMarket();
 
   upgradeDefinitions.forEach((upgrade) => {
@@ -816,19 +1096,20 @@ function renderTransferMarket() {
     .map((player) => {
       const affordable = state.cash >= player.price;
 
-      return `
-        <article class="transfer-card${affordable ? " affordable" : ""}">
-          <div class="transfer-top">
-            <div class="player-avatar">${player.initials}</div>
-            <div>
-              <h3 class="transfer-name">${player.name}</h3>
-              <p class="transfer-role">${player.role}</p>
+        return `
+          <article class="transfer-card tier-${player.tier.id}${affordable ? " affordable" : ""}">
+            <div class="transfer-top">
+              <div class="player-avatar">${player.initials}</div>
+              <div>
+                <h3 class="transfer-name">${player.name}</h3>
+                <p class="transfer-role">${player.role}</p>
+              </div>
+              <div class="tier-badge ${player.tier.id}">${player.tier.label}</div>
             </div>
-          </div>
-          <div class="transfer-stats">
-            <div>
-              <span>Power</span>
-              <strong>${player.power}</strong>
+            <div class="transfer-stats">
+              <div>
+                <span>Power</span>
+                <strong>${player.power}</strong>
             </div>
             <div>
               <span>Lead</span>
@@ -838,6 +1119,11 @@ function renderTransferMarket() {
               <span>Energy</span>
               <strong>${player.energy}</strong>
             </div>
+          </div>
+          <div class="transfer-tier-summary">
+            <span>Tier</span>
+            <strong>${player.tier.label}</strong>
+            <span>Overall ${player.overall}</span>
           </div>
           <div class="transfer-footer">
             <div class="transfer-price">Transfer Fee<strong>$${formatNumber(player.price)}</strong></div>
@@ -889,6 +1175,8 @@ function buildPlayerCatalog() {
         power,
         leadership,
         energy,
+        overall,
+        tier: getPlayerTier(overall),
         price: Math.max(5, Math.round(price + Math.max(0, overall - 180))),
       });
     });
@@ -898,47 +1186,209 @@ function buildPlayerCatalog() {
 }
 
 function buildSquadRows() {
-  const leadershipBase = 62 + Math.min(28, state.fans / 35);
-  const powerBase = 58 + state.goalsPerShot * 7;
-  const energyBase = 54 + state.autoShotsPerSecond * 6;
+  const lineupBoosts = getLineupBoosts();
+  const assignedSlots = new Map(
+    lineupSlots
+      .map((slot) => [state.lineupAssignments?.[slot.id], slot.id])
+      .filter(([playerId]) => Boolean(playerId))
+  );
 
-  const starters = squadBlueprint.map((player, index) => ({
-    ...player,
-    id: `starter-${index}`,
-    leadership: Math.round(clamp(leadershipBase + index * 2 + state.upgrades["youth-academy"] * 3, 40, 99)),
-    power: Math.round(clamp(powerBase + ((index + 1) % 3) * 4 + state.upgrades["pressing-system"] * 2, 42, 99)),
-    energy: Math.round(clamp(energyBase + (7 - index) * 2 + state.upgrades["ball-boys"] * 3, 38, 99)),
-  }));
+  const starters = squadBlueprint.map((player, index) => {
+    const id = getStarterPlayerId(index);
+    const assignedSlotId = assignedSlots.get(id) || null;
+
+    return buildRosterPlayerCard({
+      id,
+      name: player.name,
+      role: player.role,
+      initials: player.initials,
+      basePower: player.powerBase,
+      baseLeadership: player.leadershipBase,
+      baseEnergy: player.energyBase,
+      assignedSlotId,
+      lineupBoosts,
+    });
+  });
 
   const boughtPlayers = state.ownedPlayerIds
     .map((playerId) => playerCatalog.find((player) => player.id === playerId))
-    .filter(Boolean);
+    .filter(Boolean)
+    .map((player) =>
+      buildRosterPlayerCard({
+        id: player.id,
+        name: player.name,
+        role: player.role,
+        initials: player.initials,
+        basePower: player.power,
+        baseLeadership: player.leadership,
+        baseEnergy: player.energy,
+        assignedSlotId: assignedSlots.get(player.id) || null,
+        lineupBoosts,
+      })
+    );
 
-  return [...starters, ...boughtPlayers];
+  return [...starters, ...boughtPlayers].sort((left, right) => {
+    if (left.assignedSlotId && !right.assignedSlotId) {
+      return -1;
+    }
+
+    if (!left.assignedSlotId && right.assignedSlotId) {
+      return 1;
+    }
+
+    return right.overall - left.overall;
+  });
 }
 
-function renderSquad(players) {
+function buildRosterPlayerCard({
+  id,
+  name,
+  role,
+  initials,
+  basePower,
+  baseLeadership,
+  baseEnergy,
+  assignedSlotId,
+  lineupBoosts,
+}) {
+  const inLineup = Boolean(assignedSlotId);
+  const power = Math.round(clamp(basePower + (inLineup ? lineupBoosts.power : 0), 35, 99));
+  const leadership = Math.round(
+    clamp(baseLeadership + (inLineup ? lineupBoosts.leadership : 0), 35, 99)
+  );
+  const energy = Math.round(clamp(baseEnergy + (inLineup ? lineupBoosts.energy : 0), 35, 99));
+  const overall = power + leadership + energy;
+  const tier = getPlayerTier(overall);
+
+  return {
+    id,
+    name,
+    role,
+    initials,
+    basePower,
+    baseLeadership,
+    baseEnergy,
+    assignedSlotId,
+    inLineup,
+    power,
+    leadership,
+    energy,
+    overall,
+    tier,
+  };
+}
+
+function getLineupBoosts() {
+  return {
+    power: Math.round(
+      state.goalsPerShot * 2 +
+        state.upgrades["finishing-drills"] * 2 +
+        state.upgrades["pressing-system"] * 2
+    ),
+    leadership: Math.round(
+      Math.min(12, state.fans / 90) +
+        state.upgrades["youth-academy"] * 2 +
+        state.upgrades["night-fixture"] * 1.5
+    ),
+    energy: Math.round(
+      state.upgrades["ball-boys"] * 3 +
+        state.upgrades["pressing-system"] +
+        Math.min(12, state.autoShotsPerSecond * 1.4)
+    ),
+  };
+}
+
+function getActiveLineupPlayers(players) {
+  const playerMap = new Map(players.map((player) => [player.id, player]));
+  return lineupSlots
+    .map((slot) => playerMap.get(state.lineupAssignments?.[slot.id]))
+    .filter(Boolean);
+}
+
+function renderLineup(players) {
+  const playerMap = new Map(players.map((player) => [player.id, player]));
+  const filledSlots = lineupSlots.filter((slot) => state.lineupAssignments?.[slot.id]).length;
+  const selectedSlot = getLineupSlot(runtime.selectedLineupSlot) || lineupSlots[0];
+
+  elements.lineupCountDisplay.textContent = `${filledSlots}`;
+  elements.lineupHintDisplay.textContent = `Selected ${selectedSlot.shortLabel}. Tap a roster card below to assign or swap players.`;
+
+  elements.lineupGrid.innerHTML = lineupSlots
+    .map((slot) => {
+      const player = playerMap.get(state.lineupAssignments?.[slot.id]);
+      const isSelected = runtime.selectedLineupSlot === slot.id;
+
+      return `
+        <article class="lineup-slot-card slot-${slot.id}${player ? " filled" : " empty"}${isSelected ? " selected" : ""}">
+          <button
+            class="lineup-slot-button"
+            type="button"
+            data-lineup-slot="${slot.id}"
+            onpointerdown="window.goalKineticSelectLineupSlot && window.goalKineticSelectLineupSlot('${slot.id}')"
+            onclick="window.goalKineticSelectLineupSlot && window.goalKineticSelectLineupSlot('${slot.id}')"
+          >
+            <span class="lineup-slot-label">${slot.shortLabel}</span>
+            <strong>${player ? player.name : "Open Slot"}</strong>
+            <span>${player ? player.role : slot.title}</span>
+            ${player ? `<span class="lineup-slot-rating">${player.overall}</span>` : ""}
+          </button>
+          <button
+            class="lineup-clear-button"
+            type="button"
+            data-clear-slot="${slot.id}"
+            onpointerdown="window.goalKineticClearLineupSlot && window.goalKineticClearLineupSlot('${slot.id}')"
+            onclick="window.goalKineticClearLineupSlot && window.goalKineticClearLineupSlot('${slot.id}')"
+          >
+            ${player ? "Bench" : "Empty"}
+          </button>
+        </article>
+      `;
+    })
+    .join("");
+}
+
+function renderSquad(players, activeLineupPlayers) {
+  const captainPool = activeLineupPlayers.length > 0 ? activeLineupPlayers : players;
   const captain =
-    [...players].sort((left, right) => right.leadership - left.leadership || right.power - left.power)[0] ||
+    [...captainPool].sort((left, right) => right.leadership - left.leadership || right.power - left.power)[0] ||
     players[0];
+
+  renderLineup(players);
+
   elements.captainAvatar.textContent = captain.initials;
   elements.captainNameDisplay.textContent = captain.name;
-  elements.captainRoleDisplay.textContent = captain.role;
+  elements.captainRoleDisplay.textContent = captain.assignedSlotId
+    ? `${captain.role} / ${getLineupSlot(captain.assignedSlotId)?.shortLabel || "XI"}`
+    : captain.role;
   elements.captainLeadershipDisplay.textContent = captain.leadership;
   elements.captainFinishingDisplay.textContent = captain.power;
   elements.captainEnergyDisplay.textContent = captain.energy;
+  setSquadStatus(
+    elements.squadStatusMessage?.textContent || "Select a slot, then tap a player below to set your starting eleven."
+  );
 
   elements.squadGrid.innerHTML = players
-    .slice(1)
     .map(
-      (player) => `
-        <article class="player-card">
+        (player) => `
+        <article class="player-card tier-${player.tier.id}${player.inLineup ? " starting" : " bench"}">
           <div class="player-head">
             <div class="player-avatar">${player.initials}</div>
             <div>
               <h3 class="player-name">${player.name}</h3>
               <p class="player-role">${player.role}</p>
             </div>
+            <div class="tier-badge ${player.tier.id}">${player.tier.label}</div>
+          </div>
+          <div class="player-status-row">
+            <span class="player-pill ${player.inLineup ? "starting" : "bench"}">
+              ${player.inLineup ? `Starting ${getLineupSlot(player.assignedSlotId)?.shortLabel || ""}` : "Bench"}
+            </span>
+            <span class="player-pill ${player.inLineup ? "boosted" : "muted"}">
+              ${player.inLineup ? "Lineup Boost On" : "No Upgrade Boost"}
+            </span>
+            <span class="player-pill tier ${player.tier.id}">
+              ${player.tier.label} Tier
+            </span>
           </div>
           <div class="player-meta">
             <div>
@@ -954,16 +1404,39 @@ function renderSquad(players) {
               <strong>${player.energy}</strong>
             </div>
           </div>
+          <div class="player-actions">
+            <button
+              class="assign-player-button"
+              type="button"
+              data-assign-player-id="${player.id}"
+              onpointerdown="window.goalKineticAssignLineupPlayer && window.goalKineticAssignLineupPlayer('${player.id}')"
+              onclick="window.goalKineticAssignLineupPlayer && window.goalKineticAssignLineupPlayer('${player.id}')"
+            >
+              ${player.inLineup && player.assignedSlotId === runtime.selectedLineupSlot
+                ? `Starting ${getLineupSlot(player.assignedSlotId)?.shortLabel || ""}`
+                : `${player.inLineup ? "Move to" : "Assign to"} ${(getLineupSlot(getNextLineupTarget(player.id)) || lineupSlots[0]).shortLabel}`}
+            </button>
+            <button
+              class="bench-player-button"
+              type="button"
+              data-bench-player-id="${player.id}"
+              onpointerdown="window.goalKineticBenchLineupPlayer && window.goalKineticBenchLineupPlayer('${player.id}')"
+              onclick="window.goalKineticBenchLineupPlayer && window.goalKineticBenchLineupPlayer('${player.id}')"
+              ${player.inLineup ? "" : "disabled"}
+            >
+              Bench
+            </button>
+          </div>
         </article>
       `
     )
     .join("");
 }
 
-function buildTeamPerformance(totalAccuracy, squad) {
+function buildTeamPerformance(totalAccuracy, lineupPlayers) {
   const squadAverage =
-    squad.length > 0
-      ? squad.reduce(
+    lineupPlayers.length > 0
+      ? lineupPlayers.reduce(
           (totals, player) => ({
             leadership: totals.leadership + player.leadership,
             power: totals.power + player.power,
@@ -973,9 +1446,9 @@ function buildTeamPerformance(totalAccuracy, squad) {
         )
       : { leadership: 0, power: 0, energy: 0 };
 
-  const averageLeadership = squad.length > 0 ? squadAverage.leadership / squad.length : 0;
-  const averagePower = squad.length > 0 ? squadAverage.power / squad.length : 0;
-  const averageEnergy = squad.length > 0 ? squadAverage.energy / squad.length : 0;
+  const averageLeadership = lineupPlayers.length > 0 ? squadAverage.leadership / lineupPlayers.length : 0;
+  const averagePower = lineupPlayers.length > 0 ? squadAverage.power / lineupPlayers.length : 0;
+  const averageEnergy = lineupPlayers.length > 0 ? squadAverage.energy / lineupPlayers.length : 0;
 
   return {
     shootingPower: Math.round(clamp(averagePower + state.goalsPerShot * 3 + state.cashPerGoal * 2, 0, 99)),

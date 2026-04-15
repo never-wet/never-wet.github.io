@@ -287,6 +287,18 @@
         </section>
 
         <section class="squad-layout">
+          <section class="lineup-panel">
+            <div class="lineup-header">
+              <p class="stat-label">Starting XI</p>
+              <h3><span id="lineupCountDisplay">11</span> / 11 slots filled</h3>
+              <p id="lineupHintDisplay">
+                Select a slot, then tap a player below to assign or swap them.
+              </p>
+            </div>
+
+            <div id="lineupGrid" class="lineup-grid"></div>
+          </section>
+
           <div class="squad-spotlight">
             <p class="stat-label">Captain</p>
             <div class="captain-chip">
@@ -311,8 +323,21 @@
               </div>
             </div>
           </div>
+        </section>
 
-          <div id="squadGrid" class="squad-grid"></div>
+        <section class="roster-section">
+          <div class="screen-header compact">
+            <div>
+              <p class="eyebrow">Club Roster</p>
+              <h2>Choose who makes the team sheet.</h2>
+            </div>
+          </div>
+
+          <div id="squadStatusMessage" class="market-status-banner">
+            Select a slot, then tap a player below to set your starting eleven.
+          </div>
+
+          <div id="squadGrid" class="squad-grid roster-grid"></div>
         </section>
       </section>
 
