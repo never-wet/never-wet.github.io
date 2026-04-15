@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    />
+    <title>Soccer Idle</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="hud-bar">
+        <a class="back-link" href="../">Games</a>
+
+        <section class="currency-strip" aria-label="Club resources">
+          <article class="currency-pill cash">
+            <span class="pill-label">Cash</span>
+            <strong id="cashDisplay">$0</strong>
+          </article>
+          <article class="currency-pill goals">
+            <span class="pill-label">Goals</span>
+            <strong id="goalsDisplay">0</strong>
+          </article>
+          <article class="currency-pill fans">
+            <span class="pill-label">Fans</span>
+            <strong id="fansDisplay">0</strong>
+          </article>
+        </section>
+
+        <div class="save-chip">No ads. Auto-save on.</div>
+      </header>
+
+      <section class="arena-panel">
+        <div class="arena-topline">
+          <article class="headline-card">
+            <p class="eyebrow">Soccer Idle</p>
+            <h1>Tap the pitch. Stack upgrades. Farm goals.</h1>
+            <p class="headline-copy">
+              Built like a mobile idle app: juicy shots, fast upgrades, and a
+              club that keeps earning while you watch the stadium light up.
+            </p>
+          </article>
+
+          <div class="top-metrics">
+            <article class="metric-tile">
+              <span>Per second</span>
+              <strong id="perSecondDisplay">$0</strong>
+            </article>
+            <article class="metric-tile">
+              <span>Buzz boost</span>
+              <strong id="buzzDisplay">0%</strong>
+            </article>
+            <article class="metric-tile wide">
+              <div class="division-line">
+                <span id="divisionNameDisplay">Sunday League</span>
+                <strong id="divisionProgressText">0 / 25 goals</strong>
+              </div>
+              <div class="progress-track">
+                <div id="divisionProgressFill" class="progress-fill"></div>
+              </div>
+            </article>
+          </div>
+        </div>
+
+        <section id="field" class="field-stage" aria-label="Soccer field">
+          <div class="stadium-halo"></div>
+          <div class="crowd crowd-top"></div>
+          <div class="crowd crowd-bottom"></div>
+          <div class="field-lines"></div>
+          <div class="goal-structure">
+            <div class="crossbar"></div>
+            <div class="net"></div>
+            <div class="keeper"></div>
+            <div class="target-ring left"></div>
+            <div class="target-ring right"></div>
+          </div>
+
+          <div class="player-stack">
+            <div class="player-card captain"></div>
+            <div class="player-card winger"></div>
+            <div class="player-card engine"></div>
+          </div>
+
+          <div class="pitch-overlay">
+            <div class="shot-badge">Tap grass to shoot</div>
+            <div id="eventTicker" class="event-ticker">Kick off your club.</div>
+          </div>
+
+          <div
+            id="ball"
+            class="ball"
+            style="--shot-x: 0px; --shot-y: -280px;"
+          ></div>
+          <div id="goalFlash" class="goal-flash">GOAL!</div>
+          <div id="floatingLayer" class="floating-layer" aria-hidden="true"></div>
+
+          <button id="fieldTapButton" class="field-tap-button" type="button">
+            Shoot
+          </button>
+        </section>
+      </section>
+
+      <section class="shop-sheet">
+        <div class="sheet-handle"></div>
+
+        <div class="shop-summary">
+          <article class="summary-tile">
+            <span>Cash per goal</span>
+            <strong id="cashPerGoalDisplay">$1</strong>
+          </article>
+          <article class="summary-tile">
+            <span>Goals per shot</span>
+            <strong id="goalsPerShotDisplay">1</strong>
+          </article>
+          <article class="summary-tile">
+            <span>Auto shots</span>
+            <strong id="autoShotsDisplay">0</strong>
+          </article>
+        </div>
+
+        <div class="sheet-header">
+          <div>
+            <p class="eyebrow">Upgrade Desk</p>
+            <h2>Make the club print goals</h2>
+          </div>
+          <p class="sheet-copy">
+            This is the bottom tray like a mobile game shop. Buy faster shots,
+            bigger payouts, and louder crowds.
+          </p>
+        </div>
+
+        <div id="upgradeGrid" class="upgrade-grid"></div>
+      </section>
+    </main>
+
+    <script src="./script.js"></script>
+  </body>
+</html>
