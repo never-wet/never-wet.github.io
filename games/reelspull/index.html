@@ -2035,16 +2035,16 @@
         const THUMBNAIL_SYNC_DURATION_MS = 4000;
         const BATCH_REVEAL_DELAY_MS = 220;
         const GIFS = [
-            { key: "absmal", name: "Abysmal", path: "gif/absmal.gif", rarity: "Glitched", weight: 30, color: "#68758f", rank: 1 },
-            { key: "common", name: "Common", path: "gif/common.gif", rarity: "Common", weight: 28, color: "#7a8da5", rank: 2 },
-            { key: "uncommon", name: "Uncommon", path: "gif/uncommon.gif", rarity: "Uncommon", weight: 22, color: "#45b97c", rank: 3 },
-            { key: "rare", name: "Rare", path: "gif/rare.gif", rarity: "Rare", weight: 16, color: "#48a0ff", rank: 4 },
-            { key: "exotic", name: "Exotic", path: "gif/exotic.gif", rarity: "Exotic", weight: 11, color: "#19d0c4", rank: 5 },
-            { key: "mythic", name: "Mythic", path: "gif/mythic.gif", rarity: "Mythic", weight: 8, color: "#d166ff", rank: 6 },
-            { key: "legendary", name: "Legendary", path: "gif/legendary.gif", rarity: "Legendary", weight: 6, color: "#ffb347", rank: 7 },
-            { key: "unreal", name: "Unreal", path: "gif/unreal.gif", rarity: "Unreal", weight: 0.9, color: "#ff7e6b", rank: 8 },
-            { key: "insane", name: "Insane", path: "gif/insane.gif", rarity: "Insane", weight: 0.2, color: "#ff4f81", rank: 9 },
-            { key: "godlike", name: "Godlike", path: "gif/godlike.gif", rarity: "Godlike", weight: 0.05, color: "#ffd76a", rank: 10 }
+            { key: "absmal", name: "Abysmal", path: "gif/absmal.gif", rarity: "Glitched", weight: 35, color: "#68758f", rank: 1 },
+            { key: "common", name: "Common", path: "gif/common.gif", rarity: "Common", weight: 32, color: "#7a8da5", rank: 2 },
+            { key: "uncommon", name: "Uncommon", path: "gif/uncommon.gif", rarity: "Uncommon", weight: 30, color: "#45b97c", rank: 3 },
+            { key: "rare", name: "Rare", path: "gif/rare.gif", rarity: "Rare", weight: 2, color: "#48a0ff", rank: 4 },
+            { key: "exotic", name: "Exotic", path: "gif/exotic.gif", rarity: "Exotic", weight: 1.2, color: "#19d0c4", rank: 5 },
+            { key: "mythic", name: "Mythic", path: "gif/mythic.gif", rarity: "Mythic", weight: 0.7, color: "#d166ff", rank: 6 },
+            { key: "legendary", name: "Legendary", path: "gif/legendary.gif", rarity: "Legendary", weight: 0.35, color: "#ffb347", rank: 7 },
+            { key: "unreal", name: "Unreal", path: "gif/unreal.gif", rarity: "Unreal", weight: 0.06, color: "#ff7e6b", rank: 8 },
+            { key: "insane", name: "Insane", path: "gif/insane.gif", rarity: "Insane", weight: 0.01, color: "#ff4f81", rank: 9 },
+            { key: "godlike", name: "Godlike", path: "gif/godlike.gif", rarity: "Godlike", weight: 0.002, color: "#ffd76a", rank: 10 }
         ];
         const RARE_GIF_LOOP_CONFIG = {
             unreal: { loopPath: "gif/unreal-loop.gif", firstPlayDurationMs: 3990 },
@@ -2134,7 +2134,7 @@
             {
                 key: "shiny",
                 label: "Shiny",
-                chance: 0.018,
+                chance: 0.0001797,
                 minRank: 3,
                 accent: "#ffe97a",
                 dustMultiplier: 1.8,
@@ -2421,7 +2421,11 @@
                 return `${percent.toFixed(4)}%`;
             }
 
-            return `${percent.toFixed(5)}%`;
+            if (percent >= 0.0001) {
+                return `${percent.toFixed(5)}%`;
+            }
+
+            return `${percent.toFixed(6)}%`;
         }
 
         function renderVariantOddsBadges(gif, basePercent) {
