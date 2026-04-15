@@ -565,6 +565,42 @@
       </div>
     </div>
 
+    <aside id="devModePanel" class="dev-mode-panel" hidden>
+      <div id="devModeDragHandle" class="dev-mode-header">
+        <div>
+          <p class="eyebrow">Dev Mode</p>
+          <h2>never-wet console</h2>
+        </div>
+        <button id="devModeCloseButton" class="dev-mode-close" type="button">Close</button>
+      </div>
+
+      <p id="devModeStatus" class="dev-mode-status">
+        Hidden tools unlocked.
+      </p>
+
+      <label class="dev-mode-input-wrap" for="devAmountInput">
+        <span>Typed Amount</span>
+        <input id="devAmountInput" class="dev-mode-input" type="number" min="0" step="1" value="1000" />
+      </label>
+
+      <div class="dev-mode-grid">
+        <button class="dev-mode-button" type="button" onpointerdown="window.goalKineticDevAction && window.goalKineticDevAction('add-money')" onclick="window.goalKineticDevAction && window.goalKineticDevAction('add-money')">Add Money</button>
+        <button class="dev-mode-button" type="button" onpointerdown="window.goalKineticDevAction && window.goalKineticDevAction('set-money')" onclick="window.goalKineticDevAction && window.goalKineticDevAction('set-money')">Set Money</button>
+        <button class="dev-mode-button" type="button" onpointerdown="window.goalKineticDevAction && window.goalKineticDevAction('infinite-money')" onclick="window.goalKineticDevAction && window.goalKineticDevAction('infinite-money')">Infinite Money</button>
+        <button class="dev-mode-button" type="button" onpointerdown="window.goalKineticDevAction && window.goalKineticDevAction('add-goals')" onclick="window.goalKineticDevAction && window.goalKineticDevAction('add-goals')">Add Goals</button>
+        <button class="dev-mode-button" type="button" onpointerdown="window.goalKineticDevAction && window.goalKineticDevAction('add-misses')" onclick="window.goalKineticDevAction && window.goalKineticDevAction('add-misses')">Add Misses</button>
+        <button class="dev-mode-button" type="button" onpointerdown="window.goalKineticDevAction && window.goalKineticDevAction('add-prestiges')" onclick="window.goalKineticDevAction && window.goalKineticDevAction('add-prestiges')">Add Prestiges</button>
+        <button class="dev-mode-button" type="button" onpointerdown="window.goalKineticDevAction && window.goalKineticDevAction('add-upgrade-levels')" onclick="window.goalKineticDevAction && window.goalKineticDevAction('add-upgrade-levels')">Add Upgrade Levels</button>
+        <button class="dev-mode-button" type="button" onpointerdown="window.goalKineticDevAction && window.goalKineticDevAction('max-upgrades')" onclick="window.goalKineticDevAction && window.goalKineticDevAction('max-upgrades')">Max Upgrades</button>
+        <button class="dev-mode-button" type="button" onpointerdown="window.goalKineticDevAction && window.goalKineticDevAction('max-prestige-shop')" onclick="window.goalKineticDevAction && window.goalKineticDevAction('max-prestige-shop')">Max Prestige Shop</button>
+        <button class="dev-mode-button" type="button" onpointerdown="window.goalKineticDevAction && window.goalKineticDevAction('buy-all-players')" onclick="window.goalKineticDevAction && window.goalKineticDevAction('buy-all-players')">Buy All Players</button>
+        <button class="dev-mode-button" type="button" onpointerdown="window.goalKineticDevAction && window.goalKineticDevAction('players-max')" onclick="window.goalKineticDevAction && window.goalKineticDevAction('players-max')">Players To Max</button>
+        <button class="dev-mode-button" type="button" onpointerdown="window.goalKineticDevAction && window.goalKineticDevAction('players-min')" onclick="window.goalKineticDevAction && window.goalKineticDevAction('players-min')">Players To Min</button>
+        <button class="dev-mode-button" type="button" onpointerdown="window.goalKineticDevAction && window.goalKineticDevAction('players-normal')" onclick="window.goalKineticDevAction && window.goalKineticDevAction('players-normal')">Players To Normal</button>
+        <button class="dev-mode-button danger" type="button" onpointerdown="window.goalKineticDevAction && window.goalKineticDevAction('reset-all')" onclick="window.goalKineticDevAction && window.goalKineticDevAction('reset-all')">Reset Everything</button>
+      </div>
+    </aside>
+
     <script>
       window.goalKineticSwitchScreen = function (screenName) {
         if (!screenName) return;

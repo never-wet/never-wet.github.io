@@ -172,6 +172,11 @@ const runtime = {
   activeScreen: "field",
   selectedLineupSlot: "st",
   prestigeModalOpen: false,
+  devSequenceBuffer: "",
+  devModeOpen: false,
+  devDragPointerId: null,
+  devDragOffsetX: 0,
+  devDragOffsetY: 0,
   shotAnimationToken: 0,
   flashTimeout: 0,
   ballResetTimeout: 0,
@@ -210,6 +215,11 @@ const elements = {
   prestigeModalMissesNeeded: document.getElementById("prestigeModalMissesNeeded"),
   prestigeModalCancel: document.getElementById("prestigeModalCancel"),
   prestigeModalConfirm: document.getElementById("prestigeModalConfirm"),
+  devModePanel: document.getElementById("devModePanel"),
+  devModeDragHandle: document.getElementById("devModeDragHandle"),
+  devModeCloseButton: document.getElementById("devModeCloseButton"),
+  devModeStatus: document.getElementById("devModeStatus"),
+  devAmountInput: document.getElementById("devAmountInput"),
   prestigeCountDisplay: document.getElementById("prestigeCountDisplay"),
   prestigeBonusDisplay: document.getElementById("prestigeBonusDisplay"),
   prestigeStatusMessage: document.getElementById("prestigeStatusMessage"),
@@ -290,6 +300,7 @@ window.goalKineticAttemptPrestige = () => attemptPrestige();
 window.goalKineticOpenPrestigeModal = () => openPrestigeModal();
 window.goalKineticConfirmPrestige = () => confirmPrestigeFromModal();
 window.goalKineticBuyPrestigeUpgrade = (upgradeId) => buyPrestigeUpgrade(upgradeId);
+window.goalKineticDevAction = (action) => runDevAction(action);
 requestAnimationFrame(gameLoop);
 
 function createDefaultState() {
@@ -311,9 +322,10 @@ function createDefaultState() {
     starterTransferGrantClaimed: false,
       prestigeCount: 0,
       prestigePoints: 0,
-      prestigeUnlocked: false,
-      prestigeShopUpgrades: Object.fromEntries(prestigeShopDefinitions.map((upgrade) => [upgrade.id, 0])),
-      lineupAssignments: buildDefaultLineupAssignments(),
+        prestigeUnlocked: false,
+        devPlayerStatMode: "normal",
+        prestigeShopUpgrades: Object.fromEntries(prestigeShopDefinitions.map((upgrade) => [upgrade.id, 0])),
+        lineupAssignments: buildDefaultLineupAssignments(),
     rivalClubs: buildDefaultRivalClubs(),
     lastLeaderboardTickAt: Date.now(),
     lastActiveAt: Date.now(),
@@ -342,6 +354,7 @@ function loadState() {
           ...fresh.prestigeShopUpgrades,
           ...(parsed.prestigeShopUpgrades || {}),
         },
+        devPlayerStatMode: parsed.devPlayerStatMode || fresh.devPlayerStatMode,
       };
   } catch (error) {
     console.warn("Could not load Soccer Idle save", error);
@@ -676,6 +689,16 @@ function attachEvents() {
       saveState();
     }
   });
+  document.addEventListener("keydown", handleDevSequence);
+  elements.devModeCloseButton?.addEventListener("click", closeDevMode);
+  elements.devModeCloseButton?.addEventListener("pointerdown", (event) => {
+    event.preventDefault();
+    closeDevMode();
+  });
+  elements.devModeDragHandle?.addEventListener("pointerdown", startDevDrag);
+  elements.devModeDragHandle?.addEventListener("pointermove", moveDevDrag);
+  elements.devModeDragHandle?.addEventListener("pointerup", stopDevDrag);
+  elements.devModeDragHandle?.addEventListener("pointercancel", stopDevDrag);
 
   const handleTransferPress = (event) => {
     const target = event.target instanceof Element ? event.target : null;
@@ -710,6 +733,11 @@ function attachEvents() {
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape" && runtime.prestigeModalOpen) {
       closePrestigeModal();
+      return;
+    }
+
+    if (event.key === "Escape" && runtime.devModeOpen) {
+      closeDevMode();
     }
   });
 
@@ -993,6 +1021,242 @@ function getPlayerName(playerId) {
 
 function getPlayerTier(overall) {
   return playerTierBands.find((tier) => overall >= tier.minOverall) || playerTierBands[playerTierBands.length - 1];
+}
+
+function getDevAmount() {
+  const rawValue = Number(elements.devAmountInput?.value || 0);
+  return Math.max(0, Number.isFinite(rawValue) ? rawValue : 0);
+}
+
+function setDevStatus(message) {
+  if (elements.devModeStatus) {
+    elements.devModeStatus.textContent = message;
+  }
+}
+
+function openDevMode() {
+  runtime.devModeOpen = true;
+  if (elements.devModePanel) {
+    elements.devModePanel.hidden = false;
+    if (!elements.devModePanel.style.left && !elements.devModePanel.style.top) {
+      elements.devModePanel.style.left = "";
+      elements.devModePanel.style.right = "20px";
+      elements.devModePanel.style.top = "92px";
+    }
+  }
+  setDevStatus("Hidden tools unlocked.");
+}
+
+function closeDevMode() {
+  runtime.devModeOpen = false;
+  if (elements.devModePanel) {
+    elements.devModePanel.hidden = true;
+  }
+  stopDevDrag();
+}
+
+function clampDevPanelPosition(left, top) {
+  if (!elements.devModePanel) {
+    return { left, top };
+  }
+
+  const panelRect = elements.devModePanel.getBoundingClientRect();
+  const maxLeft = Math.max(8, window.innerWidth - panelRect.width - 8);
+  const maxTop = Math.max(8, window.innerHeight - panelRect.height - 8);
+
+  return {
+    left: clamp(left, 8, maxLeft),
+    top: clamp(top, 8, maxTop),
+  };
+}
+
+function startDevDrag(event) {
+  if (!elements.devModePanel || !elements.devModeDragHandle) {
+    return;
+  }
+
+  const target = event.target instanceof Element ? event.target : null;
+  if (target?.closest("button, input, textarea, select, label")) {
+    return;
+  }
+
+  event.preventDefault();
+  const panelRect = elements.devModePanel.getBoundingClientRect();
+  runtime.devDragPointerId = event.pointerId;
+  runtime.devDragOffsetX = event.clientX - panelRect.left;
+  runtime.devDragOffsetY = event.clientY - panelRect.top;
+  elements.devModePanel.style.right = "auto";
+  elements.devModePanel.style.left = `${panelRect.left}px`;
+  elements.devModePanel.style.top = `${panelRect.top}px`;
+  elements.devModeDragHandle.setPointerCapture?.(event.pointerId);
+}
+
+function moveDevDrag(event) {
+  if (runtime.devDragPointerId !== event.pointerId || !elements.devModePanel) {
+    return;
+  }
+
+  const nextPosition = clampDevPanelPosition(
+    event.clientX - runtime.devDragOffsetX,
+    event.clientY - runtime.devDragOffsetY
+  );
+  elements.devModePanel.style.left = `${nextPosition.left}px`;
+  elements.devModePanel.style.top = `${nextPosition.top}px`;
+}
+
+function stopDevDrag(event) {
+  if (event && runtime.devDragPointerId !== event.pointerId) {
+    return;
+  }
+
+  if (event && elements.devModeDragHandle) {
+    elements.devModeDragHandle.releasePointerCapture?.(event.pointerId);
+  }
+
+  runtime.devDragPointerId = null;
+}
+
+function handleDevSequence(event) {
+  if (event.ctrlKey || event.metaKey || event.altKey) {
+    return;
+  }
+
+  const key = (event.key || "").toLowerCase();
+  if (!key || key.length !== 1) {
+    return;
+  }
+
+  runtime.devSequenceBuffer = `${runtime.devSequenceBuffer}${key}`.slice(-9);
+  if (runtime.devSequenceBuffer.includes("never-wet")) {
+    runtime.devSequenceBuffer = "";
+    openDevMode();
+  }
+}
+
+function recalculateUpgradeState() {
+  state.cashPerGoal = 1;
+  state.goalsPerShot = 1;
+  state.autoShotsPerSecond = 0;
+  state.missChanceReduction = 0;
+
+  upgradeDefinitions.forEach((upgrade) => {
+    const owned = state.upgrades?.[upgrade.id] || 0;
+    for (let level = 0; level < owned; level += 1) {
+      upgrade.apply(state);
+    }
+  });
+}
+
+function getDevAdjustedBaseStats(basePower, baseLeadership, baseEnergy) {
+  if (state.devPlayerStatMode === "max") {
+    return { power: 99, leadership: 99, energy: 99 };
+  }
+
+  if (state.devPlayerStatMode === "min") {
+    return { power: 35, leadership: 35, energy: 35 };
+  }
+
+  return {
+    power: basePower,
+    leadership: baseLeadership,
+    energy: baseEnergy,
+  };
+}
+
+function runDevAction(action) {
+  const amount = getDevAmount();
+
+  switch (action) {
+    case "add-money":
+      state.cash += amount;
+      setDevStatus(`Added $${formatNumber(amount)}.`);
+      break;
+    case "set-money":
+      state.cash = amount;
+      setDevStatus(`Set money to $${formatNumber(amount)}.`);
+      break;
+    case "infinite-money":
+      state.cash = 1_000_000_000_000;
+      setDevStatus("Money set to a huge dev amount.");
+      break;
+    case "add-goals":
+      state.goals += amount;
+      setDevStatus(`Added ${formatNumber(amount)} goals.`);
+      break;
+    case "add-misses":
+      state.totalShots += amount;
+      setDevStatus(`Added ${formatNumber(amount)} misses.`);
+      break;
+    case "add-prestiges":
+      state.prestigeCount += amount;
+      state.prestigePoints += amount;
+      state.prestigeUnlocked = state.prestigeCount > 0;
+      setDevStatus(`Added ${formatNumber(amount)} prestiges and prestige points.`);
+      break;
+    case "add-upgrade-levels":
+      upgradeDefinitions.forEach((upgrade) => {
+        state.upgrades[upgrade.id] = (state.upgrades[upgrade.id] || 0) + amount;
+      });
+      recalculateUpgradeState();
+      setDevStatus(`Added ${formatNumber(amount)} levels to every standard upgrade.`);
+      break;
+    case "max-upgrades":
+      upgradeDefinitions.forEach((upgrade) => {
+        state.upgrades[upgrade.id] = 25;
+      });
+      recalculateUpgradeState();
+      setDevStatus("All standard upgrades maxed to dev level 25.");
+      break;
+    case "max-prestige-shop":
+      state.prestigeUnlocked = true;
+      state.prestigePoints = Math.max(state.prestigePoints || 0, 99);
+      prestigeShopDefinitions.forEach((upgrade) => {
+        state.prestigeShopUpgrades[upgrade.id] = 10;
+      });
+      setDevStatus("Prestige shop upgrades maxed.");
+      break;
+    case "buy-all-players":
+      state.ownedPlayerIds = playerCatalog.map((player) => player.id);
+      normalizeLineupAssignments();
+      setDevStatus("All players bought instantly.");
+      break;
+    case "players-max":
+      state.devPlayerStatMode = "max";
+      setDevStatus("All player stats forced to max.");
+      break;
+    case "players-min":
+      state.devPlayerStatMode = "min";
+      setDevStatus("All player stats forced to minimum.");
+      break;
+    case "players-normal":
+      state.devPlayerStatMode = "normal";
+      setDevStatus("Player stats restored to normal.");
+      break;
+    case "reset-all": {
+      const fresh = createDefaultState();
+      Object.keys(state).forEach((key) => {
+        delete state[key];
+      });
+      Object.assign(state, fresh);
+      normalizeLineupAssignments();
+      normalizeRivalClubs();
+      runtime.buzz = 0;
+      runtime.pendingAutoShots = 0;
+      runtime.recentManualShotTimes = [];
+      runtime.selectedLineupSlot = "st";
+      runtime.lastRenderedBuzzInt = -1;
+      runtime.lastLeaderboardUpdateAt = Date.now();
+      runtime.prestigeModalOpen = false;
+      closePrestigeModal();
+      setDevStatus("Everything reset to a fresh new save.");
+      break;
+    }
+    default:
+      return;
+  }
+
+  render();
+  saveState();
 }
 
 function getPreferredSlotsForRole(role) {
@@ -1635,37 +1899,40 @@ function renderTransferMarket() {
 
   elements.transferMarketGrid.innerHTML = sortedPlayers
     .map((player) => {
+      const adjustedStats = getDevAdjustedBaseStats(player.power, player.leadership, player.energy);
+      const adjustedOverall = adjustedStats.power + adjustedStats.leadership + adjustedStats.energy;
+      const adjustedTier = getPlayerTier(adjustedOverall);
       const affordable = state.cash >= player.price;
 
-        return `
-          <article class="transfer-card tier-${player.tier.id}${affordable ? " affordable" : ""}">
-            <div class="transfer-top">
-              <div class="player-avatar">${player.initials}</div>
-              <div>
-                <h3 class="transfer-name">${player.name}</h3>
-                <p class="transfer-role">${player.role}</p>
+          return `
+            <article class="transfer-card tier-${adjustedTier.id}${affordable ? " affordable" : ""}">
+              <div class="transfer-top">
+                <div class="player-avatar">${player.initials}</div>
+                <div>
+                  <h3 class="transfer-name">${player.name}</h3>
+                  <p class="transfer-role">${player.role}</p>
+                </div>
+                <div class="tier-badge ${adjustedTier.id}">${adjustedTier.label}</div>
               </div>
-              <div class="tier-badge ${player.tier.id}">${player.tier.label}</div>
-            </div>
-            <div class="transfer-stats">
+              <div class="transfer-stats">
+                <div>
+                  <span>Power</span>
+                  <strong>${adjustedStats.power}</strong>
+              </div>
               <div>
-                <span>Power</span>
-                <strong>${player.power}</strong>
+                <span>Lead</span>
+                <strong>${adjustedStats.leadership}</strong>
+              </div>
+              <div>
+                <span>Energy</span>
+                <strong>${adjustedStats.energy}</strong>
+              </div>
             </div>
-            <div>
-              <span>Lead</span>
-              <strong>${player.leadership}</strong>
+            <div class="transfer-tier-summary">
+              <span>Tier</span>
+              <strong>${adjustedTier.label}</strong>
+              <span>Overall ${adjustedOverall}</span>
             </div>
-            <div>
-              <span>Energy</span>
-              <strong>${player.energy}</strong>
-            </div>
-          </div>
-          <div class="transfer-tier-summary">
-            <span>Tier</span>
-            <strong>${player.tier.label}</strong>
-            <span>Overall ${player.overall}</span>
-          </div>
           <div class="transfer-footer">
             <div class="transfer-price">Transfer Fee<strong>$${formatNumber(player.price)}</strong></div>
             <button
@@ -1792,12 +2059,13 @@ function buildRosterPlayerCard({
   assignedSlotId,
   lineupBoosts,
 }) {
+  const adjustedBase = getDevAdjustedBaseStats(basePower, baseLeadership, baseEnergy);
   const inLineup = Boolean(assignedSlotId);
-  const power = Math.round(clamp(basePower + (inLineup ? lineupBoosts.power : 0), 35, 99));
+  const power = Math.round(clamp(adjustedBase.power + (inLineup ? lineupBoosts.power : 0), 35, 99));
   const leadership = Math.round(
-    clamp(baseLeadership + (inLineup ? lineupBoosts.leadership : 0), 35, 99)
+    clamp(adjustedBase.leadership + (inLineup ? lineupBoosts.leadership : 0), 35, 99)
   );
-  const energy = Math.round(clamp(baseEnergy + (inLineup ? lineupBoosts.energy : 0), 35, 99));
+  const energy = Math.round(clamp(adjustedBase.energy + (inLineup ? lineupBoosts.energy : 0), 35, 99));
   const overall = power + leadership + energy;
   const tier = getPlayerTier(overall);
 

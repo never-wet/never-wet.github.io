@@ -1101,6 +1101,115 @@ button {
   letter-spacing: 0.12em;
 }
 
+.dev-mode-panel[hidden] {
+  display: none;
+}
+
+.dev-mode-panel {
+  position: fixed;
+  top: 92px;
+  right: 20px;
+  z-index: 130;
+  width: min(440px, calc(100vw - 24px));
+  max-height: calc(100vh - 120px);
+  overflow: auto;
+  padding: 22px;
+  border-radius: 14px;
+  border: 1px solid rgba(145, 247, 142, 0.26);
+  background: rgba(14, 14, 14, 0.96);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.46), var(--green-glow);
+}
+
+.dev-mode-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+  cursor: grab;
+  user-select: none;
+}
+
+.dev-mode-header:active {
+  cursor: grabbing;
+}
+
+.dev-mode-header h2 {
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: -0.06em;
+  font: 900 clamp(1.8rem, 4vw, 2.6rem)/0.95 "Space Grotesk", sans-serif;
+}
+
+.dev-mode-close,
+.dev-mode-button {
+  min-height: 42px;
+  padding: 0 14px;
+  border-radius: 8px;
+  font: 900 0.66rem/1 "Lexend", sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.dev-mode-close {
+  color: var(--text-soft);
+  background: transparent;
+  border: 1px solid rgba(118, 117, 117, 0.34);
+}
+
+.dev-mode-status {
+  margin: 16px 0 0;
+  padding: 12px 14px;
+  border-radius: 8px;
+  border-left: 4px solid var(--primary);
+  background: var(--surface-low);
+  color: var(--text-soft);
+  font: 800 0.68rem/1.5 "Lexend", sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.dev-mode-input-wrap {
+  display: grid;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.dev-mode-input-wrap span {
+  color: var(--text-soft);
+  font: 800 0.68rem/1.4 "Lexend", sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.dev-mode-input {
+  min-height: 48px;
+  padding: 0 14px;
+  border-radius: 8px;
+  border: 1px solid rgba(118, 117, 117, 0.34);
+  background: var(--surface-low);
+  color: var(--text-main);
+  font: 900 1rem/1 "Space Grotesk", sans-serif;
+}
+
+.dev-mode-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.dev-mode-button {
+  color: #071107;
+  background: var(--primary);
+}
+
+.dev-mode-button.danger {
+  color: #fff3f3;
+  background: linear-gradient(135deg, #8d2323, #d14a4a);
+}
+
 .upgrade-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -2151,6 +2260,17 @@ button {
 
   .prestige-modal-actions {
     flex-direction: column-reverse;
+  }
+
+  .dev-mode-panel {
+    top: 76px;
+    right: 12px;
+    left: 12px;
+    width: auto;
+  }
+
+  .dev-mode-grid {
+    grid-template-columns: 1fr;
   }
 
   .mobile-nav {
