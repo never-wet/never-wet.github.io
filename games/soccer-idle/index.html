@@ -25,11 +25,11 @@
         <div class="brand-lockup">
           <a class="brand-mark" href="../">GOAL KINETIC</a>
           <div class="nav-links desktop-only">
-            <button class="nav-link active" type="button" data-screen-target="field">Field</button>
-            <button class="nav-link" type="button" data-screen-target="upgrades">Upgrades</button>
-            <button class="nav-link" type="button" data-screen-target="squad">Squad</button>
-            <button class="nav-link" type="button" data-screen-target="leaderboard">Leaderboard</button>
-            <button class="nav-link" type="button" data-screen-target="stats">Stats</button>
+            <button class="nav-link active" type="button" data-screen-target="field" onclick="window.goalKineticSwitchScreen && window.goalKineticSwitchScreen('field')">Field</button>
+            <button class="nav-link" type="button" data-screen-target="upgrades" onclick="window.goalKineticSwitchScreen && window.goalKineticSwitchScreen('upgrades')">Upgrades</button>
+            <button class="nav-link" type="button" data-screen-target="squad" onclick="window.goalKineticSwitchScreen && window.goalKineticSwitchScreen('squad')">Squad</button>
+            <button class="nav-link" type="button" data-screen-target="leaderboard" onclick="window.goalKineticSwitchScreen && window.goalKineticSwitchScreen('leaderboard')">Leaderboard</button>
+            <button class="nav-link" type="button" data-screen-target="stats" onclick="window.goalKineticSwitchScreen && window.goalKineticSwitchScreen('stats')">Stats</button>
           </div>
         </div>
         <div class="nav-actions">
@@ -56,19 +56,19 @@
       </div>
 
       <nav class="rail-nav">
-        <button class="rail-link current" type="button" data-screen-target="field">
+        <button class="rail-link current" type="button" data-screen-target="field" onclick="window.goalKineticSwitchScreen && window.goalKineticSwitchScreen('field')">
           <span class="material-symbols-outlined filled">sports_soccer</span>
           Stadium
         </button>
-        <button class="rail-link" type="button" data-screen-target="upgrades">
+        <button class="rail-link" type="button" data-screen-target="market" onclick="window.goalKineticSwitchScreen && window.goalKineticSwitchScreen('market')">
           <span class="material-symbols-outlined">shopping_cart</span>
           Market
         </button>
-        <button class="rail-link" type="button" data-screen-target="squad">
+        <button class="rail-link" type="button" data-screen-target="squad" onclick="window.goalKineticSwitchScreen && window.goalKineticSwitchScreen('squad')">
           <span class="material-symbols-outlined">groups</span>
           Squad
         </button>
-        <button class="rail-link" type="button" data-screen-target="leaderboard">
+        <button class="rail-link" type="button" data-screen-target="leaderboard" onclick="window.goalKineticSwitchScreen && window.goalKineticSwitchScreen('leaderboard')">
           <span class="material-symbols-outlined">trophy</span>
           World Cup
         </button>
@@ -169,11 +169,11 @@
       <section class="screen" data-screen="upgrades">
         <section class="screen-header">
           <div>
-            <p class="eyebrow">Upgrade Shop</p>
-            <h2>Invest in your legacy. Dominate the pitch.</h2>
+            <p class="eyebrow">Club Upgrades</p>
+            <h2>Upgrade the stadium and your attack.</h2>
           </div>
           <div class="market-total">
-            <span>Total Goals</span>
+            <span>Goals Scored</span>
             <strong id="marketGoalsDisplay">0</strong>
           </div>
         </section>
@@ -219,6 +219,32 @@
         </section>
 
         <div id="upgradeGrid" class="upgrade-grid"></div>
+
+      </section>
+
+      <section class="screen" data-screen="market">
+        <section class="screen-header">
+          <div>
+            <p class="eyebrow">Transfer Market</p>
+            <h2>Buy players for your club.</h2>
+          </div>
+          <div class="market-total">
+            <span>Available Players</span>
+            <strong id="transferCountDisplay">100</strong>
+          </div>
+          <div class="market-total border-secondary">
+            <span>Your Balance</span>
+            <strong id="marketBalanceDisplay">$0</strong>
+          </div>
+        </section>
+
+        <div id="marketStatusMessage" class="market-status-banner">
+          Tap Buy to sign a player for your squad.
+        </div>
+
+        <section class="transfer-section">
+          <div id="transferMarketGrid" class="transfer-grid"></div>
+        </section>
       </section>
 
       <section class="screen" data-screen="leaderboard">
@@ -373,28 +399,43 @@
     </main>
 
     <nav class="mobile-nav">
-      <button class="mobile-link active" type="button" data-screen-target="field">
+      <button class="mobile-link active" type="button" data-screen-target="field" onclick="window.goalKineticSwitchScreen && window.goalKineticSwitchScreen('field')">
         <span class="material-symbols-outlined filled">stadium</span>
         <span>Field</span>
       </button>
-      <button class="mobile-link" type="button" data-screen-target="upgrades">
+      <button class="mobile-link" type="button" data-screen-target="market" onclick="window.goalKineticSwitchScreen && window.goalKineticSwitchScreen('market')">
         <span class="material-symbols-outlined">shopping_cart</span>
         <span>Market</span>
       </button>
-      <button class="mobile-link" type="button" data-screen-target="squad">
+      <button class="mobile-link" type="button" data-screen-target="squad" onclick="window.goalKineticSwitchScreen && window.goalKineticSwitchScreen('squad')">
         <span class="material-symbols-outlined">groups</span>
         <span>Squad</span>
       </button>
-      <button class="mobile-link" type="button" data-screen-target="leaderboard">
+      <button class="mobile-link" type="button" data-screen-target="leaderboard" onclick="window.goalKineticSwitchScreen && window.goalKineticSwitchScreen('leaderboard')">
         <span class="material-symbols-outlined">leaderboard</span>
         <span>Leader</span>
       </button>
-      <button class="mobile-link" type="button" data-screen-target="stats">
+      <button class="mobile-link" type="button" data-screen-target="stats" onclick="window.goalKineticSwitchScreen && window.goalKineticSwitchScreen('stats')">
         <span class="material-symbols-outlined">query_stats</span>
         <span>Stats</span>
       </button>
     </nav>
 
+    <script>
+      window.goalKineticSwitchScreen = function (screenName) {
+        if (!screenName) return;
+
+        document.querySelectorAll(".screen[data-screen]").forEach((screen) => {
+          screen.classList.toggle("active", screen.dataset.screen === screenName);
+        });
+
+        document.querySelectorAll("[data-screen-target]").forEach((button) => {
+          const isActive = button.dataset.screenTarget === screenName;
+          button.classList.toggle("active", isActive);
+          button.classList.toggle("current", isActive);
+        });
+      };
+    </script>
     <script src="./script.js"></script>
   </body>
 </html>

@@ -880,6 +880,18 @@ button {
   font-size: 2.4rem;
 }
 
+.market-status-banner {
+  margin-bottom: 18px;
+  padding: 14px 16px;
+  border-left: 4px solid var(--secondary);
+  border-radius: 8px;
+  background: var(--surface-low);
+  color: var(--text-soft);
+  font: 800 0.72rem/1.5 "Lexend", sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+}
+
 .upgrade-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -893,6 +905,117 @@ button {
   display: grid;
   gap: 24px;
   margin-bottom: 24px;
+}
+
+.transfer-section {
+  margin-top: 0;
+}
+
+.transfer-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 14px;
+}
+
+.transfer-card {
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+  border-radius: 8px;
+  border-left: 4px solid var(--secondary);
+  background: var(--surface-low);
+}
+
+.transfer-card.affordable {
+  box-shadow: var(--yellow-glow);
+}
+
+.transfer-card.owned {
+  border-left-color: var(--primary);
+  box-shadow: var(--green-glow);
+}
+
+.transfer-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.transfer-name {
+  margin: 0;
+  text-transform: uppercase;
+  font: 900 1.2rem/1 "Space Grotesk", sans-serif;
+  letter-spacing: -0.04em;
+}
+
+.transfer-role {
+  margin: 4px 0 0;
+  color: var(--text-soft);
+  font-size: 0.88rem;
+}
+
+.transfer-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.transfer-stats div {
+  padding: 12px;
+  border-radius: 8px;
+  background: var(--surface);
+}
+
+.transfer-stats span {
+  color: var(--text-soft);
+  font: 700 0.58rem/1.3 "Lexend", sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+}
+
+.transfer-stats strong {
+  display: block;
+  margin-top: 6px;
+  font: 900 1.3rem/1 "Space Grotesk", sans-serif;
+}
+
+.transfer-footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+}
+
+.transfer-price {
+  color: var(--text-soft);
+  font: 800 0.62rem/1.3 "Lexend", sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+}
+
+.transfer-price strong {
+  display: block;
+  margin-top: 4px;
+  color: var(--text-main);
+  font: 900 1.2rem/1 "Space Grotesk", sans-serif;
+}
+
+.buy-player-button {
+  min-width: 118px;
+  min-height: 44px;
+  padding: 0 16px;
+  border-radius: 6px;
+  color: #121000;
+  background: var(--secondary);
+  font: 900 0.7rem/1 "Lexend", sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.buy-player-button:disabled {
+  opacity: 0.34;
+  cursor: not-allowed;
+  box-shadow: none;
 }
 
 .upgrades-overview,
@@ -1328,8 +1451,7 @@ button {
     margin-left: 0;
   }
 
-  .side-rail,
-  .desktop-only {
+  .side-rail {
     display: none;
   }
 }
@@ -1350,7 +1472,8 @@ button {
   .stats-columns,
   .captain-stats,
   .player-meta,
-  .squad-grid {
+  .squad-grid,
+  .transfer-stats {
     grid-template-columns: 1fr;
   }
 
@@ -1363,6 +1486,10 @@ button {
 }
 
 @media (max-width: 720px) {
+  .desktop-only {
+    display: none;
+  }
+
   .nav-inner {
     width: min(100% - 16px, 1600px);
   }
@@ -1423,7 +1550,7 @@ button {
     text-transform: uppercase;
   }
 
-.mobile-link.active {
+  .mobile-link.active {
     color: var(--primary);
   }
 }

@@ -21,6 +21,7 @@ const squadBlueprint = [
   { name: "Leo Quinn", role: "Set Piece Ace", initials: "LQ" },
   { name: "Zane Cole", role: "Keeper", initials: "ZC" },
 ];
+const playerCatalog = buildPlayerCatalog();
 
 const upgradeDefinitions = [
   {
@@ -159,6 +160,10 @@ const elements = {
   captainFinishingDisplay: document.getElementById("captainFinishingDisplay"),
   captainEnergyDisplay: document.getElementById("captainEnergyDisplay"),
   squadGrid: document.getElementById("squadGrid"),
+  transferCountDisplay: document.getElementById("transferCountDisplay"),
+  marketBalanceDisplay: document.getElementById("marketBalanceDisplay"),
+  marketStatusMessage: document.getElementById("marketStatusMessage"),
+  transferMarketGrid: document.getElementById("transferMarketGrid"),
   missChanceDisplay: document.getElementById("missChanceDisplay"),
   shotsFiredDisplay: document.getElementById("shotsFiredDisplay"),
   shotsScoredDisplay: document.getElementById("shotsScoredDisplay"),
@@ -189,11 +194,15 @@ attachEvents();
 applyOfflineProgress();
 render();
 setupScreenNavigation();
+setActiveScreen("field", true);
+window.goalKineticShowScreen = (screenName) => setActiveScreen(screenName);
+window.goalKineticSwitchScreen = (screenName) => setActiveScreen(screenName);
+window.goalKineticBuyPlayer = (playerId) => buyPlayer(playerId);
 requestAnimationFrame(gameLoop);
 
 function createDefaultState() {
   return {
-    version: 2,
+    version: 3,
     cash: 0,
     goals: 0,
     fans: 0,
@@ -206,6 +215,8 @@ function createDefaultState() {
     lifetimeCash: 0,
     manualShots: 0,
     autoShots: 0,
+    ownedPlayerIds: [],
+    starterTransferGrantClaimed: false,
     lastActiveAt: Date.now(),
     upgrades: Object.fromEntries(upgradeDefinitions.map((upgrade) => [upgrade.id, 0])),
   };
@@ -242,6 +253,8 @@ function saveState() {
 }
 
 function applyOfflineProgress() {
+  maybeGrantStarterTransferBudget();
+
   const elapsedSeconds = Math.min(
     Math.max(0, (Date.now() - (state.lastActiveAt || Date.now())) / 1000),
     MAX_OFFLINE_SECONDS
@@ -264,6 +277,21 @@ function applyOfflineProgress() {
   );
   spawnRewardBubble(`+$${formatNumber(rewards.payout)}`, 68, 22, "upgrade");
   saveState();
+}
+
+function maybeGrantStarterTransferBudget() {
+  if (state.ownedPlayerIds.length > 0) {
+    return;
+  }
+
+  const affordablePlayers = playerCatalog.filter((player) => player.price <= state.cash).length;
+  if (affordablePlayers >= 10 && state.cash >= 1000) {
+    state.starterTransferGrantClaimed = true;
+    return;
+  }
+
+  state.cash = Math.max(state.cash, 1000);
+  state.starterTransferGrantClaimed = true;
 }
 
 function buildUpgradeCards() {
@@ -325,6 +353,20 @@ function attachEvents() {
       saveState();
     }
   });
+
+  const handleTransferPress = (event) => {
+    const target = event.target instanceof Element ? event.target : null;
+    const button = target?.closest("[data-player-id]");
+    if (!button) {
+      return;
+    }
+
+    event.preventDefault();
+    buyPlayer(button.dataset.playerId);
+  };
+
+  elements.transferMarketGrid.addEventListener("click", handleTransferPress);
+  elements.transferMarketGrid.addEventListener("pointerup", handleTransferPress);
 }
 
 function setupScreenNavigation() {
@@ -333,13 +375,39 @@ function setupScreenNavigation() {
   navButtons.forEach((button) => {
     button.addEventListener("click", (event) => {
       event.preventDefault();
-      setActiveScreen(button.dataset.screenTarget);
+      event.stopPropagation();
+      const { screenTarget } = button.dataset;
+      if (!screenTarget) {
+        return;
+      }
+
+      setActiveScreen(screenTarget);
     });
+  });
+
+  document.addEventListener("click", (event) => {
+    const target = event.target instanceof Element ? event.target : null;
+    const trigger = target?.closest("[data-screen-target]");
+    if (!trigger) {
+      return;
+    }
+
+    event.preventDefault();
+    const { screenTarget } = trigger.dataset;
+    if (!screenTarget) {
+      return;
+    }
+
+    setActiveScreen(screenTarget);
   });
 }
 
-function setActiveScreen(screenName) {
-  if (!screenName || runtime.activeScreen === screenName) {
+function setActiveScreen(screenName, force = false) {
+  if (!screenName) {
+    return;
+  }
+
+  if (!force && runtime.activeScreen === screenName) {
     return;
   }
 
@@ -399,6 +467,25 @@ function buyUpgrade(upgradeId) {
 
   setTicker(`${upgrade.name} unlocked. The whole stadium feels stronger.`);
   spawnRewardBubble(upgrade.icon, 50, 76, "upgrade");
+  render();
+  saveState();
+}
+
+function buyPlayer(playerId) {
+  const player = playerCatalog.find((item) => item.id === playerId);
+  if (!player || state.ownedPlayerIds.includes(playerId)) {
+    return;
+  }
+
+  if (state.cash < player.price) {
+    setTicker(`Need $${formatNumber(player.price - state.cash)} more for ${player.name}.`);
+    return;
+  }
+
+  state.cash -= player.price;
+  state.ownedPlayerIds.push(playerId);
+  setTicker(`${player.name} signed for the club.`);
+  spawnRewardBubble(player.initials, 50, 72, "upgrade");
   render();
   saveState();
 }
@@ -580,6 +667,9 @@ function pulseStage() {
 
 function setTicker(message) {
   elements.eventTicker.textContent = message;
+  if (elements.marketStatusMessage) {
+    elements.marketStatusMessage.textContent = message;
+  }
 }
 
 function spawnRewardBubble(text, xPercent, yPercent, tone) {
@@ -611,7 +701,8 @@ function render() {
   const autoContribution = state.totalShots > 0 ? (state.autoShots / state.totalShots) * 100 : 0;
   const leaderboardRows = buildLeaderboardRows();
   const squad = buildSquadRows();
-  const teamPerformance = buildTeamPerformance(totalAccuracy);
+  const teamPerformance = buildTeamPerformance(totalAccuracy, squad);
+  const availablePlayers = playerCatalog.filter((player) => !state.ownedPlayerIds.includes(player.id));
 
   elements.cashDisplay.textContent = `$${formatNumber(state.cash)}`;
   elements.cashDisplayMirror.textContent = `$${formatNumber(state.cash)}`;
@@ -628,10 +719,16 @@ function render() {
   elements.cashPerGoalDisplay.textContent = `$${formatNumber(state.cashPerGoal)}`;
   elements.goalsPerShotDisplay.textContent = formatNumber(state.goalsPerShot);
   elements.autoShotsDisplay.textContent = `${formatNumber(state.autoShotsPerSecond)}/s`;
-  elements.marketGoalsDisplay.textContent = formatNumber(state.goals);
+  if (elements.marketGoalsDisplay) {
+    elements.marketGoalsDisplay.textContent = formatNumber(state.goals);
+  }
   elements.rankDisplay.textContent = `#${leaderboardRows.find((row) => row.isYou)?.rank ?? 999}`;
   elements.leaderboardDivisionDisplay.textContent = `${division.name} Division`;
   elements.squadCountDisplay.textContent = formatNumber(squad.length);
+  elements.transferCountDisplay.textContent = formatNumber(availablePlayers.length);
+  if (elements.marketBalanceDisplay) {
+    elements.marketBalanceDisplay.textContent = `$${formatNumber(state.cash)}`;
+  }
   elements.missChanceDisplay.textContent = `${(getMissChance() * 100).toFixed(1)}%`;
   elements.shotsFiredDisplay.textContent = formatNumber(state.totalShots);
   elements.shotsScoredDisplay.textContent = formatNumber(state.totalHits);
@@ -648,6 +745,7 @@ function render() {
   renderNextUpgrade(nextUpgrade);
   renderLeaderboard(leaderboardRows);
   renderSquad(squad);
+  renderTransferMarket();
 
   upgradeDefinitions.forEach((upgrade) => {
     const cost = getUpgradeCost(upgrade);
@@ -700,21 +798,129 @@ function renderLeaderboard(rows) {
     .join("");
 }
 
+function renderTransferMarket() {
+  const sortedPlayers = playerCatalog
+    .filter((player) => !state.ownedPlayerIds.includes(player.id))
+    .sort((left, right) => {
+      const leftAffordable = state.cash >= left.price;
+      const rightAffordable = state.cash >= right.price;
+
+      if (leftAffordable !== rightAffordable) {
+        return leftAffordable ? -1 : 1;
+      }
+
+      return left.price - right.price;
+    });
+
+  elements.transferMarketGrid.innerHTML = sortedPlayers
+    .map((player) => {
+      const affordable = state.cash >= player.price;
+
+      return `
+        <article class="transfer-card${affordable ? " affordable" : ""}">
+          <div class="transfer-top">
+            <div class="player-avatar">${player.initials}</div>
+            <div>
+              <h3 class="transfer-name">${player.name}</h3>
+              <p class="transfer-role">${player.role}</p>
+            </div>
+          </div>
+          <div class="transfer-stats">
+            <div>
+              <span>Power</span>
+              <strong>${player.power}</strong>
+            </div>
+            <div>
+              <span>Lead</span>
+              <strong>${player.leadership}</strong>
+            </div>
+            <div>
+              <span>Energy</span>
+              <strong>${player.energy}</strong>
+            </div>
+          </div>
+          <div class="transfer-footer">
+            <div class="transfer-price">Transfer Fee<strong>$${formatNumber(player.price)}</strong></div>
+            <button
+              class="buy-player-button"
+              type="button"
+              data-player-id="${player.id}"
+              onclick="window.goalKineticBuyPlayer && window.goalKineticBuyPlayer('${player.id}')"
+            >
+              ${affordable ? "Buy" : `Need $${formatNumber(player.price - state.cash)}`}
+            </button>
+          </div>
+        </article>
+      `;
+    })
+    .join("");
+}
+
+function buildPlayerCatalog() {
+  const firstNames = ["Luca", "Mateo", "Ethan", "Felix", "Ruben", "Nico", "Adrian", "Jonah", "Marco", "Soren"];
+  const lastNames = ["Silva", "Morgan", "Sato", "Ibrahim", "Dawson", "Romero", "Park", "Novak", "Costa", "Quinn"];
+  const roles = ["Striker", "Winger", "Playmaker", "Midfielder", "Defender", "Finisher", "Anchor", "Goalkeeper"];
+  const catalog = [];
+
+  firstNames.forEach((firstName, firstIndex) => {
+    lastNames.forEach((lastName, lastIndex) => {
+      const seed = firstIndex * lastNames.length + lastIndex;
+      const power = 54 + ((seed * 7) % 36);
+      const leadership = 48 + ((seed * 11 + 9) % 38);
+      const energy = 52 + ((seed * 13 + 5) % 34);
+      const overall = power + leadership + energy;
+      let price;
+
+      if (seed < 20) {
+        price = 8 + seed * 6;
+      } else if (seed < 45) {
+        price = 120 + (seed - 20) * 20;
+      } else if (seed < 75) {
+        price = 700 + (seed - 45) * 55;
+      } else {
+        price = 2500 + (seed - 75) * 120;
+      }
+
+      catalog.push({
+        id: `player-${seed + 1}`,
+        name: `${firstName} ${lastName}`,
+        initials: `${firstName[0]}${lastName[0]}`,
+        role: roles[seed % roles.length],
+        power,
+        leadership,
+        energy,
+        price: Math.max(5, Math.round(price + Math.max(0, overall - 180))),
+      });
+    });
+  });
+
+  return catalog;
+}
+
 function buildSquadRows() {
   const leadershipBase = 62 + Math.min(28, state.fans / 35);
   const powerBase = 58 + state.goalsPerShot * 7;
   const energyBase = 54 + state.autoShotsPerSecond * 6;
 
-  return squadBlueprint.map((player, index) => ({
+  const starters = squadBlueprint.map((player, index) => ({
     ...player,
+    id: `starter-${index}`,
     leadership: Math.round(clamp(leadershipBase + index * 2 + state.upgrades["youth-academy"] * 3, 40, 99)),
     power: Math.round(clamp(powerBase + ((index + 1) % 3) * 4 + state.upgrades["pressing-system"] * 2, 42, 99)),
     energy: Math.round(clamp(energyBase + (7 - index) * 2 + state.upgrades["ball-boys"] * 3, 38, 99)),
   }));
+
+  const boughtPlayers = state.ownedPlayerIds
+    .map((playerId) => playerCatalog.find((player) => player.id === playerId))
+    .filter(Boolean);
+
+  return [...starters, ...boughtPlayers];
 }
 
 function renderSquad(players) {
-  const captain = players[0];
+  const captain =
+    [...players].sort((left, right) => right.leadership - left.leadership || right.power - left.power)[0] ||
+    players[0];
   elements.captainAvatar.textContent = captain.initials;
   elements.captainNameDisplay.textContent = captain.name;
   elements.captainRoleDisplay.textContent = captain.role;
@@ -754,11 +960,27 @@ function renderSquad(players) {
     .join("");
 }
 
-function buildTeamPerformance(totalAccuracy) {
+function buildTeamPerformance(totalAccuracy, squad) {
+  const squadAverage =
+    squad.length > 0
+      ? squad.reduce(
+          (totals, player) => ({
+            leadership: totals.leadership + player.leadership,
+            power: totals.power + player.power,
+            energy: totals.energy + player.energy,
+          }),
+          { leadership: 0, power: 0, energy: 0 }
+        )
+      : { leadership: 0, power: 0, energy: 0 };
+
+  const averageLeadership = squad.length > 0 ? squadAverage.leadership / squad.length : 0;
+  const averagePower = squad.length > 0 ? squadAverage.power / squad.length : 0;
+  const averageEnergy = squad.length > 0 ? squadAverage.energy / squad.length : 0;
+
   return {
-    shootingPower: Math.round(clamp(52 + state.goalsPerShot * 8 + state.cashPerGoal * 3.5, 0, 99)),
-    leadership: Math.round(clamp(48 + state.fans / 40 + state.upgrades["youth-academy"] * 4, 0, 99)),
-    passingFlow: Math.round(clamp(45 + state.autoShotsPerSecond * 8 + state.upgrades["pressing-system"] * 5, 0, 99)),
+    shootingPower: Math.round(clamp(averagePower + state.goalsPerShot * 3 + state.cashPerGoal * 2, 0, 99)),
+    leadership: Math.round(clamp(averageLeadership + state.fans / 70, 0, 99)),
+    passingFlow: Math.round(clamp(averageEnergy + state.autoShotsPerSecond * 4, 0, 99)),
     discipline: Math.round(clamp(100 - getMissChance() * 100 + totalAccuracy * 0.25, 0, 99)),
   };
 }
