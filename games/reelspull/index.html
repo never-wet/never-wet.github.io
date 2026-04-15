@@ -1781,9 +1781,6 @@
         const MIN_SPIN_STEPS = 30;
         const THUMBNAIL_SYNC_DURATION_MS = 4000;
         const BATCH_REVEAL_DELAY_MS = 220;
-        const EXPORT_CAPTURE_DELAY_MS = 2800;
-        const HIGH_TIER_EXPORT_CAPTURE_DELAY_MS = 3600;
-        const LOOP_EXPORT_CAPTURE_DELAY_MS = 120;
         const GIFS = [
             { key: "absmal", name: "Abysmal", path: "gif/absmal.gif", rarity: "Glitched", weight: 30, color: "#68758f", rank: 1 },
             { key: "common", name: "Common", path: "gif/common.gif", rarity: "Common", weight: 28, color: "#7a8da5", rank: 2 },
@@ -1800,6 +1797,18 @@
             unreal: { loopPath: "gif/unreal-loop.gif", firstPlayDurationMs: 3990 },
             insane: { loopPath: "gif/insane-loop.gif", firstPlayDurationMs: 4000 },
             godlike: { loopPath: "gif/godlike-loop.gif", firstPlayDurationMs: 4000 }
+        };
+        const EXPORT_POSTER_PATHS = {
+            absmal: "gif/absmal-export-poster-v9.png",
+            common: "gif/common-export-poster.png",
+            uncommon: "gif/uncommon-export-poster.png",
+            rare: "gif/rare-export-poster.png",
+            exotic: "gif/exotic-export-poster.png",
+            mythic: "gif/mythic-export-poster.png",
+            legendary: "gif/legendary-export-poster.png",
+            unreal: "gif/unreal-export-poster.png",
+            insane: "gif/insane-export-poster.png",
+            godlike: "gif/godlike-export-poster.png"
         };
         const BANNERS = [
             {
@@ -1935,6 +1944,7 @@
         const gifMap = Object.fromEntries(GIFS.map((gif) => [gif.key, gif]));
         const bannerMap = Object.fromEntries(BANNERS.map((banner) => [banner.key, banner]));
         let thumbnailSyncTimeoutId = null;
+        const exportPosterArtCache = new Map();
 
         const state = {
             isSpinning: false,
@@ -3537,102 +3547,38 @@
             });
         }
 
-        function getExportPreviewConfig(result) {
-            const lateLoopConfig = getLateLoopConfig(result);
-            if (lateLoopConfig) {
-                return {
-                    path: lateLoopConfig.loopPath,
-                    captureDelayMs: LOOP_EXPORT_CAPTURE_DELAY_MS
-                };
-            }
-
-            const captureDelayMs = result.rank >= 7
-                ? HIGH_TIER_EXPORT_CAPTURE_DELAY_MS
-                : EXPORT_CAPTURE_DELAY_MS;
-
-            return {
-                path: result.path,
-                captureDelayMs
-            };
+        function getExportPosterArtPath(result) {
+            return EXPORT_POSTER_PATHS[result.key] || result.path;
         }
 
-        function getExportCanvasFilter(result) {
+        function loadExportPosterArt(result) {
+            const posterPath = getExportPosterArtPath(result);
+
+            if (!exportPosterArtCache.has(posterPath)) {
+                exportPosterArtCache.set(posterPath, loadImageAsset(posterPath));
+            }
+
+            return exportPosterArtCache.get(posterPath);
+        }
+
+        function getExportPosterFilter(result) {
             if (result.variantKey === "shiny") {
-                return "saturate(1.2) brightness(1.08)";
+                return "saturate(1.18) brightness(1.06)";
             }
 
             if (result.variantKey === "alt") {
-                return "hue-rotate(35deg) saturate(1.3)";
+                return "hue-rotate(35deg) saturate(1.28)";
             }
 
             return "none";
         }
 
-        function captureAnimatedExportFrame(result) {
-            const { path, captureDelayMs } = getExportPreviewConfig(result);
-
-            return new Promise((resolve, reject) => {
-                const holder = document.createElement("div");
-                holder.style.position = "fixed";
-                holder.style.left = "8px";
-                holder.style.top = "8px";
-                holder.style.width = "180px";
-                holder.style.height = "180px";
-                holder.style.overflow = "hidden";
-                holder.style.opacity = "0.001";
-                holder.style.pointerEvents = "none";
-                holder.style.zIndex = "2147483647";
-                holder.style.borderRadius = "20px";
-                holder.style.background = "transparent";
-                holder.style.transform = "translateZ(0)";
-                holder.style.contain = "paint";
-                holder.setAttribute("aria-hidden", "true");
-
-                const image = new Image();
-                image.style.width = "100%";
-                image.style.height = "100%";
-                image.style.objectFit = "cover";
-                image.style.display = "block";
-
-                let settled = false;
-
-                const cleanup = () => {
-                    if (holder.isConnected) {
-                        holder.remove();
-                    }
-                };
-
-                image.onload = () => {
-                    holder.appendChild(image);
-                    document.body.appendChild(holder);
-
-                    requestAnimationFrame(() => {
-                        window.setTimeout(() => {
-                            if (settled) {
-                                return;
-                            }
-
-                            settled = true;
-                            resolve({
-                                image,
-                                cleanup
-                            });
-                        }, Math.max(0, captureDelayMs));
-                    });
-                };
-
-                image.onerror = (error) => {
-                    if (settled) {
-                        return;
-                    }
-
-                    settled = true;
-                    cleanup();
-                    reject(error);
-                };
-
-                image.src = getFreshGifUrl(path);
-            });
+        async function drawExportPosterArt(context, result, x, y, width, height) {
+            const posterArt = await loadExportPosterArt(result);
+            context.save();
+            context.filter = getExportPosterFilter(result);
+            context.drawImage(posterArt, x, y, width, height);
+            context.restore();
         }
 
         function downloadCanvasAsPng(canvas, fileName) {
@@ -3643,10 +3589,8 @@
         }
 
         async function exportResultCard(result) {
-            let artCapture = null;
-
             try {
-                saveStatus.textContent = "Capturing result frame...";
+                saveStatus.textContent = "Rendering export poster...";
                 const canvas = document.createElement("canvas");
                 canvas.width = 1080;
                 canvas.height = 1350;
@@ -3677,11 +3621,7 @@
                 context.font = "600 34px Trebuchet MS";
                 context.fillText(`${getResultRarityLabel(result)} | ${getBannerName(result.bannerKey || state.stats.activeBannerKey)}`, 96, 276);
 
-                artCapture = await captureAnimatedExportFrame(result);
-                context.save();
-                context.filter = getExportCanvasFilter(result);
-                context.drawImage(artCapture.image, 126, 336, 828, 828);
-                context.restore();
+                await drawExportPosterArt(context, result, 126, 336, 828, 828);
 
                 context.fillStyle = "#f5f7fb";
                 context.font = "600 30px Trebuchet MS";
@@ -3692,16 +3632,12 @@
                 flashSaveStatus("Card exported");
             } catch (error) {
                 flashSaveStatus("Card export failed");
-            } finally {
-                artCapture?.cleanup();
             }
         }
 
         async function exportBatchCard(results) {
-            let artCaptures = [];
-
             try {
-                saveStatus.textContent = "Capturing batch frames...";
+                saveStatus.textContent = "Rendering batch poster...";
                 const canvas = document.createElement("canvas");
                 canvas.width = 1400;
                 canvas.height = 900;
@@ -3724,21 +3660,16 @@
                 const startX = 70;
                 const startY = 190;
                 const columns = 5;
-                artCaptures = await Promise.all(results.map((result) => captureAnimatedExportFrame(result)));
 
                 for (let index = 0; index < results.length; index += 1) {
                     const result = results[index];
-                    const image = artCaptures[index].image;
                     const col = index % columns;
                     const row = Math.floor(index / columns);
                     const x = startX + col * (cellSize + gap);
                     const y = startY + row * (cellSize + 96);
                     context.fillStyle = "rgba(255,255,255,0.08)";
                     context.fillRect(x - 10, y - 10, cellSize + 20, cellSize + 86);
-                    context.save();
-                    context.filter = getExportCanvasFilter(result);
-                    context.drawImage(image, x, y, cellSize, cellSize);
-                    context.restore();
+                    await drawExportPosterArt(context, result, x, y, cellSize, cellSize);
                     context.fillStyle = getResultAccentColor(result);
                     context.font = "800 22px Trebuchet MS";
                     context.fillText(getResultDisplayName(result), x, y + cellSize + 38);
@@ -3751,8 +3682,6 @@
                 flashSaveStatus("Batch card exported");
             } catch (error) {
                 flashSaveStatus("Batch export failed");
-            } finally {
-                artCaptures.forEach((capture) => capture.cleanup());
             }
         }
 
