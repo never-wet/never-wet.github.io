@@ -119,8 +119,26 @@
             align-items: center;
         }
 
+        .hero-toolbar .hero-back {
+            margin-bottom: 0;
+        }
+
         .hero-toolbar button {
             width: auto;
+        }
+
+        .hero-toolbar .ghost-button {
+            display: inline-flex;
+            align-items: center;
+            padding: 10px 14px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.09);
+            border-color: rgba(255, 255, 255, 0.12);
+        }
+
+        .hero-toolbar .ghost-button:hover:not(:disabled) {
+            background: rgba(255, 255, 255, 0.13);
+            border-color: rgba(255, 255, 255, 0.2);
         }
 
         .main-grid {
@@ -428,7 +446,7 @@
         }
 
         .collection-grid {
-            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
         }
 
         .collection-card {
@@ -678,8 +696,106 @@
             align-items: center;
         }
 
-        .setting-row input[type="range"] {
+        .setting-row.range-setting {
+            gap: 12px;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.04));
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+        }
+
+        .setting-row.range-setting strong {
+            min-width: 66px;
+            padding: 6px 10px;
+            border-radius: 999px;
+            text-align: right;
+            background: rgba(255, 215, 106, 0.14);
+            box-shadow: inset 0 0 0 1px rgba(255, 215, 106, 0.22);
+        }
+
+        .volume-slider {
+            --range-progress: 0%;
+            -webkit-appearance: none;
+            appearance: none;
             width: 100%;
+            height: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            border-radius: 999px;
+            background:
+                linear-gradient(90deg, rgba(255, 250, 220, 0.95) 0%, var(--gold) 48%, #ffb54f 100%) 0 / var(--range-progress) 100% no-repeat,
+                linear-gradient(90deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.05));
+            box-shadow:
+                inset 0 1px 0 rgba(255, 255, 255, 0.08),
+                inset 0 0 0 1px rgba(3, 7, 18, 0.16),
+                0 8px 18px rgba(0, 0, 0, 0.16);
+            cursor: pointer;
+            transition: box-shadow 0.18s ease, transform 0.18s ease;
+        }
+
+        .volume-slider:hover {
+            box-shadow:
+                inset 0 1px 0 rgba(255, 255, 255, 0.08),
+                inset 0 0 0 1px rgba(3, 7, 18, 0.16),
+                0 10px 22px rgba(0, 0, 0, 0.2);
+        }
+
+        .volume-slider:focus-visible {
+            outline: none;
+            box-shadow:
+                0 0 0 4px rgba(255, 215, 106, 0.18),
+                inset 0 1px 0 rgba(255, 255, 255, 0.08),
+                inset 0 0 0 1px rgba(3, 7, 18, 0.16),
+                0 10px 22px rgba(0, 0, 0, 0.2);
+        }
+
+        .volume-slider::-webkit-slider-runnable-track {
+            height: 16px;
+            background: transparent;
+            border-radius: 999px;
+        }
+
+        .volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            margin-top: -5px;
+            border: 2px solid rgba(12, 18, 30, 0.72);
+            border-radius: 50%;
+            background: radial-gradient(circle at 32% 30%, #fffef6 0 26%, #ffe48d 48%, #ffb84c 74%, #ff8f32 100%);
+            box-shadow:
+                0 0 0 4px rgba(255, 215, 106, 0.16),
+                0 6px 18px rgba(0, 0, 0, 0.34);
+        }
+
+        .volume-slider::-moz-range-track {
+            height: 16px;
+            border: none;
+            border-radius: 999px;
+            background: linear-gradient(90deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.05));
+            box-shadow:
+                inset 0 1px 0 rgba(255, 255, 255, 0.08),
+                inset 0 0 0 1px rgba(3, 7, 18, 0.16);
+        }
+
+        .volume-slider::-moz-range-progress {
+            height: 16px;
+            border-radius: 999px;
+            background: linear-gradient(90deg, rgba(255, 250, 220, 0.95) 0%, var(--gold) 48%, #ffb54f 100%);
+        }
+
+        .volume-slider::-moz-range-thumb {
+            width: 24px;
+            height: 24px;
+            border: 2px solid rgba(12, 18, 30, 0.72);
+            border-radius: 50%;
+            background: radial-gradient(circle at 32% 30%, #fffef6 0 26%, #ffe48d 48%, #ffb84c 74%, #ff8f32 100%);
+            box-shadow:
+                0 0 0 4px rgba(255, 215, 106, 0.16),
+                0 6px 18px rgba(0, 0, 0, 0.34);
+            cursor: pointer;
+        }
+
+        .volume-slider::-moz-focus-outer {
+            border: 0;
         }
 
         .result-image.variant-shiny,
@@ -1623,6 +1739,10 @@
         @media (max-width: 600px) {
             .stats-grid {
                 grid-template-columns: 1fr;
+            }
+
+            .collection-grid {
+                grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
             }
 
             .controls {
@@ -2993,15 +3113,24 @@
             });
         }
 
+        function syncVolumeSliderAppearance(input) {
+            if (!input) {
+                return;
+            }
+
+            const value = clampNumber(input.value, 0, 100, createDefaultStats().soundVolume);
+            input.style.setProperty("--range-progress", `${value}%`);
+        }
+
         function renderSoundSettings() {
             soundList.innerHTML = `
                 <div class="setting-row">
                     <label><span>Master Sound</span><input id="soundEnabledInput" type="checkbox" ${state.stats.soundEnabled ? "checked" : ""}></label>
                     <span class="secondary-meta">Turns all reel, tick, and result sounds on or off.</span>
                 </div>
-                <div class="setting-row">
+                <div class="setting-row range-setting">
                     <label><span>Volume</span><strong id="soundVolumeValue">${state.stats.soundVolume}%</strong></label>
-                    <input id="soundVolumeInput" type="range" min="0" max="100" value="${state.stats.soundVolume}">
+                    <input id="soundVolumeInput" class="volume-slider" type="range" min="0" max="100" value="${state.stats.soundVolume}">
                 </div>
                 <div class="setting-row">
                     <label><span>Spin Ticks</span><input id="spinSoundsInput" type="checkbox" ${state.stats.spinSoundsEnabled ? "checked" : ""}></label>
@@ -3016,11 +3145,14 @@
                 }
                 persistProgress();
             });
-            soundList.querySelector("#soundVolumeInput").addEventListener("input", (event) => {
+            const soundVolumeInput = soundList.querySelector("#soundVolumeInput");
+            syncVolumeSliderAppearance(soundVolumeInput);
+            soundVolumeInput.addEventListener("input", (event) => {
                 state.stats.soundVolume = clampNumber(event.target.value, 0, 100, createDefaultStats().soundVolume);
                 soundList.querySelector("#soundVolumeValue").textContent = `${state.stats.soundVolume}%`;
+                syncVolumeSliderAppearance(event.target);
             });
-            soundList.querySelector("#soundVolumeInput").addEventListener("change", () => persistProgress());
+            soundVolumeInput.addEventListener("change", () => persistProgress());
             soundList.querySelector("#spinSoundsInput").addEventListener("change", (event) => {
                 state.stats.spinSoundsEnabled = event.target.checked;
                 if (!state.stats.spinSoundsEnabled) {
