@@ -140,6 +140,22 @@ const upgradeDefinitions = [
     },
   },
 ];
+const prestigeShopDefinitions = [
+  {
+    id: "buzz-amplifier",
+    name: "Buzz Amplifier",
+    description: "Makes the stadium meter rise a little faster every tap.",
+    baseCost: 1,
+    effectText: "+0.7 buzz per tap",
+  },
+  {
+    id: "stadium-core",
+    name: "Stadium Core",
+    description: "Makes the stadium meter drain slower between shots.",
+    baseCost: 1,
+    effectText: "-0.22 buzz decay / sec",
+  },
+];
 
 const state = loadState();
 normalizeLineupAssignments();
@@ -154,6 +170,7 @@ const runtime = {
   lastRenderedBuzzInt: -1,
   activeScreen: "field",
   selectedLineupSlot: "st",
+  prestigeModalOpen: false,
   shotAnimationToken: 0,
   flashTimeout: 0,
   ballResetTimeout: 0,
@@ -180,9 +197,24 @@ const elements = {
   upgradesBalanceDisplay: document.getElementById("upgradesBalanceDisplay"),
   prestigeRailButton: document.getElementById("prestigeRailButton"),
   prestigeNavLinks: Array.from(document.querySelectorAll("[data-screen-target='prestige']")),
+  prestigeModal: document.getElementById("prestigeModal"),
+  prestigeModalBackdrop: document.getElementById("prestigeModalBackdrop"),
+  prestigeModalStatus: document.getElementById("prestigeModalStatus"),
+  prestigeModalCountDisplay: document.getElementById("prestigeModalCountDisplay"),
+  prestigeModalCashCurrent: document.getElementById("prestigeModalCashCurrent"),
+  prestigeModalCashNeeded: document.getElementById("prestigeModalCashNeeded"),
+  prestigeModalGoalsCurrent: document.getElementById("prestigeModalGoalsCurrent"),
+  prestigeModalGoalsNeeded: document.getElementById("prestigeModalGoalsNeeded"),
+  prestigeModalMissesCurrent: document.getElementById("prestigeModalMissesCurrent"),
+  prestigeModalMissesNeeded: document.getElementById("prestigeModalMissesNeeded"),
+  prestigeModalCancel: document.getElementById("prestigeModalCancel"),
+  prestigeModalConfirm: document.getElementById("prestigeModalConfirm"),
   prestigeCountDisplay: document.getElementById("prestigeCountDisplay"),
   prestigeBonusDisplay: document.getElementById("prestigeBonusDisplay"),
   prestigeStatusMessage: document.getElementById("prestigeStatusMessage"),
+  prestigePointsDisplay: document.getElementById("prestigePointsDisplay"),
+  prestigeShopMessage: document.getElementById("prestigeShopMessage"),
+  prestigeShopGrid: document.getElementById("prestigeShopGrid"),
   prestigeCashReqDisplay: document.getElementById("prestigeCashReqDisplay"),
   prestigeCashReqState: document.getElementById("prestigeCashReqState"),
   prestigeGoalsReqDisplay: document.getElementById("prestigeGoalsReqDisplay"),
@@ -254,6 +286,9 @@ window.goalKineticBenchLineupPlayer = (playerId) => benchPlayer(playerId);
 window.goalKineticClearLineupSlot = (slotId) => clearLineupSlot(slotId);
 window.goalKineticAutoFillLineup = () => autoFillLineup();
 window.goalKineticAttemptPrestige = () => attemptPrestige();
+window.goalKineticOpenPrestigeModal = () => openPrestigeModal();
+window.goalKineticConfirmPrestige = () => confirmPrestigeFromModal();
+window.goalKineticBuyPrestigeUpgrade = (upgradeId) => buyPrestigeUpgrade(upgradeId);
 requestAnimationFrame(gameLoop);
 
 function createDefaultState() {
@@ -273,9 +308,11 @@ function createDefaultState() {
     autoShots: 0,
     ownedPlayerIds: [],
     starterTransferGrantClaimed: false,
-    prestigeCount: 0,
-    prestigeUnlocked: false,
-    lineupAssignments: buildDefaultLineupAssignments(),
+      prestigeCount: 0,
+      prestigePoints: 0,
+      prestigeUnlocked: false,
+      prestigeShopUpgrades: Object.fromEntries(prestigeShopDefinitions.map((upgrade) => [upgrade.id, 0])),
+      lineupAssignments: buildDefaultLineupAssignments(),
     rivalClubs: buildDefaultRivalClubs(),
     lastLeaderboardTickAt: Date.now(),
     lastActiveAt: Date.now(),
@@ -293,14 +330,18 @@ function loadState() {
     const parsed = JSON.parse(raw);
     const fresh = createDefaultState();
 
-    return {
-      ...fresh,
-      ...parsed,
-      upgrades: {
-        ...fresh.upgrades,
-        ...(parsed.upgrades || {}),
-      },
-    };
+      return {
+        ...fresh,
+        ...parsed,
+        upgrades: {
+          ...fresh.upgrades,
+          ...(parsed.upgrades || {}),
+        },
+        prestigeShopUpgrades: {
+          ...fresh.prestigeShopUpgrades,
+          ...(parsed.prestigeShopUpgrades || {}),
+        },
+      };
   } catch (error) {
     console.warn("Could not load Soccer Idle save", error);
     return createDefaultState();
@@ -411,6 +452,16 @@ function getPrestigeDiscountRate(nextPrestigeCount = state.prestigeCount || 0) {
   return Math.min(0.72, nextPrestigeCount * 0.08);
 }
 
+function getBuzzTapGain() {
+  const amplifierLevel = state.prestigeShopUpgrades?.["buzz-amplifier"] || 0;
+  return 5.5 + amplifierLevel * 0.7;
+}
+
+function getBuzzDecayPerSecond() {
+  const coreLevel = state.prestigeShopUpgrades?.["stadium-core"] || 0;
+  return Math.max(1.25, 2.8 - coreLevel * 0.22);
+}
+
 function canPrestige() {
   const requirements = getPrestigeRequirements();
   return (
@@ -418,6 +469,66 @@ function canPrestige() {
     state.goals >= requirements.goals &&
     getMissCount() >= requirements.misses
   );
+}
+
+function updatePrestigeModal() {
+  if (!elements.prestigeModal) {
+    return;
+  }
+
+  const requirements = getPrestigeRequirements();
+  const currentMisses = getMissCount();
+  const remainingCash = Math.max(0, requirements.cash - state.cash);
+  const remainingGoals = Math.max(0, requirements.goals - state.goals);
+  const remainingMisses = Math.max(0, requirements.misses - currentMisses);
+  const ready = canPrestige();
+
+  if (elements.prestigeModalCountDisplay) {
+    elements.prestigeModalCountDisplay.textContent = formatNumber(state.prestigeCount || 0);
+  }
+  elements.prestigeModalCashCurrent.textContent = `$${formatNumber(state.cash)}`;
+  elements.prestigeModalCashNeeded.textContent =
+    remainingCash > 0 ? `Need $${formatNumber(remainingCash)} more` : "Requirement met";
+  elements.prestigeModalGoalsCurrent.textContent = formatNumber(state.goals);
+  elements.prestigeModalGoalsNeeded.textContent =
+    remainingGoals > 0 ? `Need ${formatNumber(remainingGoals)} more` : "Requirement met";
+  elements.prestigeModalMissesCurrent.textContent = formatNumber(currentMisses);
+  elements.prestigeModalMissesNeeded.textContent =
+    remainingMisses > 0 ? `Need ${formatNumber(remainingMisses)} more` : "Requirement met";
+  elements.prestigeModalStatus.textContent = ready
+    ? "All requirements are met. If you continue, this run resets to zero but your Prestige Bonus stays."
+    : "Prestige is still locked. You need a little more progress before you can reset.";
+  elements.prestigeModalConfirm.disabled = !ready;
+  elements.prestigeModalConfirm.textContent = ready ? "Yes, Prestige" : "Requirements Not Met";
+}
+
+function openPrestigeModal() {
+  if (!elements.prestigeModal) {
+    return;
+  }
+
+  runtime.prestigeModalOpen = true;
+  elements.prestigeModal.hidden = false;
+  updatePrestigeModal();
+}
+
+function closePrestigeModal() {
+  if (!elements.prestigeModal) {
+    return;
+  }
+
+  runtime.prestigeModalOpen = false;
+  elements.prestigeModal.hidden = true;
+}
+
+function confirmPrestigeFromModal() {
+  if (!canPrestige()) {
+    updatePrestigeModal();
+    return;
+  }
+
+  closePrestigeModal();
+  attemptPrestige();
 }
 
 function saveState() {
@@ -578,6 +689,19 @@ function attachEvents() {
     autoFillLineup();
   });
 
+  elements.prestigeModalBackdrop?.addEventListener("click", closePrestigeModal);
+  elements.prestigeModalCancel?.addEventListener("click", closePrestigeModal);
+  elements.prestigeModalCancel?.addEventListener("pointerdown", (event) => {
+    event.preventDefault();
+    closePrestigeModal();
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && runtime.prestigeModalOpen) {
+      closePrestigeModal();
+    }
+  });
+
   const handleLineupPress = (event) => {
     const target = event.target instanceof Element ? event.target : null;
     const clearButton = target?.closest("[data-clear-slot]");
@@ -707,6 +831,16 @@ function getUpgradeCost(upgrade) {
   return Math.max(1, Math.round(rawCost * discountMultiplier));
 }
 
+function getPrestigeShopCost(upgradeId) {
+  const upgrade = prestigeShopDefinitions.find((item) => item.id === upgradeId);
+  if (!upgrade) {
+    return Infinity;
+  }
+
+  const owned = state.prestigeShopUpgrades?.[upgradeId] || 0;
+  return upgrade.baseCost + owned;
+}
+
 function buyUpgrade(upgradeId) {
   const upgrade = upgradeDefinitions.find((item) => item.id === upgradeId);
   if (!upgrade) {
@@ -731,12 +865,16 @@ function buyUpgrade(upgradeId) {
 
 function resetForPrestige() {
   const preservedPrestigeCount = (state.prestigeCount || 0) + 1;
+  const preservedPrestigePoints = (state.prestigePoints || 0) + 1;
   const preservedUnlocked = true;
+  const preservedPrestigeShopUpgrades = { ...(state.prestigeShopUpgrades || {}) };
   const fresh = createDefaultState();
 
   Object.assign(state, fresh, {
     prestigeCount: preservedPrestigeCount,
+    prestigePoints: preservedPrestigePoints,
     prestigeUnlocked: preservedUnlocked,
+    prestigeShopUpgrades: preservedPrestigeShopUpgrades,
     lineupAssignments: buildDefaultLineupAssignments(),
     rivalClubs: buildDefaultRivalClubs(),
   });
@@ -767,6 +905,25 @@ function attemptPrestige() {
     `Prestige complete. Prestige Bonus is now ${Math.round(getPrestigeDiscountRate() * 100)}% cheaper upgrades.`
   );
   setActiveScreen("prestige", true);
+  render();
+  saveState();
+}
+
+function buyPrestigeUpgrade(upgradeId) {
+  const upgrade = prestigeShopDefinitions.find((item) => item.id === upgradeId);
+  if (!upgrade) {
+    return;
+  }
+
+  const cost = getPrestigeShopCost(upgradeId);
+  if ((state.prestigePoints || 0) < cost) {
+    setTicker(`Need ${formatNumber(cost - (state.prestigePoints || 0))} more prestige point for ${upgrade.name}.`);
+    return;
+  }
+
+  state.prestigePoints -= cost;
+  state.prestigeShopUpgrades[upgradeId] = (state.prestigeShopUpgrades[upgradeId] || 0) + 1;
+  setTicker(`${upgrade.name} upgraded in the Prestige Shop.`);
   render();
   saveState();
 }
@@ -1010,7 +1167,7 @@ function benchPlayer(playerId) {
 }
 
 function takeManualShot(originX, originY) {
-  runtime.buzz = clamp(runtime.buzz + 12, 0, 100);
+  runtime.buzz = clamp(runtime.buzz + getBuzzTapGain(), 0, 100);
   state.totalShots += 1;
   state.manualShots += 1;
   const hit = rollHitChance();
@@ -1258,7 +1415,7 @@ function render() {
     elements.marketBalanceDisplay.textContent = `$${formatNumber(state.cash)}`;
   }
   if (elements.prestigeCountDisplay) {
-    elements.prestigeCountDisplay.textContent = formatNumber(state.prestigeCount || 0);
+    elements.prestigeCountDisplay.textContent = `${formatNumber(state.prestigeCount || 0)} total`;
   }
   if (elements.prestigeBonusDisplay) {
     elements.prestigeBonusDisplay.textContent = `${Math.round(prestigeDiscount * 100)}% cheaper upgrades`;
@@ -1309,6 +1466,11 @@ function render() {
   elements.passingFlowDisplay.textContent = formatNumber(teamPerformance.passingFlow);
   elements.disciplineDisplay.textContent = formatNumber(teamPerformance.discipline);
 
+  if (runtime.prestigeModalOpen) {
+    updatePrestigeModal();
+  }
+
+  renderPrestigeShop();
   renderNextUpgrade(nextUpgrade);
   renderLeaderboard(leaderboardRows);
   renderSquad(squad, activeLineupPlayers);
@@ -1350,6 +1512,63 @@ function updateHeroCashDisplay(valueText) {
   }
 
   elements.cashDisplayMirror.classList.add("cash-display-large");
+}
+
+function renderPrestigeShop() {
+  if (!elements.prestigeShopGrid) {
+    return;
+  }
+
+  const unlocked = Boolean(state.prestigeUnlocked);
+  elements.prestigeShopGrid.hidden = !unlocked;
+
+  if (elements.prestigePointsDisplay) {
+    elements.prestigePointsDisplay.textContent = `${formatNumber(state.prestigePoints || 0)} prestige points`;
+  }
+
+  if (elements.prestigeShopMessage) {
+    elements.prestigeShopMessage.textContent = unlocked
+      ? "Spend prestige points on permanent stadium meter upgrades."
+      : "Prestige once to unlock shop upgrades for the stadium meter.";
+  }
+
+  if (!unlocked) {
+    elements.prestigeShopGrid.innerHTML = "";
+    return;
+  }
+
+  elements.prestigeShopGrid.innerHTML = prestigeShopDefinitions
+    .map((upgrade) => {
+      const owned = state.prestigeShopUpgrades?.[upgrade.id] || 0;
+      const cost = getPrestigeShopCost(upgrade.id);
+      const affordable = (state.prestigePoints || 0) >= cost;
+
+      return `
+        <article class="prestige-shop-card-item${affordable ? " affordable" : ""}">
+          <div class="prestige-shop-head">
+            <div>
+              <h3>${upgrade.name}</h3>
+              <p>${upgrade.description}</p>
+            </div>
+            <span class="badge-pill">Lv. ${owned}</span>
+          </div>
+          <div class="prestige-shop-meta">
+            <span>${upgrade.effectText}</span>
+            <strong>Cost ${cost} PP</strong>
+          </div>
+          <button
+            class="buy-button prestige-shop-buy"
+            type="button"
+            onpointerdown="window.goalKineticBuyPrestigeUpgrade && window.goalKineticBuyPrestigeUpgrade('${upgrade.id}')"
+            onclick="window.goalKineticBuyPrestigeUpgrade && window.goalKineticBuyPrestigeUpgrade('${upgrade.id}')"
+            ${affordable ? "" : "disabled"}
+          >
+            ${affordable ? "Buy Upgrade" : "Need More PP"}
+          </button>
+        </article>
+      `;
+    })
+    .join("");
 }
 
 function buildLeaderboardRows() {
@@ -1838,7 +2057,7 @@ function gameLoop(now) {
   const deltaSeconds = Math.min((now - runtime.lastFrame) / 1000, 0.25);
   runtime.lastFrame = now;
 
-  runtime.buzz = clamp(runtime.buzz - deltaSeconds * 5.5, 0, 100);
+  runtime.buzz = clamp(runtime.buzz - deltaSeconds * getBuzzDecayPerSecond(), 0, 100);
   const currentBuzzInt = Math.round(runtime.buzz);
   runtime.pendingAutoShots += state.autoShotsPerSecond * deltaSeconds;
 

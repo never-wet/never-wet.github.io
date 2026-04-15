@@ -80,7 +80,7 @@
       </nav>
 
       <div class="rail-bottom">
-        <button id="prestigeRailButton" class="prestige-button" type="button" onpointerdown="window.goalKineticSwitchScreen && window.goalKineticSwitchScreen('prestige')" onclick="window.goalKineticSwitchScreen && window.goalKineticSwitchScreen('prestige')">Prestige</button>
+        <button id="prestigeRailButton" class="prestige-button" type="button" onpointerdown="window.goalKineticOpenPrestigeModal && window.goalKineticOpenPrestigeModal()" onclick="window.goalKineticOpenPrestigeModal && window.goalKineticOpenPrestigeModal()">Prestige</button>
         <div class="rail-help">
           <span>Auto-save on</span>
           <span>No ads build</span>
@@ -488,8 +488,9 @@
 
           <article class="stat-card wide prestige-shop-card">
             <p class="stat-label">Prestige Shop</p>
-            <strong>Unlocked after first prestige</strong>
-            <p>The shop tab placeholder is ready here for the next step. We can build the actual prestige items later.</p>
+            <strong id="prestigePointsDisplay">0 prestige points</strong>
+            <p id="prestigeShopMessage">Prestige once to unlock shop upgrades for the stadium meter.</p>
+            <div id="prestigeShopGrid" class="prestige-shop-grid" hidden></div>
           </article>
         </section>
       </section>
@@ -521,6 +522,48 @@
         <span>Prestige</span>
       </button>
     </nav>
+
+    <div id="prestigeModal" class="prestige-modal" hidden>
+      <div id="prestigeModalBackdrop" class="prestige-modal-backdrop"></div>
+        <div class="prestige-modal-card" role="dialog" aria-modal="true" aria-labelledby="prestigeModalTitle">
+          <p class="eyebrow">Prestige Warning</p>
+          <h2 id="prestigeModalTitle">Do you want to prestige?</h2>
+          <div class="prestige-modal-count">
+            Total Prestiges:
+            <strong id="prestigeModalCountDisplay">0</strong>
+          </div>
+          <p class="prestige-modal-copy">
+            Prestige resets your club progress back to the start. Your cash, goals, misses, upgrades, and current run progress go back to zero, but your Prestige Bonus stays forever and makes upgrades cheaper next time.
+          </p>
+
+        <div class="prestige-modal-status" id="prestigeModalStatus">
+          Prestige is locked right now.
+        </div>
+
+        <div class="prestige-modal-req-grid">
+          <article class="prestige-modal-req">
+            <span>Cash</span>
+            <strong id="prestigeModalCashCurrent">$0</strong>
+            <p id="prestigeModalCashNeeded">Need $0 more</p>
+          </article>
+          <article class="prestige-modal-req">
+            <span>Goals</span>
+            <strong id="prestigeModalGoalsCurrent">0</strong>
+            <p id="prestigeModalGoalsNeeded">Need 0 more</p>
+          </article>
+          <article class="prestige-modal-req">
+            <span>Misses</span>
+            <strong id="prestigeModalMissesCurrent">0</strong>
+            <p id="prestigeModalMissesNeeded">Need 0 more</p>
+          </article>
+        </div>
+
+        <div class="prestige-modal-actions">
+          <button id="prestigeModalCancel" class="prestige-modal-cancel" type="button">Not Yet</button>
+          <button id="prestigeModalConfirm" class="prestige-button" type="button" onpointerdown="window.goalKineticConfirmPrestige && window.goalKineticConfirmPrestige()" onclick="window.goalKineticConfirmPrestige && window.goalKineticConfirmPrestige()">Prestige Now</button>
+        </div>
+      </div>
+    </div>
 
     <script>
       window.goalKineticSwitchScreen = function (screenName) {

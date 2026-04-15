@@ -926,6 +926,181 @@ button {
   margin-top: 10px;
 }
 
+.prestige-shop-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 14px;
+}
+
+.prestige-shop-card-item {
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+  border-radius: 8px;
+  border-left: 4px solid var(--secondary);
+  background: var(--surface);
+}
+
+.prestige-shop-card-item.affordable {
+  box-shadow: var(--yellow-glow);
+}
+
+.prestige-shop-head,
+.prestige-shop-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.prestige-shop-head h3 {
+  margin: 0;
+  text-transform: uppercase;
+  font: 900 1.2rem/1 "Space Grotesk", sans-serif;
+  letter-spacing: -0.04em;
+}
+
+.prestige-shop-head p,
+.prestige-shop-meta span {
+  margin: 6px 0 0;
+  color: var(--text-soft);
+  line-height: 1.5;
+  font-size: 0.86rem;
+}
+
+.prestige-shop-meta strong {
+  font: 900 1rem/1 "Space Grotesk", sans-serif;
+  letter-spacing: -0.04em;
+}
+
+.prestige-shop-buy {
+  width: 100%;
+}
+
+.prestige-modal[hidden] {
+  display: none;
+}
+
+.prestige-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+}
+
+.prestige-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(8px);
+}
+
+.prestige-modal-card {
+  position: relative;
+  z-index: 1;
+  width: min(680px, calc(100vw - 24px));
+  padding: 28px;
+  border-radius: 14px;
+  border: 1px solid rgba(249, 229, 52, 0.28);
+  background: #131313;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.46), var(--yellow-glow);
+}
+
+.prestige-modal-card h2 {
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: -0.06em;
+  font: 900 clamp(2rem, 5vw, 3.4rem)/0.95 "Space Grotesk", sans-serif;
+}
+
+.prestige-modal-copy {
+  margin: 14px 0 0;
+  color: var(--text-soft);
+  line-height: 1.7;
+}
+
+.prestige-modal-count {
+  margin-top: 14px;
+  color: var(--text-soft);
+  font: 800 0.72rem/1.4 "Lexend", sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+}
+
+.prestige-modal-count strong {
+  margin-left: 8px;
+  color: var(--secondary);
+  font: 900 1.1rem/1 "Space Grotesk", sans-serif;
+  letter-spacing: -0.04em;
+}
+
+.prestige-modal-status {
+  margin-top: 18px;
+  padding: 14px 16px;
+  border-left: 4px solid var(--secondary);
+  border-radius: 8px;
+  background: var(--surface-low);
+  color: var(--text-main);
+  font: 800 0.72rem/1.5 "Lexend", sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.prestige-modal-req-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.prestige-modal-req {
+  padding: 18px;
+  border-radius: 8px;
+  background: var(--surface-low);
+  border-left: 4px solid var(--secondary);
+}
+
+.prestige-modal-req span,
+.prestige-modal-req p {
+  color: var(--text-soft);
+  text-transform: uppercase;
+  font: 700 0.62rem/1.4 "Lexend", sans-serif;
+  letter-spacing: 0.14em;
+}
+
+.prestige-modal-req strong {
+  display: block;
+  margin-top: 10px;
+  font: 900 2rem/1 "Space Grotesk", sans-serif;
+  letter-spacing: -0.05em;
+}
+
+.prestige-modal-req p {
+  margin: 12px 0 0;
+}
+
+.prestige-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 22px;
+}
+
+.prestige-modal-cancel {
+  min-width: 140px;
+  min-height: 50px;
+  padding: 0 18px;
+  border-radius: 8px;
+  border: 1px solid rgba(118, 117, 117, 0.34);
+  background: transparent;
+  color: var(--text-soft);
+  font: 900 0.68rem/1 "Lexend", sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
 .upgrade-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -1968,6 +2143,14 @@ button {
       "lb rb"
       "cb1 cb2"
       "gk gk";
+  }
+
+  .prestige-modal-req-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .prestige-modal-actions {
+    flex-direction: column-reverse;
   }
 
   .mobile-nav {
