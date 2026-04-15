@@ -670,12 +670,17 @@ function buildLeaderboardRows() {
   const yourScore = Math.round(state.goals + state.fans * 2.2 + state.lifetimeCash * 0.12);
 
   return [
-    { rank: 1, name: "PIXEL FC", score: 182400, isYou: false },
-    { rank: 2, name: "MEGA BOOTS", score: 149200, isYou: false },
-    { rank: 3, name: "GOAL RUSH", score: 131880, isYou: false },
-    { rank: 4, name: "KINETIC STRIKER", score: yourScore, isYou: true },
-    { rank: 5, name: "NIGHT XI", score: Math.max(4200, yourScore - 2800), isYou: false },
-  ];
+    { name: "PIXEL FC", score: 182400, isYou: false },
+    { name: "MEGA BOOTS", score: 149200, isYou: false },
+    { name: "GOAL RUSH", score: 131880, isYou: false },
+    { name: "KINETIC STRIKER", score: yourScore, isYou: true },
+    { name: "NIGHT XI", score: Math.max(4200, Math.round(yourScore * 0.72)), isYou: false },
+  ]
+    .sort((left, right) => right.score - left.score)
+    .map((row, index) => ({
+      ...row,
+      rank: index + 1,
+    }));
 }
 
 function renderLeaderboard(rows) {
