@@ -1,4 +1,4 @@
-const STORAGE_KEY = "neverwet-soccer-idle-save-v3";
+const STORAGE_KEY = "neverwet-soccer-idle-save-v4";
 const MAX_OFFLINE_SECONDS = 60 * 60 * 4;
 const LEADERBOARD_TICK_MS = 1000;
 const divisionThresholds = [25, 90, 220, 480, 900, 1600, 2600, 4200];
@@ -178,6 +178,18 @@ const elements = {
   autoShotsDisplay: document.getElementById("autoShotsDisplay"),
   marketGoalsDisplay: document.getElementById("marketGoalsDisplay"),
   upgradesBalanceDisplay: document.getElementById("upgradesBalanceDisplay"),
+  prestigeRailButton: document.getElementById("prestigeRailButton"),
+  prestigeNavLinks: Array.from(document.querySelectorAll("[data-screen-target='prestige']")),
+  prestigeCountDisplay: document.getElementById("prestigeCountDisplay"),
+  prestigeBonusDisplay: document.getElementById("prestigeBonusDisplay"),
+  prestigeStatusMessage: document.getElementById("prestigeStatusMessage"),
+  prestigeCashReqDisplay: document.getElementById("prestigeCashReqDisplay"),
+  prestigeCashReqState: document.getElementById("prestigeCashReqState"),
+  prestigeGoalsReqDisplay: document.getElementById("prestigeGoalsReqDisplay"),
+  prestigeGoalsReqState: document.getElementById("prestigeGoalsReqState"),
+  prestigeMissesReqDisplay: document.getElementById("prestigeMissesReqDisplay"),
+  prestigeMissesReqState: document.getElementById("prestigeMissesReqState"),
+  prestigeActionButton: document.getElementById("prestigeActionButton"),
   nextUpgradeBadge: document.getElementById("nextUpgradeBadge"),
   nextUpgradeName: document.getElementById("nextUpgradeName"),
   nextUpgradeDescription: document.getElementById("nextUpgradeDescription"),
@@ -241,11 +253,12 @@ window.goalKineticAssignLineupPlayer = (playerId) => assignPlayerToLineup(player
 window.goalKineticBenchLineupPlayer = (playerId) => benchPlayer(playerId);
 window.goalKineticClearLineupSlot = (slotId) => clearLineupSlot(slotId);
 window.goalKineticAutoFillLineup = () => autoFillLineup();
+window.goalKineticAttemptPrestige = () => attemptPrestige();
 requestAnimationFrame(gameLoop);
 
 function createDefaultState() {
   return {
-    version: 4,
+    version: 5,
     cash: 0,
     goals: 0,
     fans: 0,
@@ -260,6 +273,8 @@ function createDefaultState() {
     autoShots: 0,
     ownedPlayerIds: [],
     starterTransferGrantClaimed: false,
+    prestigeCount: 0,
+    prestigeUnlocked: false,
     lineupAssignments: buildDefaultLineupAssignments(),
     rivalClubs: buildDefaultRivalClubs(),
     lastLeaderboardTickAt: Date.now(),
@@ -376,6 +391,33 @@ function normalizeRivalClubs() {
     ...club,
     ...(savedById.get(club.id) || {}),
   }));
+}
+
+function getMissCount() {
+  return Math.max(0, state.totalShots - state.totalHits);
+}
+
+function getPrestigeRequirements() {
+  const prestigeLevel = state.prestigeCount || 0;
+
+  return {
+    cash: Math.round(250000 * 6 ** prestigeLevel),
+    goals: Math.round(1200 * 3.2 ** prestigeLevel),
+    misses: Math.round(120 * 2.8 ** prestigeLevel),
+  };
+}
+
+function getPrestigeDiscountRate(nextPrestigeCount = state.prestigeCount || 0) {
+  return Math.min(0.72, nextPrestigeCount * 0.08);
+}
+
+function canPrestige() {
+  const requirements = getPrestigeRequirements();
+  return (
+    state.cash >= requirements.cash &&
+    state.goals >= requirements.goals &&
+    getMissCount() >= requirements.misses
+  );
 }
 
 function saveState() {
@@ -660,7 +702,9 @@ function getTapPosition(event) {
 
 function getUpgradeCost(upgrade) {
   const owned = state.upgrades[upgrade.id] || 0;
-  return Math.round(upgrade.baseCost * upgrade.growth ** owned);
+  const rawCost = upgrade.baseCost * upgrade.growth ** owned;
+  const discountMultiplier = 1 - getPrestigeDiscountRate();
+  return Math.max(1, Math.round(rawCost * discountMultiplier));
 }
 
 function buyUpgrade(upgradeId) {
@@ -681,6 +725,48 @@ function buyUpgrade(upgradeId) {
 
   setTicker(`${upgrade.name} unlocked. The whole stadium feels stronger.`);
   spawnRewardBubble(upgrade.icon, 50, 76, "upgrade");
+  render();
+  saveState();
+}
+
+function resetForPrestige() {
+  const preservedPrestigeCount = (state.prestigeCount || 0) + 1;
+  const preservedUnlocked = true;
+  const fresh = createDefaultState();
+
+  Object.assign(state, fresh, {
+    prestigeCount: preservedPrestigeCount,
+    prestigeUnlocked: preservedUnlocked,
+    lineupAssignments: buildDefaultLineupAssignments(),
+    rivalClubs: buildDefaultRivalClubs(),
+  });
+
+  normalizeLineupAssignments();
+  normalizeRivalClubs();
+
+  runtime.buzz = 0;
+  runtime.pendingAutoShots = 0;
+  runtime.selectedLineupSlot = "st";
+  runtime.lastRenderedBuzzInt = -1;
+  runtime.lastLeaderboardUpdateAt = Date.now();
+
+  maybeGrantStarterTransferBudget();
+}
+
+function attemptPrestige() {
+  if (!canPrestige()) {
+    const requirements = getPrestigeRequirements();
+    setTicker(
+      `Prestige locked. Need $${formatNumber(requirements.cash)}, ${formatNumber(requirements.goals)} goals, and ${formatNumber(requirements.misses)} misses.`
+    );
+    return;
+  }
+
+  resetForPrestige();
+  setTicker(
+    `Prestige complete. Prestige Bonus is now ${Math.round(getPrestigeDiscountRate() * 100)}% cheaper upgrades.`
+  );
+  setActiveScreen("prestige", true);
   render();
   saveState();
 }
@@ -1137,6 +1223,9 @@ function render() {
   const activeLineupPlayers = getActiveLineupPlayers(squad);
   const teamPerformance = buildTeamPerformance(totalAccuracy, activeLineupPlayers);
   const availablePlayers = playerCatalog.filter((player) => !state.ownedPlayerIds.includes(player.id));
+  const prestigeRequirements = getPrestigeRequirements();
+  const prestigeReady = canPrestige();
+  const prestigeDiscount = getPrestigeDiscountRate();
 
   const formattedCash = `$${formatNumber(state.cash)}`;
   elements.cashDisplay.textContent = formattedCash;
@@ -1168,6 +1257,45 @@ function render() {
   if (elements.marketBalanceDisplay) {
     elements.marketBalanceDisplay.textContent = `$${formatNumber(state.cash)}`;
   }
+  if (elements.prestigeCountDisplay) {
+    elements.prestigeCountDisplay.textContent = formatNumber(state.prestigeCount || 0);
+  }
+  if (elements.prestigeBonusDisplay) {
+    elements.prestigeBonusDisplay.textContent = `${Math.round(prestigeDiscount * 100)}% cheaper upgrades`;
+  }
+  if (elements.prestigeCashReqDisplay) {
+    elements.prestigeCashReqDisplay.textContent = `$${formatNumber(prestigeRequirements.cash)}`;
+  }
+  if (elements.prestigeCashReqState) {
+    elements.prestigeCashReqState.textContent = state.cash >= prestigeRequirements.cash ? "Met" : "Not met";
+  }
+  if (elements.prestigeGoalsReqDisplay) {
+    elements.prestigeGoalsReqDisplay.textContent = formatNumber(prestigeRequirements.goals);
+  }
+  if (elements.prestigeGoalsReqState) {
+    elements.prestigeGoalsReqState.textContent = state.goals >= prestigeRequirements.goals ? "Met" : "Not met";
+  }
+  if (elements.prestigeMissesReqDisplay) {
+    elements.prestigeMissesReqDisplay.textContent = formatNumber(prestigeRequirements.misses);
+  }
+  if (elements.prestigeMissesReqState) {
+    elements.prestigeMissesReqState.textContent = getMissCount() >= prestigeRequirements.misses ? "Met" : "Not met";
+  }
+  if (elements.prestigeStatusMessage) {
+    elements.prestigeStatusMessage.textContent = prestigeReady
+      ? "Prestige is ready. Reset the club to gain a stronger Prestige Bonus."
+      : "Reach all three requirements to prestige and unlock the Prestige Shop tab for later.";
+  }
+  if (elements.prestigeActionButton) {
+    elements.prestigeActionButton.disabled = !prestigeReady;
+    elements.prestigeActionButton.textContent = prestigeReady ? "Prestige Now" : "Prestige Locked";
+  }
+  if (elements.prestigeRailButton) {
+    elements.prestigeRailButton.textContent = prestigeReady ? "Prestige Ready" : "Prestige";
+  }
+  elements.prestigeNavLinks.forEach((link) => {
+    link.hidden = !(state.prestigeUnlocked || prestigeReady || runtime.activeScreen === "prestige");
+  });
   elements.missChanceDisplay.textContent = `${(getMissChance() * 100).toFixed(1)}%`;
   elements.shotsFiredDisplay.textContent = formatNumber(state.totalShots);
   elements.shotsScoredDisplay.textContent = formatNumber(state.totalHits);

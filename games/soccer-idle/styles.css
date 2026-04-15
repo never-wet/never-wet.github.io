@@ -911,6 +911,21 @@ button {
   letter-spacing: 0.14em;
 }
 
+.prestige-grid {
+  align-items: stretch;
+}
+
+.prestige-action-card,
+.prestige-shop-card {
+  display: grid;
+  gap: 14px;
+}
+
+.prestige-action-card .prestige-button {
+  width: min(320px, 100%);
+  margin-top: 10px;
+}
+
 .upgrade-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -1962,7 +1977,7 @@ button {
     bottom: 0;
     z-index: 60;
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(6, 1fr);
     padding: 10px 8px calc(10px + env(safe-area-inset-bottom));
     background: rgba(22, 22, 22, 0.95);
     backdrop-filter: blur(16px);

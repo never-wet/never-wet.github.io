@@ -30,6 +30,7 @@
             <button class="nav-link" type="button" data-screen-target="squad" onclick="window.goalKineticSwitchScreen && window.goalKineticSwitchScreen('squad')">Squad</button>
             <button class="nav-link" type="button" data-screen-target="leaderboard" onclick="window.goalKineticSwitchScreen && window.goalKineticSwitchScreen('leaderboard')">Leaderboard</button>
             <button class="nav-link" type="button" data-screen-target="stats" onclick="window.goalKineticSwitchScreen && window.goalKineticSwitchScreen('stats')">Stats</button>
+            <button class="nav-link" type="button" data-screen-target="prestige" onclick="window.goalKineticSwitchScreen && window.goalKineticSwitchScreen('prestige')" hidden>Prestige</button>
           </div>
         </div>
         <div class="nav-actions">
@@ -72,10 +73,14 @@
           <span class="material-symbols-outlined">trophy</span>
           World Cup
         </button>
+        <button class="rail-link" type="button" data-screen-target="prestige" onclick="window.goalKineticSwitchScreen && window.goalKineticSwitchScreen('prestige')" hidden>
+          <span class="material-symbols-outlined">workspace_premium</span>
+          Prestige
+        </button>
       </nav>
 
       <div class="rail-bottom">
-        <button class="prestige-button" type="button">Prestige Later</button>
+        <button id="prestigeRailButton" class="prestige-button" type="button" onpointerdown="window.goalKineticSwitchScreen && window.goalKineticSwitchScreen('prestige')" onclick="window.goalKineticSwitchScreen && window.goalKineticSwitchScreen('prestige')">Prestige</button>
         <div class="rail-help">
           <span>Auto-save on</span>
           <span>No ads build</span>
@@ -434,6 +439,60 @@
           </article>
         </section>
       </section>
+
+      <section class="screen" data-screen="prestige">
+        <section class="screen-header">
+          <div>
+            <p class="eyebrow">Prestige System</p>
+            <h2>Reset the club for a permanent prestige bonus.</h2>
+          </div>
+          <div class="market-total border-secondary">
+            <span>Prestiges</span>
+            <strong id="prestigeCountDisplay">0</strong>
+          </div>
+          <div class="market-total border-primary">
+            <span>Prestige Bonus</span>
+            <strong id="prestigeBonusDisplay">0% cheaper upgrades</strong>
+          </div>
+        </section>
+
+        <div id="prestigeStatusMessage" class="market-status-banner">
+          Reach all three requirements to prestige and unlock the Prestige Shop tab for later.
+        </div>
+
+        <section class="stats-grid prestige-grid">
+          <article class="stat-card">
+            <p class="stat-label">Cash Requirement</p>
+            <strong id="prestigeCashReqDisplay">$0</strong>
+            <p id="prestigeCashReqState">Not met</p>
+          </article>
+
+          <article class="stat-card">
+            <p class="stat-label">Goals Requirement</p>
+            <strong id="prestigeGoalsReqDisplay">0</strong>
+            <p id="prestigeGoalsReqState">Not met</p>
+          </article>
+
+          <article class="stat-card">
+            <p class="stat-label">Misses Requirement</p>
+            <strong id="prestigeMissesReqDisplay">0</strong>
+            <p id="prestigeMissesReqState">Not met</p>
+          </article>
+
+          <article class="stat-card wide prestige-action-card">
+            <p class="stat-label">Reset Reward</p>
+            <strong>Permanent upgrade discounts</strong>
+            <p>Each prestige makes every upgrade purchase cheaper. Requirements get much harder after every reset.</p>
+            <button id="prestigeActionButton" class="prestige-button" type="button" onpointerdown="window.goalKineticAttemptPrestige && window.goalKineticAttemptPrestige()" onclick="window.goalKineticAttemptPrestige && window.goalKineticAttemptPrestige()" disabled>Prestige Locked</button>
+          </article>
+
+          <article class="stat-card wide prestige-shop-card">
+            <p class="stat-label">Prestige Shop</p>
+            <strong>Unlocked after first prestige</strong>
+            <p>The shop tab placeholder is ready here for the next step. We can build the actual prestige items later.</p>
+          </article>
+        </section>
+      </section>
     </main>
 
     <nav class="mobile-nav">
@@ -456,6 +515,10 @@
       <button class="mobile-link" type="button" data-screen-target="stats" onclick="window.goalKineticSwitchScreen && window.goalKineticSwitchScreen('stats')">
         <span class="material-symbols-outlined">query_stats</span>
         <span>Stats</span>
+      </button>
+      <button class="mobile-link" type="button" data-screen-target="prestige" onclick="window.goalKineticSwitchScreen && window.goalKineticSwitchScreen('prestige')" hidden>
+        <span class="material-symbols-outlined">workspace_premium</span>
+        <span>Prestige</span>
       </button>
     </nav>
 
