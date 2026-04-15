@@ -176,6 +176,10 @@
             <span>Goals Scored</span>
             <strong id="marketGoalsDisplay">0</strong>
           </div>
+          <div class="market-total border-secondary">
+            <span>Your Balance</span>
+            <strong id="upgradesBalanceDisplay">$0</strong>
+          </div>
         </section>
 
         <section class="upgrades-overview">
@@ -294,6 +298,15 @@
               <p id="lineupHintDisplay">
                 Select a slot, then tap a player below to assign or swap them.
               </p>
+              <button
+                id="autoFillLineupButton"
+                class="auto-fill-button"
+                type="button"
+                onpointerdown="window.goalKineticAutoFillLineup && window.goalKineticAutoFillLineup()"
+                onclick="window.goalKineticAutoFillLineup && window.goalKineticAutoFillLineup()"
+              >
+                Auto Fill Best Tiers
+              </button>
             </div>
 
             <div id="lineupGrid" class="lineup-grid"></div>

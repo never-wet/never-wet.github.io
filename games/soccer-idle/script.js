@@ -1,5 +1,6 @@
 const STORAGE_KEY = "neverwet-soccer-idle-save-v3";
 const MAX_OFFLINE_SECONDS = 60 * 60 * 4;
+const LEADERBOARD_TICK_MS = 1000;
 const divisionThresholds = [25, 90, 220, 480, 900, 1600, 2600, 4200];
 const divisionNames = [
   "Sunday League",
@@ -48,6 +49,7 @@ const squadBlueprint = [
   { name: "Zane Cole", role: "Goalkeeper", initials: "ZC", preferredSlot: "gk", powerBase: 51, leadershipBase: 71, energyBase: 64 },
 ];
 const playerCatalog = buildPlayerCatalog();
+const tierPriority = Object.fromEntries(playerTierBands.map((tier, index) => [tier.id, playerTierBands.length - index]));
 
 const upgradeDefinitions = [
   {
@@ -141,6 +143,7 @@ const upgradeDefinitions = [
 
 const state = loadState();
 normalizeLineupAssignments();
+normalizeRivalClubs();
 const runtime = {
   buzz: 0,
   pendingAutoShots: 0,
@@ -154,6 +157,7 @@ const runtime = {
   shotAnimationToken: 0,
   flashTimeout: 0,
   ballResetTimeout: 0,
+  lastLeaderboardUpdateAt: Date.now(),
 };
 
 const elements = {
@@ -173,6 +177,7 @@ const elements = {
   goalsPerShotDisplay: document.getElementById("goalsPerShotDisplay"),
   autoShotsDisplay: document.getElementById("autoShotsDisplay"),
   marketGoalsDisplay: document.getElementById("marketGoalsDisplay"),
+  upgradesBalanceDisplay: document.getElementById("upgradesBalanceDisplay"),
   nextUpgradeBadge: document.getElementById("nextUpgradeBadge"),
   nextUpgradeName: document.getElementById("nextUpgradeName"),
   nextUpgradeDescription: document.getElementById("nextUpgradeDescription"),
@@ -189,6 +194,7 @@ const elements = {
   captainEnergyDisplay: document.getElementById("captainEnergyDisplay"),
   lineupCountDisplay: document.getElementById("lineupCountDisplay"),
   lineupHintDisplay: document.getElementById("lineupHintDisplay"),
+  autoFillLineupButton: document.getElementById("autoFillLineupButton"),
   lineupGrid: document.getElementById("lineupGrid"),
   squadGrid: document.getElementById("squadGrid"),
   squadStatusMessage: document.getElementById("squadStatusMessage"),
@@ -234,6 +240,7 @@ window.goalKineticSelectLineupSlot = (slotId) => selectLineupSlot(slotId);
 window.goalKineticAssignLineupPlayer = (playerId) => assignPlayerToLineup(playerId);
 window.goalKineticBenchLineupPlayer = (playerId) => benchPlayer(playerId);
 window.goalKineticClearLineupSlot = (slotId) => clearLineupSlot(slotId);
+window.goalKineticAutoFillLineup = () => autoFillLineup();
 requestAnimationFrame(gameLoop);
 
 function createDefaultState() {
@@ -254,6 +261,8 @@ function createDefaultState() {
     ownedPlayerIds: [],
     starterTransferGrantClaimed: false,
     lineupAssignments: buildDefaultLineupAssignments(),
+    rivalClubs: buildDefaultRivalClubs(),
+    lastLeaderboardTickAt: Date.now(),
     lastActiveAt: Date.now(),
     upgrades: Object.fromEntries(upgradeDefinitions.map((upgrade) => [upgrade.id, 0])),
   };
@@ -285,6 +294,15 @@ function loadState() {
 
 function getStarterPlayerId(index) {
   return `starter-${index}`;
+}
+
+function buildDefaultRivalClubs() {
+  return [
+    { id: "night-xi", name: "NIGHT XI", score: 8200, growthPerSecond: 38 },
+    { id: "pixel-fc", name: "PIXEL FC", score: 5400, growthPerSecond: 24 },
+    { id: "mega-boots", name: "MEGA BOOTS", score: 4700, growthPerSecond: 21 },
+    { id: "goal-rush", name: "GOAL RUSH", score: 4300, growthPerSecond: 18 },
+  ];
 }
 
 function buildDefaultLineupAssignments() {
@@ -350,6 +368,16 @@ function normalizeLineupAssignments() {
   state.lineupAssignments = normalized;
 }
 
+function normalizeRivalClubs() {
+  const defaults = buildDefaultRivalClubs();
+  const savedById = new Map((state.rivalClubs || []).map((club) => [club.id, club]));
+
+  state.rivalClubs = defaults.map((club) => ({
+    ...club,
+    ...(savedById.get(club.id) || {}),
+  }));
+}
+
 function saveState() {
   state.lastActiveAt = Date.now();
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
@@ -358,6 +386,7 @@ function saveState() {
 
 function applyOfflineProgress() {
   maybeGrantStarterTransferBudget();
+  progressRivalClubs();
 
   const elapsedSeconds = Math.min(
     Math.max(0, (Date.now() - (state.lastActiveAt || Date.now())) / 1000),
@@ -381,6 +410,32 @@ function applyOfflineProgress() {
   );
   spawnRewardBubble(`+$${formatNumber(rewards.payout)}`, 68, 22, "upgrade");
   saveState();
+}
+
+function progressRivalClubs(forceElapsedMs) {
+  const now = Date.now();
+  const previousTickAt = state.lastLeaderboardTickAt || now;
+  const elapsedMs = Math.max(0, forceElapsedMs ?? now - previousTickAt);
+  const elapsedSeconds = elapsedMs / 1000;
+
+  if (elapsedSeconds <= 0) {
+    state.lastLeaderboardTickAt = now;
+    return false;
+  }
+
+  state.rivalClubs = (state.rivalClubs || []).map((club, index) => {
+    const divisionBoost = 1 + Math.min(2.6, state.goals / 2200);
+    const chaos = 0.94 + ((now / 1000 + index * 11) % 7) * 0.018;
+    const scoreGain = club.growthPerSecond * divisionBoost * chaos * elapsedSeconds;
+
+    return {
+      ...club,
+      score: Math.round(club.score + scoreGain),
+    };
+  });
+
+  state.lastLeaderboardTickAt = now;
+  return true;
 }
 
 function maybeGrantStarterTransferBudget() {
@@ -471,6 +526,15 @@ function attachEvents() {
 
   elements.transferMarketGrid.addEventListener("click", handleTransferPress);
   elements.transferMarketGrid.addEventListener("pointerup", handleTransferPress);
+
+  elements.autoFillLineupButton?.addEventListener("click", (event) => {
+    event.preventDefault();
+    autoFillLineup();
+  });
+  elements.autoFillLineupButton?.addEventListener("pointerdown", (event) => {
+    event.preventDefault();
+    autoFillLineup();
+  });
 
   const handleLineupPress = (event) => {
     const target = event.target instanceof Element ? event.target : null;
@@ -675,6 +739,96 @@ function getPlayerName(playerId) {
 
 function getPlayerTier(overall) {
   return playerTierBands.find((tier) => overall >= tier.minOverall) || playerTierBands[playerTierBands.length - 1];
+}
+
+function getPreferredSlotsForRole(role) {
+  const lowerRole = (role || "").toLowerCase();
+
+  if (lowerRole.includes("goal")) {
+    return ["gk"];
+  }
+
+  if (lowerRole.includes("striker") || lowerRole.includes("finisher")) {
+    return ["st", "lw", "rw"];
+  }
+
+  if (lowerRole.includes("left wing") || lowerRole.includes("winger")) {
+    return ["lw", "rw", "st"];
+  }
+
+  if (lowerRole.includes("right wing")) {
+    return ["rw", "lw", "st"];
+  }
+
+  if (lowerRole.includes("playmaker") || lowerRole.includes("mid")) {
+    return ["cm2", "cm1", "cm3", "st"];
+  }
+
+  if (lowerRole.includes("left back")) {
+    return ["lb", "rb", "cb1"];
+  }
+
+  if (lowerRole.includes("right back")) {
+    return ["rb", "lb", "cb2"];
+  }
+
+  if (lowerRole.includes("center back") || lowerRole.includes("defender") || lowerRole.includes("anchor")) {
+    return ["cb1", "cb2", "lb", "rb"];
+  }
+
+  return [];
+}
+
+function autoFillLineup() {
+  const roster = buildSquadRows()
+    .map((player) => ({
+      ...player,
+      roleSlots:
+        squadBlueprint.find((starter, index) => getStarterPlayerId(index) === player.id)?.preferredSlot
+          ? [squadBlueprint.find((starter, index) => getStarterPlayerId(index) === player.id)?.preferredSlot]
+          : getPreferredSlotsForRole(player.role),
+    }))
+    .sort((left, right) => {
+      const tierDelta = (tierPriority[right.tier.id] || 0) - (tierPriority[left.tier.id] || 0);
+      if (tierDelta !== 0) {
+        return tierDelta;
+      }
+
+      return right.overall - left.overall;
+    });
+
+  const nextAssignments = Object.fromEntries(lineupSlots.map((slot) => [slot.id, null]));
+  const usedPlayers = new Set();
+
+  roster.forEach((player) => {
+    const preferredOpenSlot = player.roleSlots.find((slotId) => !nextAssignments[slotId]);
+    if (!preferredOpenSlot || usedPlayers.has(player.id)) {
+      return;
+    }
+
+    nextAssignments[preferredOpenSlot] = player.id;
+    usedPlayers.add(player.id);
+  });
+
+  roster.forEach((player) => {
+    if (usedPlayers.has(player.id)) {
+      return;
+    }
+
+    const fallbackSlot = lineupSlots.find((slot) => !nextAssignments[slot.id]);
+    if (!fallbackSlot) {
+      return;
+    }
+
+    nextAssignments[fallbackSlot.id] = player.id;
+    usedPlayers.add(player.id);
+  });
+
+  state.lineupAssignments = nextAssignments;
+  runtime.selectedLineupSlot = lineupSlots.find((slot) => !nextAssignments[slot.id])?.id || "st";
+  setSquadStatus("Starting XI auto-filled by tier: SSS, SS, S, A, B, C, D, then E.");
+  render();
+  saveState();
 }
 
 function setSquadStatus(message) {
@@ -984,8 +1138,10 @@ function render() {
   const teamPerformance = buildTeamPerformance(totalAccuracy, activeLineupPlayers);
   const availablePlayers = playerCatalog.filter((player) => !state.ownedPlayerIds.includes(player.id));
 
-  elements.cashDisplay.textContent = `$${formatNumber(state.cash)}`;
-  elements.cashDisplayMirror.textContent = `$${formatNumber(state.cash)}`;
+  const formattedCash = `$${formatNumber(state.cash)}`;
+  elements.cashDisplay.textContent = formattedCash;
+  elements.cashDisplayMirror.textContent = formattedCash;
+  updateHeroCashDisplay(formattedCash);
   elements.goalsDisplay.textContent = formatNumber(state.goals);
   elements.perSecondDisplay.textContent = `$${formatNumber(cashPerSecond)}`;
   elements.sidePerSecondLabel.textContent = `CPS: ${formatNumber(cashPerSecond)}`;
@@ -1001,6 +1157,9 @@ function render() {
   elements.autoShotsDisplay.textContent = `${formatNumber(state.autoShotsPerSecond)}/s`;
   if (elements.marketGoalsDisplay) {
     elements.marketGoalsDisplay.textContent = formatNumber(state.goals);
+  }
+  if (elements.upgradesBalanceDisplay) {
+    elements.upgradesBalanceDisplay.textContent = `$${formatNumber(state.cash)}`;
   }
   elements.rankDisplay.textContent = `#${leaderboardRows.find((row) => row.isYou)?.rank ?? 999}`;
   elements.leaderboardDivisionDisplay.textContent = `${division.name} Division`;
@@ -1044,15 +1203,37 @@ function render() {
   });
 }
 
+function updateHeroCashDisplay(valueText) {
+  if (!elements.cashDisplayMirror) {
+    return;
+  }
+
+  const compactLength = valueText.replace(/[^0-9A-Z.]/gi, "").length;
+  elements.cashDisplayMirror.classList.remove("cash-display-large", "cash-display-compact", "cash-display-tight");
+
+  if (compactLength >= 8) {
+    elements.cashDisplayMirror.classList.add("cash-display-tight");
+    return;
+  }
+
+  if (compactLength >= 6) {
+    elements.cashDisplayMirror.classList.add("cash-display-compact");
+    return;
+  }
+
+  elements.cashDisplayMirror.classList.add("cash-display-large");
+}
+
 function buildLeaderboardRows() {
   const yourScore = Math.round(state.goals + state.fans * 2.2 + state.lifetimeCash * 0.12);
 
   return [
-    { name: "PIXEL FC", score: 182400, isYou: false },
-    { name: "MEGA BOOTS", score: 149200, isYou: false },
-    { name: "GOAL RUSH", score: 131880, isYou: false },
+    ...(state.rivalClubs || []).map((club) => ({
+      name: club.name,
+      score: club.score,
+      isYou: false,
+    })),
     { name: "KINETIC STRIKER", score: yourScore, isYou: true },
-    { name: "NIGHT XI", score: Math.max(4200, Math.round(yourScore * 0.72)), isYou: false },
   ]
     .sort((left, right) => right.score - left.score)
     .map((row, index) => ({
@@ -1568,6 +1749,13 @@ function gameLoop(now) {
   if (currentBuzzInt !== runtime.lastRenderedBuzzInt) {
     runtime.lastRenderedBuzzInt = currentBuzzInt;
     render();
+  }
+
+  if (Date.now() - runtime.lastLeaderboardUpdateAt >= LEADERBOARD_TICK_MS) {
+    runtime.lastLeaderboardUpdateAt = Date.now();
+    if (progressRivalClubs(LEADERBOARD_TICK_MS)) {
+      render();
+    }
   }
 
   if (now - runtime.lastSaveAt > 5000) {

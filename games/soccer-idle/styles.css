@@ -440,14 +440,33 @@ button {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  min-width: 0;
 }
 
 .big-score-panel h2 {
   margin-top: 8px;
   color: var(--primary);
-  font-size: clamp(3.5rem, 7vw, 6rem);
-  line-height: 0.88;
+  max-width: 100%;
+  overflow: hidden;
+  font-size: clamp(2.8rem, 6vw, 5.3rem);
+  line-height: 0.92;
+  letter-spacing: -0.09em;
+  white-space: nowrap;
   filter: drop-shadow(0 0 26px rgba(145, 247, 142, 0.35));
+}
+
+#cashDisplayMirror.cash-display-large {
+  font-size: clamp(3.2rem, 6.4vw, 5.7rem);
+}
+
+#cashDisplayMirror.cash-display-compact {
+  font-size: clamp(2.7rem, 5.5vw, 4.8rem);
+  letter-spacing: -0.11em;
+}
+
+#cashDisplayMirror.cash-display-tight {
+  font-size: clamp(2.2rem, 4.8vw, 4rem);
+  letter-spacing: -0.13em;
 }
 
 .score-chip-row,
@@ -1196,6 +1215,21 @@ button {
   margin: 10px 0 0;
   color: var(--text-soft);
   line-height: 1.5;
+}
+
+.auto-fill-button {
+  margin-top: 16px;
+  min-height: 44px;
+  padding: 0 18px;
+  border-radius: 8px;
+  color: #101000;
+  background: var(--secondary);
+  font: 900 0.68rem/1 "Lexend", sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  box-shadow: var(--yellow-glow);
 }
 
 .lineup-grid {
