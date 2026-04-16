@@ -1076,6 +1076,140 @@
             padding: 18px;
         }
 
+        .dev-summary-grid {
+            display: grid;
+            gap: 12px;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            margin-bottom: 16px;
+        }
+
+        .dev-field-grid {
+            display: grid;
+            gap: 10px;
+        }
+
+        .dev-input,
+        .dev-textarea {
+            width: 100%;
+            border-radius: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            background: rgba(255, 255, 255, 0.06);
+            color: var(--text);
+            font: inherit;
+        }
+
+        .dev-input,
+        .dev-select {
+            padding: 12px 14px;
+        }
+
+        .dev-picker {
+            width: 100%;
+        }
+
+        .dev-picker-details {
+            position: relative;
+            display: block;
+        }
+
+        .dev-picker-details[open] {
+            z-index: 8;
+        }
+
+        .dev-picker-summary {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            list-style: none;
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.04));
+            cursor: pointer;
+            transition: border-color 0.18s ease, background 0.18s ease, transform 0.18s ease;
+        }
+
+        .dev-picker-summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .dev-picker-summary:hover {
+            border-color: rgba(255, 255, 255, 0.22);
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.06));
+        }
+
+        .dev-picker-details[open] .dev-picker-summary {
+            border-color: rgba(255, 255, 255, 0.28);
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.07));
+        }
+
+        .dev-picker-label {
+            min-width: 0;
+            font-weight: 600;
+        }
+
+        .dev-picker-arrow {
+            color: var(--muted);
+            font-size: 0.86rem;
+            transition: transform 0.18s ease;
+        }
+
+        .dev-picker-details[open] .dev-picker-arrow {
+            transform: rotate(180deg);
+        }
+
+        .dev-picker-menu {
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: calc(100% + 8px);
+            display: grid;
+            gap: 8px;
+            padding: 10px;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            background: linear-gradient(180deg, rgba(14, 23, 39, 0.98), rgba(8, 15, 28, 0.98));
+            box-shadow: 0 18px 36px rgba(0, 0, 0, 0.32);
+            z-index: 9;
+        }
+
+        .dev-picker-option {
+            width: 100%;
+            text-align: left;
+            padding: 12px 14px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: var(--text);
+            box-shadow: none;
+        }
+
+        .dev-picker-option:hover {
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        .dev-picker-option.active {
+            border-color: rgba(255, 215, 106, 0.45);
+            background: rgba(255, 215, 106, 0.14);
+            color: var(--gold);
+        }
+
+        .dev-textarea {
+            min-height: 280px;
+            padding: 14px;
+            resize: vertical;
+            line-height: 1.45;
+            font-family: Consolas, "Courier New", monospace;
+        }
+
+        .dev-note {
+            color: var(--muted);
+            font-size: 0.88rem;
+            line-height: 1.45;
+        }
+
         .album-grid,
         .batch-grid {
             display: grid;
@@ -2690,11 +2824,13 @@
                 return;
             }
 
-            if (pullCount === 10 && !isTenPullUnlocked()) {
+            const isDevSpin = options.source === "dev";
+
+            if (pullCount === 10 && !isDevSpin && !isTenPullUnlocked()) {
                 return;
             }
 
-            if (pullCount === 100 && !isHundredPullUnlocked()) {
+            if (pullCount === 100 && !isDevSpin && !isHundredPullUnlocked()) {
                 return;
             }
 
@@ -4249,6 +4385,7 @@
             const existingWindow = document.querySelector("[data-dev-mode-window='true']");
             if (existingWindow) {
                 existingWindow.style.zIndex = "10031";
+                renderDevModeWindow();
                 return;
             }
 
@@ -4275,40 +4412,6 @@
 
             const body = document.createElement("div");
             body.className = "floating-window-body";
-
-            const content = document.createElement("div");
-            content.className = "systems-grid";
-            content.innerHTML = `
-                <section class="resource-card">
-                    <span class="stat-label">Quick Resources</span>
-                    <strong>Fast setup tools</strong>
-                    <span class="secondary-meta">Use these to speed up testing without manually grinding the account first.</span>
-                    <div class="showcase-actions">
-                        <button class="ghost-button tiny-button" type="button" data-dev-action="signal-1000">+1000 Signal</button>
-                        <button class="ghost-button tiny-button" type="button" data-dev-action="signal-5000">+5000 Signal</button>
-                        <button class="ghost-button tiny-button" type="button" data-dev-action="unlock-banners">Unlock Banners</button>
-                        <button class="ghost-button tiny-button" type="button" data-dev-action="unlock-modes">Unlock Pull Modes</button>
-                    </div>
-                </section>
-                <section class="resource-card">
-                    <span class="stat-label">Rare Popup Preview</span>
-                    <strong>See the big effects without changing pull odds</strong>
-                    <span class="secondary-meta">These previews open the winner popup only. They do not add real pulls to your history.</span>
-                    <div class="showcase-actions">
-                        <button class="ghost-button tiny-button" type="button" data-dev-action="preview-unreal">Preview Unreal</button>
-                        <button class="ghost-button tiny-button" type="button" data-dev-action="preview-insane">Preview Insane</button>
-                        <button class="ghost-button tiny-button" type="button" data-dev-action="preview-godlike">Preview Godlike</button>
-                    </div>
-                </section>
-            `;
-
-            content.querySelector("[data-dev-action='signal-1000']").addEventListener("click", () => grantDevSignalDust(1000));
-            content.querySelector("[data-dev-action='signal-5000']").addEventListener("click", () => grantDevSignalDust(5000));
-            content.querySelector("[data-dev-action='unlock-banners']").addEventListener("click", unlockAllDevBanners);
-            content.querySelector("[data-dev-action='unlock-modes']").addEventListener("click", unlockAllDevPullModes);
-            content.querySelector("[data-dev-action='preview-unreal']").addEventListener("click", () => previewDevRarePopup("unreal"));
-            content.querySelector("[data-dev-action='preview-insane']").addEventListener("click", () => previewDevRarePopup("insane"));
-            content.querySelector("[data-dev-action='preview-godlike']").addEventListener("click", () => previewDevRarePopup("godlike"));
 
             const handleEscape = (event) => {
                 if (event.code === "Escape") {
@@ -4375,35 +4478,986 @@
             document.addEventListener("keydown", handleEscape);
             window.addEventListener("resize", clampWindowPosition);
 
-            body.appendChild(content);
             windowNode.append(header, body);
             document.body.appendChild(windowNode);
+            renderDevModeWindow();
             clampWindowPosition();
         }
 
+        function renderDevModeWindow() {
+            const windowNode = document.querySelector("[data-dev-mode-window='true']");
+            if (!windowNode) {
+                return;
+            }
+
+            const body = windowNode.querySelector(".floating-window-body");
+            if (!body) {
+                return;
+            }
+
+            const previousValues = {
+                banner: body.querySelector("[data-dev-field='banner']")?.value || state.stats.activeBannerKey,
+                theme: body.querySelector("[data-dev-field='theme']")?.value || state.stats.selectedTheme,
+                challenge: body.querySelector("[data-dev-field='challenge']")?.value || CHALLENGE_POOL[0].key,
+                gif: body.querySelector("[data-dev-field='gif']")?.value || GIFS[0].key,
+                variant: body.querySelector("[data-dev-field='variant']")?.value || "",
+                achievement: body.querySelector("[data-dev-field='achievement']")?.value || ACHIEVEMENTS[0].key,
+                count: body.querySelector("[data-dev-field='count']")?.value || "1",
+                countAmount: body.querySelector("[data-dev-field='countAmount']")?.value || "1",
+                variantAmount: body.querySelector("[data-dev-field='variantAmount']")?.value || "1",
+                accountSignalDust: body.querySelector("[data-dev-field='accountSignalDust']")?.value || String(state.stats.signalDust),
+                accountTotalPulls: body.querySelector("[data-dev-field='accountTotalPulls']")?.value || String(state.stats.totalPulls),
+                accountPity: body.querySelector("[data-dev-field='accountPity']")?.value || String(state.stats.pityCounter),
+                accountDailyStreak: body.querySelector("[data-dev-field='accountDailyStreak']")?.value || String(state.stats.dailyStreak),
+                accountCurrentDrought: body.querySelector("[data-dev-field='accountCurrentDrought']")?.value || String(state.stats.currentDrought),
+                accountLongestDrought: body.querySelector("[data-dev-field='accountLongestDrought']")?.value || String(state.stats.longestDrought),
+                accountChallengeWins: body.querySelector("[data-dev-field='accountChallengeWins']")?.value || String(state.stats.challengeWins),
+                accountSignalSpent: body.querySelector("[data-dev-field='accountSignalSpent']")?.value || String(state.stats.totalSignalSpent),
+                accountLuckScore: body.querySelector("[data-dev-field='accountLuckScore']")?.value || String(state.stats.totalLuckScore),
+                snapshot: body.querySelector("[data-dev-field='snapshot']")?.value || ""
+            };
+
+            const activeBanner = getActiveBanner();
+            const bestPull = state.stats.bestPullKey ? getResultDisplayName({ ...gifMap[state.stats.bestPullKey], variantKey: state.stats.bestPullVariant || "" }) : "None";
+            const favorite = state.stats.favoriteKey ? getResultDisplayName({ ...gifMap[state.stats.favoriteKey], variantKey: state.stats.favoriteVariant || "" }) : "None";
+            const activeChallenge = state.stats.challenge ? `${state.stats.challenge.name} (${state.stats.challenge.status})` : "None";
+            const bannerPicker = createDevPickerMarkup("banner", BANNERS.map((banner) => ({ value: banner.key, label: banner.name })), previousValues.banner || state.stats.activeBannerKey);
+            const themePicker = createDevPickerMarkup("theme", THEMES.map((theme) => ({ value: theme.key, label: theme.name })), previousValues.theme || state.stats.selectedTheme);
+            const challengePicker = createDevPickerMarkup("challenge", CHALLENGE_POOL.map((challenge) => ({ value: challenge.key, label: challenge.name })), previousValues.challenge || CHALLENGE_POOL[0].key);
+            const gifPicker = createDevPickerMarkup("gif", GIFS.map((gif) => ({ value: gif.key, label: gif.name })), previousValues.gif || GIFS[0].key);
+            const variantPicker = createDevPickerMarkup("variant", [{ value: "", label: "Base" }, ...VARIANT_TYPES.map((variant) => ({ value: variant.key, label: variant.label }))], previousValues.variant || "");
+            const achievementPicker = createDevPickerMarkup("achievement", ACHIEVEMENTS.map((achievement) => ({ value: achievement.key, label: achievement.name })), previousValues.achievement || ACHIEVEMENTS[0].key);
+            const countPicker = createDevPickerMarkup("count", [{ value: "1", label: "1" }, { value: "10", label: "10" }, { value: "100", label: "100" }], previousValues.count || "1");
+
+            body.innerHTML = `
+                <div class="dev-summary-grid">
+                    <section class="resource-card">
+                        <span class="stat-label">Account</span>
+                        <strong>${state.stats.totalPulls} pulls</strong>
+                        <span class="secondary-meta">Signal dust ${state.stats.signalDust}</span>
+                    </section>
+                    <section class="resource-card">
+                        <span class="stat-label">Banner</span>
+                        <strong>${activeBanner.name}</strong>
+                        <span class="secondary-meta">${state.stats.ownedBannerKeys.length}/${BANNERS.length} owned</span>
+                    </section>
+                    <section class="resource-card">
+                        <span class="stat-label">Best Pull</span>
+                        <strong>${bestPull}</strong>
+                        <span class="secondary-meta">Favorite ${favorite}</span>
+                    </section>
+                    <section class="resource-card">
+                        <span class="stat-label">Live State</span>
+                        <strong>Pity ${state.stats.pityCounter}</strong>
+                        <span class="secondary-meta">${activeChallenge}</span>
+                    </section>
+                </div>
+                <div class="systems-grid">
+                    <section class="resource-card">
+                        <span class="stat-label">Quick Resources</span>
+                        <strong>Fast setup tools</strong>
+                        <span class="secondary-meta">Use these to speed up testing without manually grinding the account first.</span>
+                        <div class="showcase-actions">
+                            <button class="ghost-button tiny-button" type="button" data-dev-action="signal-minus-1000">-1000 Signal</button>
+                            <button class="ghost-button tiny-button" type="button" data-dev-action="signal-1000">+1000 Signal</button>
+                            <button class="ghost-button tiny-button" type="button" data-dev-action="signal-5000">+5000 Signal</button>
+                            <button class="ghost-button tiny-button" type="button" data-dev-action="unlock-banners">Unlock Banners</button>
+                            <button class="ghost-button tiny-button" type="button" data-dev-action="unlock-modes">Unlock Pull Modes</button>
+                            <button class="ghost-button tiny-button" type="button" data-dev-action="max-pity">Set Max Pity</button>
+                            <button class="ghost-button tiny-button" type="button" data-dev-action="reset-daily">Reset Daily</button>
+                        </div>
+                    </section>
+                    <section class="resource-card">
+                        <span class="stat-label">Direct Controls</span>
+                        <strong>Banner, theme, and challenge control</strong>
+                        <div class="dev-field-grid">
+                            <label class="setting-row">
+                                <span>Banner</span>
+                                ${bannerPicker}
+                            </label>
+                            <label class="setting-row">
+                                <span>Theme</span>
+                                ${themePicker}
+                            </label>
+                            <label class="setting-row">
+                                <span>Challenge</span>
+                                ${challengePicker}
+                            </label>
+                        </div>
+                        <div class="showcase-actions">
+                            <button class="ghost-button tiny-button" type="button" data-dev-action="use-banner">Force Use Banner</button>
+                            <button class="ghost-button tiny-button" type="button" data-dev-action="own-banner">Own Banner</button>
+                            <button class="ghost-button tiny-button" type="button" data-dev-action="unown-banner">Remove Banner</button>
+                            <button class="ghost-button tiny-button" type="button" data-dev-action="reset-banners">Starter Banner Only</button>
+                            <button class="ghost-button tiny-button" type="button" data-dev-action="set-theme">Force Theme</button>
+                            <button class="ghost-button tiny-button" type="button" data-dev-action="start-challenge">Start Challenge</button>
+                            <button class="ghost-button tiny-button" type="button" data-dev-action="clear-challenge">Clear Challenge</button>
+                        </div>
+                    </section>
+                    <section class="resource-card">
+                        <span class="stat-label">Pull Lab</span>
+                        <strong>Force exact pulls, variants, and popup previews</strong>
+                        <div class="dev-field-grid">
+                            <label class="setting-row">
+                                <span>GIF</span>
+                                ${gifPicker}
+                            </label>
+                            <label class="setting-row">
+                                <span>Variant</span>
+                                ${variantPicker}
+                            </label>
+                            <label class="setting-row">
+                                <span>Batch Size</span>
+                                ${countPicker}
+                            </label>
+                            <label class="setting-row">
+                                <span>Pull Count Amount</span>
+                                <input class="dev-input" type="number" min="0" step="1" data-dev-field="countAmount" value="${previousValues.countAmount}">
+                            </label>
+                            <label class="setting-row">
+                                <span>Variant Amount</span>
+                                <input class="dev-input" type="number" min="0" step="1" data-dev-field="variantAmount" value="${previousValues.variantAmount}">
+                            </label>
+                        </div>
+                        <div class="showcase-actions">
+                            <button class="ghost-button tiny-button" type="button" data-dev-action="forced-spin">Forced Spin</button>
+                            <button class="ghost-button tiny-button" type="button" data-dev-action="grant-history">Grant To History</button>
+                            <button class="ghost-button tiny-button" type="button" data-dev-action="preview-selection">Preview Popup</button>
+                            <button class="ghost-button tiny-button" type="button" data-dev-action="unlock-gif">Unlock GIF</button>
+                            <button class="ghost-button tiny-button" type="button" data-dev-action="remove-gif">Remove GIF</button>
+                            <button class="ghost-button tiny-button" type="button" data-dev-action="set-gif-count">Set Count</button>
+                            <button class="ghost-button tiny-button" type="button" data-dev-action="add-gif-count">+ Count</button>
+                            <button class="ghost-button tiny-button" type="button" data-dev-action="clear-gif-count">Clear Count</button>
+                            <button class="ghost-button tiny-button" type="button" data-dev-action="set-favorite">Set Favorite</button>
+                            <button class="ghost-button tiny-button" type="button" data-dev-action="clear-favorite">Clear Favorite</button>
+                            <button class="ghost-button tiny-button" type="button" data-dev-action="set-best">Set Best Pull</button>
+                            <button class="ghost-button tiny-button" type="button" data-dev-action="clear-best">Clear Best Pull</button>
+                            <button class="ghost-button tiny-button" type="button" data-dev-action="add-variant">Add Variant</button>
+                            <button class="ghost-button tiny-button" type="button" data-dev-action="remove-variant">Remove Variant</button>
+                            <button class="ghost-button tiny-button" type="button" data-dev-action="fill-variants">Every Variant</button>
+                            <button class="ghost-button tiny-button" type="button" data-dev-action="clear-variants">Clear Variants</button>
+                            <button class="ghost-button tiny-button" type="button" data-dev-action="unlock-all-gifs">Unlock All GIFs</button>
+                            <button class="ghost-button tiny-button" type="button" data-dev-action="clear-collection">Clear Collection</button>
+                        </div>
+                    </section>
+                    <section class="resource-card">
+                        <span class="stat-label">Account Editor</span>
+                        <strong>Set saved counters directly</strong>
+                        <div class="dev-field-grid">
+                            <label class="setting-row">
+                                <span>Signal Dust</span>
+                                <input class="dev-input" type="number" min="0" step="1" data-dev-field="accountSignalDust" value="${previousValues.accountSignalDust}">
+                            </label>
+                            <label class="setting-row">
+                                <span>Total Pulls</span>
+                                <input class="dev-input" type="number" min="0" step="1" data-dev-field="accountTotalPulls" value="${previousValues.accountTotalPulls}">
+                            </label>
+                            <label class="setting-row">
+                                <span>Pity Counter</span>
+                                <input class="dev-input" type="number" min="0" step="1" data-dev-field="accountPity" value="${previousValues.accountPity}">
+                            </label>
+                            <label class="setting-row">
+                                <span>Daily Streak</span>
+                                <input class="dev-input" type="number" min="0" step="1" data-dev-field="accountDailyStreak" value="${previousValues.accountDailyStreak}">
+                            </label>
+                            <label class="setting-row">
+                                <span>Current Drought</span>
+                                <input class="dev-input" type="number" min="0" step="1" data-dev-field="accountCurrentDrought" value="${previousValues.accountCurrentDrought}">
+                            </label>
+                            <label class="setting-row">
+                                <span>Longest Drought</span>
+                                <input class="dev-input" type="number" min="0" step="1" data-dev-field="accountLongestDrought" value="${previousValues.accountLongestDrought}">
+                            </label>
+                            <label class="setting-row">
+                                <span>Challenge Wins</span>
+                                <input class="dev-input" type="number" min="0" step="1" data-dev-field="accountChallengeWins" value="${previousValues.accountChallengeWins}">
+                            </label>
+                            <label class="setting-row">
+                                <span>Signal Spent</span>
+                                <input class="dev-input" type="number" min="0" step="1" data-dev-field="accountSignalSpent" value="${previousValues.accountSignalSpent}">
+                            </label>
+                            <label class="setting-row">
+                                <span>Luck Score</span>
+                                <input class="dev-input" type="number" min="0" step="0.1" data-dev-field="accountLuckScore" value="${previousValues.accountLuckScore}">
+                            </label>
+                        </div>
+                        <div class="showcase-actions">
+                            <button class="ghost-button tiny-button" type="button" data-dev-action="apply-account">Apply Account Fields</button>
+                            <button class="ghost-button tiny-button" type="button" data-dev-action="clear-latest">Clear Latest Results</button>
+                            <button class="ghost-button tiny-button" type="button" data-dev-action="clear-recent">Clear Recent Pulls</button>
+                            <button class="ghost-button tiny-button" type="button" data-dev-action="clear-banner-history">Clear Banner History</button>
+                            <button class="ghost-button tiny-button" type="button" data-dev-action="clear-rare-history">Clear Rare History</button>
+                        </div>
+                    </section>
+                    <section class="resource-card">
+                        <span class="stat-label">Achievements</span>
+                        <strong>Grant, remove, or rescan achievement state</strong>
+                        <div class="dev-field-grid">
+                            <label class="setting-row">
+                                <span>Achievement</span>
+                                ${achievementPicker}
+                            </label>
+                        </div>
+                        <div class="showcase-actions">
+                            <button class="ghost-button tiny-button" type="button" data-dev-action="grant-achievement">Grant Achievement</button>
+                            <button class="ghost-button tiny-button" type="button" data-dev-action="remove-achievement">Remove Achievement</button>
+                            <button class="ghost-button tiny-button" type="button" data-dev-action="grant-all-achievements">Grant All</button>
+                            <button class="ghost-button tiny-button" type="button" data-dev-action="clear-achievements">Clear All</button>
+                            <button class="ghost-button tiny-button" type="button" data-dev-action="resync-achievements">Resync From Stats</button>
+                        </div>
+                    </section>
+                    <section class="resource-card">
+                        <span class="stat-label">State Snapshot</span>
+                        <strong>Edit any saved stat directly</strong>
+                        <span class="dev-note">This editor applies through the same save/load normalization path as local storage, so you can debug any part of the account state from one place.</span>
+                        <textarea class="dev-textarea" data-dev-field="snapshot"></textarea>
+                        <div class="showcase-actions">
+                            <button class="ghost-button tiny-button" type="button" data-dev-action="refresh-snapshot">Refresh Snapshot</button>
+                            <button class="ghost-button tiny-button" type="button" data-dev-action="copy-snapshot">Copy Snapshot</button>
+                            <button class="ghost-button tiny-button" type="button" data-dev-action="apply-snapshot">Apply Snapshot</button>
+                        </div>
+                    </section>
+                </div>
+            `;
+
+            const snapshotField = body.querySelector("[data-dev-field='snapshot']");
+            snapshotField.value = previousValues.snapshot || JSON.stringify(state.stats, null, 2);
+
+            bindDevModeWindowEvents(body);
+        }
+
+        function createDevPickerMarkup(fieldName, options, selectedValue) {
+            const normalizedValue = String(selectedValue ?? "");
+            const selectedOption = options.find((option) => String(option.value) === normalizedValue) || options[0];
+            const currentValue = String(selectedOption?.value ?? "");
+
+            return `
+                <div class="dev-picker" data-dev-picker="${fieldName}">
+                    <input type="hidden" data-dev-field="${fieldName}" value="${currentValue}">
+                    <details class="dev-picker-details">
+                        <summary class="dev-picker-summary">
+                            <span class="dev-picker-label">${selectedOption?.label ?? ""}</span>
+                            <span class="dev-picker-arrow">▼</span>
+                        </summary>
+                        <div class="dev-picker-menu">
+                            ${options.map((option) => `
+                                <button
+                                    class="dev-picker-option${String(option.value) === currentValue ? " active" : ""}"
+                                    type="button"
+                                    data-dev-picker-option
+                                    data-value="${String(option.value)}"
+                                    data-label="${option.label}"
+                                >${option.label}</button>
+                            `).join("")}
+                        </div>
+                    </details>
+                </div>
+            `;
+        }
+
+        function bindDevModeWindowEvents(body) {
+            body.querySelectorAll("[data-dev-picker-option]").forEach((optionButton) => {
+                optionButton.addEventListener("click", () => {
+                    const picker = optionButton.closest("[data-dev-picker]");
+                    if (!picker) {
+                        return;
+                    }
+
+                    const details = picker.querySelector(".dev-picker-details");
+                    const hiddenField = picker.querySelector("[data-dev-field]");
+                    const label = picker.querySelector(".dev-picker-label");
+
+                    if (hiddenField) {
+                        hiddenField.value = optionButton.dataset.value ?? "";
+                    }
+
+                    if (label) {
+                        label.textContent = optionButton.dataset.label ?? "";
+                    }
+
+                    picker.querySelectorAll("[data-dev-picker-option]").forEach((button) => {
+                        button.classList.toggle("active", button === optionButton);
+                    });
+
+                    if (details) {
+                        details.open = false;
+                    }
+                });
+            });
+
+            body.querySelector("[data-dev-action='signal-minus-1000']").addEventListener("click", () => grantDevSignalDust(-1000));
+            body.querySelector("[data-dev-action='signal-1000']").addEventListener("click", () => grantDevSignalDust(1000));
+            body.querySelector("[data-dev-action='signal-5000']").addEventListener("click", () => grantDevSignalDust(5000));
+            body.querySelector("[data-dev-action='unlock-banners']").addEventListener("click", unlockAllDevBanners);
+            body.querySelector("[data-dev-action='unlock-modes']").addEventListener("click", unlockAllDevPullModes);
+            body.querySelector("[data-dev-action='max-pity']").addEventListener("click", setDevPityToMax);
+            body.querySelector("[data-dev-action='reset-daily']").addEventListener("click", resetDevDailyClaim);
+            body.querySelector("[data-dev-action='use-banner']").addEventListener("click", useSelectedDevBanner);
+            body.querySelector("[data-dev-action='own-banner']").addEventListener("click", ownSelectedDevBanner);
+            body.querySelector("[data-dev-action='unown-banner']").addEventListener("click", removeSelectedDevBannerOwnership);
+            body.querySelector("[data-dev-action='reset-banners']").addEventListener("click", resetDevBannerOwnership);
+            body.querySelector("[data-dev-action='set-theme']").addEventListener("click", useSelectedDevTheme);
+            body.querySelector("[data-dev-action='start-challenge']").addEventListener("click", startSelectedDevChallenge);
+            body.querySelector("[data-dev-action='clear-challenge']").addEventListener("click", clearDevChallenge);
+            body.querySelector("[data-dev-action='forced-spin']").addEventListener("click", startSelectedDevSpin);
+            body.querySelector("[data-dev-action='grant-history']").addEventListener("click", grantSelectedDevResults);
+            body.querySelector("[data-dev-action='preview-selection']").addEventListener("click", previewSelectedDevResult);
+            body.querySelector("[data-dev-action='unlock-gif']").addEventListener("click", unlockSelectedDevGif);
+            body.querySelector("[data-dev-action='remove-gif']").addEventListener("click", removeSelectedDevGif);
+            body.querySelector("[data-dev-action='set-gif-count']").addEventListener("click", setSelectedDevGifCount);
+            body.querySelector("[data-dev-action='add-gif-count']").addEventListener("click", addSelectedDevGifCount);
+            body.querySelector("[data-dev-action='clear-gif-count']").addEventListener("click", clearSelectedDevGifCount);
+            body.querySelector("[data-dev-action='set-favorite']").addEventListener("click", setSelectedDevFavorite);
+            body.querySelector("[data-dev-action='clear-favorite']").addEventListener("click", clearDevFavorite);
+            body.querySelector("[data-dev-action='set-best']").addEventListener("click", setSelectedDevBestPull);
+            body.querySelector("[data-dev-action='clear-best']").addEventListener("click", clearSelectedDevBestPull);
+            body.querySelector("[data-dev-action='add-variant']").addEventListener("click", addSelectedDevVariant);
+            body.querySelector("[data-dev-action='remove-variant']").addEventListener("click", removeSelectedDevVariant);
+            body.querySelector("[data-dev-action='fill-variants']").addEventListener("click", fillSelectedDevGifVariants);
+            body.querySelector("[data-dev-action='clear-variants']").addEventListener("click", clearSelectedDevGifVariants);
+            body.querySelector("[data-dev-action='unlock-all-gifs']").addEventListener("click", unlockAllDevGifs);
+            body.querySelector("[data-dev-action='clear-collection']").addEventListener("click", clearDevCollection);
+            body.querySelector("[data-dev-action='apply-account']").addEventListener("click", applyDevAccountFields);
+            body.querySelector("[data-dev-action='clear-latest']").addEventListener("click", clearDevLatestResults);
+            body.querySelector("[data-dev-action='clear-recent']").addEventListener("click", clearDevRecentPulls);
+            body.querySelector("[data-dev-action='clear-banner-history']").addEventListener("click", clearDevBannerHistory);
+            body.querySelector("[data-dev-action='clear-rare-history']").addEventListener("click", clearDevRareHistory);
+            body.querySelector("[data-dev-action='grant-achievement']").addEventListener("click", grantSelectedDevAchievement);
+            body.querySelector("[data-dev-action='remove-achievement']").addEventListener("click", removeSelectedDevAchievement);
+            body.querySelector("[data-dev-action='grant-all-achievements']").addEventListener("click", grantAllDevAchievements);
+            body.querySelector("[data-dev-action='clear-achievements']").addEventListener("click", clearDevAchievements);
+            body.querySelector("[data-dev-action='resync-achievements']").addEventListener("click", resyncDevAchievements);
+            body.querySelector("[data-dev-action='refresh-snapshot']").addEventListener("click", refreshDevSnapshotField);
+            body.querySelector("[data-dev-action='copy-snapshot']").addEventListener("click", copyDevSnapshotField);
+            body.querySelector("[data-dev-action='apply-snapshot']").addEventListener("click", applyDevSnapshotField);
+        }
+
+        function getDevModeWindowBody() {
+            return document.querySelector("[data-dev-mode-window='true'] .floating-window-body");
+        }
+
+        function getDevFieldValue(fieldName) {
+            return getDevModeWindowBody()?.querySelector(`[data-dev-field='${fieldName}']`)?.value ?? "";
+        }
+
+        function getSelectedDevGif() {
+            return gifMap[getDevFieldValue("gif")] || GIFS[0];
+        }
+
+        function getSelectedDevVariantKey() {
+            const value = getDevFieldValue("variant");
+            return getVariantConfig(value) ? value : "";
+        }
+
+        function getSelectedDevAchievement() {
+            return ACHIEVEMENTS.find((achievement) => achievement.key === getDevFieldValue("achievement")) || ACHIEVEMENTS[0];
+        }
+
+        function getSelectedDevCount() {
+            const parsed = Number.parseInt(getDevFieldValue("count"), 10);
+            return parsed === 10 || parsed === 100 ? parsed : 1;
+        }
+
+        function getDevIntegerFieldValue(fieldName, fallback = 0) {
+            return Math.max(0, Math.floor(clampNumber(getDevFieldValue(fieldName), 0, Number.MAX_SAFE_INTEGER, fallback)));
+        }
+
+        function buildDevResults(gifKey, variantKey, count) {
+            const gif = gifMap[gifKey];
+            if (!gif) {
+                return [];
+            }
+
+            return Array.from({ length: count }, () => createPulledResult(gif, {
+                source: "dev",
+                bannerKey: state.stats.activeBannerKey,
+                variantKey
+            }));
+        }
+
+        function deriveVariantTotalsFromStats() {
+            const totals = createEmptyVariantCountRecord();
+            GIFS.forEach((gif) => {
+                ensureVariantCountEntry(gif.key);
+                state.stats.variantCounts[gif.key] = normalizeVariantCountRecord(state.stats.variantCounts[gif.key]);
+                VARIANT_TYPES.forEach((variant) => {
+                    totals[variant.key] += state.stats.variantCounts[gif.key][variant.key] || 0;
+                });
+            });
+            state.stats.totalVariantPulls = totals;
+        }
+
+        function markGifUnlockedForDev(gifKey) {
+            if (!gifMap[gifKey]) {
+                return;
+            }
+
+            if (!state.stats.unlocked.includes(gifKey)) {
+                state.stats.unlocked.push(gifKey);
+            }
+
+            if (!state.stats.firstPullDates[gifKey]) {
+                state.stats.firstPullDates[gifKey] = new Date().toISOString();
+            }
+        }
+
+        function clearGifFromAccountForDev(gifKey) {
+            if (!gifMap[gifKey]) {
+                return;
+            }
+
+            state.stats.counts[gifKey] = 0;
+            state.stats.unlocked = state.stats.unlocked.filter((key) => key !== gifKey);
+            delete state.stats.firstPullDates[gifKey];
+            state.stats.variantCounts[gifKey] = createEmptyVariantCountRecord();
+            state.stats.recent = state.stats.recent.filter((entry) => normalizeRecentEntry(entry)?.key !== gifKey);
+            state.stats.rareHitHistory = state.stats.rareHitHistory.filter((entry) => entry.key !== gifKey);
+            state.stats.bannerHistory = state.stats.bannerHistory.filter((entry) => entry.bestKey !== gifKey);
+            state.latestResults = state.latestResults.filter((result) => result.key !== gifKey);
+
+            if (state.stats.favoriteKey === gifKey) {
+                state.stats.favoriteKey = "";
+                state.stats.favoriteVariant = "";
+            }
+
+            if (state.stats.bestPullKey === gifKey) {
+                state.stats.bestPullKey = null;
+                state.stats.bestPullVariant = "";
+            }
+        }
+
+        function normalizeDevStatsState() {
+            const defaults = createDefaultStats();
+            state.stats.totalPulls = Math.max(0, clampNumber(state.stats.totalPulls, 0, Number.MAX_SAFE_INTEGER, defaults.totalPulls));
+            state.stats.pityCounter = Math.max(0, clampNumber(state.stats.pityCounter, 0, Number.MAX_SAFE_INTEGER, defaults.pityCounter));
+            state.stats.signalDust = Math.max(0, clampNumber(state.stats.signalDust, 0, Number.MAX_SAFE_INTEGER, defaults.signalDust));
+            state.stats.dailyStreak = Math.max(0, clampNumber(state.stats.dailyStreak, 0, Number.MAX_SAFE_INTEGER, defaults.dailyStreak));
+            state.stats.soundVolume = clampNumber(state.stats.soundVolume, 0, 100, defaults.soundVolume);
+            state.stats.challengeWins = Math.max(0, clampNumber(state.stats.challengeWins, 0, Number.MAX_SAFE_INTEGER, defaults.challengeWins));
+            state.stats.totalSignalSpent = Math.max(0, clampNumber(state.stats.totalSignalSpent, 0, Number.MAX_SAFE_INTEGER, defaults.totalSignalSpent));
+            state.stats.totalLuckScore = Math.max(0, clampNumber(state.stats.totalLuckScore, 0, Number.MAX_SAFE_INTEGER, defaults.totalLuckScore));
+            state.stats.currentDrought = Math.max(0, clampNumber(state.stats.currentDrought, 0, Number.MAX_SAFE_INTEGER, defaults.currentDrought));
+            state.stats.longestDrought = Math.max(state.stats.currentDrought, clampNumber(state.stats.longestDrought, 0, Number.MAX_SAFE_INTEGER, defaults.longestDrought));
+            state.stats.singlePullUnlockCount = Math.max(0, clampNumber(state.stats.singlePullUnlockCount, 0, Number.MAX_SAFE_INTEGER, defaults.singlePullUnlockCount));
+            state.stats.tenPullUnlockCount = Math.max(0, clampNumber(state.stats.tenPullUnlockCount, 0, Number.MAX_SAFE_INTEGER, defaults.tenPullUnlockCount));
+            state.stats.counts = Object.fromEntries(
+                GIFS.map((gif) => [
+                    gif.key,
+                    Math.max(0, clampNumber(state.stats.counts?.[gif.key], 0, Number.MAX_SAFE_INTEGER, defaults.counts[gif.key]))
+                ])
+            );
+            state.stats.unlocked = Array.isArray(state.stats.unlocked)
+                ? [...new Set(state.stats.unlocked.filter((key) => gifMap[key]))]
+                : [];
+            state.stats.achievementKeys = Array.isArray(state.stats.achievementKeys)
+                ? [...new Set(state.stats.achievementKeys.filter((key) => ACHIEVEMENTS.some((achievement) => achievement.key === key)))]
+                : [];
+            state.stats.achievementDates = state.stats.achievementDates && typeof state.stats.achievementDates === "object" ? state.stats.achievementDates : {};
+            state.stats.firstPullDates = state.stats.firstPullDates && typeof state.stats.firstPullDates === "object" ? state.stats.firstPullDates : {};
+            state.stats.recent = Array.isArray(state.stats.recent)
+                ? state.stats.recent.map(normalizeRecentEntry).filter((entry) => entry && gifMap[entry.key]).slice(0, RECENT_PULL_LIMIT)
+                : [];
+            state.stats.bannerHistory = Array.isArray(state.stats.bannerHistory)
+                ? state.stats.bannerHistory.filter((entry) => entry && gifMap[entry.bestKey]).slice(0, 20)
+                : [];
+            state.stats.rareHitHistory = Array.isArray(state.stats.rareHitHistory)
+                ? state.stats.rareHitHistory.filter((entry) => entry && gifMap[entry.key]).slice(-24)
+                : [];
+            state.stats.soundEnabled = typeof state.stats.soundEnabled === "boolean" ? state.stats.soundEnabled : defaults.soundEnabled;
+            state.stats.spinSoundsEnabled = typeof state.stats.spinSoundsEnabled === "boolean" ? state.stats.spinSoundsEnabled : defaults.spinSoundsEnabled;
+            state.stats.resultSoundsEnabled = typeof state.stats.resultSoundsEnabled === "boolean" ? state.stats.resultSoundsEnabled : defaults.resultSoundsEnabled;
+            deriveVariantTotalsFromStats();
+            state.stats.ownedBannerKeys = normalizeOwnedBannerKeys(state.stats.ownedBannerKeys, state.stats.activeBannerKey);
+            state.stats.activeBannerKey = isBannerOwned(state.stats.activeBannerKey, state.stats)
+                ? state.stats.activeBannerKey
+                : state.stats.ownedBannerKeys[0] || defaults.activeBannerKey;
+            state.stats.selectedTheme = THEMES.some((theme) => theme.key === state.stats.selectedTheme) ? state.stats.selectedTheme : defaults.selectedTheme;
+            state.stats.bestPullKey = gifMap[state.stats.bestPullKey] ? state.stats.bestPullKey : null;
+            state.stats.bestPullVariant = state.stats.bestPullKey && getVariantConfig(state.stats.bestPullVariant) ? state.stats.bestPullVariant : "";
+            state.stats.favoriteKey = gifMap[state.stats.favoriteKey] ? state.stats.favoriteKey : "";
+            state.stats.favoriteVariant = state.stats.favoriteKey && getVariantConfig(state.stats.favoriteVariant) ? state.stats.favoriteVariant : "";
+            state.stats.challenge = normalizeChallengeState(state.stats.challenge, defaults.challenge);
+
+            GIFS.forEach((gif) => {
+                const variantTotal = Object.values(state.stats.variantCounts[gif.key] || {}).reduce((sum, count) => sum + count, 0);
+                if (state.stats.counts[gif.key] > 0 || variantTotal > 0 || state.stats.favoriteKey === gif.key || state.stats.bestPullKey === gif.key) {
+                    markGifUnlockedForDev(gif.key);
+                }
+            });
+        }
+
+        function runDevMutation(message, mutate, options = {}) {
+            mutate();
+            normalizeDevStatsState();
+
+            if (options.applyTheme) {
+                applyTheme();
+            }
+
+            if (options.syncAchievements) {
+                syncAchievements(true);
+            }
+
+            if (options.persist !== false) {
+                persistProgress();
+            }
+
+            if (options.render !== false) {
+                renderAll();
+            }
+
+            renderDevModeWindow();
+            if (message) {
+                flashSaveStatus(message);
+            }
+        }
+
         function grantDevSignalDust(amount) {
-            state.stats.signalDust += amount;
-            persistProgress();
-            renderAll();
-            flashSaveStatus(`Dev mode: +${amount} signal`);
+            const label = amount >= 0 ? `+${amount}` : `${amount}`;
+            runDevMutation(`Dev mode: ${label} signal`, () => {
+                state.stats.signalDust = Math.max(0, state.stats.signalDust + amount);
+            });
         }
 
         function unlockAllDevBanners() {
-            state.stats.ownedBannerKeys = normalizeOwnedBannerKeys(BANNERS.map((banner) => banner.key), state.stats.activeBannerKey);
-            persistProgress();
-            renderAll();
-            flashSaveStatus("Dev mode: all banners unlocked");
+            runDevMutation("Dev mode: all banners unlocked", () => {
+                state.stats.ownedBannerKeys = normalizeOwnedBannerKeys(BANNERS.map((banner) => banner.key), state.stats.activeBannerKey);
+            });
         }
 
         function unlockAllDevPullModes() {
-            state.stats.singlePullUnlockCount = Math.max(state.stats.singlePullUnlockCount, TEN_PULL_UNLOCK_REQUIREMENT);
-            state.stats.tenPullUnlockCount = Math.max(state.stats.tenPullUnlockCount, HUNDRED_PULL_UNLOCK_REQUIREMENT);
-            persistProgress();
-            renderAll();
-            flashSaveStatus("Dev mode: all pull modes unlocked");
+            runDevMutation("Dev mode: all pull modes unlocked", () => {
+                state.stats.singlePullUnlockCount = Math.max(state.stats.singlePullUnlockCount, TEN_PULL_UNLOCK_REQUIREMENT);
+                state.stats.tenPullUnlockCount = Math.max(state.stats.tenPullUnlockCount, HUNDRED_PULL_UNLOCK_REQUIREMENT);
+            });
         }
 
-        function previewDevRarePopup(gifKey) {
+        function setDevPityToMax() {
+            runDevMutation("Dev mode: pity set to guarantee", () => {
+                state.stats.pityCounter = PITY_GUARANTEE;
+                state.stats.currentDrought = Math.max(state.stats.currentDrought, PITY_GUARANTEE);
+                state.stats.longestDrought = Math.max(state.stats.longestDrought, state.stats.currentDrought);
+            });
+        }
+
+        function resetDevDailyClaim() {
+            runDevMutation("Dev mode: daily reset", () => {
+                state.stats.lastDailyClaimDate = "";
+            });
+        }
+
+        function useSelectedDevBanner() {
+            const bannerKey = getDevFieldValue("banner");
+            if (!bannerMap[bannerKey]) {
+                return;
+            }
+
+            runDevMutation(`Dev mode: ${getBannerName(bannerKey)} active`, () => {
+                if (!state.stats.ownedBannerKeys.includes(bannerKey)) {
+                    state.stats.ownedBannerKeys = normalizeOwnedBannerKeys([...state.stats.ownedBannerKeys, bannerKey], bannerKey);
+                }
+                state.stats.activeBannerKey = bannerKey;
+            });
+        }
+
+        function ownSelectedDevBanner() {
+            const bannerKey = getDevFieldValue("banner");
+            if (!bannerMap[bannerKey]) {
+                return;
+            }
+
+            runDevMutation(`Dev mode: ${getBannerName(bannerKey)} owned`, () => {
+                state.stats.ownedBannerKeys = normalizeOwnedBannerKeys([...state.stats.ownedBannerKeys, bannerKey], state.stats.activeBannerKey);
+            });
+        }
+
+        function removeSelectedDevBannerOwnership() {
+            const bannerKey = getDevFieldValue("banner");
+            if (!bannerMap[bannerKey] || bannerKey === BANNERS[0].key) {
+                return;
+            }
+
+            runDevMutation(`Dev mode: removed ${getBannerName(bannerKey)}`, () => {
+                state.stats.ownedBannerKeys = state.stats.ownedBannerKeys.filter((key) => key !== bannerKey);
+                if (state.stats.activeBannerKey === bannerKey) {
+                    state.stats.activeBannerKey = BANNERS[0].key;
+                }
+            });
+        }
+
+        function resetDevBannerOwnership() {
+            runDevMutation("Dev mode: premium banners removed", () => {
+                state.stats.ownedBannerKeys = [BANNERS[0].key];
+                state.stats.activeBannerKey = BANNERS[0].key;
+            });
+        }
+
+        function useSelectedDevTheme() {
+            const themeKey = getDevFieldValue("theme");
+            if (!THEMES.some((theme) => theme.key === themeKey)) {
+                return;
+            }
+
+            runDevMutation(`Dev mode: ${themeKey} theme applied`, () => {
+                state.stats.selectedTheme = themeKey;
+            }, { applyTheme: true });
+        }
+
+        function startSelectedDevChallenge() {
+            const challengeKey = getDevFieldValue("challenge");
+            const template = CHALLENGE_POOL.find((entry) => entry.key === challengeKey);
+            if (!template) {
+                return;
+            }
+
+            runDevMutation(`Dev mode: ${template.name} started`, () => {
+                state.stats.challenge = {
+                    ...template,
+                    totalSpins: template.spins,
+                    spinsLeft: template.spins,
+                    status: "active",
+                    startedAt: new Date().toISOString()
+                };
+            });
+        }
+
+        function clearDevChallenge() {
+            runDevMutation("Dev mode: challenge cleared", () => {
+                state.stats.challenge = null;
+            });
+        }
+
+        function getSelectedDevCountAmount() {
+            return getDevIntegerFieldValue("countAmount", 1);
+        }
+
+        function getSelectedDevVariantAmount() {
+            return getDevIntegerFieldValue("variantAmount", 1);
+        }
+
+        function unlockSelectedDevGif() {
+            const gif = getSelectedDevGif();
+            runDevMutation(`Dev mode: ${gif.name} unlocked`, () => {
+                markGifUnlockedForDev(gif.key);
+            });
+        }
+
+        function removeSelectedDevGif() {
+            const gif = getSelectedDevGif();
+            runDevMutation(`Dev mode: ${gif.name} removed`, () => {
+                clearGifFromAccountForDev(gif.key);
+            });
+        }
+
+        function setSelectedDevGifCount() {
+            const gif = getSelectedDevGif();
+            const amount = getSelectedDevCountAmount();
+            runDevMutation(`Dev mode: ${gif.name} count set to ${amount}`, () => {
+                state.stats.counts[gif.key] = amount;
+                if (amount > 0) {
+                    markGifUnlockedForDev(gif.key);
+                }
+            });
+        }
+
+        function addSelectedDevGifCount() {
+            const gif = getSelectedDevGif();
+            const amount = getSelectedDevCountAmount();
+            runDevMutation(`Dev mode: +${amount} ${gif.name} pulls`, () => {
+                state.stats.counts[gif.key] += amount;
+                if (state.stats.counts[gif.key] > 0) {
+                    markGifUnlockedForDev(gif.key);
+                }
+            });
+        }
+
+        function clearSelectedDevGifCount() {
+            const gif = getSelectedDevGif();
+            runDevMutation(`Dev mode: ${gif.name} pull count cleared`, () => {
+                state.stats.counts[gif.key] = 0;
+            });
+        }
+
+        function setSelectedDevFavorite() {
+            const gif = getSelectedDevGif();
+            const variantKey = getSelectedDevVariantKey();
+            runDevMutation(`Dev mode: favorite set to ${getResultDisplayName({ ...gif, variantKey })}`, () => {
+                markGifUnlockedForDev(gif.key);
+                state.stats.favoriteKey = gif.key;
+                state.stats.favoriteVariant = variantKey;
+            });
+        }
+
+        function clearDevFavorite() {
+            runDevMutation("Dev mode: favorite cleared", () => {
+                state.stats.favoriteKey = "";
+                state.stats.favoriteVariant = "";
+            });
+        }
+
+        function setSelectedDevBestPull() {
+            const gif = getSelectedDevGif();
+            const variantKey = getSelectedDevVariantKey();
+            runDevMutation(`Dev mode: best pull set to ${getResultDisplayName({ ...gif, variantKey })}`, () => {
+                markGifUnlockedForDev(gif.key);
+                state.stats.bestPullKey = gif.key;
+                state.stats.bestPullVariant = variantKey;
+            });
+        }
+
+        function clearSelectedDevBestPull() {
+            runDevMutation("Dev mode: best pull cleared", () => {
+                state.stats.bestPullKey = null;
+                state.stats.bestPullVariant = "";
+            });
+        }
+
+        function addSelectedDevVariant() {
+            const gif = getSelectedDevGif();
+            const variantKey = getSelectedDevVariantKey();
+            const amount = getSelectedDevVariantAmount();
+            if (!variantKey) {
+                flashSaveStatus("Dev mode: choose a variant first");
+                return;
+            }
+
+            runDevMutation(`Dev mode: +${amount} ${getVariantLabel(variantKey)} ${gif.name}`, () => {
+                ensureVariantCountEntry(gif.key);
+                state.stats.variantCounts[gif.key][variantKey] += amount;
+                markGifUnlockedForDev(gif.key);
+            });
+        }
+
+        function removeSelectedDevVariant() {
+            const gif = getSelectedDevGif();
+            const variantKey = getSelectedDevVariantKey();
+            const amount = getSelectedDevVariantAmount();
+            if (!variantKey) {
+                flashSaveStatus("Dev mode: choose a variant first");
+                return;
+            }
+
+            runDevMutation(`Dev mode: -${amount} ${getVariantLabel(variantKey)} ${gif.name}`, () => {
+                ensureVariantCountEntry(gif.key);
+                state.stats.variantCounts[gif.key][variantKey] = Math.max(0, state.stats.variantCounts[gif.key][variantKey] - amount);
+            });
+        }
+
+        function fillSelectedDevGifVariants() {
+            const gif = getSelectedDevGif();
+            const amount = Math.max(1, getSelectedDevVariantAmount());
+            runDevMutation(`Dev mode: every variant granted on ${gif.name}`, () => {
+                ensureVariantCountEntry(gif.key);
+                VARIANT_TYPES.forEach((variant) => {
+                    state.stats.variantCounts[gif.key][variant.key] = Math.max(state.stats.variantCounts[gif.key][variant.key], amount);
+                });
+                markGifUnlockedForDev(gif.key);
+            });
+        }
+
+        function clearSelectedDevGifVariants() {
+            const gif = getSelectedDevGif();
+            runDevMutation(`Dev mode: variants cleared on ${gif.name}`, () => {
+                state.stats.variantCounts[gif.key] = createEmptyVariantCountRecord();
+                if (state.stats.favoriteKey === gif.key && state.stats.favoriteVariant) {
+                    state.stats.favoriteVariant = "";
+                }
+                if (state.stats.bestPullKey === gif.key && state.stats.bestPullVariant) {
+                    state.stats.bestPullVariant = "";
+                }
+            });
+        }
+
+        function unlockAllDevGifs() {
+            runDevMutation("Dev mode: all GIFs unlocked", () => {
+                GIFS.forEach((gif) => markGifUnlockedForDev(gif.key));
+            });
+        }
+
+        function clearDevCollection() {
+            runDevMutation("Dev mode: collection cleared", () => {
+                state.stats.counts = Object.fromEntries(GIFS.map((gif) => [gif.key, 0]));
+                state.stats.unlocked = [];
+                state.stats.firstPullDates = {};
+                state.stats.variantCounts = Object.fromEntries(GIFS.map((gif) => [gif.key, createEmptyVariantCountRecord()]));
+                state.stats.bestPullKey = null;
+                state.stats.bestPullVariant = "";
+                state.stats.favoriteKey = "";
+                state.stats.favoriteVariant = "";
+                state.stats.recent = [];
+                state.stats.rareHitHistory = [];
+                state.latestResults = [];
+            });
+        }
+
+        function applyDevAccountFields() {
+            runDevMutation("Dev mode: account fields applied", () => {
+                state.stats.signalDust = getDevIntegerFieldValue("accountSignalDust", state.stats.signalDust);
+                state.stats.totalPulls = getDevIntegerFieldValue("accountTotalPulls", state.stats.totalPulls);
+                state.stats.pityCounter = getDevIntegerFieldValue("accountPity", state.stats.pityCounter);
+                state.stats.dailyStreak = getDevIntegerFieldValue("accountDailyStreak", state.stats.dailyStreak);
+                state.stats.currentDrought = getDevIntegerFieldValue("accountCurrentDrought", state.stats.currentDrought);
+                state.stats.longestDrought = getDevIntegerFieldValue("accountLongestDrought", state.stats.longestDrought);
+                state.stats.challengeWins = getDevIntegerFieldValue("accountChallengeWins", state.stats.challengeWins);
+                state.stats.totalSignalSpent = getDevIntegerFieldValue("accountSignalSpent", state.stats.totalSignalSpent);
+                state.stats.totalLuckScore = Math.max(0, clampNumber(getDevFieldValue("accountLuckScore"), 0, Number.MAX_SAFE_INTEGER, state.stats.totalLuckScore));
+            });
+        }
+
+        function clearDevLatestResults() {
+            runDevMutation("Dev mode: latest results cleared", () => {
+                state.latestResults = [];
+            });
+        }
+
+        function clearDevRecentPulls() {
+            runDevMutation("Dev mode: recent pulls cleared", () => {
+                state.stats.recent = [];
+            });
+        }
+
+        function clearDevBannerHistory() {
+            runDevMutation("Dev mode: banner history cleared", () => {
+                state.stats.bannerHistory = [];
+            });
+        }
+
+        function clearDevRareHistory() {
+            runDevMutation("Dev mode: rare history cleared", () => {
+                state.stats.rareHitHistory = [];
+            });
+        }
+
+        function grantSelectedDevAchievement() {
+            const achievement = getSelectedDevAchievement();
+            runDevMutation(`Dev mode: ${achievement.name} granted`, () => {
+                if (!state.stats.achievementKeys.includes(achievement.key)) {
+                    state.stats.achievementKeys.push(achievement.key);
+                }
+                state.stats.achievementDates[achievement.key] = new Date().toISOString();
+            });
+        }
+
+        function removeSelectedDevAchievement() {
+            const achievement = getSelectedDevAchievement();
+            runDevMutation(`Dev mode: ${achievement.name} removed`, () => {
+                state.stats.achievementKeys = state.stats.achievementKeys.filter((key) => key !== achievement.key);
+                delete state.stats.achievementDates[achievement.key];
+            });
+        }
+
+        function grantAllDevAchievements() {
+            runDevMutation("Dev mode: all achievements granted", () => {
+                state.stats.achievementKeys = ACHIEVEMENTS.map((achievement) => achievement.key);
+                state.stats.achievementDates = Object.fromEntries(
+                    ACHIEVEMENTS.map((achievement) => [achievement.key, new Date().toISOString()])
+                );
+            });
+        }
+
+        function clearDevAchievements() {
+            runDevMutation("Dev mode: achievements cleared", () => {
+                state.stats.achievementKeys = [];
+                state.stats.achievementDates = {};
+            });
+        }
+
+        function resyncDevAchievements() {
+            runDevMutation("Dev mode: achievements resynced", () => {}, { syncAchievements: true });
+        }
+
+        function startSelectedDevSpin() {
+            if (state.isSpinning) {
+                return;
+            }
+
+            const gif = getSelectedDevGif();
+            const variantKey = getSelectedDevVariantKey();
+            const count = getSelectedDevCount();
+            const results = buildDevResults(gif.key, variantKey, count);
+            startSpin(count, { source: "dev", presetResults: results });
+            renderDevModeWindow();
+        }
+
+        function grantSelectedDevResults() {
+            if (state.isSpinning) {
+                return;
+            }
+
+            const gif = getSelectedDevGif();
+            const variantKey = getSelectedDevVariantKey();
+            const count = getSelectedDevCount();
+            const results = buildDevResults(gif.key, variantKey, count);
+            if (results.length === 0) {
+                return;
+            }
+
+            state.pendingMeta = {
+                source: "dev",
+                bannerKey: state.stats.activeBannerKey,
+                startedAt: new Date().toISOString(),
+                craftKey: "",
+                daily: false,
+                pullCount: count
+            };
+            finalizeResults(results);
+            renderDevModeWindow();
+            flashSaveStatus(`Dev mode: granted ${count} ${gif.name} result${count > 1 ? "s" : ""}`);
+        }
+
+        function previewSelectedDevResult() {
+            const gif = getSelectedDevGif();
+            const variantKey = getSelectedDevVariantKey();
+            previewDevRarePopup(gif.key, variantKey);
+        }
+
+        function refreshDevSnapshotField() {
+            const snapshotField = getDevModeWindowBody()?.querySelector("[data-dev-field='snapshot']");
+            if (!snapshotField) {
+                return;
+            }
+
+            snapshotField.value = JSON.stringify(state.stats, null, 2);
+            flashSaveStatus("Dev mode: snapshot refreshed");
+        }
+
+        async function copyDevSnapshotField() {
+            const snapshotField = getDevModeWindowBody()?.querySelector("[data-dev-field='snapshot']");
+            if (!snapshotField || !navigator.clipboard?.writeText) {
+                flashSaveStatus("Dev mode: copy unavailable");
+                return;
+            }
+
+            try {
+                await navigator.clipboard.writeText(snapshotField.value);
+                flashSaveStatus("Dev mode: snapshot copied");
+            } catch (error) {
+                flashSaveStatus("Dev mode: snapshot copy failed");
+            }
+        }
+
+        function applyDevSnapshotField() {
+            const snapshotField = getDevModeWindowBody()?.querySelector("[data-dev-field='snapshot']");
+            if (!snapshotField) {
+                return;
+            }
+
+            try {
+                const parsed = JSON.parse(snapshotField.value);
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
+                loadProgress();
+                applyTheme();
+                syncAchievements(true);
+                persistProgress();
+                renderAll();
+                renderDevModeWindow();
+                flashSaveStatus("Dev mode: snapshot applied");
+            } catch (error) {
+                flashSaveStatus("Dev mode: invalid snapshot");
+            }
+        }
+
+        function previewDevRarePopup(gifKey, variantKey = "") {
             if (state.isSpinning || document.querySelector(".big-winner-overlay")) {
                 return;
             }
@@ -4416,7 +5470,7 @@
             const previewResult = createPulledResult(gif, {
                 source: "dev-preview",
                 bannerKey: state.stats.activeBannerKey,
-                variantKey: ""
+                variantKey
             });
 
             showWinnerOverlay(previewResult, [previewResult], { finalizeOnClose: false });
