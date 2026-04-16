@@ -1747,7 +1747,14 @@
         .floating-window-body {
             max-height: calc(min(82vh, 760px) - 92px);
             overflow: auto;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
             padding: 18px;
+        }
+
+        .floating-window-body::-webkit-scrollbar {
+            width: 0;
+            height: 0;
         }
 
         .dev-summary-grid {
@@ -1839,9 +1846,15 @@
             left: 0;
             right: 0;
             top: calc(100% + 8px);
-            display: grid;
+            display: flex;
+            flex-direction: column;
             gap: 8px;
             padding: 10px;
+            max-height: min(360px, 52vh);
+            overflow-y: scroll;
+            overscroll-behavior: contain;
+            scrollbar-gutter: stable;
+            scrollbar-width: thin;
             border-radius: 16px;
             border: 1px solid rgba(255, 255, 255, 0.14);
             background: linear-gradient(180deg, rgba(14, 23, 39, 0.98), rgba(8, 15, 28, 0.98));
@@ -1849,8 +1862,25 @@
             z-index: 9;
         }
 
+        .dev-picker-menu::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        .dev-picker-menu::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.04);
+            border-radius: 999px;
+        }
+
+        .dev-picker-menu::-webkit-scrollbar-thumb {
+            background: rgba(255, 215, 106, 0.32);
+            border-radius: 999px;
+            border: 2px solid transparent;
+            background-clip: padding-box;
+        }
+
         .dev-picker-option {
             width: 100%;
+            flex: 0 0 auto;
             text-align: left;
             padding: 12px 14px;
             border-radius: 12px;
@@ -1873,9 +1903,16 @@
         .dev-textarea {
             min-height: 280px;
             padding: 14px;
-            resize: vertical;
+            resize: none;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
             line-height: 1.45;
             font-family: Consolas, "Courier New", monospace;
+        }
+
+        .dev-textarea::-webkit-scrollbar {
+            width: 0;
+            height: 0;
         }
 
         .dev-note {
@@ -3326,6 +3363,7 @@
                 achievementGrandPrizeClaimedAt: "",
                 favoriteKey: "",
                 favoriteVariant: "",
+                favoriteVariantKeys: [],
                 firstPullDates: {},
                 variantCounts: Object.fromEntries(GIFS.map((gif) => [gif.key, createEmptyVariantCountRecord()])),
                 totalVariantPulls: createEmptyVariantCountRecord(),
@@ -3704,6 +3742,38 @@
             return normalizeVariantKeys(result?.variantKeys, result?.variantKey || "");
         }
 
+        function getFavoriteVariantKeys(stats = state.stats) {
+            return normalizeVariantKeys(stats?.favoriteVariantKeys, stats?.favoriteVariant || "");
+        }
+
+        function getFavoriteResult(stats = state.stats) {
+            if (!stats?.favoriteKey || !gifMap[stats.favoriteKey]) {
+                return null;
+            }
+
+            return {
+                ...gifMap[stats.favoriteKey],
+                variantKey: stats.favoriteVariant || "",
+                variantKeys: getFavoriteVariantKeys(stats)
+            };
+        }
+
+        function isFavoriteResult(result, stats = state.stats) {
+            if (!result?.key || stats?.favoriteKey !== result.key) {
+                return false;
+            }
+
+            const favoriteKeys = getFavoriteVariantKeys(stats);
+            const resultKeys = getResultVariantKeys(result);
+
+            if (favoriteKeys.length > 0 || resultKeys.length > 0) {
+                return favoriteKeys.length === resultKeys.length &&
+                    favoriteKeys.every((variantKey, index) => variantKey === resultKeys[index]);
+            }
+
+            return (stats?.favoriteVariant || "") === (result?.variantKey || "");
+        }
+
         function getResultPrimaryVariantKey(result) {
             return getPrimaryVariantKeyFromKeys(getResultVariantKeys(result));
         }
@@ -3954,7 +4024,8 @@
                 alt = getResultDisplayName(result),
                 syncPath = "",
                 syncCycle = "",
-                extraClass = ""
+                extraClass = "",
+                hideGifAccent = false
             } = options;
             const syncAttrs = syncPath
                 ? ` data-sync-gif="${syncPath}" data-sync-cycle="${syncCycle}"`
@@ -3963,7 +4034,7 @@
             return `
                 <div class="${getResultMediaFrameClass(result, extraClass)}">
                     <img class="${getResultImageClass(result)}" src="${src}" alt="${alt}"${syncAttrs}>
-                    ${getGifAccentOverlayMarkup(result)}
+                    ${hideGifAccent ? "" : getGifAccentOverlayMarkup(result)}
                     ${getVariantOverlayMarkup(result)}
                 </div>
             `;
@@ -3975,7 +4046,8 @@
                 alt = getResultDisplayName(result),
                 syncPath = "",
                 syncCycle = "",
-                extraClass = ""
+                extraClass = "",
+                hideGifAccent = false
             } = options;
             const wrapper = document.createElement("div");
             wrapper.className = getResultMediaFrameClass(result, extraClass);
@@ -3992,7 +4064,7 @@
 
             wrapper.appendChild(image);
 
-            const accentMarkup = getGifAccentOverlayMarkup(result);
+            const accentMarkup = hideGifAccent ? "" : getGifAccentOverlayMarkup(result);
             if (accentMarkup) {
                 wrapper.insertAdjacentHTML("beforeend", accentMarkup);
             }
@@ -4272,7 +4344,8 @@
             const media = createResultMediaNode(primaryResult, {
                 src: overlayMedia.src,
                 alt: getResultDisplayName(primaryResult),
-                extraClass: isAutoOverlay ? "overlay-result-media auto-overlay-media" : "overlay-result-media"
+                extraClass: isAutoOverlay ? "overlay-result-media auto-overlay-media" : "overlay-result-media",
+                hideGifAccent: primaryResult.key === "mythic"
             });
             const image = media.image;
 
@@ -4296,6 +4369,22 @@
 
             const shareRow = document.createElement("div");
             shareRow.className = "share-actions";
+            const favoriteVariantKey = getResultPrimaryVariantKey(primaryResult);
+            const favoriteVariantKeys = getResultVariantKeys(primaryResult);
+            const isAlreadyFavorite = isFavoriteResult(primaryResult);
+
+            if (!isAutoOverlay) {
+                const favoriteButton = document.createElement("button");
+                favoriteButton.className = "ghost-button";
+                favoriteButton.textContent = isAlreadyFavorite ? "Favorited" : "Set Favorite";
+                favoriteButton.disabled = isAlreadyFavorite;
+                favoriteButton.addEventListener("click", () => {
+                    setFavoriteGif(primaryResult.key, favoriteVariantKey, favoriteVariantKeys);
+                    favoriteButton.textContent = "Favorited";
+                    favoriteButton.disabled = true;
+                });
+                shareRow.appendChild(favoriteButton);
+            }
 
             const copyButton = document.createElement("button");
             copyButton.className = "ghost-button";
@@ -4910,6 +4999,7 @@
                 const count = state.stats.counts[gif.key];
                 const variantCounts = state.stats.variantCounts[gif.key] || createEmptyVariantCountRecord();
                 const previewResult = getPreviewResultForGif(gif);
+                const isFavorite = isFavoriteResult(previewResult);
                 const card = document.createElement("article");
                 card.className = `collection-card${getOuterCardAccentClass(previewResult)}${unlocked ? "" : " locked"}`;
                 card.innerHTML = `
@@ -4929,20 +5019,21 @@
                         <span class="secondary-meta">${getVariantAvailabilityText(gif)}</span>
                         <span class="secondary-meta">${unlocked && state.stats.firstPullDates[gif.key] ? `First pull: ${formatDate(state.stats.firstPullDates[gif.key])}` : "First pull: not yet"}</span>
                         <div class="collection-actions">
-                            <button class="ghost-button tiny-button" type="button" ${unlocked ? "" : "disabled"}>${state.stats.favoriteKey === gif.key ? "Favorited" : "Set Favorite"}</button>
+                            <button class="ghost-button tiny-button" type="button" ${unlocked ? "" : "disabled"}>${isFavorite ? "Favorited" : "Set Favorite"}</button>
                             <button class="ghost-button tiny-button" type="button" ${unlocked ? "" : "disabled"}>Export PNG</button>
                         </div>
                     </div>
                 `;
 
                 const [favoriteButton, exportButton] = card.querySelectorAll("button");
-                favoriteButton.addEventListener("click", () => setFavoriteGif(gif.key, previewResult.variantKey || ""));
+                favoriteButton.addEventListener("click", () => setFavoriteGif(gif.key, previewResult.variantKey || "", getResultVariantKeys(previewResult)));
                 exportButton.addEventListener("click", () => exportResultCard({
                     ...gif,
                     source: "export",
                     bannerKey: state.stats.activeBannerKey,
                     acquiredAt: new Date().toISOString(),
-                    variantKey: previewResult.variantKey || ""
+                    variantKey: previewResult.variantKey || "",
+                    variantKeys: getResultVariantKeys(previewResult)
                 }));
                 collectionGrid.appendChild(card);
             });
@@ -4987,7 +5078,7 @@
                 const [shareButton, exportButton, favoriteButton] = card.querySelectorAll("button");
                 shareButton.addEventListener("click", () => shareResults([gif]));
                 exportButton.addEventListener("click", () => exportResultCard(gif));
-                favoriteButton.addEventListener("click", () => setFavoriteGif(gif.key, getResultPrimaryVariantKey(gif)));
+                favoriteButton.addEventListener("click", () => setFavoriteGif(gif.key, getResultPrimaryVariantKey(gif), getResultVariantKeys(gif)));
                 resultsGrid.appendChild(card);
             });
         }
@@ -5220,11 +5311,11 @@
         }
 
         function renderShowcase(syncCycle = getThumbnailSyncCycle()) {
-            const favoriteGif = state.stats.favoriteKey ? gifMap[state.stats.favoriteKey] : null;
-            const favoriteVariant = state.stats.favoriteVariant || "";
+            const favoriteResult = getFavoriteResult();
+            const favoriteGif = favoriteResult?.key ? gifMap[favoriteResult.key] : null;
             const bestGif = state.stats.bestPullKey ? gifMap[state.stats.bestPullKey] : null;
-            const selected = favoriteGif
-                ? { ...favoriteGif, variantKey: favoriteVariant }
+            const selected = favoriteResult
+                ? favoriteResult
                 : bestGif
                     ? { ...bestGif, variantKey: state.stats.bestPullVariant || "" }
                     : null;
@@ -5385,7 +5476,7 @@
                 <span class="secondary-meta">This account now tracks ${ACHIEVEMENTS.length.toLocaleString()} achievements. Showing the newest unlocked cards first, then the next locked goals.</span>
                 <span class="muted-line">${state.stats.achievementGrandPrizeClaimed
                     ? `Grand prize claimed ${formatDate(state.stats.achievementGrandPrizeClaimedAt)}`
-                    : `Grand prize: +${ACHIEVEMENT_GRAND_PRIZE_SIGNAL.toLocaleString()} signal and ${ACHIEVEMENT_GRAND_PRIZE_VARIANT_COUNT} of every Godlike variant.`}</span>
+                    : `Grand prize: +${ACHIEVEMENT_GRAND_PRIZE_SIGNAL.toLocaleString()} signal and ${ACHIEVEMENT_GRAND_PRIZE_VARIANT_COUNT} Godlikes with every variant stacked.`}</span>
             `;
             achievementGrid.appendChild(summaryCard);
 
@@ -5706,13 +5797,15 @@
             renderAll();
         }
 
-        function setFavoriteGif(key, variantKey = "") {
+        function setFavoriteGif(key, variantKey = "", variantKeys = []) {
             if (!gifMap[key] || !state.stats.unlocked.includes(key)) {
                 return;
             }
 
+            const normalizedVariantKeys = normalizeVariantKeys(variantKeys, variantKey);
             state.stats.favoriteKey = key;
-            state.stats.favoriteVariant = variantKey;
+            state.stats.favoriteVariant = normalizedVariantKeys[0] || "";
+            state.stats.favoriteVariantKeys = normalizedVariantKeys;
             syncAchievements(true);
             persistProgress();
             renderAll();
@@ -5721,6 +5814,7 @@
         function clearFavoriteGif() {
             state.stats.favoriteKey = "";
             state.stats.favoriteVariant = "";
+            state.stats.favoriteVariantKeys = [];
             persistProgress();
             renderAll();
         }
@@ -5839,6 +5933,7 @@
         function grantAllAchievementGrandPrize() {
             const godlikeKey = "godlike";
             const godlike = gifMap[godlikeKey];
+            const grantedBundleCount = ACHIEVEMENT_GRAND_PRIZE_VARIANT_COUNT;
 
             if (!godlike) {
                 return;
@@ -5856,14 +5951,36 @@
                 state.stats.totalVariantPulls = createEmptyVariantCountRecord();
             }
 
-            let grantedTotal = 0;
             VARIANT_TYPES.forEach((variant) => {
-                state.stats.variantCounts[godlikeKey][variant.key] += ACHIEVEMENT_GRAND_PRIZE_VARIANT_COUNT;
-                state.stats.totalVariantPulls[variant.key] += ACHIEVEMENT_GRAND_PRIZE_VARIANT_COUNT;
-                grantedTotal += ACHIEVEMENT_GRAND_PRIZE_VARIANT_COUNT;
+                state.stats.variantCounts[godlikeKey][variant.key] += grantedBundleCount;
+                state.stats.totalVariantPulls[variant.key] += grantedBundleCount;
             });
 
-            state.stats.counts[godlikeKey] += grantedTotal;
+            state.stats.counts[godlikeKey] += grantedBundleCount;
+        }
+
+        function createAchievementGrandPrizeResult() {
+            const godlike = gifMap.godlike;
+            if (!godlike) {
+                return null;
+            }
+
+            const variantKeys = VARIANT_TYPES.map((variant) => variant.key);
+            return createPulledResult(godlike, {
+                source: "achievement",
+                bannerKey: state.stats.activeBannerKey,
+                variantKeys,
+                variantKey: variantKeys[0]
+            });
+        }
+
+        function showAchievementGrandPrizeWinnerOverlay() {
+            const result = createAchievementGrandPrizeResult();
+            if (!result) {
+                return;
+            }
+
+            showWinnerOverlay(result, [result], { finalizeOnClose: false });
         }
 
         function showAllAchievementsCompletionModal() {
@@ -5874,7 +5991,10 @@
             const { overlay, card } = createModalShell(
                 "10,000 Achievements Complete",
                 "You cleared the entire Reels Pull achievement vault.",
-                { closeLabel: "Claimed" }
+                {
+                    closeLabel: "Claimed",
+                    onClose: showAchievementGrandPrizeWinnerOverlay
+                }
             );
             overlay.dataset.achievementGrandPrize = "true";
 
@@ -5888,10 +6008,11 @@
                 </div>
                 <div class="badge-row">
                     <span class="variant-chip">+${ACHIEVEMENT_GRAND_PRIZE_SIGNAL.toLocaleString()} signal</span>
-                    ${VARIANT_TYPES.map((variant) => `<span class="variant-chip" style="${getVariantChipStyle(variant)}">Godlike ${variant.label} x${ACHIEVEMENT_GRAND_PRIZE_VARIANT_COUNT}</span>`).join("")}
+                    <span class="variant-chip">${ACHIEVEMENT_GRAND_PRIZE_VARIANT_COUNT} stacked Godlikes</span>
+                    <span class="variant-chip">Each one includes Void + Holo + Alt + Shiny</span>
                 </div>
                 <div class="banner-benefit-copy">
-                    Your account just got a full Godlike variant bundle, and the reward has already been added to your saved progress.
+                    Your account just got ${ACHIEVEMENT_GRAND_PRIZE_VARIANT_COUNT} Godlikes, and every single one has all four variants stacked on it. This is not four separate variant bundles.
                 </div>
             `;
             card.appendChild(content);
@@ -5990,6 +6111,9 @@
                 overlay.removeEventListener("mousedown", handleDismiss);
                 document.removeEventListener("keydown", handleKeyDismiss);
                 overlay.remove();
+                if (typeof options.onClose === "function") {
+                    options.onClose();
+                }
             };
 
             const handleDismiss = (event) => {
@@ -6182,7 +6306,8 @@
 
             const activeBanner = getActiveBanner();
             const bestPull = state.stats.bestPullKey ? getResultDisplayName({ ...gifMap[state.stats.bestPullKey], variantKey: state.stats.bestPullVariant || "" }) : "None";
-            const favorite = state.stats.favoriteKey ? getResultDisplayName({ ...gifMap[state.stats.favoriteKey], variantKey: state.stats.favoriteVariant || "" }) : "None";
+            const favoriteResult = getFavoriteResult();
+            const favorite = favoriteResult ? getResultDisplayName(favoriteResult) : "None";
             const activeChallenge = state.stats.challenge ? `${state.stats.challenge.name} (${state.stats.challenge.status})` : "None";
             const bannerPicker = createDevPickerMarkup("banner", BANNERS.map((banner) => ({ value: banner.key, label: banner.name })), previousValues.banner || state.stats.activeBannerKey);
             const themePicker = createDevPickerMarkup("theme", THEMES.map((theme) => ({ value: theme.key, label: theme.name })), previousValues.theme || state.stats.selectedTheme);
@@ -6643,6 +6768,7 @@
             if (state.stats.favoriteKey === gifKey) {
                 state.stats.favoriteKey = "";
                 state.stats.favoriteVariant = "";
+                state.stats.favoriteVariantKeys = [];
             }
 
             if (state.stats.bestPullKey === gifKey) {
@@ -6708,6 +6834,7 @@
             state.stats.bestPullVariant = state.stats.bestPullKey && getVariantConfig(state.stats.bestPullVariant) ? state.stats.bestPullVariant : "";
             state.stats.favoriteKey = gifMap[state.stats.favoriteKey] ? state.stats.favoriteKey : "";
             state.stats.favoriteVariant = state.stats.favoriteKey && getVariantConfig(state.stats.favoriteVariant) ? state.stats.favoriteVariant : "";
+            state.stats.favoriteVariantKeys = state.stats.favoriteKey ? normalizeVariantKeys(state.stats.favoriteVariantKeys, state.stats.favoriteVariant) : [];
             state.stats.challenge = normalizeChallengeState(state.stats.challenge, defaults.challenge);
 
             GIFS.forEach((gif) => {
@@ -6919,6 +7046,7 @@
                 markGifUnlockedForDev(gif.key);
                 state.stats.favoriteKey = gif.key;
                 state.stats.favoriteVariant = variantKey;
+                state.stats.favoriteVariantKeys = normalizeVariantKeys([], variantKey);
             });
         }
 
@@ -6926,6 +7054,7 @@
             runDevMutation("Dev mode: favorite cleared", () => {
                 state.stats.favoriteKey = "";
                 state.stats.favoriteVariant = "";
+                state.stats.favoriteVariantKeys = [];
             });
         }
 
@@ -7001,6 +7130,7 @@
                 clearCurrentDevVariantPickerSelection();
                 if (state.stats.favoriteKey === gif.key && state.stats.favoriteVariant) {
                     state.stats.favoriteVariant = "";
+                    state.stats.favoriteVariantKeys = [];
                 }
                 if (state.stats.bestPullKey === gif.key && state.stats.bestPullVariant) {
                     state.stats.bestPullVariant = "";
@@ -7024,6 +7154,7 @@
                 state.stats.bestPullVariant = "";
                 state.stats.favoriteKey = "";
                 state.stats.favoriteVariant = "";
+                state.stats.favoriteVariantKeys = [];
                 state.stats.recent = [];
                 state.stats.rareHitHistory = [];
                 state.latestResults = [];
@@ -7717,6 +7848,7 @@
                     ? state.stats.favoriteKey
                     : "";
                 state.stats.favoriteVariant = state.stats.favoriteKey && getVariantConfig(state.stats.favoriteVariant) ? state.stats.favoriteVariant : "";
+                state.stats.favoriteVariantKeys = state.stats.favoriteKey ? normalizeVariantKeys(parsed.favoriteVariantKeys, state.stats.favoriteVariant) : [];
                 state.stats.challenge = normalizeChallengeState(parsed.challenge, defaults.challenge);
                 saveStatus.textContent = "Saved progress loaded";
             } catch (error) {
