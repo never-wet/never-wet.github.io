@@ -829,6 +829,28 @@
             gap: 10px;
         }
 
+        .achievement-grid {
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            max-height: 1120px;
+            overflow-y: auto;
+            padding-right: 6px;
+            align-content: start;
+        }
+
+        .achievement-grid::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        .achievement-grid::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 999px;
+        }
+
+        .achievement-grid::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.18);
+            border-radius: 999px;
+        }
+
         .craft-card,
         .achievement-card,
         .odds-card,
@@ -2456,7 +2478,10 @@
         </section>
 
         <section class="panel">
-            <h2 class="section-title">Achievements</h2>
+            <div class="section-heading">
+                <h2 class="section-title">Achievements</h2>
+                <span class="section-meta" id="achievementProgressText">0 / 0 complete</span>
+            </div>
             <div class="achievement-grid" id="achievementGrid"></div>
         </section>
 
@@ -2666,7 +2691,11 @@
             { key: "arcade", name: "Arcade Bloom", unlock: (stats) => getBestPullRankFromStats(stats) >= 8 },
             { key: "royal", name: "Royal Gold", unlock: (stats) => getBestPullRankFromStats(stats) >= 10 }
         ];
-        const ACHIEVEMENTS = [
+        const ACHIEVEMENT_TARGET_COUNT = 10000;
+        const ACHIEVEMENT_RENDER_LIMIT = 240;
+        const ACHIEVEMENT_GRAND_PRIZE_SIGNAL = 10000;
+        const ACHIEVEMENT_GRAND_PRIZE_VARIANT_COUNT = 10;
+        const BASE_ACHIEVEMENTS = [
             { key: "first_pull", name: "First Signal", description: "Make your first pull.", reward: 20, unlock: (stats) => stats.totalPulls >= 1 },
             { key: "collector_5", name: "Collector Five", description: "Unlock 5 different GIFs.", reward: 30, unlock: (stats) => stats.unlocked.length >= 5 },
             { key: "collector_all", name: "Archive Complete", description: "Unlock every base GIF.", reward: 180, unlock: (stats) => stats.unlocked.length >= GIFS.length },
@@ -2680,6 +2709,7 @@
             { key: "crafter", name: "Workshop Mode", description: "Spend 200 signal in crafting.", reward: 50, unlock: (stats) => stats.totalSignalSpent >= 200 },
             { key: "showcase_set", name: "Spotlight Ready", description: "Set a favorite showcase GIF.", reward: 15, unlock: (stats) => Boolean(stats.favoriteKey) }
         ];
+        const ACHIEVEMENTS = buildAchievements();
 
         const slotStrip = document.getElementById("slotStrip");
         const slotContainer = document.querySelector(".slot-container");
@@ -2709,6 +2739,7 @@
         const showcaseCard = document.getElementById("showcaseCard");
         const themeList = document.getElementById("themeList");
         const soundList = document.getElementById("soundList");
+        const achievementProgressText = document.getElementById("achievementProgressText");
         const achievementGrid = document.getElementById("achievementGrid");
         const oddsGrid = document.getElementById("oddsGrid");
         const droughtCard = document.getElementById("droughtCard");
@@ -2719,6 +2750,8 @@
 
         const gifMap = Object.fromEntries(GIFS.map((gif) => [gif.key, gif]));
         const bannerMap = Object.fromEntries(BANNERS.map((banner) => [banner.key, banner]));
+        const achievementMap = Object.fromEntries(ACHIEVEMENTS.map((achievement) => [achievement.key, achievement]));
+        const achievementKeySet = new Set(ACHIEVEMENTS.map((achievement) => achievement.key));
         let thumbnailSyncTimeoutId = null;
         let devModeCodeBuffer = "";
         const exportPosterArtCache = new Map();
@@ -2779,6 +2812,8 @@
                 bannerHistory: [],
                 achievementKeys: [],
                 achievementDates: {},
+                achievementGrandPrizeClaimed: false,
+                achievementGrandPrizeClaimedAt: "",
                 favoriteKey: "",
                 favoriteVariant: "",
                 firstPullDates: {},
@@ -2802,6 +2837,143 @@
                 singlePullUnlockCount: 0,
                 tenPullUnlockCount: 0
             };
+        }
+
+        function buildAchievements() {
+            const achievements = [];
+            const usedKeys = new Set();
+            const addAchievement = (key, name, description, reward, unlock) => {
+                if (usedKeys.has(key) || achievements.length >= ACHIEVEMENT_TARGET_COUNT) {
+                    return;
+                }
+
+                usedKeys.add(key);
+                achievements.push({ key, name, description, reward, unlock });
+            };
+
+            BASE_ACHIEVEMENTS.forEach((achievement) => {
+                addAchievement(achievement.key, achievement.name, achievement.description, achievement.reward, achievement.unlock);
+            });
+
+            for (let milestone = 1; milestone <= 3183; milestone += 1) {
+                addAchievement(
+                    `total_pulls_${milestone}`,
+                    `Signal Run ${milestone}`,
+                    `Reach ${milestone.toLocaleString()} total pull${milestone === 1 ? "" : "s"}.`,
+                    1,
+                    (stats) => stats.totalPulls >= milestone
+                );
+            }
+
+            for (let milestone = 1; milestone <= 1200; milestone += 1) {
+                addAchievement(
+                    `signal_dust_${milestone}`,
+                    `Dust Vault ${milestone}`,
+                    `Hold ${milestone.toLocaleString()} signal dust at once.`,
+                    1,
+                    (stats) => stats.signalDust >= milestone
+                );
+            }
+
+            for (let milestone = 1; milestone <= 900; milestone += 1) {
+                addAchievement(
+                    `signal_spent_${milestone}`,
+                    `Workshop Burn ${milestone}`,
+                    `Spend ${milestone.toLocaleString()} signal dust.`,
+                    1,
+                    (stats) => stats.totalSignalSpent >= milestone
+                );
+            }
+
+            for (let milestone = 1; milestone <= 800; milestone += 1) {
+                addAchievement(
+                    `variant_total_${milestone}`,
+                    `Variant Vault ${milestone}`,
+                    `Collect ${milestone.toLocaleString()} total variant pull${milestone === 1 ? "" : "s"}.`,
+                    1,
+                    (stats) => getTotalVariantPullCountFromStats(stats) >= milestone
+                );
+            }
+
+            for (let milestone = 1; milestone <= 365; milestone += 1) {
+                addAchievement(
+                    `daily_streak_${milestone}`,
+                    `Daily Clock ${milestone}`,
+                    `Reach a ${milestone}-day daily streak.`,
+                    1,
+                    (stats) => stats.dailyStreak >= milestone
+                );
+            }
+
+            for (let milestone = 1; milestone <= 240; milestone += 1) {
+                addAchievement(
+                    `challenge_wins_${milestone}`,
+                    `Challenge Crown ${milestone}`,
+                    `Clear ${milestone.toLocaleString()} challenge run${milestone === 1 ? "" : "s"}.`,
+                    1,
+                    (stats) => stats.challengeWins >= milestone
+                );
+            }
+
+            for (let milestone = 1; milestone <= 300; milestone += 1) {
+                addAchievement(
+                    `drought_${milestone}`,
+                    `Dry Spell ${milestone}`,
+                    `Survive a drought of ${milestone.toLocaleString()} pulls.`,
+                    1,
+                    (stats) => stats.longestDrought >= milestone
+                );
+            }
+
+            GIFS.forEach((gif) => {
+                for (let milestone = 1; milestone <= 300; milestone += 1) {
+                    addAchievement(
+                        `gif_${gif.key}_${milestone}`,
+                        `${gif.name} Ledger ${milestone}`,
+                        `Pull ${gif.name} ${milestone.toLocaleString()} time${milestone === 1 ? "" : "s"}.`,
+                        1,
+                        (stats) => (stats.counts?.[gif.key] || 0) >= milestone
+                    );
+                }
+            });
+
+            if (achievements.length < ACHIEVEMENT_TARGET_COUNT) {
+                for (let milestone = achievements.length + 1; milestone <= ACHIEVEMENT_TARGET_COUNT; milestone += 1) {
+                    addAchievement(
+                        `endless_mastery_${milestone}`,
+                        `Endless Mastery ${milestone}`,
+                        `Reach a late-game mastery threshold of ${milestone.toLocaleString()} total pulls.`,
+                        1,
+                        (stats) => stats.totalPulls >= milestone
+                    );
+                }
+            }
+
+            return achievements.slice(0, ACHIEVEMENT_TARGET_COUNT);
+        }
+
+        function getAchievementPickerOptions() {
+            const unlockedKeys = new Set(state.stats.achievementKeys);
+            const options = [];
+            const usedKeys = new Set();
+            const pushOption = (achievement) => {
+                if (!achievement || usedKeys.has(achievement.key)) {
+                    return;
+                }
+
+                usedKeys.add(achievement.key);
+                options.push({ value: achievement.key, label: achievement.name });
+            };
+
+            BASE_ACHIEVEMENTS.forEach(pushOption);
+            ACHIEVEMENTS.filter((achievement) => unlockedKeys.has(achievement.key))
+                .slice(-36)
+                .forEach(pushOption);
+            ACHIEVEMENTS.filter((achievement) => !unlockedKeys.has(achievement.key))
+                .slice(0, 60)
+                .forEach(pushOption);
+
+            return options;
         }
 
         function isAutoPullUnlocked(stats = state.stats) {
@@ -4439,9 +4611,31 @@
 
         function renderAchievements() {
             achievementGrid.innerHTML = "";
+            achievementProgressText.textContent = `${state.stats.achievementKeys.length.toLocaleString()} / ${ACHIEVEMENTS.length.toLocaleString()} complete`;
+            const unlockedKeys = new Set(state.stats.achievementKeys);
+            const unlockedAchievements = ACHIEVEMENTS
+                .filter((achievement) => unlockedKeys.has(achievement.key))
+                .sort((left, right) => new Date(state.stats.achievementDates[right.key] || 0) - new Date(state.stats.achievementDates[left.key] || 0))
+                .slice(0, Math.floor(ACHIEVEMENT_RENDER_LIMIT / 2));
+            const lockedAchievements = ACHIEVEMENTS
+                .filter((achievement) => !unlockedKeys.has(achievement.key))
+                .slice(0, ACHIEVEMENT_RENDER_LIMIT - unlockedAchievements.length);
+            const summaryCard = document.createElement("article");
+            summaryCard.className = "achievement-card";
+            summaryCard.innerHTML = `
+                <div class="achievement-top">
+                    <span class="achievement-title">Achievement Vault</span>
+                    <span class="achievement-reward">${state.stats.achievementKeys.length.toLocaleString()}/${ACHIEVEMENTS.length.toLocaleString()}</span>
+                </div>
+                <span class="secondary-meta">This account now tracks ${ACHIEVEMENTS.length.toLocaleString()} achievements. Showing the newest unlocked cards first, then the next locked goals.</span>
+                <span class="muted-line">${state.stats.achievementGrandPrizeClaimed
+                    ? `Grand prize claimed ${formatDate(state.stats.achievementGrandPrizeClaimedAt)}`
+                    : `Grand prize: +${ACHIEVEMENT_GRAND_PRIZE_SIGNAL.toLocaleString()} signal and ${ACHIEVEMENT_GRAND_PRIZE_VARIANT_COUNT} of every Godlike variant.`}</span>
+            `;
+            achievementGrid.appendChild(summaryCard);
 
-            ACHIEVEMENTS.forEach((achievement) => {
-                const unlocked = state.stats.achievementKeys.includes(achievement.key);
+            [...unlockedAchievements, ...lockedAchievements].forEach((achievement) => {
+                const unlocked = unlockedKeys.has(achievement.key);
                 const card = document.createElement("article");
                 card.className = `achievement-card${unlocked ? "" : " locked"}`;
                 card.innerHTML = `
@@ -4789,11 +4983,86 @@
             state.stats.bannerHistory = state.stats.bannerHistory.slice(0, 20);
         }
 
+        function grantAllAchievementGrandPrize() {
+            const godlikeKey = "godlike";
+            const godlike = gifMap[godlikeKey];
+
+            if (!godlike) {
+                return;
+            }
+
+            if (!state.stats.unlocked.includes(godlikeKey)) {
+                state.stats.unlocked.push(godlikeKey);
+            }
+            if (!state.stats.firstPullDates[godlikeKey]) {
+                state.stats.firstPullDates[godlikeKey] = new Date().toISOString();
+            }
+
+            ensureVariantCountEntry(godlikeKey);
+            if (!state.stats.totalVariantPulls) {
+                state.stats.totalVariantPulls = createEmptyVariantCountRecord();
+            }
+
+            let grantedTotal = 0;
+            VARIANT_TYPES.forEach((variant) => {
+                state.stats.variantCounts[godlikeKey][variant.key] += ACHIEVEMENT_GRAND_PRIZE_VARIANT_COUNT;
+                state.stats.totalVariantPulls[variant.key] += ACHIEVEMENT_GRAND_PRIZE_VARIANT_COUNT;
+                grantedTotal += ACHIEVEMENT_GRAND_PRIZE_VARIANT_COUNT;
+            });
+
+            state.stats.counts[godlikeKey] += grantedTotal;
+        }
+
+        function showAllAchievementsCompletionModal() {
+            if (document.querySelector("[data-achievement-grand-prize='true']")) {
+                return;
+            }
+
+            const { overlay, card } = createModalShell(
+                "10,000 Achievements Complete",
+                "You cleared the entire Reels Pull achievement vault.",
+                { closeLabel: "Claimed" }
+            );
+            overlay.dataset.achievementGrandPrize = "true";
+
+            const content = document.createElement("div");
+            content.className = "banner-benefit-stack";
+            content.innerHTML = `
+                <div class="resource-card">
+                    <span class="stat-label">Grand Prize</span>
+                    <strong>Congratulations. You finished all ${ACHIEVEMENTS.length.toLocaleString()} achievements.</strong>
+                    <span class="secondary-meta">That is an absurd amount of tracking, grinding, and luck.</span>
+                </div>
+                <div class="badge-row">
+                    <span class="variant-chip">+${ACHIEVEMENT_GRAND_PRIZE_SIGNAL.toLocaleString()} signal</span>
+                    ${VARIANT_TYPES.map((variant) => `<span class="variant-chip" style="${getVariantChipStyle(variant)}">Godlike ${variant.label} x${ACHIEVEMENT_GRAND_PRIZE_VARIANT_COUNT}</span>`).join("")}
+                </div>
+                <div class="banner-benefit-copy">
+                    Your account just got a full Godlike variant bundle, and the reward has already been added to your saved progress.
+                </div>
+            `;
+            card.appendChild(content);
+        }
+
+        function maybeGrantAllAchievementsGrandPrize() {
+            if (state.stats.achievementGrandPrizeClaimed || state.stats.achievementKeys.length < ACHIEVEMENTS.length) {
+                return false;
+            }
+
+            state.stats.achievementGrandPrizeClaimed = true;
+            state.stats.achievementGrandPrizeClaimedAt = new Date().toISOString();
+            state.stats.signalDust += ACHIEVEMENT_GRAND_PRIZE_SIGNAL;
+            grantAllAchievementGrandPrize();
+            showAllAchievementsCompletionModal();
+            return true;
+        }
+
         function syncAchievements(silent = false) {
             const newlyUnlocked = [];
+            const unlockedKeys = new Set(state.stats.achievementKeys);
 
             ACHIEVEMENTS.forEach((achievement) => {
-                if (state.stats.achievementKeys.includes(achievement.key)) {
+                if (unlockedKeys.has(achievement.key)) {
                     return;
                 }
 
@@ -4802,13 +5071,17 @@
                 }
 
                 state.stats.achievementKeys.push(achievement.key);
+                unlockedKeys.add(achievement.key);
                 state.stats.achievementDates[achievement.key] = new Date().toISOString();
                 state.stats.signalDust += achievement.reward;
                 newlyUnlocked.push(achievement.name);
             });
+            const grandPrizeGranted = maybeGrantAllAchievementsGrandPrize();
 
             if (!silent && newlyUnlocked.length > 0) {
                 flashSaveStatus(`Achievement unlocked: ${newlyUnlocked.join(", ")}`);
+            } else if (!silent && grandPrizeGranted) {
+                flashSaveStatus(`All ${ACHIEVEMENTS.length.toLocaleString()} achievements cleared! Grand prize claimed.`);
             }
 
             return newlyUnlocked;
@@ -5063,7 +5336,7 @@
             const challengePicker = createDevPickerMarkup("challenge", CHALLENGE_POOL.map((challenge) => ({ value: challenge.key, label: challenge.name })), previousValues.challenge || CHALLENGE_POOL[0].key);
             const gifPicker = createDevPickerMarkup("gif", GIFS.map((gif) => ({ value: gif.key, label: gif.name })), previousValues.gif || GIFS[0].key);
             const variantPicker = createDevPickerMarkup("variant", [{ value: "", label: "Base" }, ...VARIANT_TYPES.map((variant) => ({ value: variant.key, label: variant.label }))], previousValues.variant || "");
-            const achievementPicker = createDevPickerMarkup("achievement", ACHIEVEMENTS.map((achievement) => ({ value: achievement.key, label: achievement.name })), previousValues.achievement || ACHIEVEMENTS[0].key);
+            const achievementPicker = createDevPickerMarkup("achievement", getAchievementPickerOptions(), previousValues.achievement || ACHIEVEMENTS[0].key);
             const countPicker = createDevPickerMarkup("count", [{ value: "1", label: "1" }, { value: "10", label: "10" }, { value: "100", label: "100" }], previousValues.count || "1");
 
             body.innerHTML = `
@@ -5388,7 +5661,7 @@
         }
 
         function getSelectedDevAchievement() {
-            return ACHIEVEMENTS.find((achievement) => achievement.key === getDevFieldValue("achievement")) || ACHIEVEMENTS[0];
+            return achievementMap[getDevFieldValue("achievement")] || ACHIEVEMENTS[0];
         }
 
         function getSelectedDevCount() {
@@ -5488,9 +5761,11 @@
                 ? [...new Set(state.stats.unlocked.filter((key) => gifMap[key]))]
                 : [];
             state.stats.achievementKeys = Array.isArray(state.stats.achievementKeys)
-                ? [...new Set(state.stats.achievementKeys.filter((key) => ACHIEVEMENTS.some((achievement) => achievement.key === key)))]
+                ? [...new Set(state.stats.achievementKeys.filter((key) => achievementKeySet.has(key)))]
                 : [];
             state.stats.achievementDates = state.stats.achievementDates && typeof state.stats.achievementDates === "object" ? state.stats.achievementDates : {};
+            state.stats.achievementGrandPrizeClaimed = Boolean(state.stats.achievementGrandPrizeClaimed);
+            state.stats.achievementGrandPrizeClaimedAt = typeof state.stats.achievementGrandPrizeClaimedAt === "string" ? state.stats.achievementGrandPrizeClaimedAt : "";
             state.stats.firstPullDates = state.stats.firstPullDates && typeof state.stats.firstPullDates === "object" ? state.stats.firstPullDates : {};
             state.stats.recent = Array.isArray(state.stats.recent)
                 ? state.stats.recent.map(normalizeRecentEntry).filter((entry) => entry && gifMap[entry.key])
@@ -5535,6 +5810,8 @@
             if (options.syncAchievements) {
                 syncAchievements(true);
             }
+
+            maybeGrantAllAchievementsGrandPrize();
 
             if (options.persist !== false) {
                 persistProgress();
@@ -5897,6 +6174,8 @@
             runDevMutation("Dev mode: achievements cleared", () => {
                 state.stats.achievementKeys = [];
                 state.stats.achievementDates = {};
+                state.stats.achievementGrandPrizeClaimed = false;
+                state.stats.achievementGrandPrizeClaimedAt = "";
             });
         }
 
@@ -6445,9 +6724,11 @@
                         ? parsed.bannerHistory.filter((entry) => entry && gifMap[entry.bestKey]).slice(0, 20)
                         : [],
                     achievementKeys: Array.isArray(parsed.achievementKeys)
-                        ? parsed.achievementKeys.filter((key) => ACHIEVEMENTS.some((achievement) => achievement.key === key))
+                        ? parsed.achievementKeys.filter((key) => achievementKeySet.has(key))
                         : [],
                     achievementDates: parsed.achievementDates || {},
+                    achievementGrandPrizeClaimed: Boolean(parsed.achievementGrandPrizeClaimed),
+                    achievementGrandPrizeClaimedAt: typeof parsed.achievementGrandPrizeClaimedAt === "string" ? parsed.achievementGrandPrizeClaimedAt : "",
                     firstPullDates: parsed.firstPullDates || {},
                     rareHitHistory: Array.isArray(parsed.rareHitHistory)
                         ? parsed.rareHitHistory.filter((entry) => entry && gifMap[entry.key]).slice(-24)
