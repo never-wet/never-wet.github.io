@@ -1038,6 +1038,44 @@
             margin: 0 0 6px;
         }
 
+        .floating-window {
+            position: fixed;
+            z-index: 10030;
+            width: min(760px, calc(100vw - 32px));
+            max-height: min(82vh, 760px);
+            overflow: hidden;
+            border-radius: 22px;
+            background: linear-gradient(180deg, rgba(12, 21, 37, 0.98), rgba(9, 17, 31, 0.95));
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            box-shadow: 0 24px 54px rgba(0, 0, 0, 0.45);
+        }
+
+        .floating-window-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            gap: 12px;
+            padding: 18px 18px 14px;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02));
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            cursor: grab;
+            user-select: none;
+        }
+
+        .floating-window-header:active {
+            cursor: grabbing;
+        }
+
+        .floating-window-title h2 {
+            margin: 0 0 6px;
+        }
+
+        .floating-window-body {
+            max-height: calc(min(82vh, 760px) - 92px);
+            overflow: auto;
+            padding: 18px;
+        }
+
         .album-grid,
         .batch-grid {
             display: grid;
@@ -2093,6 +2131,7 @@
         const PITY_START = 18;
         const PITY_GUARANTEE = 30;
         const BIG_PULL_RANK = 6;
+        const DEV_MODE_CODE = "never-wet";
         const MIN_SPIN_STEPS = 30;
         const THUMBNAIL_SYNC_DURATION_MS = 4000;
         const BATCH_REVEAL_DELAY_MS = 220;
@@ -2309,6 +2348,7 @@
         const gifMap = Object.fromEntries(GIFS.map((gif) => [gif.key, gif]));
         const bannerMap = Object.fromEntries(BANNERS.map((banner) => [banner.key, banner]));
         let thumbnailSyncTimeoutId = null;
+        let devModeCodeBuffer = "";
         const exportPosterArtCache = new Map();
 
         const state = {
@@ -2336,6 +2376,7 @@
         startChallengeButton.addEventListener("click", startChallengeMode);
         abandonChallengeButton.addEventListener("click", abandonChallengeMode);
         openAlbumButton.addEventListener("click", openAlbumOverlay);
+        document.addEventListener("keydown", handleDevModeCodeEntry);
 
         setupSlots();
         loadProgress();
@@ -4170,6 +4211,215 @@
             document.body.appendChild(overlay);
 
             return { overlay, card, closeModal };
+        }
+
+        function handleDevModeCodeEntry(event) {
+            if (event.defaultPrevented || event.ctrlKey || event.metaKey || event.altKey) {
+                return;
+            }
+
+            const target = event.target;
+            if (
+                target instanceof HTMLInputElement ||
+                target instanceof HTMLTextAreaElement ||
+                target instanceof HTMLSelectElement ||
+                target?.isContentEditable
+            ) {
+                return;
+            }
+
+            if (event.key === "Backspace") {
+                devModeCodeBuffer = devModeCodeBuffer.slice(0, -1);
+                return;
+            }
+
+            if (event.key.length !== 1) {
+                return;
+            }
+
+            devModeCodeBuffer = `${devModeCodeBuffer}${event.key.toLowerCase()}`.slice(-DEV_MODE_CODE.length);
+
+            if (devModeCodeBuffer === DEV_MODE_CODE) {
+                devModeCodeBuffer = "";
+                openDevModeOverlay();
+            }
+        }
+
+        function openDevModeOverlay() {
+            const existingWindow = document.querySelector("[data-dev-mode-window='true']");
+            if (existingWindow) {
+                existingWindow.style.zIndex = "10031";
+                return;
+            }
+
+            const windowNode = document.createElement("section");
+            windowNode.className = "floating-window";
+            windowNode.dataset.devModeWindow = "true";
+            windowNode.style.left = `${Math.max(16, Math.round((window.innerWidth - Math.min(760, window.innerWidth - 32)) / 2))}px`;
+            windowNode.style.top = `${Math.max(16, Math.round(window.innerHeight * 0.12))}px`;
+
+            const header = document.createElement("div");
+            header.className = "floating-window-header";
+            header.innerHTML = `
+                <div class="floating-window-title">
+                    <h2>Dev Mode</h2>
+                    <p class="helper-text">Hidden tools for testing progression, banners, and rare popup effects.</p>
+                </div>
+            `;
+
+            const closeButton = document.createElement("button");
+            closeButton.className = "ghost-button tiny-button";
+            closeButton.type = "button";
+            closeButton.textContent = "Close";
+            header.appendChild(closeButton);
+
+            const body = document.createElement("div");
+            body.className = "floating-window-body";
+
+            const content = document.createElement("div");
+            content.className = "systems-grid";
+            content.innerHTML = `
+                <section class="resource-card">
+                    <span class="stat-label">Quick Resources</span>
+                    <strong>Fast setup tools</strong>
+                    <span class="secondary-meta">Use these to speed up testing without manually grinding the account first.</span>
+                    <div class="showcase-actions">
+                        <button class="ghost-button tiny-button" type="button" data-dev-action="signal-1000">+1000 Signal</button>
+                        <button class="ghost-button tiny-button" type="button" data-dev-action="signal-5000">+5000 Signal</button>
+                        <button class="ghost-button tiny-button" type="button" data-dev-action="unlock-banners">Unlock Banners</button>
+                        <button class="ghost-button tiny-button" type="button" data-dev-action="unlock-modes">Unlock Pull Modes</button>
+                    </div>
+                </section>
+                <section class="resource-card">
+                    <span class="stat-label">Rare Popup Preview</span>
+                    <strong>See the big effects without changing pull odds</strong>
+                    <span class="secondary-meta">These previews open the winner popup only. They do not add real pulls to your history.</span>
+                    <div class="showcase-actions">
+                        <button class="ghost-button tiny-button" type="button" data-dev-action="preview-unreal">Preview Unreal</button>
+                        <button class="ghost-button tiny-button" type="button" data-dev-action="preview-insane">Preview Insane</button>
+                        <button class="ghost-button tiny-button" type="button" data-dev-action="preview-godlike">Preview Godlike</button>
+                    </div>
+                </section>
+            `;
+
+            content.querySelector("[data-dev-action='signal-1000']").addEventListener("click", () => grantDevSignalDust(1000));
+            content.querySelector("[data-dev-action='signal-5000']").addEventListener("click", () => grantDevSignalDust(5000));
+            content.querySelector("[data-dev-action='unlock-banners']").addEventListener("click", unlockAllDevBanners);
+            content.querySelector("[data-dev-action='unlock-modes']").addEventListener("click", unlockAllDevPullModes);
+            content.querySelector("[data-dev-action='preview-unreal']").addEventListener("click", () => previewDevRarePopup("unreal"));
+            content.querySelector("[data-dev-action='preview-insane']").addEventListener("click", () => previewDevRarePopup("insane"));
+            content.querySelector("[data-dev-action='preview-godlike']").addEventListener("click", () => previewDevRarePopup("godlike"));
+
+            const handleEscape = (event) => {
+                if (event.code === "Escape") {
+                    closeWindow();
+                }
+            };
+
+            const clampWindowPosition = () => {
+                const maxLeft = Math.max(16, window.innerWidth - windowNode.offsetWidth - 16);
+                const maxTop = Math.max(16, window.innerHeight - windowNode.offsetHeight - 16);
+                const currentLeft = clampNumber(parseFloat(windowNode.style.left), 16, maxLeft, 16);
+                const currentTop = clampNumber(parseFloat(windowNode.style.top), 16, maxTop, 16);
+                windowNode.style.left = `${currentLeft}px`;
+                windowNode.style.top = `${currentTop}px`;
+            };
+
+            let dragState = null;
+
+            const handleDragMove = (event) => {
+                if (!dragState) {
+                    return;
+                }
+
+                const maxLeft = Math.max(16, window.innerWidth - windowNode.offsetWidth - 16);
+                const maxTop = Math.max(16, window.innerHeight - windowNode.offsetHeight - 16);
+                const nextLeft = clampNumber(event.clientX - dragState.offsetX, 16, maxLeft, dragState.startLeft);
+                const nextTop = clampNumber(event.clientY - dragState.offsetY, 16, maxTop, dragState.startTop);
+                windowNode.style.left = `${nextLeft}px`;
+                windowNode.style.top = `${nextTop}px`;
+            };
+
+            const endDrag = () => {
+                dragState = null;
+                document.removeEventListener("mousemove", handleDragMove);
+                document.removeEventListener("mouseup", endDrag);
+            };
+
+            const startDrag = (event) => {
+                if (event.target instanceof HTMLButtonElement) {
+                    return;
+                }
+
+                event.preventDefault();
+                const rect = windowNode.getBoundingClientRect();
+                dragState = {
+                    offsetX: event.clientX - rect.left,
+                    offsetY: event.clientY - rect.top,
+                    startLeft: rect.left,
+                    startTop: rect.top
+                };
+                document.addEventListener("mousemove", handleDragMove);
+                document.addEventListener("mouseup", endDrag);
+            };
+
+            const closeWindow = () => {
+                endDrag();
+                document.removeEventListener("keydown", handleEscape);
+                window.removeEventListener("resize", clampWindowPosition);
+                windowNode.remove();
+            };
+
+            closeButton.addEventListener("click", closeWindow);
+            header.addEventListener("mousedown", startDrag);
+            document.addEventListener("keydown", handleEscape);
+            window.addEventListener("resize", clampWindowPosition);
+
+            body.appendChild(content);
+            windowNode.append(header, body);
+            document.body.appendChild(windowNode);
+            clampWindowPosition();
+        }
+
+        function grantDevSignalDust(amount) {
+            state.stats.signalDust += amount;
+            persistProgress();
+            renderAll();
+            flashSaveStatus(`Dev mode: +${amount} signal`);
+        }
+
+        function unlockAllDevBanners() {
+            state.stats.ownedBannerKeys = normalizeOwnedBannerKeys(BANNERS.map((banner) => banner.key), state.stats.activeBannerKey);
+            persistProgress();
+            renderAll();
+            flashSaveStatus("Dev mode: all banners unlocked");
+        }
+
+        function unlockAllDevPullModes() {
+            state.stats.singlePullUnlockCount = Math.max(state.stats.singlePullUnlockCount, TEN_PULL_UNLOCK_REQUIREMENT);
+            state.stats.tenPullUnlockCount = Math.max(state.stats.tenPullUnlockCount, HUNDRED_PULL_UNLOCK_REQUIREMENT);
+            persistProgress();
+            renderAll();
+            flashSaveStatus("Dev mode: all pull modes unlocked");
+        }
+
+        function previewDevRarePopup(gifKey) {
+            if (state.isSpinning || document.querySelector(".big-winner-overlay")) {
+                return;
+            }
+
+            const gif = gifMap[gifKey];
+            if (!gif) {
+                return;
+            }
+
+            const previewResult = createPulledResult(gif, {
+                source: "dev-preview",
+                bannerKey: state.stats.activeBannerKey,
+                variantKey: ""
+            });
+
+            showWinnerOverlay(previewResult, [previewResult], { finalizeOnClose: false });
         }
 
         function openAlbumOverlay() {
