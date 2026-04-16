@@ -1428,6 +1428,29 @@
             line-height: 1.45;
         }
 
+        .dev-callout {
+            display: grid;
+            gap: 10px;
+            margin-top: 14px;
+            padding: 14px;
+            border-radius: 18px;
+            border: 1px solid rgba(255, 215, 106, 0.2);
+            background:
+                linear-gradient(180deg, rgba(255, 215, 106, 0.08), rgba(255, 215, 106, 0.02)),
+                rgba(255, 255, 255, 0.03);
+        }
+
+        .dev-callout strong {
+            color: var(--gold);
+            font-size: 0.98rem;
+        }
+
+        .dev-callout-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
         .album-grid,
         .batch-grid {
             display: grid;
@@ -1873,6 +1896,12 @@
         .overlay-card p {
             margin: 0;
             color: var(--muted);
+        }
+
+        .overlay-variant-row {
+            justify-content: center;
+            margin-top: 14px;
+            margin-bottom: 2px;
         }
 
         .overlay-close-hint {
@@ -2772,6 +2801,10 @@
             pendingResults: [],
             pendingMeta: null,
             latestResults: [],
+            devForcedVariantConfig: {
+                gifKey: "",
+                variantKeys: []
+            },
             stats: createDefaultStats()
         };
 
@@ -3165,6 +3198,44 @@
             return VARIANT_TYPES.find((variant) => variant.key === variantKey) || null;
         }
 
+        function normalizeVariantKeys(variantKeys, fallbackVariantKey = "") {
+            const collectedKeys = new Set();
+
+            if (Array.isArray(variantKeys)) {
+                variantKeys.forEach((variantKey) => {
+                    if (getVariantConfig(variantKey)) {
+                        collectedKeys.add(variantKey);
+                    }
+                });
+            }
+
+            if (fallbackVariantKey && getVariantConfig(fallbackVariantKey)) {
+                collectedKeys.add(fallbackVariantKey);
+            }
+
+            return VARIANT_TYPES
+                .map((variant) => variant.key)
+                .filter((variantKey) => collectedKeys.has(variantKey));
+        }
+
+        function getPrimaryVariantKeyFromKeys(variantKeys) {
+            return normalizeVariantKeys(variantKeys)[0] || "";
+        }
+
+        function getResultVariantKeys(result) {
+            return normalizeVariantKeys(result?.variantKeys, result?.variantKey || "");
+        }
+
+        function getResultPrimaryVariantKey(result) {
+            return getPrimaryVariantKeyFromKeys(getResultVariantKeys(result));
+        }
+
+        function getResultVariantConfigs(result) {
+            return getResultVariantKeys(result)
+                .map((variantKey) => getVariantConfig(variantKey))
+                .filter(Boolean);
+        }
+
         function createEmptyVariantCountRecord() {
             return Object.fromEntries(VARIANT_TYPES.map((variant) => [variant.key, 0]));
         }
@@ -3243,18 +3314,38 @@
             return variant ? variant.label : "";
         }
 
+        function getResultVariantText(result, delimiter = " + ") {
+            return getResultVariantConfigs(result)
+                .map((variant) => variant.label)
+                .join(delimiter);
+        }
+
+        function renderResultVariantBadges(result) {
+            return getResultVariantConfigs(result)
+                .map((variant) => `<span class="variant-chip" style="${getVariantChipStyle(variant)}">${variant.label}</span>`)
+                .join("");
+        }
+
         function getResultDisplayName(result) {
-            const variantLabel = getVariantLabel(result.variantKey);
+            const variantLabel = getResultVariantText(result);
             return variantLabel ? `${variantLabel} ${result.name}` : result.name;
         }
 
         function getResultRarityLabel(result) {
-            const variantLabel = getVariantLabel(result.variantKey);
-            return variantLabel ? `${variantLabel} ${result.rarity}` : result.rarity;
+            const variantKeys = getResultVariantKeys(result);
+            if (variantKeys.length === 0) {
+                return result.rarity;
+            }
+
+            if (variantKeys.length === 1) {
+                return `${getVariantLabel(variantKeys[0])} ${result.rarity}`;
+            }
+
+            return result.rarity;
         }
 
         function getResultAccentColor(result) {
-            const variant = getVariantConfig(result.variantKey);
+            const variant = getVariantConfig(getResultPrimaryVariantKey(result));
             return variant ? variant.accent : result.color;
         }
 
@@ -3280,26 +3371,30 @@
         }
 
         function getPreviewResultForGif(gif) {
+            const variantKey = getOwnedPreviewVariantKeyForGif(gif.key);
             return {
                 ...gif,
-                variantKey: getOwnedPreviewVariantKeyForGif(gif.key)
+                variantKey,
+                variantKeys: variantKey ? [variantKey] : []
             };
         }
 
         function getResultImageClass(result) {
-            return result.variantKey ? `result-image variant-media-image variant-${result.variantKey}` : "result-image variant-media-image";
+            const primaryVariantKey = getResultPrimaryVariantKey(result);
+            return primaryVariantKey ? `result-image variant-media-image variant-${primaryVariantKey}` : "result-image variant-media-image";
         }
 
         function getResultMediaFrameClass(result, extraClass = "") {
+            const primaryVariantKey = getResultPrimaryVariantKey(result);
             return [
                 "variant-media",
-                result.variantKey ? `variant-frame-${result.variantKey}` : "",
+                primaryVariantKey ? `variant-frame-${primaryVariantKey}` : "",
                 extraClass
             ].filter(Boolean).join(" ");
         }
 
-        function getVariantOverlayMarkup(result) {
-            switch (result.variantKey) {
+        function getVariantOverlayMarkupForKey(variantKey) {
+            switch (variantKey) {
                 case "shiny":
                     return `
                         <span class="variant-layer variant-shiny-glow"></span>
@@ -3324,6 +3419,12 @@
                 default:
                     return "";
             }
+        }
+
+        function getVariantOverlayMarkup(result) {
+            return getResultVariantKeys(result)
+                .map((variantKey) => getVariantOverlayMarkupForKey(variantKey))
+                .join("");
         }
 
         function getResultMediaMarkup(result, src, options = {}) {
@@ -3368,15 +3469,17 @@
 
             wrapper.appendChild(image);
 
-            if (result.variantKey) {
-                wrapper.insertAdjacentHTML("beforeend", getVariantOverlayMarkup(result));
+            const overlayMarkup = getVariantOverlayMarkup(result);
+            if (overlayMarkup) {
+                wrapper.insertAdjacentHTML("beforeend", overlayMarkup);
             }
 
             return { wrapper, image };
         }
 
         function getResultScore(result) {
-            const variantBonus = getVariantConfig(result.variantKey)?.scoreBonus || 0;
+            const variantBonus = getResultVariantConfigs(result)
+                .reduce((sum, variant) => sum + (variant.scoreBonus || 0), 0);
             return result.rank + variantBonus;
         }
 
@@ -3401,45 +3504,51 @@
         }
 
         function getVariantRollTableForGif(gif, options = {}) {
-            let remaining = 1;
-
             return getEligibleVariantsForGif(gif).map((variant) => {
-                const rollChance = getVariantRollChance(gif, variant, {
-                    ...options,
-                    remaining
-                });
-                const chance = remaining * rollChance;
-                remaining *= 1 - rollChance;
-                return { variant, chance, rollChance };
+                const rollChance = getVariantRollChance(gif, variant, options);
+                return { variant, chance: rollChance, rollChance };
             });
         }
 
-        function rollVariantForGif(gif, options = {}) {
-            for (const { variant, rollChance } of getVariantRollTableForGif(gif, options)) {
-                if (Math.random() < rollChance) {
-                    return variant.key;
-                }
-            }
+        function rollVariantKeysForGif(gif, options = {}) {
+            return getVariantRollTableForGif(gif, options)
+                .filter(({ rollChance }) => Math.random() < rollChance)
+                .map(({ variant }) => variant.key);
+        }
 
-            return "";
+        function rollVariantForGif(gif, options = {}) {
+            return getPrimaryVariantKeyFromKeys(rollVariantKeysForGif(gif, options));
         }
 
         function createPulledResult(gif, context = {}) {
+            const hasExplicitVariantConfig =
+                Object.prototype.hasOwnProperty.call(context, "variantKeys") ||
+                Object.prototype.hasOwnProperty.call(context, "variantKey");
+            const providedVariantKeys = normalizeVariantKeys(context.variantKeys, context.variantKey);
+            const variantKeys = hasExplicitVariantConfig
+                ? providedVariantKeys
+                : rollVariantKeysForGif(gif, context);
+            const variantKey = context.variantKey ?? getPrimaryVariantKeyFromKeys(variantKeys);
+
             return {
                 ...gif,
                 source: context.source || "pull",
                 bannerKey: context.bannerKey || state.stats.activeBannerKey,
                 acquiredAt: context.acquiredAt || new Date().toISOString(),
-                variantKey: context.variantKey ?? rollVariantForGif(gif, context)
+                variantKey,
+                variantKeys
             };
         }
 
         function normalizePulledResult(result, context = {}) {
-            if (result && result.acquiredAt && Object.prototype.hasOwnProperty.call(result, "variantKey")) {
+            if (result && result.acquiredAt && (Object.prototype.hasOwnProperty.call(result, "variantKey") || Object.prototype.hasOwnProperty.call(result, "variantKeys"))) {
+                const variantKeys = getResultVariantKeys(result);
                 return {
                     ...result,
                     source: result.source || context.source || "pull",
-                    bannerKey: result.bannerKey || context.bannerKey || state.stats.activeBannerKey
+                    bannerKey: result.bannerKey || context.bannerKey || state.stats.activeBannerKey,
+                    variantKey: result.variantKey || getPrimaryVariantKeyFromKeys(variantKeys),
+                    variantKeys
                 };
             }
 
@@ -3650,6 +3759,13 @@
                     : `${getResultRarityLabel(primaryResult)} drop as the best pull in your ${getBatchLabel(allResults.length)}`
                 : `${getResultRarityLabel(primaryResult)} drop`;
 
+            const variantBadgeMarkup = renderResultVariantBadges(primaryResult);
+            const variantRow = document.createElement("div");
+            variantRow.className = "badge-row overlay-variant-row";
+            if (variantBadgeMarkup) {
+                variantRow.innerHTML = variantBadgeMarkup;
+            }
+
             const shareRow = document.createElement("div");
             shareRow.className = "share-actions";
 
@@ -3681,7 +3797,13 @@
                     ? "Click outside, or press Space, Enter, or Esc to see the next rare hit."
                     : "Click outside, or press Space, Enter, or Esc to close.";
 
-            card.append(media.wrapper, title, subtitle, shareRow, closeHint);
+            const overlayContentNodes = [media.wrapper, title, subtitle];
+            if (variantBadgeMarkup) {
+                overlayContentNodes.push(variantRow);
+            }
+            overlayContentNodes.push(shareRow, closeHint);
+
+            card.append(...overlayContentNodes);
             overlay.appendChild(card);
             document.body.appendChild(overlay);
             playResultSound(primaryResult);
@@ -3792,6 +3914,7 @@
             }
 
             results.forEach((result) => {
+                const resultVariantKeys = getResultVariantKeys(result);
                 const wasUnlocked = state.stats.unlocked.includes(result.key);
                 const duplicateSignalAwarded = wasUnlocked ? getDuplicateSignalReward(result) : 0;
 
@@ -3810,13 +3933,15 @@
                     }
                 }
 
-                if (result.variantKey) {
+                if (resultVariantKeys.length > 0) {
                     ensureVariantCountEntry(result.key);
-                    state.stats.variantCounts[result.key][result.variantKey] += 1;
                     if (!state.stats.totalVariantPulls) {
                         state.stats.totalVariantPulls = createEmptyVariantCountRecord();
                     }
-                    state.stats.totalVariantPulls[result.variantKey] += 1;
+                    resultVariantKeys.forEach((variantKey) => {
+                        state.stats.variantCounts[result.key][variantKey] += 1;
+                        state.stats.totalVariantPulls[variantKey] += 1;
+                    });
                 }
 
                 state.stats.recent.unshift(createRecentEntry(result));
@@ -3840,6 +3965,7 @@
                         key: result.key,
                         rank: result.rank,
                         variantKey: result.variantKey || "",
+                        variantKeys: resultVariantKeys,
                         bannerKey: result.bannerKey,
                         at: result.acquiredAt,
                         pullNumber: state.stats.totalPulls
@@ -3877,9 +4003,11 @@
 
         function getDuplicateSignalReward(result) {
             const base = DUPLICATE_SIGNAL_BY_RANK[result.rank] || 1;
-            const variant = getVariantConfig(result.variantKey);
-            if (variant) {
-                return Math.round(base * variant.dustMultiplier);
+            const variants = getResultVariantConfigs(result);
+            if (variants.length > 0) {
+                const strongestMultiplier = Math.max(...variants.map((variant) => variant.dustMultiplier || 1));
+                const stackedMultiplier = 1 + Math.max(0, variants.length - 1) * 0.35;
+                return Math.round(base * strongestMultiplier * stackedMultiplier);
             }
             return base;
         }
@@ -4109,23 +4237,28 @@
                 return {
                     key: entry,
                     variantKey: "",
+                    variantKeys: [],
                     bannerKey: BANNERS[0].key,
                     at: ""
                 };
             }
 
+            const variantKeys = normalizeVariantKeys(entry.variantKeys, entry.variantKey || "");
             return {
                 key: entry.key,
-                variantKey: entry.variantKey || "",
+                variantKey: entry.variantKey || getPrimaryVariantKeyFromKeys(variantKeys),
+                variantKeys,
                 bannerKey: entry.bannerKey || BANNERS[0].key,
                 at: entry.at || ""
             };
         }
 
         function createRecentEntry(result) {
+            const variantKeys = getResultVariantKeys(result);
             return {
                 key: result.key,
-                variantKey: result.variantKey || "",
+                variantKey: result.variantKey || getPrimaryVariantKeyFromKeys(variantKeys),
+                variantKeys,
                 bannerKey: result.bannerKey || state.stats.activeBannerKey,
                 at: result.acquiredAt || new Date().toISOString()
             };
@@ -4226,7 +4359,7 @@
                     return;
                 }
 
-                const labelResult = { ...gif, variantKey: recentEntry.variantKey };
+                const labelResult = { ...gif, variantKey: recentEntry.variantKey, variantKeys: recentEntry.variantKeys || [] };
                 const item = document.createElement("li");
                 item.className = "recent-item";
                 item.innerHTML = `
@@ -4299,6 +4432,8 @@
             }
 
             state.latestResults.forEach((gif) => {
+                const variantSummaryText = getResultVariantText(gif);
+                const showVariantChip = getResultVariantKeys(gif).length > 1;
                 const card = document.createElement("article");
                 card.className = "card pull-card";
                 card.innerHTML = `
@@ -4309,10 +4444,11 @@
                     <div class="pull-name">${getResultDisplayName(gif)}</div>
                     <div class="badge-row">
                         <span class="rarity-badge" style="background:${getResultAccentColor(gif)}">${getResultRarityLabel(gif)}</span>
+                        ${showVariantChip ? `<span class="variant-chip">${variantSummaryText}</span>` : ""}
                         ${gif.isNewUnlock ? `<span class="variant-chip">New</span>` : ""}
                         ${gif.duplicateSignalAwarded > 0 ? `<span class="variant-chip">+${gif.duplicateSignalAwarded} signal</span>` : ""}
                     </div>
-                    <span class="secondary-meta">${getBannerName(gif.bannerKey)} banner${gif.variantKey ? ` | ${getVariantLabel(gif.variantKey)} version` : ""}</span>
+                    <span class="secondary-meta">${getBannerName(gif.bannerKey)} banner${variantSummaryText ? ` | ${variantSummaryText} version` : ""}</span>
                     <div class="result-actions">
                         <button class="ghost-button tiny-button" type="button">Share Card</button>
                         <button class="ghost-button tiny-button" type="button">Export PNG</button>
@@ -4323,7 +4459,7 @@
                 const [shareButton, exportButton, favoriteButton] = card.querySelectorAll("button");
                 shareButton.addEventListener("click", () => shareResults([gif]));
                 exportButton.addEventListener("click", () => exportResultCard(gif));
-                favoriteButton.addEventListener("click", () => setFavoriteGif(gif.key, gif.variantKey || ""));
+                favoriteButton.addEventListener("click", () => setFavoriteGif(gif.key, getResultPrimaryVariantKey(gif)));
                 resultsGrid.appendChild(card);
             });
         }
@@ -5425,11 +5561,20 @@
                                 <input class="dev-input" type="number" min="0" step="1" data-dev-field="countAmount" value="${previousValues.countAmount}">
                             </label>
                             <label class="setting-row">
-                                <span>Variant Amount</span>
+                                <span>Manual Variant Amount</span>
                                 <input class="dev-input" type="number" min="0" step="1" data-dev-field="variantAmount" value="${previousValues.variantAmount}">
                             </label>
                         </div>
-                        <span class="dev-note">Use the selected GIF plus Variant Amount to grant the full variant bundle at once. That applies Void, Holo, Alt, and Shiny to the chosen GIF in one click.</span>
+                        <div class="dev-callout">
+                            <strong>Full Variant Bundle</strong>
+                            <span class="dev-note">Give the selected GIF every variant in one click. Use the quick buttons for common test amounts, or use Manual Variant Amount if you want a custom bundle size.</span>
+                            <div class="dev-callout-actions">
+                                <button class="secondary-button tiny-button" type="button" data-dev-action="fill-variants-1">All Variants x1</button>
+                                <button class="secondary-button tiny-button" type="button" data-dev-action="fill-variants-5">All Variants x5</button>
+                                <button class="secondary-button tiny-button" type="button" data-dev-action="fill-variants-10">All Variants x10</button>
+                                <button class="ghost-button tiny-button" type="button" data-dev-action="fill-variants">Use Manual Amount</button>
+                            </div>
+                        </div>
                         <div class="showcase-actions">
                             <button class="ghost-button tiny-button" type="button" data-dev-action="forced-spin">Forced Spin</button>
                             <button class="ghost-button tiny-button" type="button" data-dev-action="grant-history">Grant To History</button>
@@ -5445,7 +5590,6 @@
                             <button class="ghost-button tiny-button" type="button" data-dev-action="clear-best">Clear Best Pull</button>
                             <button class="ghost-button tiny-button" type="button" data-dev-action="add-variant">Add Variant</button>
                             <button class="ghost-button tiny-button" type="button" data-dev-action="remove-variant">Remove Variant</button>
-                            <button class="ghost-button tiny-button" type="button" data-dev-action="fill-variants">Grant All Variants To GIF</button>
                             <button class="ghost-button tiny-button" type="button" data-dev-action="clear-variants">Clear Variants</button>
                             <button class="ghost-button tiny-button" type="button" data-dev-action="unlock-all-gifs">Unlock All GIFs</button>
                             <button class="ghost-button tiny-button" type="button" data-dev-action="clear-collection">Clear Collection</button>
@@ -5625,6 +5769,9 @@
             body.querySelector("[data-dev-action='add-variant']").addEventListener("click", addSelectedDevVariant);
             body.querySelector("[data-dev-action='remove-variant']").addEventListener("click", removeSelectedDevVariant);
             body.querySelector("[data-dev-action='fill-variants']").addEventListener("click", fillSelectedDevGifVariants);
+            body.querySelector("[data-dev-action='fill-variants-1']").addEventListener("click", () => fillSelectedDevGifVariants(1));
+            body.querySelector("[data-dev-action='fill-variants-5']").addEventListener("click", () => fillSelectedDevGifVariants(5));
+            body.querySelector("[data-dev-action='fill-variants-10']").addEventListener("click", () => fillSelectedDevGifVariants(10));
             body.querySelector("[data-dev-action='clear-variants']").addEventListener("click", clearSelectedDevGifVariants);
             body.querySelector("[data-dev-action='unlock-all-gifs']").addEventListener("click", unlockAllDevGifs);
             body.querySelector("[data-dev-action='clear-collection']").addEventListener("click", clearDevCollection);
@@ -5660,6 +5807,52 @@
             return getVariantConfig(value) ? value : "";
         }
 
+        function setDevForcedVariantOverride(gifKey, variantKeys = []) {
+            state.devForcedVariantConfig = {
+                gifKey: gifMap[gifKey] ? gifKey : "",
+                variantKeys: normalizeVariantKeys(variantKeys)
+            };
+        }
+
+        function syncDevForcedVariantOverrideFromGif(gifKey) {
+            const counts = state.stats.variantCounts?.[gifKey] || createEmptyVariantCountRecord();
+            const variantKeys = Object.entries(counts)
+                .filter(([, count]) => count > 0)
+                .map(([variantKey]) => variantKey);
+            setDevForcedVariantOverride(gifKey, variantKeys);
+        }
+
+        function clearCurrentDevVariantPickerSelection() {
+            const body = getDevModeWindowBody();
+            const hiddenField = body?.querySelector("[data-dev-field='variant']");
+            if (!hiddenField) {
+                return;
+            }
+
+            hiddenField.value = "";
+            const picker = hiddenField.closest("[data-dev-picker]");
+            const label = picker?.querySelector(".dev-picker-label");
+            if (label) {
+                label.textContent = "Base";
+            }
+
+            picker?.querySelectorAll("[data-dev-picker-option]").forEach((button) => {
+                button.classList.toggle("active", (button.dataset.value ?? "") === "");
+            });
+        }
+
+        function getSelectedDevVariantKeys(gifKey, variantKey = "") {
+            if (variantKey && getVariantConfig(variantKey)) {
+                return [variantKey];
+            }
+
+            if (state.devForcedVariantConfig.gifKey === gifKey) {
+                return [...state.devForcedVariantConfig.variantKeys];
+            }
+
+            return [];
+        }
+
         function getSelectedDevAchievement() {
             return achievementMap[getDevFieldValue("achievement")] || ACHIEVEMENTS[0];
         }
@@ -5679,10 +5872,14 @@
                 return [];
             }
 
+            const variantKeys = getSelectedDevVariantKeys(gif.key, variantKey);
+            const primaryVariantKey = variantKey || getPrimaryVariantKeyFromKeys(variantKeys);
+
             return Array.from({ length: count }, () => createPulledResult(gif, {
                 source: "dev",
                 bannerKey: state.stats.activeBannerKey,
-                variantKey
+                variantKey: primaryVariantKey,
+                variantKeys
             }));
         }
 
@@ -5734,6 +5931,10 @@
             if (state.stats.bestPullKey === gifKey) {
                 state.stats.bestPullKey = null;
                 state.stats.bestPullVariant = "";
+            }
+
+            if (state.devForcedVariantConfig.gifKey === gifKey) {
+                setDevForcedVariantOverride(gifKey, []);
             }
         }
 
@@ -6040,6 +6241,7 @@
                 ensureVariantCountEntry(gif.key);
                 state.stats.variantCounts[gif.key][variantKey] += amount;
                 markGifUnlockedForDev(gif.key);
+                syncDevForcedVariantOverrideFromGif(gif.key);
             });
         }
 
@@ -6055,18 +6257,21 @@
             runDevMutation(`Dev mode: -${amount} ${getVariantLabel(variantKey)} ${gif.name}`, () => {
                 ensureVariantCountEntry(gif.key);
                 state.stats.variantCounts[gif.key][variantKey] = Math.max(0, state.stats.variantCounts[gif.key][variantKey] - amount);
+                syncDevForcedVariantOverrideFromGif(gif.key);
             });
         }
 
-        function fillSelectedDevGifVariants() {
+        function fillSelectedDevGifVariants(amountOverride = null) {
             const gif = getSelectedDevGif();
-            const amount = Math.max(1, getSelectedDevVariantAmount());
-            runDevMutation(`Dev mode: full variant bundle granted on ${gif.name}`, () => {
+            const amount = Math.max(1, amountOverride ?? getSelectedDevVariantAmount());
+            runDevMutation(`Dev mode: full variant bundle x${amount} granted on ${gif.name}`, () => {
                 ensureVariantCountEntry(gif.key);
                 VARIANT_TYPES.forEach((variant) => {
                     state.stats.variantCounts[gif.key][variant.key] = Math.max(state.stats.variantCounts[gif.key][variant.key], amount);
                 });
                 markGifUnlockedForDev(gif.key);
+                syncDevForcedVariantOverrideFromGif(gif.key);
+                clearCurrentDevVariantPickerSelection();
             });
         }
 
@@ -6074,6 +6279,8 @@
             const gif = getSelectedDevGif();
             runDevMutation(`Dev mode: variants cleared on ${gif.name}`, () => {
                 state.stats.variantCounts[gif.key] = createEmptyVariantCountRecord();
+                setDevForcedVariantOverride(gif.key, []);
+                clearCurrentDevVariantPickerSelection();
                 if (state.stats.favoriteKey === gif.key && state.stats.favoriteVariant) {
                     state.stats.favoriteVariant = "";
                 }
@@ -6102,6 +6309,7 @@
                 state.stats.recent = [];
                 state.stats.rareHitHistory = [];
                 state.latestResults = [];
+                setDevForcedVariantOverride("", []);
             });
         }
 
@@ -6284,10 +6492,14 @@
                 return;
             }
 
+            const variantKeys = getSelectedDevVariantKeys(gif.key, variantKey);
+            const primaryVariantKey = variantKey || getPrimaryVariantKeyFromKeys(variantKeys);
+
             const previewResult = createPulledResult(gif, {
                 source: "dev-preview",
                 bannerKey: state.stats.activeBannerKey,
-                variantKey
+                variantKey: primaryVariantKey,
+                variantKeys
             });
 
             showWinnerOverlay(previewResult, [previewResult], { finalizeOnClose: false });
@@ -6395,7 +6607,10 @@
         }
 
         function getExportPosterFilter(result) {
-            return getVariantConfig(result.variantKey)?.exportFilter || "none";
+            const filters = getResultVariantConfigs(result)
+                .map((variant) => variant.exportFilter)
+                .filter((filterValue) => filterValue && filterValue !== "none");
+            return filters.join(" ") || "none";
         }
 
         async function drawExportPosterArt(context, result, x, y, width, height) {
@@ -6411,6 +6626,18 @@
             link.href = canvas.toDataURL("image/png");
             link.download = fileName;
             link.click();
+        }
+
+        function fitCanvasFontSize(context, text, maxWidth, fontWeight, maxSize, minSize, fontFamily = "Trebuchet MS") {
+            let fontSize = maxSize;
+            context.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
+
+            while (fontSize > minSize && context.measureText(text).width > maxWidth) {
+                fontSize -= 2;
+                context.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
+            }
+
+            return fontSize;
         }
 
         async function exportResultCard(result) {
@@ -6439,8 +6666,10 @@
                 context.fillText("REELS PULL", 96, 120);
 
                 context.fillStyle = accent;
-                context.font = "900 72px Trebuchet MS";
-                context.fillText(getResultDisplayName(result).toUpperCase(), 96, 220);
+                const exportTitle = getResultDisplayName(result).toUpperCase();
+                const fittedTitleFontSize = fitCanvasFontSize(context, exportTitle, 860, 900, 72, 28);
+                context.font = `900 ${fittedTitleFontSize}px Trebuchet MS`;
+                context.fillText(exportTitle, 96, 220);
 
                 context.fillStyle = "rgba(245,247,251,0.78)";
                 context.font = "600 34px Trebuchet MS";
@@ -6453,7 +6682,8 @@
                 context.fillText(`Total pulls: ${state.stats.totalPulls}`, 96, 1240);
                 context.fillText(`Signal dust: ${state.stats.signalDust}`, 96, 1280);
 
-                downloadCanvasAsPng(canvas, `${result.key}-${result.variantKey || "base"}-${Date.now()}.png`);
+                const variantSlug = getResultVariantKeys(result).join("-") || "base";
+                downloadCanvasAsPng(canvas, `${result.key}-${variantSlug}-${Date.now()}.png`);
                 flashSaveStatus("Card exported");
             } catch (error) {
                 flashSaveStatus("Card export failed");
