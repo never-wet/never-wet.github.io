@@ -875,7 +875,8 @@
             cursor: pointer;
         }
 
-        .banner-info-button {
+        .banner-info-button,
+        .challenge-info-button {
             width: 34px;
             height: 34px;
             padding: 0;
@@ -887,7 +888,8 @@
             line-height: 1;
         }
 
-        .banner-info-button:hover:not(:disabled) {
+        .banner-info-button:hover:not(:disabled),
+        .challenge-info-button:hover:not(:disabled) {
             background: rgba(255, 255, 255, 0.14);
         }
 
@@ -940,6 +942,48 @@
             border-radius: 18px;
             background: rgba(255, 255, 255, 0.08);
             border: 1px solid rgba(255, 255, 255, 0.14);
+        }
+
+        .challenge-card-top,
+        .challenge-log-head {
+            display: flex;
+            align-items: start;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .challenge-log-summary {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 10px 0 16px;
+        }
+
+        .challenge-log-grid {
+            display: grid;
+            gap: 12px;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            align-content: start;
+        }
+
+        .challenge-log-tile {
+            display: grid;
+            gap: 10px;
+            padding: 14px;
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+        }
+
+        .challenge-log-count {
+            font-size: 1.6rem;
+            font-weight: 900;
+            line-height: 1;
+        }
+
+        .challenge-log-copy {
+            color: var(--muted);
+            line-height: 1.45;
         }
 
         .resource-count {
@@ -1642,11 +1686,18 @@
             width: min(1040px, 100%);
             max-height: min(88vh, 920px);
             overflow: auto;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
             padding: 22px;
             border-radius: 26px;
             background: linear-gradient(180deg, rgba(255,255,255,0.14), rgba(255,255,255,0.06));
             border: 1px solid rgba(255,255,255,0.16);
             box-shadow: var(--shadow);
+        }
+
+        .modal-card::-webkit-scrollbar {
+            width: 0;
+            height: 0;
         }
 
         .modal-header {
@@ -3120,30 +3171,26 @@
             {
                 key: "legend-cache",
                 name: "Craft Legendary+",
-                cost: 140,
+                cost: 5000,
                 minRank: 7,
                 description: "Turn duplicate signal into a guaranteed Legendary or better."
             },
             {
                 key: "unreal-cache",
                 name: "Craft Unreal+",
-                cost: 320,
+                cost: 15000,
                 minRank: 8,
                 description: "A brutal spend, but it guarantees Unreal or better."
             },
             {
                 key: "insane-signal",
                 name: "Craft Insane+",
-                cost: 760,
+                cost: 50000,
                 minRank: 9,
                 description: "A late-game burn for Insane or Godlike only."
             }
         ];
-        const CHALLENGE_POOL = [
-            { key: "legend-sprint", name: "Legend Sprint", targetRank: 7, spins: 12, reward: 120 },
-            { key: "unreal-rush", name: "Unreal Rush", targetRank: 8, spins: 18, reward: 220 },
-            { key: "god-hunt", name: "God Hunt", targetRank: 10, spins: 35, reward: 700 }
-        ];
+        const CHALLENGE_POOL = buildChallengePool();
         const THEMES = [
             { key: "classic", name: "Classic Signal", unlock: (stats) => true },
             { key: "sunset", name: "Sunset Heat", unlock: (stats) => stats.totalPulls >= 25 },
@@ -3291,6 +3338,7 @@
                 resultSoundsEnabled: true,
                 challenge: null,
                 challengeWins: 0,
+                challengeCompletionCounts: createEmptyChallengeCompletionRecord(),
                 totalSignalSpent: 0,
                 totalLuckScore: 0,
                 currentDrought: 0,
@@ -5058,20 +5106,38 @@
 
         function renderChallengeCard() {
             const challenge = state.stats.challenge;
+            const trackedClears = getTrackedChallengeClearTotal();
+            const uniqueClears = getUniqueCompletedChallengeCount();
+            const legacyClears = Math.max(0, state.stats.challengeWins - trackedClears);
+            const nextChallenge = getNextChallengeTemplate();
 
             if (!challenge) {
                 challengeCard.innerHTML = `
-                    <span class="stat-label">Challenge Mode</span>
+                    <div class="challenge-card-top">
+                        <span class="stat-label">Challenge Mode</span>
+                        <button class="challenge-info-button" type="button" aria-label="Show challenge clear history">i</button>
+                    </div>
                     <strong>No active challenge.</strong>
                     <span class="secondary-meta">Start one and try to hit the target rarity before you run out of spins.</span>
+                    <span class="secondary-meta">Next rotation: ${nextChallenge.name}</span>
+                    <div class="badge-row">
+                        <span class="variant-chip">${uniqueClears}/${CHALLENGE_POOL.length} cleared</span>
+                        <span class="variant-chip">${trackedClears} tracked clears</span>
+                        ${legacyClears > 0 ? `<span class="variant-chip">${legacyClears} legacy clears</span>` : ""}
+                    </div>
                 `;
+                challengeCard.querySelector(".challenge-info-button")?.addEventListener("click", openChallengeInfoModal);
                 startChallengeButton.disabled = state.isSpinning;
                 abandonChallengeButton.disabled = true;
                 return;
             }
 
+            const clearsForChallenge = getChallengeCompletionCount(challenge.key);
             challengeCard.innerHTML = `
-                <span class="stat-label">${challenge.name}</span>
+                <div class="challenge-card-top">
+                    <span class="stat-label">${challenge.name}</span>
+                    <button class="challenge-info-button" type="button" aria-label="Show challenge clear history">i</button>
+                </div>
                 <strong>${getRankLabel(challenge.targetRank)} or better in ${challenge.totalSpins} spins</strong>
                 <span class="secondary-meta">${challenge.status === "active"
                     ? `${challenge.spinsLeft} spins left | reward ${challenge.reward} signal`
@@ -5081,11 +5147,76 @@
                 <div class="badge-row">
                     <span class="variant-chip">Reward ${challenge.reward}</span>
                     <span class="variant-chip">${challenge.status.toUpperCase()}</span>
+                    <span class="variant-chip">${clearsForChallenge} clear${clearsForChallenge === 1 ? "" : "s"}</span>
                 </div>
             `;
 
+            challengeCard.querySelector(".challenge-info-button")?.addEventListener("click", openChallengeInfoModal);
             startChallengeButton.disabled = state.isSpinning || challenge.status === "active";
             abandonChallengeButton.disabled = state.isSpinning || !challenge;
+        }
+
+        function openChallengeInfoModal() {
+            const trackedClears = getTrackedChallengeClearTotal();
+            const uniqueClears = getUniqueCompletedChallengeCount();
+            const legacyClears = Math.max(0, state.stats.challengeWins - trackedClears);
+            const nextChallenge = getNextChallengeTemplate();
+            const { card } = createModalShell(
+                "Challenge Index",
+                "Every challenge in the pool and how many times you have cleared it. These counts save with your progress."
+            );
+            const summary = document.createElement("div");
+            summary.innerHTML = `
+                <div class="challenge-log-summary">
+                    <span class="variant-chip">${trackedClears} tracked clears</span>
+                    <span class="variant-chip">${uniqueClears}/${CHALLENGE_POOL.length} unique cleared</span>
+                    <span class="variant-chip">Next up: ${nextChallenge.name}</span>
+                    ${legacyClears > 0 ? `<span class="variant-chip">${legacyClears} older clears were untracked</span>` : ""}
+                </div>
+            `;
+            card.appendChild(summary);
+
+            const grid = document.createElement("div");
+            grid.className = "challenge-log-grid";
+
+            [...CHALLENGE_POOL]
+                .sort((left, right) => {
+                    const clearDifference = getChallengeCompletionCount(right.key) - getChallengeCompletionCount(left.key);
+                    if (clearDifference !== 0) {
+                        return clearDifference;
+                    }
+
+                    const rankDifference = right.targetRank - left.targetRank;
+                    if (rankDifference !== 0) {
+                        return rankDifference;
+                    }
+
+                    return left.name.localeCompare(right.name);
+                })
+                .forEach((challengeEntry) => {
+                const rarityLabel = getRankLabel(challengeEntry.targetRank);
+                const rarityColor = GIFS.find((gif) => gif.rank === challengeEntry.targetRank)?.color || "rgba(255,255,255,0.7)";
+                const clears = getChallengeCompletionCount(challengeEntry.key);
+                const tile = document.createElement("article");
+                tile.className = "challenge-log-tile";
+                tile.style.borderColor = `${rarityColor}55`;
+                tile.innerHTML = `
+                    <div class="challenge-log-head">
+                        <span class="stat-label">${rarityLabel}</span>
+                        <span class="variant-chip" style="border-color:${rarityColor}; color:${rarityColor}">${clears} clear${clears === 1 ? "" : "s"}</span>
+                    </div>
+                    <strong>${challengeEntry.name}</strong>
+                    <span class="challenge-log-copy">${rarityLabel} or better in ${challengeEntry.spins} spins.</span>
+                    <div class="challenge-log-count">${clears}</div>
+                    <div class="badge-row">
+                        <span class="variant-chip">Reward ${challengeEntry.reward}</span>
+                        <span class="variant-chip">${clears > 0 ? "Completed" : "Not cleared yet"}</span>
+                    </div>
+                `;
+                grid.appendChild(tile);
+            });
+
+            card.appendChild(grid);
         }
 
         function renderShowcase(syncCycle = getThumbnailSyncCycle()) {
@@ -5447,6 +5578,102 @@
             return `${year}-${month}-${day}`;
         }
 
+        function buildChallengePool() {
+            const baseChallenges = [
+                { key: "legend-sprint", name: "Legend Sprint", targetRank: 7, spins: 12, reward: 120 },
+                { key: "unreal-rush", name: "Unreal Rush", targetRank: 8, spins: 18, reward: 220 },
+                { key: "god-hunt", name: "God Hunt", targetRank: 10, spins: 35, reward: 700 }
+            ];
+
+            const themes = [
+                { key: "signal", label: "Signal" },
+                { key: "static", label: "Static" },
+                { key: "voltage", label: "Voltage" },
+                { key: "prism", label: "Prism" },
+                { key: "halo", label: "Halo" },
+                { key: "crown", label: "Crown" },
+                { key: "orbit", label: "Orbit" },
+                { key: "nova", label: "Nova" },
+                { key: "echo", label: "Echo" },
+                { key: "zenith", label: "Zenith" }
+            ];
+
+            const patterns = [
+                { key: "trial", label: "Trial", spinOffset: 0, rewardMultiplier: 1 },
+                { key: "rush", label: "Rush", spinOffset: -2, rewardMultiplier: 1.12 },
+                { key: "gauntlet", label: "Gauntlet", spinOffset: -5, rewardMultiplier: 1.28 },
+                { key: "marathon", label: "Marathon", spinOffset: 5, rewardMultiplier: 1.18 }
+            ];
+
+            const tiers = [
+                { rank: 6, label: "Mythic", baseSpins: 11, baseReward: 95 },
+                { rank: 7, label: "Legend", baseSpins: 13, baseReward: 135 },
+                { rank: 8, label: "Unreal", baseSpins: 18, baseReward: 240 },
+                { rank: 9, label: "Insane", baseSpins: 24, baseReward: 390 },
+                { rank: 10, label: "Godlike", baseSpins: 34, baseReward: 720 }
+            ];
+
+            const generatedChallenges = [];
+
+            themes.forEach((theme, themeIndex) => {
+                tiers.forEach((tier, tierIndex) => {
+                    patterns.forEach((pattern, patternIndex) => {
+                        const spinVariance = (themeIndex % 3) - 1;
+                        const spins = Math.max(6, tier.baseSpins + pattern.spinOffset + spinVariance);
+                        const rewardBase = tier.baseReward + (themeIndex * 9) + (tierIndex * 14) + (patternIndex * 18);
+                        const reward = Math.round(rewardBase * pattern.rewardMultiplier);
+
+                        generatedChallenges.push({
+                            key: `${theme.key}-${tier.label.toLowerCase()}-${pattern.key}`,
+                            name: `${theme.label} ${tier.label} ${pattern.label}`,
+                            targetRank: tier.rank,
+                            spins,
+                            reward
+                        });
+                    });
+                });
+            });
+
+            return [...baseChallenges, ...generatedChallenges];
+        }
+
+        function createEmptyChallengeCompletionRecord() {
+            return Object.fromEntries(CHALLENGE_POOL.map((challenge) => [challenge.key, 0]));
+        }
+
+        function normalizeChallengeCompletionRecord(record) {
+            return Object.fromEntries(
+                CHALLENGE_POOL.map((challenge) => [
+                    challenge.key,
+                    Math.max(0, clampNumber(record?.[challenge.key], 0, Number.MAX_SAFE_INTEGER, 0))
+                ])
+            );
+        }
+
+        function getChallengeCompletionCount(challengeKey, stats = state.stats) {
+            return Math.max(0, stats?.challengeCompletionCounts?.[challengeKey] || 0);
+        }
+
+        function getTrackedChallengeClearTotal(stats = state.stats) {
+            return CHALLENGE_POOL.reduce((sum, challenge) => sum + getChallengeCompletionCount(challenge.key, stats), 0);
+        }
+
+        function getUniqueCompletedChallengeCount(stats = state.stats) {
+            return CHALLENGE_POOL.reduce((sum, challenge) => sum + (getChallengeCompletionCount(challenge.key, stats) > 0 ? 1 : 0), 0);
+        }
+
+        function ensureChallengeCompletionRecord() {
+            if (!state.stats.challengeCompletionCounts || typeof state.stats.challengeCompletionCounts !== "object") {
+                state.stats.challengeCompletionCounts = createEmptyChallengeCompletionRecord();
+            }
+
+            CHALLENGE_POOL.forEach((challenge) => {
+                if (typeof state.stats.challengeCompletionCounts[challenge.key] !== "number") {
+                    state.stats.challengeCompletionCounts[challenge.key] = 0;
+                }
+            });
+        }
+
         function canClaimDailyPull() {
             return state.stats.lastDailyClaimDate !== getTodayKey();
         }
@@ -5579,10 +5806,12 @@
             }
 
             if (results.some((result) => result.rank >= challenge.targetRank)) {
+                ensureChallengeCompletionRecord();
                 challenge.status = "won";
                 challenge.spinsLeft = Math.max(challenge.spinsLeft - results.length, 0);
                 state.stats.signalDust += challenge.reward;
                 state.stats.challengeWins += 1;
+                state.stats.challengeCompletionCounts[challenge.key] = getChallengeCompletionCount(challenge.key) + 1;
                 flashSaveStatus(`${challenge.name} cleared! +${challenge.reward} signal`);
                 return;
             }
@@ -6468,6 +6697,7 @@
             state.stats.soundEnabled = typeof state.stats.soundEnabled === "boolean" ? state.stats.soundEnabled : defaults.soundEnabled;
             state.stats.spinSoundsEnabled = typeof state.stats.spinSoundsEnabled === "boolean" ? state.stats.spinSoundsEnabled : defaults.spinSoundsEnabled;
             state.stats.resultSoundsEnabled = typeof state.stats.resultSoundsEnabled === "boolean" ? state.stats.resultSoundsEnabled : defaults.resultSoundsEnabled;
+            state.stats.challengeCompletionCounts = normalizeChallengeCompletionRecord(state.stats.challengeCompletionCounts);
             deriveVariantTotalsFromStats();
             state.stats.ownedBannerKeys = normalizeOwnedBannerKeys(state.stats.ownedBannerKeys, state.stats.activeBannerKey);
             state.stats.activeBannerKey = isBannerOwned(state.stats.activeBannerKey, state.stats)
@@ -7462,6 +7692,7 @@
                     currentDrought: Math.max(0, clampNumber(parsed.currentDrought, 0, Number.MAX_SAFE_INTEGER, defaults.currentDrought)),
                     longestDrought: Math.max(0, clampNumber(parsed.longestDrought, 0, Number.MAX_SAFE_INTEGER, defaults.longestDrought)),
                     challengeWins: Math.max(0, clampNumber(parsed.challengeWins, 0, Number.MAX_SAFE_INTEGER, defaults.challengeWins)),
+                    challengeCompletionCounts: normalizeChallengeCompletionRecord(parsed.challengeCompletionCounts),
                     autoPullUnlocked: Boolean(parsed.autoPullUnlocked),
                     singlePullUnlockCount: Math.max(
                         0,
