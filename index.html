@@ -1,11 +1,552 @@
 <!DOCTYPE html>
-<html lang="en">
+<html class="light" lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Homepage</title>
+  <meta charset="utf-8" />
+  <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+  <title>Never Wet | Project Hub</title>
+  <meta
+    name="description"
+    content="Never Wet project hub for Freeform, Games, House Builder, Three.js, and Translator."
+  />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap"
+    rel="stylesheet"
+  />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+    rel="stylesheet"
+  />
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "surface-container-highest": "#e0e3e5",
+            "on-secondary-container": "#586377",
+            "primary-fixed": "#dae2fd",
+            "surface-variant": "#e0e3e5",
+            "on-primary-container": "#7c839b",
+            "secondary-fixed-dim": "#bcc7de",
+            outline: "#76777d",
+            "surface-container-lowest": "#ffffff",
+            "surface-container-high": "#e6e8ea",
+            "on-surface": "#191c1e",
+            "on-background": "#191c1e",
+            primary: "#000000",
+            "primary-fixed-dim": "#bec6e0",
+            "surface-dim": "#d8dadc",
+            "primary-container": "#131b2e",
+            "secondary-container": "#d5e0f8",
+            "inverse-on-surface": "#eff1f3",
+            "secondary-fixed": "#d8e3fb",
+            "surface-tint": "#565e74",
+            "on-primary": "#ffffff",
+            "tertiary-fixed-dim": "#b4c5ff",
+            "error-container": "#ffdad6",
+            "outline-variant": "#c6c6cd",
+            "on-tertiary": "#ffffff",
+            "on-surface-variant": "#45464d",
+            background: "#f7f9fb",
+            secondary: "#545f73",
+            "on-primary-fixed": "#131b2e",
+            "on-tertiary-fixed-variant": "#003ea8",
+            "tertiary-fixed": "#dbe1ff",
+            "on-secondary-fixed-variant": "#3c475a",
+            surface: "#f7f9fb",
+            "tertiary-container": "#00174b",
+            "surface-bright": "#f7f9fb",
+            "inverse-surface": "#2d3133",
+            error: "#ba1a1a",
+            "surface-container": "#eceef0",
+            "on-tertiary-container": "#497cff",
+            tertiary: "#000000",
+            "on-error": "#ffffff",
+            "surface-container-low": "#f2f4f6",
+            "on-secondary-fixed": "#111c2d",
+            "on-secondary": "#ffffff",
+            "on-tertiary-fixed": "#00174b",
+            "inverse-primary": "#bec6e0",
+            "on-error-container": "#93000a",
+            "on-primary-fixed-variant": "#3f465c",
+          },
+          borderRadius: {
+            DEFAULT: "0.125rem",
+            lg: "0.25rem",
+            xl: "0.5rem",
+            full: "0.75rem",
+          },
+          fontFamily: {
+            headline: ["Manrope"],
+            body: ["Inter"],
+            label: ["Inter"],
+          },
+        },
+      },
+    };
+  </script>
+  <style>
+    .material-symbols-outlined {
+      font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
+    }
+
+    body {
+      font-family: "Inter", sans-serif;
+      background-color: #f7f9fb;
+    }
+
+    h1,
+    h2,
+    h3 {
+      font-family: "Manrope", sans-serif;
+    }
+  </style>
 </head>
-<body>
-  
+<body id="top" class="bg-surface text-on-surface selection:bg-on-tertiary-container selection:text-white">
+  <nav class="fixed top-0 z-50 w-full bg-white/80 backdrop-blur-xl">
+    <div class="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 md:px-8">
+      <a class="font-headline text-xl font-bold tracking-tighter text-black" href="#top">NEVER WET</a>
+      <div class="hidden items-center space-x-6 lg:flex">
+        <a class="font-headline font-semibold text-slate-500 transition-colors duration-300 hover:text-black" href="./freeform/">
+          Freeform
+        </a>
+        <a class="font-headline font-semibold text-slate-500 transition-colors duration-300 hover:text-black" href="./games/">
+          Games
+        </a>
+        <a class="font-headline font-semibold text-slate-500 transition-colors duration-300 hover:text-black" href="./house-builder/">
+          House Builder
+        </a>
+        <a class="font-headline font-semibold text-slate-500 transition-colors duration-300 hover:text-black" href="./threejs/">
+          Three.js
+        </a>
+        <a class="font-headline font-semibold text-slate-500 transition-colors duration-300 hover:text-black" href="./translator/">
+          Translator
+        </a>
+      </div>
+      <a
+        class="rounded-lg bg-primary px-6 py-2.5 font-bold tracking-tight text-on-primary transition-transform hover:opacity-90 active:scale-95"
+        href="#projects"
+      >
+        Open Projects
+      </a>
+    </div>
+  </nav>
+
+  <main class="pt-28 md:pt-32">
+    <section class="mx-auto mb-32 max-w-7xl px-6 md:px-8">
+      <div class="grid gap-16 lg:grid-cols-[minmax(0,1.25fr)_minmax(320px,0.75fr)] lg:items-end">
+        <div class="max-w-4xl">
+          <div class="mb-6 inline-flex items-center gap-2 rounded-full bg-surface-container-low px-3 py-1">
+            <span class="h-2 w-2 rounded-full bg-on-tertiary-container"></span>
+            <span class="font-label text-xs font-semibold uppercase tracking-widest text-on-surface-variant">
+              5 live projects
+            </span>
+          </div>
+          <h1 class="mb-8 text-6xl font-extrabold leading-[0.9] tracking-tighter text-primary md:text-8xl">
+            Games, tools, and <br /><span class="text-on-tertiary-container">3D experiments.</span>
+          </h1>
+          <p class="font-body max-w-2xl text-xl leading-relaxed text-on-surface-variant md:text-2xl">
+            This homepage is now a launchpad for the projects already living in this repo: Freeform, Games,
+            House Builder, Three.js, and Translator.
+          </p>
+          <div class="mt-12 flex flex-wrap gap-4">
+            <a
+              class="flex items-center gap-2 rounded-xl bg-gradient-to-br from-primary to-primary-container px-8 py-4 font-bold text-on-primary shadow-lg shadow-primary/10 transition-transform active:scale-95"
+              href="#projects"
+            >
+              Jump to Projects
+              <span class="material-symbols-outlined text-sm">arrow_downward</span>
+            </a>
+            <a
+              class="rounded-xl border border-outline-variant/50 bg-white px-8 py-4 font-bold text-primary transition-colors hover:bg-surface-container-low"
+              href="./freeform/"
+            >
+              Open Freeform
+            </a>
+          </div>
+        </div>
+
+        <div class="rounded-[1.75rem] bg-white p-6 shadow-sm ring-1 ring-black/5 md:p-8">
+          <p class="mb-6 text-xs font-bold uppercase tracking-[0.3em] text-on-surface-variant">Project List</p>
+          <div class="space-y-3">
+            <a
+              class="flex items-center justify-between rounded-2xl bg-surface-container-low px-4 py-4 transition-colors hover:bg-surface-container"
+              href="./freeform/"
+            >
+              <div>
+                <p class="font-headline text-lg font-bold text-primary">Freeform</p>
+                <p class="text-sm text-on-surface-variant">Project boards and freeform canvas launcher</p>
+              </div>
+              <span class="material-symbols-outlined text-on-tertiary-container">north_east</span>
+            </a>
+            <a
+              class="flex items-center justify-between rounded-2xl bg-surface-container-low px-4 py-4 transition-colors hover:bg-surface-container"
+              href="./games/"
+            >
+              <div>
+                <p class="font-headline text-lg font-bold text-primary">Games</p>
+                <p class="text-sm text-on-surface-variant">Arcade hub for browser experiments</p>
+              </div>
+              <span class="material-symbols-outlined text-on-tertiary-container">north_east</span>
+            </a>
+            <a
+              class="flex items-center justify-between rounded-2xl bg-surface-container-low px-4 py-4 transition-colors hover:bg-surface-container"
+              href="./house-builder/"
+            >
+              <div>
+                <p class="font-headline text-lg font-bold text-primary">House Builder</p>
+                <p class="text-sm text-on-surface-variant">Modular 3D building lab</p>
+              </div>
+              <span class="material-symbols-outlined text-on-tertiary-container">north_east</span>
+            </a>
+            <a
+              class="flex items-center justify-between rounded-2xl bg-surface-container-low px-4 py-4 transition-colors hover:bg-surface-container"
+              href="./threejs/"
+            >
+              <div>
+                <p class="font-headline text-lg font-bold text-primary">Three.js</p>
+                <p class="text-sm text-on-surface-variant">Cinematic realtime scene</p>
+              </div>
+              <span class="material-symbols-outlined text-on-tertiary-container">north_east</span>
+            </a>
+            <a
+              class="flex items-center justify-between rounded-2xl bg-surface-container-low px-4 py-4 transition-colors hover:bg-surface-container"
+              href="./translator/"
+            >
+              <div>
+                <p class="font-headline text-lg font-bold text-primary">Translator</p>
+                <p class="text-sm text-on-surface-variant">Analog-inspired Morse translator</p>
+              </div>
+              <span class="material-symbols-outlined text-on-tertiary-container">north_east</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="bg-surface-container-low py-32" id="projects">
+      <div class="mx-auto max-w-7xl px-6 md:px-8">
+        <div class="mb-20 flex items-end justify-between gap-8">
+          <div>
+            <h2 class="mb-4 text-4xl font-bold tracking-tight text-primary">Live Projects</h2>
+            <p class="max-w-2xl font-medium text-on-secondary-container">
+              Every card below opens a real page in this repository, so the homepage works as a clean front door
+              instead of another placeholder.
+            </p>
+          </div>
+          <div class="mx-12 hidden h-[1px] flex-grow bg-outline-variant/20 md:block"></div>
+          <div class="text-right">
+            <span class="text-6xl font-black text-outline-variant opacity-20">05</span>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 gap-12 md:grid-cols-2 lg:gap-20">
+          <div class="group">
+            <div
+              class="mb-8 overflow-hidden rounded-xl bg-surface-container-lowest transition-transform duration-500 group-hover:-translate-y-2"
+            >
+              <div class="aspect-[4/3] bg-gradient-to-br from-slate-950 via-slate-800 to-sky-500 p-8 text-white">
+                <div class="flex h-full flex-col justify-between">
+                  <div class="flex items-center justify-between">
+                    <span class="rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.25em]">
+                      Workspace
+                    </span>
+                    <span class="material-symbols-outlined text-3xl">draw</span>
+                  </div>
+                  <div>
+                    <p class="mb-2 text-sm text-white/70">Project boards and canvas launcher</p>
+                    <p class="text-4xl font-extrabold tracking-tight">Freeform</p>
+                  </div>
+                  <div class="flex flex-wrap gap-2 text-xs font-semibold uppercase tracking-widest text-white/80">
+                    <span class="rounded-full bg-white/10 px-3 py-1">Boards</span>
+                    <span class="rounded-full bg-white/10 px-3 py-1">Canvas</span>
+                    <span class="rounded-full bg-white/10 px-3 py-1">Reopen</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="flex flex-col items-start px-2">
+              <span class="font-label mb-3 text-xs font-bold uppercase tracking-widest text-on-tertiary-container">
+                Workspace / Canvas
+              </span>
+              <h3 class="mb-4 text-3xl font-bold text-primary transition-colors group-hover:text-on-tertiary-container">
+                Freeform
+              </h3>
+              <p class="mb-6 max-w-md leading-relaxed text-on-surface-variant">
+                Make a project, then jump straight into your freeform canvas from a clean workspace home.
+              </p>
+              <a class="inline-flex items-center gap-2 font-bold text-primary transition-all duration-300 group-hover:gap-4" href="./freeform/">
+                Open Project
+                <span class="h-[1px] w-12 bg-primary transition-colors group-hover:bg-on-tertiary-container"></span>
+              </a>
+            </div>
+          </div>
+
+          <div class="group md:mt-32">
+            <div
+              class="mb-8 overflow-hidden rounded-xl bg-surface-container-lowest transition-transform duration-500 group-hover:-translate-y-2"
+            >
+              <div class="aspect-[4/3] bg-gradient-to-br from-fuchsia-700 via-rose-600 to-amber-300 p-8 text-white">
+                <div class="flex h-full flex-col justify-between">
+                  <div class="flex items-center justify-between">
+                    <span class="rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.25em]">
+                      Arcade
+                    </span>
+                    <span class="material-symbols-outlined text-3xl">sports_esports</span>
+                  </div>
+                  <div>
+                    <p class="mb-2 text-sm text-white/70">Browser games and mini-experiments</p>
+                    <p class="text-4xl font-extrabold tracking-tight">Games</p>
+                  </div>
+                  <div class="flex flex-wrap gap-2 text-xs font-semibold uppercase tracking-widest text-white/80">
+                    <span class="rounded-full bg-white/10 px-3 py-1">Soccer Idle</span>
+                    <span class="rounded-full bg-white/10 px-3 py-1">Reels Pull</span>
+                    <span class="rounded-full bg-white/10 px-3 py-1">More Slots</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="flex flex-col items-start px-2">
+              <span class="font-label mb-3 text-xs font-bold uppercase tracking-widest text-on-tertiary-container">
+                Arcade / Experiments
+              </span>
+              <h3 class="mb-4 text-3xl font-bold text-primary transition-colors group-hover:text-on-tertiary-container">
+                Games
+              </h3>
+              <p class="mb-6 max-w-md leading-relaxed text-on-surface-variant">
+                A growing arcade for weird little web games, with Soccer Idle and Reels Pull already live inside the
+                folder.
+              </p>
+              <a class="inline-flex items-center gap-2 font-bold text-primary transition-all duration-300 group-hover:gap-4" href="./games/">
+                Open Project
+                <span class="h-[1px] w-12 bg-primary transition-colors group-hover:bg-on-tertiary-container"></span>
+              </a>
+            </div>
+          </div>
+
+          <div class="group">
+            <div
+              class="mb-8 overflow-hidden rounded-xl bg-surface-container-lowest transition-transform duration-500 group-hover:-translate-y-2"
+            >
+              <div class="aspect-[4/3] bg-gradient-to-br from-emerald-950 via-teal-700 to-lime-300 p-8 text-white">
+                <div class="flex h-full flex-col justify-between">
+                  <div class="flex items-center justify-between">
+                    <span class="rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.25em]">
+                      Builder
+                    </span>
+                    <span class="material-symbols-outlined text-3xl">home_work</span>
+                  </div>
+                  <div>
+                    <p class="mb-2 text-sm text-white/70">Modular 3D building lab</p>
+                    <p class="text-4xl font-extrabold tracking-tight">House Builder</p>
+                  </div>
+                  <div class="flex flex-wrap gap-2 text-xs font-semibold uppercase tracking-widest text-white/80">
+                    <span class="rounded-full bg-white/10 px-3 py-1">Floor</span>
+                    <span class="rounded-full bg-white/10 px-3 py-1">Wall</span>
+                    <span class="rounded-full bg-white/10 px-3 py-1">Glass</span>
+                    <span class="rounded-full bg-white/10 px-3 py-1">Roof</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="flex flex-col items-start px-2">
+              <span class="font-label mb-3 text-xs font-bold uppercase tracking-widest text-on-tertiary-container">
+                3D Builder / Lab
+              </span>
+              <h3 class="mb-4 text-3xl font-bold text-primary transition-colors group-hover:text-on-tertiary-container">
+                House Builder
+              </h3>
+              <p class="mb-6 max-w-md leading-relaxed text-on-surface-variant">
+                A modular building lab with floors, walls, windows, doors, columns, and roof pieces laid out like a
+                clean blueprint workspace.
+              </p>
+              <a class="inline-flex items-center gap-2 font-bold text-primary transition-all duration-300 group-hover:gap-4" href="./house-builder/">
+                Open Project
+                <span class="h-[1px] w-12 bg-primary transition-colors group-hover:bg-on-tertiary-container"></span>
+              </a>
+            </div>
+          </div>
+
+          <div class="group md:mt-32">
+            <div
+              class="mb-8 overflow-hidden rounded-xl bg-surface-container-lowest transition-transform duration-500 group-hover:-translate-y-2"
+            >
+              <div class="aspect-[4/3] bg-gradient-to-br from-indigo-950 via-blue-700 to-cyan-300 p-8 text-white">
+                <div class="flex h-full flex-col justify-between">
+                  <div class="flex items-center justify-between">
+                    <span class="rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.25em]">
+                      Realtime
+                    </span>
+                    <span class="material-symbols-outlined text-3xl">blur_on</span>
+                  </div>
+                  <div>
+                    <p class="mb-2 text-sm text-white/70">Local Three.js build with bloom and motion</p>
+                    <p class="text-4xl font-extrabold tracking-tight">Three.js</p>
+                  </div>
+                  <div class="flex flex-wrap gap-2 text-xs font-semibold uppercase tracking-widest text-white/80">
+                    <span class="rounded-full bg-white/10 px-3 py-1">Bloom</span>
+                    <span class="rounded-full bg-white/10 px-3 py-1">Particles</span>
+                    <span class="rounded-full bg-white/10 px-3 py-1">Motion</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="flex flex-col items-start px-2">
+              <span class="font-label mb-3 text-xs font-bold uppercase tracking-widest text-on-tertiary-container">
+                Scene / Motion
+              </span>
+              <h3 class="mb-4 text-3xl font-bold text-primary transition-colors group-hover:text-on-tertiary-container">
+                Three.js
+              </h3>
+              <p class="mb-6 max-w-md leading-relaxed text-on-surface-variant">
+                A cinematic landing page built from your local Three.js folder, with a glowing core, orbital trails,
+                and responsive motion.
+              </p>
+              <a class="inline-flex items-center gap-2 font-bold text-primary transition-all duration-300 group-hover:gap-4" href="./threejs/">
+                Open Project
+                <span class="h-[1px] w-12 bg-primary transition-colors group-hover:bg-on-tertiary-container"></span>
+              </a>
+            </div>
+          </div>
+
+          <div class="group">
+            <div
+              class="mb-8 overflow-hidden rounded-xl bg-surface-container-lowest transition-transform duration-500 group-hover:-translate-y-2"
+            >
+              <div class="aspect-[4/3] bg-gradient-to-br from-zinc-950 via-slate-800 to-red-400 p-8 text-white">
+                <div class="flex h-full flex-col justify-between">
+                  <div class="flex items-center justify-between">
+                    <span class="rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.25em]">
+                      Utility
+                    </span>
+                    <span class="material-symbols-outlined text-3xl">translate</span>
+                  </div>
+                  <div>
+                    <p class="mb-2 text-sm text-white/70">Analog-inspired Morse translator</p>
+                    <p class="text-4xl font-extrabold tracking-tight">Translator</p>
+                  </div>
+                  <div class="flex flex-wrap gap-2 text-xs font-semibold uppercase tracking-widest text-white/80">
+                    <span class="rounded-full bg-white/10 px-3 py-1">Encode</span>
+                    <span class="rounded-full bg-white/10 px-3 py-1">Decode</span>
+                    <span class="rounded-full bg-white/10 px-3 py-1">Playback</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="flex flex-col items-start px-2">
+              <span class="font-label mb-3 text-xs font-bold uppercase tracking-widest text-on-tertiary-container">
+                Tool / Morse
+              </span>
+              <h3 class="mb-4 text-3xl font-bold text-primary transition-colors group-hover:text-on-tertiary-container">
+                Translator
+              </h3>
+              <p class="mb-6 max-w-md leading-relaxed text-on-surface-variant">
+                An analog-inspired Morse translator with live text conversion, reverse translation, playback controls,
+                and a full reference panel.
+              </p>
+              <a class="inline-flex items-center gap-2 font-bold text-primary transition-all duration-300 group-hover:gap-4" href="./translator/">
+                Open Project
+                <span class="h-[1px] w-12 bg-primary transition-colors group-hover:bg-on-tertiary-container"></span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="bg-white py-28 md:py-32">
+      <div class="mx-auto max-w-7xl px-6 md:px-8">
+        <div class="rounded-[2rem] bg-gradient-to-br from-primary to-primary-container px-8 py-12 text-on-primary md:px-12 md:py-16">
+          <p class="text-xs font-bold uppercase tracking-[0.3em] text-white/60">Pick A Direction</p>
+          <h2 class="mt-4 max-w-3xl text-4xl font-extrabold tracking-tighter md:text-6xl">
+            Open a project and jump straight in.
+          </h2>
+          <p class="mt-6 max-w-2xl text-lg leading-relaxed text-white/70">
+            Freeform is the workspace, Games is the playful arcade, House Builder and Three.js cover the 3D side,
+            and Translator is the most utility-focused tool in the set.
+          </p>
+          <div class="mt-10 flex flex-wrap gap-4">
+            <a class="rounded-full bg-white px-6 py-3 font-bold text-primary transition-opacity hover:opacity-90" href="./freeform/">
+              Freeform
+            </a>
+            <a class="rounded-full border border-white/20 px-6 py-3 font-bold text-white transition-colors hover:bg-white/10" href="./games/">
+              Games
+            </a>
+            <a class="rounded-full border border-white/20 px-6 py-3 font-bold text-white transition-colors hover:bg-white/10" href="./house-builder/">
+              House Builder
+            </a>
+            <a class="rounded-full border border-white/20 px-6 py-3 font-bold text-white transition-colors hover:bg-white/10" href="./threejs/">
+              Three.js
+            </a>
+            <a class="rounded-full border border-white/20 px-6 py-3 font-bold text-white transition-colors hover:bg-white/10" href="./translator/">
+              Translator
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="w-full bg-slate-100 py-12 dark:bg-slate-900">
+    <div class="mx-auto flex max-w-7xl flex-col items-center justify-between px-8 md:flex-row">
+      <div class="mb-8 md:mb-0">
+        <div class="font-headline mb-2 text-lg font-bold text-black dark:text-white">NEVER WET</div>
+        <p class="text-sm text-slate-500 dark:text-slate-400">Project hub for Freeform, Games, House Builder, Three.js, and Translator.</p>
+      </div>
+      <div class="flex items-center gap-8">
+        <a
+          class="text-sm font-medium text-slate-500 transition-opacity hover:opacity-80 hover:underline decoration-blue-500 underline-offset-4 dark:text-slate-400"
+          href="./freeform/"
+        >
+          Freeform
+        </a>
+        <a
+          class="text-sm font-medium text-slate-500 transition-opacity hover:opacity-80 hover:underline decoration-blue-500 underline-offset-4 dark:text-slate-400"
+          href="./games/"
+        >
+          Games
+        </a>
+        <a
+          class="text-sm font-medium text-slate-500 transition-opacity hover:opacity-80 hover:underline decoration-blue-500 underline-offset-4 dark:text-slate-400"
+          href="./house-builder/"
+        >
+          House Builder
+        </a>
+        <a
+          class="text-sm font-medium text-slate-500 transition-opacity hover:opacity-80 hover:underline decoration-blue-500 underline-offset-4 dark:text-slate-400"
+          href="./threejs/"
+        >
+          Three.js
+        </a>
+        <a
+          class="text-sm font-medium text-slate-500 transition-opacity hover:opacity-80 hover:underline decoration-blue-500 underline-offset-4 dark:text-slate-400"
+          href="./translator/"
+        >
+          Translator
+        </a>
+      </div>
+    </div>
+  </footer>
+
+  <div class="fixed bottom-6 left-1/2 z-50 hidden -translate-x-1/2 md:block">
+    <div class="flex items-center gap-6 rounded-full border border-outline-variant/10 bg-white/80 px-5 py-3 shadow-2xl backdrop-blur-xl">
+      <a aria-label="Open Freeform" class="text-on-tertiary-container" href="./freeform/">
+        <span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 1;">draw</span>
+      </a>
+      <a aria-label="Open Games" class="text-on-surface-variant transition-colors hover:text-primary" href="./games/">
+        <span class="material-symbols-outlined text-2xl">sports_esports</span>
+      </a>
+      <a aria-label="Open House Builder" class="text-on-surface-variant transition-colors hover:text-primary" href="./house-builder/">
+        <span class="material-symbols-outlined text-2xl">home_work</span>
+      </a>
+      <a aria-label="Open Three.js" class="text-on-surface-variant transition-colors hover:text-primary" href="./threejs/">
+        <span class="material-symbols-outlined text-2xl">blur_on</span>
+      </a>
+      <a aria-label="Open Translator" class="text-on-surface-variant transition-colors hover:text-primary" href="./translator/">
+        <span class="material-symbols-outlined text-2xl">translate</span>
+      </a>
+    </div>
+  </div>
 </body>
 </html>
