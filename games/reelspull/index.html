@@ -881,6 +881,9 @@
             display: grid;
             gap: 8px;
             text-align: center;
+            justify-items: center;
+            align-content: start;
+            overflow: hidden;
         }
 
         .chart-column {
@@ -901,6 +904,15 @@
         .muted-line {
             color: var(--muted);
             font-size: 0.82rem;
+        }
+
+        .chart-caption {
+            width: 100%;
+            max-width: 100%;
+            text-align: center;
+            line-height: 1.2;
+            overflow-wrap: anywhere;
+            word-break: break-word;
         }
 
         .showcase-card {
