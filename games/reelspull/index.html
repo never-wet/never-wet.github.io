@@ -449,6 +449,14 @@
             border-radius: inherit;
         }
 
+        .gif-accent-layer {
+            position: absolute;
+            inset: 0;
+            z-index: 3;
+            pointer-events: none;
+            border-radius: inherit;
+        }
+
         .variant-media::after {
             content: "";
             position: absolute;
@@ -553,6 +561,18 @@
             box-shadow:
                 inset 0 0 0 1px rgba(255, 160, 122, 0.16),
                 0 0 30px rgba(255, 142, 118, 0.12);
+        }
+
+        .variant-media.gif-key-godlike {
+            background:
+                radial-gradient(circle at 50% 18%, rgba(255, 255, 255, 0.22), transparent 22%),
+                radial-gradient(circle at 18% 22%, rgba(255, 230, 148, 0.24), transparent 20%),
+                radial-gradient(circle at 82% 78%, rgba(255, 214, 106, 0.2), transparent 22%),
+                linear-gradient(180deg, rgba(255, 248, 220, 0.98), rgba(255, 233, 168, 0.92) 34%, rgba(232, 194, 88, 0.9) 72%, rgba(144, 102, 26, 0.94));
+            box-shadow:
+                inset 0 0 0 1px rgba(255, 243, 188, 0.34),
+                0 0 38px rgba(255, 215, 106, 0.2),
+                0 0 64px rgba(255, 240, 184, 0.14);
         }
 
         .variant-shiny-glow {
@@ -710,6 +730,42 @@
         .collection-card {
             overflow: hidden;
             padding: 0;
+        }
+
+        .collection-card.godlike-card,
+        .pull-card.godlike-card,
+        .album-card.godlike-card,
+        .reveal-card.godlike-card,
+        .showcase-card.godlike-card {
+            border-color: rgba(255, 224, 132, 0.72);
+            box-shadow:
+                0 0 0 1px rgba(255, 246, 201, 0.12),
+                0 0 34px rgba(255, 215, 106, 0.3),
+                0 0 78px rgba(255, 215, 106, 0.16);
+        }
+
+        .collection-card.insane-card,
+        .pull-card.insane-card,
+        .album-card.insane-card,
+        .reveal-card.insane-card,
+        .showcase-card.insane-card {
+            border-color: rgba(255, 108, 156, 0.72);
+            box-shadow:
+                0 0 0 1px rgba(255, 216, 228, 0.1),
+                0 0 30px rgba(255, 79, 129, 0.28),
+                0 0 68px rgba(255, 79, 129, 0.15);
+        }
+
+        .collection-card.unreal-card,
+        .pull-card.unreal-card,
+        .album-card.unreal-card,
+        .reveal-card.unreal-card,
+        .showcase-card.unreal-card {
+            border-color: rgba(255, 166, 132, 0.7);
+            box-shadow:
+                0 0 0 1px rgba(255, 232, 220, 0.1),
+                0 0 30px rgba(255, 126, 107, 0.26),
+                0 0 68px rgba(255, 126, 107, 0.14);
         }
 
         .collection-card.locked {
@@ -1385,7 +1441,7 @@
         }
 
         .variant-media.gif-key-mythic .variant-alt-scan {
-            opacity: 1;
+            opacity: 0.7;
             background: repeating-linear-gradient(120deg, rgba(255, 255, 255, 0) 0 12px, rgba(255, 255, 255, 0.28) 12px 22px, rgba(0, 0, 0, 0) 22px 34px);
         }
 
@@ -1395,7 +1451,7 @@
         }
 
         .variant-media.gif-key-mythic .variant-holo-prism {
-            opacity: 1;
+            opacity: 0.56;
             background:
                 radial-gradient(circle at 18% 18%, rgba(255, 255, 255, 0.16), transparent 20%),
                 radial-gradient(circle at 82% 80%, rgba(255, 219, 126, 0.18), transparent 22%),
@@ -1408,7 +1464,7 @@
         }
 
         .variant-media.gif-key-mythic .variant-holo-scan {
-            opacity: 1;
+            opacity: 0.68;
             background: linear-gradient(95deg, transparent 0, rgba(255, 255, 255, 0.84) 42%, rgba(255, 255, 255, 0.2) 54%, transparent 74%);
             transform: translateX(-52%) skewX(-18deg);
         }
@@ -1419,23 +1475,23 @@
         }
 
         .variant-media.gif-key-mythic.variant-frame-alt::before {
-            opacity: 0.88;
+            opacity: 0.38;
             background:
                 radial-gradient(circle at 18% 18%, rgba(255, 152, 222, 0.44), transparent 22%),
                 radial-gradient(circle at 82% 78%, rgba(148, 244, 255, 0.34), transparent 24%),
                 linear-gradient(135deg, rgba(255, 104, 194, 0.16), transparent 36%, rgba(114, 236, 255, 0.18) 82%);
             mix-blend-mode: screen;
-            backdrop-filter: saturate(1.18) brightness(1.04);
+            backdrop-filter: saturate(1.08) brightness(1.02);
         }
 
         .variant-media.gif-key-mythic.variant-frame-holo::before {
-            opacity: 0.88;
+            opacity: 0.34;
             background:
                 radial-gradient(circle at 18% 18%, rgba(255, 255, 255, 0.2), transparent 20%),
                 radial-gradient(circle at 82% 80%, rgba(255, 214, 100, 0.18), transparent 22%),
                 linear-gradient(135deg, rgba(255, 160, 225, 0.24), transparent 34%, rgba(114, 170, 255, 0.22) 72%, rgba(255, 214, 100, 0.18));
             mix-blend-mode: screen;
-            backdrop-filter: saturate(1.2) brightness(1.04);
+            backdrop-filter: saturate(1.08) brightness(1.02);
         }
 
         .variant-media.gif-key-unreal.variant-frame-void {
@@ -1468,6 +1524,107 @@
                 radial-gradient(circle at 74% 24%, rgba(255, 214, 148, 0.92) 0 1.8px, transparent 2.8px),
                 radial-gradient(circle at 58% 70%, rgba(255, 255, 255, 0.82) 0 1.5px, transparent 2.5px),
                 radial-gradient(circle at 22% 80%, rgba(255, 162, 130, 0.94) 0 2.2px, transparent 3.2px);
+        }
+
+        .variant-media.gif-key-godlike.variant-frame-void {
+            box-shadow:
+                inset 0 0 0 1px rgba(255, 248, 208, 0.42),
+                0 0 44px rgba(255, 215, 106, 0.26),
+                0 0 72px rgba(255, 241, 188, 0.22);
+        }
+
+        .variant-media.gif-key-godlike.variant-frame-void::before {
+            opacity: 0.58;
+            background:
+                radial-gradient(circle at 50% 18%, rgba(255, 255, 255, 0.34), transparent 22%),
+                radial-gradient(circle at 50% 50%, rgba(255, 220, 122, 0.2), transparent 34%),
+                linear-gradient(180deg, rgba(255, 255, 255, 0.14), transparent 30%, rgba(137, 105, 214, 0.08) 76%, rgba(82, 48, 166, 0.12) 100%);
+            mix-blend-mode: screen;
+            backdrop-filter: saturate(1.08) brightness(1.04);
+        }
+
+        .variant-media.gif-key-godlike .variant-void-vortex {
+            background:
+                conic-gradient(from 0deg, rgba(255, 245, 208, 0.14), rgba(255, 214, 106, 0.24), rgba(142, 108, 220, 0.18), rgba(255, 255, 255, 0) 42%, rgba(255, 223, 142, 0.2), rgba(255, 255, 255, 0) 82%, rgba(255, 245, 208, 0.14));
+            opacity: 0.78;
+        }
+
+        .variant-media.gif-key-godlike .variant-void-stars {
+            background:
+                radial-gradient(circle at 14% 18%, rgba(255, 255, 255, 0.98) 0 2px, transparent 3px),
+                radial-gradient(circle at 74% 24%, rgba(255, 244, 208, 0.96) 0 2px, transparent 3px),
+                radial-gradient(circle at 58% 70%, rgba(255, 230, 154, 0.88) 0 1.8px, transparent 2.8px),
+                radial-gradient(circle at 22% 80%, rgba(255, 215, 106, 0.94) 0 2.3px, transparent 3.3px);
+            opacity: 1;
+        }
+
+        .gif-accent-mythic-aura {
+            background:
+                radial-gradient(circle at 14% 16%, rgba(255, 122, 210, 0.46), transparent 20%),
+                radial-gradient(circle at 84% 18%, rgba(132, 240, 255, 0.36), transparent 20%),
+                radial-gradient(circle at 82% 82%, rgba(255, 218, 118, 0.28), transparent 20%),
+                radial-gradient(circle at 18% 80%, rgba(184, 120, 255, 0.24), transparent 18%),
+                linear-gradient(140deg, rgba(255, 104, 194, 0.3), transparent 24%, transparent 58%, rgba(112, 170, 255, 0.2) 76%, rgba(255, 214, 100, 0.18) 100%);
+            mix-blend-mode: screen;
+            opacity: 1;
+        }
+
+        .gif-accent-mythic-scan {
+            background:
+                repeating-linear-gradient(122deg, rgba(255, 255, 255, 0) 0 20px, rgba(255, 255, 255, 0.14) 20px 28px, rgba(255, 255, 255, 0) 28px 46px),
+                linear-gradient(122deg, transparent 0 22%, rgba(255, 255, 255, 0.3) 30%, transparent 40%, transparent 54%, rgba(255, 129, 214, 0.26) 64%, transparent 76%);
+            mix-blend-mode: screen;
+            transform: translateX(-12%);
+            animation: variantSweepAcross 4.8s ease-in-out infinite;
+            opacity: 0.94;
+        }
+
+        .gif-accent-unreal-ring {
+            background:
+                radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0) 0 20%, rgba(255, 174, 126, 0.3) 21% 25%, rgba(0, 0, 0, 0) 26% 31%, rgba(255, 216, 152, 0.22) 32% 35%, rgba(0, 0, 0, 0) 36%),
+                radial-gradient(circle at 16% 18%, rgba(255, 255, 255, 0.24), transparent 16%),
+                radial-gradient(circle at 84% 24%, rgba(255, 210, 152, 0.2), transparent 18%),
+                radial-gradient(circle at 50% 50%, rgba(166, 110, 255, 0.16), transparent 52%);
+            mix-blend-mode: screen;
+            opacity: 1;
+        }
+
+        .gif-accent-unreal-beam {
+            background:
+                linear-gradient(125deg, transparent 0 14%, rgba(255, 232, 182, 0.28) 20%, rgba(255, 152, 122, 0.22) 32%, transparent 44%, transparent 60%, rgba(122, 92, 212, 0.2) 72%, transparent 84%),
+                linear-gradient(145deg, transparent 0 52%, rgba(255, 188, 128, 0.12) 62%, transparent 72%);
+            mix-blend-mode: screen;
+            transform: translateX(-8%);
+            animation: variantSweepAcross 5.2s ease-in-out infinite;
+            opacity: 0.96;
+        }
+
+        .gif-accent-godlike-rays {
+            background:
+                conic-gradient(from -18deg at 50% 18%, rgba(255, 255, 255, 0) 0deg 10deg, rgba(255, 247, 214, 0.28) 10deg 15deg, rgba(255, 255, 255, 0) 15deg 28deg, rgba(255, 223, 138, 0.26) 28deg 33deg, rgba(255, 255, 255, 0) 33deg 47deg, rgba(255, 244, 206, 0.24) 47deg 52deg, rgba(255, 255, 255, 0) 52deg 360deg);
+            mix-blend-mode: screen;
+            opacity: 1;
+            animation: godlikeSunburstSpin 11s linear infinite;
+        }
+
+        .gif-accent-godlike-halo {
+            background:
+                radial-gradient(circle at 50% 18%, rgba(255, 255, 255, 0.52), rgba(255, 238, 170, 0.3) 16%, rgba(255, 215, 106, 0.12) 28%, transparent 42%),
+                radial-gradient(circle at 18% 24%, rgba(255, 247, 208, 0.2), transparent 18%),
+                radial-gradient(circle at 84% 72%, rgba(255, 213, 120, 0.16), transparent 20%);
+            mix-blend-mode: screen;
+            opacity: 0.96;
+            animation: godlikeHaloPulse 2.2s ease-in-out infinite alternate;
+        }
+
+        .gif-accent-godlike-blessing {
+            background:
+                linear-gradient(180deg, rgba(255, 255, 255, 0.16), transparent 26%, transparent 62%, rgba(255, 215, 106, 0.14) 86%, rgba(255, 236, 176, 0.22) 100%),
+                linear-gradient(120deg, transparent 0 22%, rgba(255, 247, 214, 0.24) 28%, transparent 38%, transparent 58%, rgba(255, 223, 142, 0.18) 68%, transparent 80%);
+            mix-blend-mode: screen;
+            opacity: 0.92;
+            transform: translateY(-2%);
+            animation: godlikeScreenFlare 3.6s ease-in-out infinite alternate;
         }
 
         .modal-overlay {
@@ -3622,6 +3779,26 @@
             return variant ? variant.accent : result.color;
         }
 
+        function getOuterCardAccentClass(result) {
+            if (!result?.key) {
+                return "";
+            }
+
+            if (result.key === "godlike") {
+                return " godlike-card";
+            }
+
+            if (result.key === "insane") {
+                return " insane-card";
+            }
+
+            if (result.key === "unreal") {
+                return " unreal-card";
+            }
+
+            return "";
+        }
+
         function getOwnedPreviewVariantKeyForGif(gifKey) {
             const gif = gifMap[gifKey];
             if (!gif) {
@@ -3701,6 +3878,29 @@
                 .join("");
         }
 
+        function getGifAccentOverlayMarkup(result) {
+            switch (result?.key) {
+                case "mythic":
+                    return `
+                        <span class="gif-accent-layer gif-accent-mythic-aura"></span>
+                        <span class="gif-accent-layer gif-accent-mythic-scan"></span>
+                    `;
+                case "unreal":
+                    return `
+                        <span class="gif-accent-layer gif-accent-unreal-ring"></span>
+                        <span class="gif-accent-layer gif-accent-unreal-beam"></span>
+                    `;
+                case "godlike":
+                    return `
+                        <span class="gif-accent-layer gif-accent-godlike-rays"></span>
+                        <span class="gif-accent-layer gif-accent-godlike-halo"></span>
+                        <span class="gif-accent-layer gif-accent-godlike-blessing"></span>
+                    `;
+                default:
+                    return "";
+            }
+        }
+
         function getResultMediaMarkup(result, src, options = {}) {
             const {
                 alt = getResultDisplayName(result),
@@ -3715,6 +3915,7 @@
             return `
                 <div class="${getResultMediaFrameClass(result, extraClass)}">
                     <img class="${getResultImageClass(result)}" src="${src}" alt="${alt}"${syncAttrs}>
+                    ${getGifAccentOverlayMarkup(result)}
                     ${getVariantOverlayMarkup(result)}
                 </div>
             `;
@@ -3742,6 +3943,11 @@
             }
 
             wrapper.appendChild(image);
+
+            const accentMarkup = getGifAccentOverlayMarkup(result);
+            if (accentMarkup) {
+                wrapper.insertAdjacentHTML("beforeend", accentMarkup);
+            }
 
             const overlayMarkup = getVariantOverlayMarkup(result);
             if (overlayMarkup) {
@@ -4657,7 +4863,7 @@
                 const variantCounts = state.stats.variantCounts[gif.key] || createEmptyVariantCountRecord();
                 const previewResult = getPreviewResultForGif(gif);
                 const card = document.createElement("article");
-                card.className = `collection-card${unlocked ? "" : " locked"}`;
+                card.className = `collection-card${getOuterCardAccentClass(previewResult)}${unlocked ? "" : " locked"}`;
                 card.innerHTML = `
                     ${getResultMediaMarkup(previewResult, getSyncedGifUrl(gif.path, syncCycle), {
                         alt: getResultDisplayName(previewResult),
@@ -4709,7 +4915,7 @@
                 const variantSummaryText = getResultVariantText(gif);
                 const showVariantChip = getResultVariantKeys(gif).length > 1;
                 const card = document.createElement("article");
-                card.className = "card pull-card";
+                card.className = `card pull-card${getOuterCardAccentClass(gif)}`;
                 card.innerHTML = `
                     ${getResultMediaMarkup(gif, getSyncedGifUrl(gif.path, syncCycle), {
                         syncPath: gif.path,
@@ -4891,8 +5097,10 @@
                 : bestGif
                     ? { ...bestGif, variantKey: state.stats.bestPullVariant || "" }
                     : null;
+            const rarityOuterClasses = ["unreal-card", "insane-card", "godlike-card"];
 
             if (!selected) {
+                showcaseCard.classList.remove(...rarityOuterClasses);
                 showcaseCard.innerHTML = `<div class="showcase-empty">Pull something good and set it as your showcase.</div>`;
                 return;
             }
@@ -4917,6 +5125,12 @@
                     <button class="ghost-button tiny-button" type="button" ${favoriteGif ? "" : "disabled"}>Clear Favorite</button>
                 </div>
             `;
+
+            showcaseCard.classList.remove(...rarityOuterClasses);
+            const outerAccentClass = getOuterCardAccentClass(selected).trim();
+            if (outerAccentClass) {
+                showcaseCard.classList.add(outerAccentClass);
+            }
 
             const [exportButton, clearButton] = showcaseCard.querySelectorAll("button");
             exportButton.addEventListener("click", () => exportResultCard(selected));
@@ -6790,7 +7004,7 @@
                 const variants = state.stats.variantCounts[gif.key] || createEmptyVariantCountRecord();
                 const previewResult = getPreviewResultForGif(gif);
                 const cardNode = document.createElement("article");
-                cardNode.className = `album-card${unlocked ? "" : " locked"}`;
+                cardNode.className = `album-card${getOuterCardAccentClass(previewResult)}${unlocked ? "" : " locked"}`;
                 cardNode.innerHTML = `
                     ${getResultMediaMarkup(previewResult, getSyncedGifUrl(gif.path, syncCycle), {
                         alt: getResultDisplayName(previewResult),
@@ -6820,7 +7034,7 @@
 
             results.forEach((result, index) => {
                 const revealCard = document.createElement("article");
-                revealCard.className = "reveal-card";
+                revealCard.className = `reveal-card${getOuterCardAccentClass(result)}`;
                 revealCard.style.animationDelay = `${index * 55}ms`;
                 revealCard.innerHTML = `
                     ${getResultMediaMarkup(result, getSyncedGifUrl(result.path, syncCycle), {
