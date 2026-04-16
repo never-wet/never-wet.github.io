@@ -431,10 +431,20 @@
             border-radius: inherit;
         }
 
-        .variant-layer {
+        .variant-media::before {
+            content: "";
             position: absolute;
             inset: 0;
             z-index: 3;
+            pointer-events: none;
+            border-radius: inherit;
+            opacity: 0;
+        }
+
+        .variant-layer {
+            position: absolute;
+            inset: 0;
+            z-index: 4;
             pointer-events: none;
             border-radius: inherit;
         }
@@ -443,7 +453,7 @@
             content: "";
             position: absolute;
             inset: 0;
-            z-index: 4;
+            z-index: 5;
             pointer-events: none;
             border-radius: inherit;
             border: 1px solid rgba(255, 255, 255, 0.08);
@@ -459,6 +469,16 @@
                 0 0 34px rgba(255, 215, 106, 0.3);
         }
 
+        .variant-frame-shiny::before {
+            opacity: 0.9;
+            background:
+                radial-gradient(circle at 18% 18%, rgba(255, 244, 194, 0.62), transparent 28%),
+                radial-gradient(circle at 78% 78%, rgba(255, 214, 120, 0.38), transparent 32%),
+                linear-gradient(145deg, rgba(255, 228, 128, 0.26), rgba(255, 255, 255, 0.06) 54%, rgba(255, 239, 188, 0.18));
+            mix-blend-mode: screen;
+            backdrop-filter: brightness(1.08) saturate(1.12);
+        }
+
         .variant-frame-alt {
             background:
                 radial-gradient(circle at 22% 24%, rgba(255, 108, 196, 0.28), transparent 32%),
@@ -467,6 +487,16 @@
             box-shadow:
                 inset 0 0 0 1px rgba(122, 232, 255, 0.18),
                 0 0 30px rgba(122, 232, 255, 0.2);
+        }
+
+        .variant-frame-alt::before {
+            opacity: 0.82;
+            background:
+                radial-gradient(circle at 24% 22%, rgba(255, 138, 214, 0.4), transparent 30%),
+                radial-gradient(circle at 80% 78%, rgba(138, 239, 255, 0.38), transparent 32%),
+                linear-gradient(135deg, rgba(255, 92, 171, 0.18), rgba(102, 224, 255, 0.24) 54%, rgba(255, 255, 255, 0.05));
+            mix-blend-mode: screen;
+            backdrop-filter: saturate(1.18) brightness(1.04);
         }
 
         .variant-frame-holo {
@@ -478,6 +508,15 @@
                 0 0 34px rgba(121, 255, 240, 0.24);
         }
 
+        .variant-frame-holo::before {
+            opacity: 0.88;
+            background:
+                linear-gradient(135deg, rgba(255, 154, 220, 0.28), rgba(112, 255, 232, 0.24) 34%, rgba(114, 170, 255, 0.28) 70%, rgba(255, 214, 100, 0.2)),
+                radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.24), transparent 56%);
+            mix-blend-mode: screen;
+            backdrop-filter: saturate(1.28) brightness(1.06);
+        }
+
         .variant-frame-void {
             background:
                 radial-gradient(circle at 50% 50%, rgba(112, 74, 196, 0.68), rgba(18, 10, 48, 0.94) 58%, rgba(2, 2, 8, 1) 100%);
@@ -486,18 +525,49 @@
                 0 0 36px rgba(97, 53, 173, 0.34);
         }
 
+        .variant-frame-void::before {
+            opacity: 0.94;
+            background:
+                radial-gradient(circle at 50% 50%, rgba(194, 162, 255, 0.3), transparent 34%),
+                radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0) 36%, rgba(8, 3, 26, 0.58) 76%, rgba(0, 0, 0, 0.8) 100%);
+            mix-blend-mode: screen;
+            backdrop-filter: contrast(1.08) brightness(0.96);
+        }
+
+        .variant-media.gif-key-mythic {
+            background:
+                radial-gradient(circle at 18% 18%, rgba(255, 106, 194, 0.2), transparent 26%),
+                radial-gradient(circle at 82% 76%, rgba(255, 214, 112, 0.16), transparent 24%),
+                linear-gradient(155deg, rgba(56, 8, 42, 0.96), rgba(106, 18, 86, 0.9) 42%, rgba(34, 10, 60, 0.96));
+            box-shadow:
+                inset 0 0 0 1px rgba(255, 126, 214, 0.14),
+                0 0 26px rgba(188, 74, 255, 0.14);
+        }
+
+        .variant-media.gif-key-unreal {
+            background:
+                radial-gradient(circle at 50% 50%, rgba(255, 146, 118, 0.1) 0 16%, transparent 17% 24%, rgba(255, 168, 120, 0.14) 25% 27%, transparent 28%),
+                radial-gradient(circle at 16% 18%, rgba(255, 208, 150, 0.14), transparent 18%),
+                radial-gradient(circle at 82% 26%, rgba(255, 255, 255, 0.1), transparent 16%),
+                linear-gradient(150deg, rgba(38, 18, 50, 0.98), rgba(60, 28, 82, 0.9) 48%, rgba(20, 14, 36, 0.98));
+            box-shadow:
+                inset 0 0 0 1px rgba(255, 160, 122, 0.16),
+                0 0 30px rgba(255, 142, 118, 0.12);
+        }
+
         .variant-shiny-glow {
             background:
-                radial-gradient(circle at 16% 24%, rgba(255, 255, 255, 0.94) 0 2px, transparent 3px),
-                radial-gradient(circle at 76% 20%, rgba(255, 247, 190, 0.92) 0 2px, transparent 3px),
-                radial-gradient(circle at 68% 72%, rgba(255, 255, 255, 0.82) 0 1.8px, transparent 3px),
-                radial-gradient(circle at 32% 78%, rgba(255, 226, 122, 0.82) 0 2px, transparent 3px);
-            opacity: 0.9;
+                radial-gradient(circle at 16% 24%, rgba(255, 255, 255, 1) 0 2.3px, transparent 3.3px),
+                radial-gradient(circle at 76% 20%, rgba(255, 247, 190, 1) 0 2.4px, transparent 3.4px),
+                radial-gradient(circle at 68% 72%, rgba(255, 255, 255, 0.92) 0 2px, transparent 3px),
+                radial-gradient(circle at 32% 78%, rgba(255, 226, 122, 0.94) 0 2.4px, transparent 3.4px);
+            opacity: 1;
+            mix-blend-mode: screen;
             animation: variantSparklePulse 2.1s ease-in-out infinite alternate;
         }
 
         .variant-shiny-sweep {
-            background: linear-gradient(115deg, transparent 14%, rgba(255, 255, 255, 0.12) 34%, rgba(255, 226, 122, 0.56) 48%, rgba(255, 255, 255, 0.16) 60%, transparent 78%);
+            background: linear-gradient(115deg, transparent 12%, rgba(255, 255, 255, 0.18) 32%, rgba(255, 226, 122, 0.82) 48%, rgba(255, 255, 255, 0.24) 62%, transparent 82%);
             mix-blend-mode: screen;
             transform: translateX(-48%) skewX(-18deg);
             animation: variantSweepAcross 2.4s linear infinite;
@@ -505,27 +575,27 @@
 
         .variant-alt-duo {
             background:
-                linear-gradient(135deg, rgba(255, 92, 171, 0.24), transparent 40%),
-                linear-gradient(315deg, rgba(102, 224, 255, 0.24), transparent 44%);
+                linear-gradient(135deg, rgba(255, 92, 171, 0.34), transparent 40%),
+                linear-gradient(315deg, rgba(102, 224, 255, 0.34), transparent 44%);
             mix-blend-mode: screen;
         }
 
         .variant-alt-scan {
-            background: repeating-linear-gradient(120deg, rgba(255, 255, 255, 0.0) 0 18px, rgba(255, 255, 255, 0.1) 18px 24px, rgba(0, 0, 0, 0) 24px 40px);
-            opacity: 0.5;
+            background: repeating-linear-gradient(120deg, rgba(255, 255, 255, 0) 0 16px, rgba(255, 255, 255, 0.18) 16px 24px, rgba(0, 0, 0, 0) 24px 38px);
+            opacity: 0.78;
             transform: translateX(-16%);
             animation: variantAltBands 4.2s linear infinite;
         }
 
         .variant-holo-prism {
-            background: linear-gradient(120deg, rgba(255, 100, 176, 0.22), rgba(255, 217, 111, 0.2), rgba(98, 255, 223, 0.24), rgba(112, 170, 255, 0.22), rgba(215, 112, 255, 0.24));
-            opacity: 0.48;
+            background: linear-gradient(120deg, rgba(255, 100, 176, 0.34), rgba(255, 217, 111, 0.28), rgba(98, 255, 223, 0.36), rgba(112, 170, 255, 0.32), rgba(215, 112, 255, 0.34));
+            opacity: 0.74;
             mix-blend-mode: screen;
             animation: variantHoloHue 3.2s linear infinite;
         }
 
         .variant-holo-scan {
-            background: linear-gradient(95deg, transparent 0, rgba(255, 255, 255, 0.42) 46%, rgba(255, 255, 255, 0.06) 54%, transparent 68%);
+            background: linear-gradient(95deg, transparent 0, rgba(255, 255, 255, 0.62) 44%, rgba(255, 255, 255, 0.12) 54%, transparent 70%);
             transform: translateX(-58%) skewX(-20deg);
             animation: variantSweepAcross 2.8s ease-in-out infinite;
             mix-blend-mode: screen;
@@ -533,19 +603,19 @@
 
         .variant-void-vortex {
             background:
-                conic-gradient(from 0deg, rgba(177, 140, 255, 0.08), rgba(62, 25, 126, 0.36), rgba(0, 0, 0, 0) 40%, rgba(177, 140, 255, 0.12), rgba(0, 0, 0, 0) 82%, rgba(177, 140, 255, 0.08));
-            opacity: 0.92;
+                conic-gradient(from 0deg, rgba(177, 140, 255, 0.12), rgba(62, 25, 126, 0.52), rgba(0, 0, 0, 0) 40%, rgba(177, 140, 255, 0.18), rgba(0, 0, 0, 0) 82%, rgba(177, 140, 255, 0.12));
+            opacity: 1;
             mix-blend-mode: screen;
             animation: variantVoidSpin 5.8s linear infinite;
         }
 
         .variant-void-stars {
             background:
-                radial-gradient(circle at 14% 18%, rgba(255, 255, 255, 0.88) 0 1.5px, transparent 2.5px),
-                radial-gradient(circle at 74% 24%, rgba(255, 255, 255, 0.82) 0 1.5px, transparent 2.5px),
-                radial-gradient(circle at 58% 70%, rgba(255, 255, 255, 0.7) 0 1.2px, transparent 2.2px),
-                radial-gradient(circle at 22% 80%, rgba(177, 140, 255, 0.88) 0 2px, transparent 3px);
-            opacity: 0.84;
+                radial-gradient(circle at 14% 18%, rgba(255, 255, 255, 0.96) 0 1.8px, transparent 2.8px),
+                radial-gradient(circle at 74% 24%, rgba(255, 255, 255, 0.9) 0 1.8px, transparent 2.8px),
+                radial-gradient(circle at 58% 70%, rgba(255, 255, 255, 0.82) 0 1.5px, transparent 2.5px),
+                radial-gradient(circle at 22% 80%, rgba(177, 140, 255, 0.96) 0 2.2px, transparent 3.2px);
+            opacity: 0.98;
             animation: variantSparklePulse 2.8s ease-in-out infinite alternate;
         }
 
@@ -1202,28 +1272,28 @@
         .variant-media-image.variant-shiny {
             filter: saturate(1.2) brightness(1.08);
             box-shadow: 0 0 24px rgba(255, 235, 133, 0.25);
-            opacity: 0.72;
+            opacity: 1;
         }
 
         .result-image.variant-alt,
         .variant-media-image.variant-alt {
             filter: hue-rotate(35deg) saturate(1.3);
             box-shadow: 0 0 24px rgba(122, 232, 255, 0.22);
-            opacity: 0.68;
+            opacity: 1;
         }
 
         .result-image.variant-holo,
         .variant-media-image.variant-holo {
             filter: hue-rotate(110deg) saturate(1.45) brightness(1.08);
             box-shadow: 0 0 26px rgba(121, 255, 240, 0.28);
-            opacity: 0.64;
+            opacity: 1;
         }
 
         .result-image.variant-void,
         .variant-media-image.variant-void {
             filter: hue-rotate(220deg) saturate(0.88) brightness(0.94) contrast(1.12);
             box-shadow: 0 0 28px rgba(177, 140, 255, 0.3);
-            opacity: 0.56;
+            opacity: 1;
         }
 
         .variant-media.gif-key-rare.variant-frame-shiny,
@@ -1234,14 +1304,26 @@
                 0 0 44px rgba(255, 215, 106, 0.38);
         }
 
-        .variant-media.gif-key-mythic.variant-frame-alt,
+        .variant-media.gif-key-mythic.variant-frame-alt {
+            box-shadow:
+                inset 0 0 0 1px rgba(145, 238, 255, 0.28),
+                0 0 46px rgba(156, 114, 255, 0.22),
+                0 0 56px rgba(122, 232, 255, 0.34);
+        }
+
         .variant-media.gif-key-legendary.variant-frame-alt {
             box-shadow:
                 inset 0 0 0 1px rgba(122, 232, 255, 0.22),
                 0 0 38px rgba(122, 232, 255, 0.28);
         }
 
-        .variant-media.gif-key-mythic.variant-frame-holo,
+        .variant-media.gif-key-mythic.variant-frame-holo {
+            box-shadow:
+                inset 0 0 0 1px rgba(148, 255, 245, 0.28),
+                0 0 48px rgba(193, 109, 255, 0.28),
+                0 0 60px rgba(121, 255, 240, 0.38);
+        }
+
         .variant-media.gif-key-legendary.variant-frame-holo {
             box-shadow:
                 inset 0 0 0 1px rgba(121, 255, 240, 0.24),
@@ -1249,22 +1331,143 @@
         }
 
         .variant-media.gif-key-rare .variant-media-image.variant-shiny {
-            opacity: 0.5;
+            opacity: 1;
         }
 
         .variant-media.gif-key-mythic .variant-media-image.variant-shiny,
         .variant-media.gif-key-legendary .variant-media-image.variant-shiny {
-            opacity: 0.46;
+            opacity: 1;
         }
 
         .variant-media.gif-key-mythic .variant-media-image.variant-alt,
         .variant-media.gif-key-legendary .variant-media-image.variant-alt {
-            opacity: 0.44;
+            opacity: 1;
         }
 
         .variant-media.gif-key-mythic .variant-media-image.variant-holo,
         .variant-media.gif-key-legendary .variant-media-image.variant-holo {
-            opacity: 0.4;
+            opacity: 1;
+        }
+
+        .variant-media.gif-key-mythic .variant-media-image.variant-alt {
+            filter: hue-rotate(28deg) saturate(1.22) brightness(1.03) contrast(1.02);
+        }
+
+        .variant-media.gif-key-mythic .variant-media-image.variant-holo {
+            filter: hue-rotate(114deg) saturate(1.28) brightness(1.04) contrast(1.02);
+        }
+
+        .variant-media.gif-key-rare .variant-shiny-glow,
+        .variant-media.gif-key-mythic .variant-shiny-glow,
+        .variant-media.gif-key-legendary .variant-shiny-glow {
+            opacity: 1;
+        }
+
+        .variant-media.gif-key-rare .variant-shiny-sweep,
+        .variant-media.gif-key-mythic .variant-shiny-sweep,
+        .variant-media.gif-key-legendary .variant-shiny-sweep {
+            background: linear-gradient(115deg, transparent 8%, rgba(255, 255, 255, 0.24) 28%, rgba(255, 226, 122, 0.94) 46%, rgba(255, 255, 255, 0.32) 60%, transparent 84%);
+            opacity: 0.98;
+        }
+
+        .variant-media.gif-key-mythic .variant-alt-duo {
+            background:
+                radial-gradient(circle at 18% 18%, rgba(255, 118, 205, 0.42), transparent 22%),
+                radial-gradient(circle at 82% 78%, rgba(132, 240, 255, 0.28), transparent 24%),
+                linear-gradient(135deg, rgba(255, 104, 194, 0.36), transparent 34%),
+                linear-gradient(315deg, rgba(102, 224, 255, 0.34), transparent 40%);
+        }
+
+        .variant-media.gif-key-legendary .variant-alt-duo {
+            background:
+                linear-gradient(135deg, rgba(255, 92, 171, 0.4), transparent 40%),
+                linear-gradient(315deg, rgba(102, 224, 255, 0.42), transparent 44%);
+        }
+
+        .variant-media.gif-key-mythic .variant-alt-scan {
+            opacity: 1;
+            background: repeating-linear-gradient(120deg, rgba(255, 255, 255, 0) 0 12px, rgba(255, 255, 255, 0.28) 12px 22px, rgba(0, 0, 0, 0) 22px 34px);
+        }
+
+        .variant-media.gif-key-legendary .variant-alt-scan {
+            opacity: 0.94;
+            background: repeating-linear-gradient(120deg, rgba(255, 255, 255, 0) 0 14px, rgba(255, 255, 255, 0.24) 14px 24px, rgba(0, 0, 0, 0) 24px 36px);
+        }
+
+        .variant-media.gif-key-mythic .variant-holo-prism {
+            opacity: 1;
+            background:
+                radial-gradient(circle at 18% 18%, rgba(255, 255, 255, 0.16), transparent 20%),
+                radial-gradient(circle at 82% 80%, rgba(255, 219, 126, 0.18), transparent 22%),
+                linear-gradient(120deg, rgba(255, 96, 192, 0.46), rgba(255, 217, 111, 0.34), rgba(98, 255, 223, 0.42), rgba(112, 170, 255, 0.4), rgba(215, 112, 255, 0.46));
+        }
+
+        .variant-media.gif-key-legendary .variant-holo-prism {
+            opacity: 0.96;
+            background: linear-gradient(120deg, rgba(255, 100, 176, 0.42), rgba(255, 217, 111, 0.36), rgba(98, 255, 223, 0.44), rgba(112, 170, 255, 0.4), rgba(215, 112, 255, 0.42));
+        }
+
+        .variant-media.gif-key-mythic .variant-holo-scan {
+            opacity: 1;
+            background: linear-gradient(95deg, transparent 0, rgba(255, 255, 255, 0.84) 42%, rgba(255, 255, 255, 0.2) 54%, transparent 74%);
+            transform: translateX(-52%) skewX(-18deg);
+        }
+
+        .variant-media.gif-key-legendary .variant-holo-scan {
+            opacity: 1;
+            background: linear-gradient(95deg, transparent 0, rgba(255, 255, 255, 0.72) 44%, rgba(255, 255, 255, 0.16) 54%, transparent 72%);
+        }
+
+        .variant-media.gif-key-mythic.variant-frame-alt::before {
+            opacity: 0.88;
+            background:
+                radial-gradient(circle at 18% 18%, rgba(255, 152, 222, 0.44), transparent 22%),
+                radial-gradient(circle at 82% 78%, rgba(148, 244, 255, 0.34), transparent 24%),
+                linear-gradient(135deg, rgba(255, 104, 194, 0.16), transparent 36%, rgba(114, 236, 255, 0.18) 82%);
+            mix-blend-mode: screen;
+            backdrop-filter: saturate(1.18) brightness(1.04);
+        }
+
+        .variant-media.gif-key-mythic.variant-frame-holo::before {
+            opacity: 0.88;
+            background:
+                radial-gradient(circle at 18% 18%, rgba(255, 255, 255, 0.2), transparent 20%),
+                radial-gradient(circle at 82% 80%, rgba(255, 214, 100, 0.18), transparent 22%),
+                linear-gradient(135deg, rgba(255, 160, 225, 0.24), transparent 34%, rgba(114, 170, 255, 0.22) 72%, rgba(255, 214, 100, 0.18));
+            mix-blend-mode: screen;
+            backdrop-filter: saturate(1.2) brightness(1.04);
+        }
+
+        .variant-media.gif-key-unreal.variant-frame-void {
+            box-shadow:
+                inset 0 0 0 1px rgba(255, 166, 132, 0.22),
+                0 0 40px rgba(255, 146, 118, 0.18),
+                0 0 54px rgba(116, 78, 196, 0.24);
+        }
+
+        .variant-media.gif-key-unreal.variant-frame-void::before {
+            opacity: 0.84;
+            background:
+                radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0) 0 18%, rgba(255, 168, 120, 0.16) 19% 22%, rgba(0, 0, 0, 0) 23% 31%, rgba(255, 203, 138, 0.14) 32% 34%, rgba(0, 0, 0, 0) 35%),
+                radial-gradient(circle at 16% 18%, rgba(255, 255, 255, 0.16), transparent 16%),
+                radial-gradient(circle at 84% 24%, rgba(255, 206, 148, 0.14), transparent 18%),
+                linear-gradient(145deg, rgba(255, 142, 118, 0.12), transparent 36%, rgba(122, 92, 212, 0.12) 82%);
+            mix-blend-mode: screen;
+            backdrop-filter: saturate(1.14) brightness(1.02);
+        }
+
+        .variant-media.gif-key-unreal .variant-void-vortex {
+            background:
+                conic-gradient(from 0deg, rgba(255, 152, 122, 0.14), rgba(84, 42, 148, 0.48), rgba(0, 0, 0, 0) 42%, rgba(255, 186, 128, 0.16), rgba(0, 0, 0, 0) 82%, rgba(255, 152, 122, 0.14));
+            opacity: 0.96;
+        }
+
+        .variant-media.gif-key-unreal .variant-void-stars {
+            background:
+                radial-gradient(circle at 14% 18%, rgba(255, 250, 234, 0.96) 0 1.8px, transparent 2.8px),
+                radial-gradient(circle at 74% 24%, rgba(255, 214, 148, 0.92) 0 1.8px, transparent 2.8px),
+                radial-gradient(circle at 58% 70%, rgba(255, 255, 255, 0.82) 0 1.5px, transparent 2.5px),
+                radial-gradient(circle at 22% 80%, rgba(255, 162, 130, 0.94) 0 2.2px, transparent 3.2px);
         }
 
         .modal-overlay {
@@ -1952,7 +2155,7 @@
         }
 
         .overlay-result-media .variant-media-image {
-            opacity: 0.88;
+            opacity: 1;
         }
 
         .overlay-result-media.auto-overlay-media {
@@ -1960,7 +2163,7 @@
         }
 
         .overlay-result-media.auto-overlay-media .variant-media-image {
-            opacity: 0.82;
+            opacity: 1;
         }
 
         .overlay-card p {
