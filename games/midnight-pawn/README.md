@@ -2,193 +2,345 @@
 
 `Midnight Pawn` is a static browser game inside the arcade at `/games/midnight-pawn/`.
 
-This README is written as a full handoff for future AI agents and collaborators. The goal is that someone can read this file first and immediately understand:
+This README is the project memory file. Its job is to carry the important context so future work does not depend on long chat history. Another AI or human should be able to read this file first, understand the current game, and continue safely with much less guesswork.
+
+If you are editing `Midnight Pawn`, read this file before changing code.
+
+## Why this file exists
+
+This file is meant to answer:
 
 - what the game is
-- what the current visual direction is
-- which files own which behavior
-- how state and rendering work
-- how to make changes safely
-- how to verify changes without guessing
-
-If you are an AI agent working on this project, read this entire file before editing anything.
+- how it is supposed to feel
+- which files own which parts
+- how the runtime is structured
+- what the current tuning is
+- what the user explicitly asked to preserve
+- what was already fixed and must not regress
+- how to verify real behavior instead of guessing
 
 ## Maintenance Rule
 
-Any meaningful change to `Midnight Pawn` should be reflected in this README in the same change.
+Any meaningful `Midnight Pawn` change should update this README in the same pass.
 
 That includes:
 
-- UI/layout changes
+- UI and layout changes
 - gameplay rule changes
 - tuning changes
-- new buttons, drawers, or flows
-- save/debug/test changes
+- new buttons, drawers, overlays, or flows
+- save model changes
+- debug or self-test changes
+- responsive behavior changes
+- new fixes for bugs or regressions
 
-Do not leave this README stale after updating the game.
+Do not leave this README stale.
 
-## Player Guide
+## Quick Snapshot
 
-This section is for someone who wants to actually play `Midnight Pawn`.
+- Genre: merchant sim / shopkeeping management game with negotiation and light arcade progression
+- Theme: occult relic broker presented like a dark fantasy RPG merchant interface
+- Tech stack: vanilla HTML, CSS, and JavaScript
+- Save system: browser `localStorage`
+- Main save key: `neverwet-midnight-pawn-save-v1`
+- Test save key: `neverwet-midnight-pawn-save-v1-self-test`
+- Visual source of truth: `games/midnight-pawn/stitch_mythic_relic_broker/`
+- Current visual direction: vintage `Broker's Ledger`, not neon dashboard UI
+- In-game manual: `Camp -> Open Guidebook`
+- Built-in browser smoke test: `?self-test=1`
+- Drawer debug hook: `?panel=upgrades`, `?panel=ledger`, or `?panel=settings`
 
-In the live game UI, the full manual is available inside:
+## Project Rules And User Preferences
 
-- `Camp` -> `Open Guidebook`
+These are important because they came from actual iteration and user feedback, not just code structure.
 
-The guidebook is now a centered open-book modal with spread navigation and a page-turn animation when you move between sections.
+### Product and theme rules
 
-### Goal
+- The game should look like a themed relic broker / merchant RPG interface.
+- The game should not drift back into a generic dashboard, admin panel, or bubble-card UI.
+- The game should feel like ledgers, trays, appraisal notes, reliquaries, and old shop surfaces.
+- The game looks RPG-like, but the mechanics are still merchant sim first.
 
-Your job is to survive each night by buying strange relics cheaply, preparing them well, and selling them for profit.
+### UI rules
 
-Each night has a bounty target. If you hit that target before the night closes:
+- Keep the stitched `Broker's Ledger` vintage reference as the main visual target.
+- Keep the moving gold nav underline in the top navigation.
+- Keep scrollbars visually hidden unless the user explicitly asks for visible scrollbars.
+- Keep drawers as real overlays, not layout-participating panels.
+- Keep the in-game guidebook as a book-like popup, not just plain help text in settings.
+- Keep the guidebook page-flip animation.
+- Keep the left rail usable on short screens and around Windows taskbar overlap.
 
-- you get bonus cash
-- you gain `+1` reputation
-- the next night starts with a bigger target and better long-term momentum
+### Responsive rules
 
-If you miss the target:
+- Responsive work is for the whole page, not only the guidebook.
+- If a change affects layout, think about desktop, short laptop, tablet, and phone widths.
+- The current implementation already has a short-laptop height breakpoint that scales the full UI down. Preserve that intent.
 
-- you still continue
-- you do not lose the run
-- you simply miss the bonus for that night
+### Workflow rules
 
-### What a full night looks like
+- When code changes, update this README in the same pass.
+- If a button changes, verify the button behavior, not just syntax.
+- If a UI bug is reported, do not stop at a static inspection. Reproduce it if possible.
 
-Every night has exactly `8` travelers.
+### Cross-project note
 
-For each traveler:
+The arcade page at `/games/index.html` keeps one old-style placeholder card for the next game. That rule is documented in `games/README.md`, not here, but do not accidentally replace it with a feature-heavy placeholder unless asked.
 
-1. You inspect the item if you need more information.
-2. You can try to haggle the price down.
-3. You either buy the relic or pass on it.
-4. Bought relics go into your inventory.
-5. You can prep them, list them, or vault them.
-6. At closeout, listed relics try to sell.
-7. Unsold listed relics stay with you for the next night.
+## Current Product Identity
 
-### What each part of the screen means
+### What the game is
 
-#### Left rail
+Mechanically, `Midnight Pawn` is:
 
-This is your run status.
+- a merchant sim
+- a shopkeeping and inventory management game
+- a negotiation game
+- a browser arcade game with persistent run progress
 
-- `Coin Purse`: how much cash you have right now
-- `Renown`: your reputation, which helps your stall perform better
-- `Chapter`: the current night and seller progress
-- `Spoils`: tonight's running profit total
-- `Town Rumor`: the hot and cold categories for tonight
-- `Bound Relic Boons`: passive bonuses from relics in the reliquary
+Thematically, it is:
 
-#### Exchange
+- an occult relic brokerage
+- a moonlit backroom merchant story
+- presented through an RPG-like ledger interface
 
-This is the live negotiation area.
+Important distinction:
+
+- It looks like an RPG merchant screen.
+- It does not play like a combat RPG.
+
+### Current feature set
+
+The live build includes:
+
+- one active traveler at a time
+- 8 travelers per night
+- inspect and haggle flow
+- buy and pass flow
+- inventory prep actions
+- listing and closeout sales
+- reliquary vaulting for elite and cursed items
+- permanent upgrades
+- chronicles / collection tracking
+- camp drawer
+- in-game guidebook book popup
+- animated page flip in the guidebook
+- moving gold nav underline
+- recap modal between nights
+- self-test mode
+
+## Current Visual Direction
+
+### Primary reference folder
+
+The current style intentionally copies from:
+
+- `games/midnight-pawn/stitch_mythic_relic_broker/`
+
+The most relevant reference areas are:
+
+- `the_shop_floor_vintage`
+- `appraisal_desk_vintage`
+- `the_backroom_vintage`
+
+The stitched folder is reference material only. It is not runtime code.
+
+### Visual language to preserve
+
+- dark low-light atmosphere
+- gold, parchment, walnut, mahogany, smoke, and brass tones
+- `Newsreader` for major display type
+- `Noto Serif` for body copy
+- `Space Grotesk` for small labels and technical UI text
+- sharp or lightly softened edges
+- dense layout instead of overly padded panels
+- editorial composition instead of app-card composition
+- CSS-first visuals rather than image-heavy runtime assets
+
+### Things that were explicitly fixed and should not regress
+
+- The old dashboard-like layout was rejected.
+- The old bubbly rounded UI was rejected.
+- Excessive side padding was reduced.
+- The drawer overlay used to create giant black layout blocks when opening a panel. That was fixed by making drawers true fixed overlays.
+- Scrollbars were deliberately hidden.
+- The left rail was adjusted so lower cards are not trapped behind the Windows taskbar on shorter screens.
+- The guidebook was compacted so full spreads fit more often without scrolling.
+
+## Current UI Map
+
+This section describes the player-facing layout as it exists now.
+
+### Top shell
+
+The sticky top shell contains:
+
+- brand link back to the arcade
+- primary nav
+- icon buttons for upgrades, settings, and arcade return
+
+Primary nav items:
+
+- `Exchange`
+- `Stash`
+- `Chronicles`
+
+Important behavior:
+
+- `Exchange` and `Stash` are anchor links
+- `Chronicles` opens the ledger drawer
+- the gold nav underline is a moving indicator controlled by JS
+- hover and focus move the underline temporarily
+- active state snaps back after hover leaves
+
+### Left rail
+
+The left rail is the status column. It includes:
+
+- broker profile
+- coin purse
+- renown
+- current chapter
+- spoils
+- town rumor
+- bound relic boons
+- `Close Deal`
+- quick buttons for `Guild Talents`, `Codex`, and `Camp`
+
+Important behavior:
+
+- on large screens the rail is sticky
+- on short screens it scrolls internally
+- the rail scrollbar is hidden
+
+### Session hero
+
+The hero area shows:
+
+- game title
+- short pitch copy
+- current bounty
+- stall occupancy
+- inventory count
+- reliquary occupancy
+
+### Seller stage
+
+This is the main exchange area. It is rendered entirely by JS and includes:
+
+- active traveler info
+- item presentation
+- asking price
+- diagnostic paper
+- action board
+
+The core action buttons here are:
+
+- `Appraise`
+- `Gentle Bargain`
+- `Hard Bargain`
+- `Claim`
+- `Decline`
+
+### Stash area
+
+The stash area contains:
+
+- `Active Wares`
+- `Broker Inventory`
+- `Bound Relics`
+
+`Active Wares` is for listed items.  
+`Broker Inventory` is for owned, not-listed items.  
+`Bound Relics` is the reliquary.
+
+### Drawers
+
+There are three right-side drawers:
+
+- `Guild Talents`
+- `Relic Codex`
+- `Camp`
+
+They live in `#panelLayer`.
+
+### Guidebook
+
+The guidebook lives in `#guidebookLayer` and opens from `Camp`.
+
+It is:
+
+- a centered open-book popup
+- spread-based
+- navigable by tabs and previous/next buttons
+- animated with a page-flip effect
+
+### Recap
+
+The recap modal appears after closeout and lives in `#recapLayer`.
 
 It shows:
 
-- the current traveler
-- the item they brought
-- the asking price
-- the item category and hidden info
-- the action buttons for inspect, haggle, buy, or pass
+- profit
+- number of sold items
+- bounty bonus
+- target hit or missed
+- carry-over count
+- detailed sale results
+- `Begin Night N`
 
-#### Stash
+## Player Guide
 
-This is your inventory management area.
+This section is for players and for future AI work that changes game rules.
 
-It is split into:
+### Goal
 
-- `Active Wares`: items already listed for sale
-- `Broker Inventory`: items you own but have not listed
-- `Bound Relics`: elite and cursed items stored for passive bonuses
+Your job is to buy relics below value, prepare the best ones, list them, and beat the nightly bounty target.
 
-#### Chronicles
+If you hit the target:
 
-This opens the codex / ledger drawer.
+- you get bonus cash
+- you gain `+1` renown
 
-Use it to check:
+If you miss the target:
 
-- how many item templates you have seen
-- seller discovery progress
-- rarity sale totals
-- collection progress
+- the run continues
+- you simply miss that night's bonus
 
-#### Guild Talents
+### The night structure
 
-This opens the upgrade drawer.
+Each night has exactly `8` travelers.
 
-Use it to buy permanent upgrades with cash.
+For each traveler:
 
-#### Camp
+1. Read the traveler and item.
+2. Appraise if the deal is unclear.
+3. Bargain if the ask is close.
+4. Claim or decline.
+5. Prep, list, or enshrine bought relics.
+6. Close the chapter and let listed relics roll for sale.
 
-This opens settings.
+### Seller phase
 
-Use it to:
-
-- confirm save behavior
-- reset the run if needed
-
-### The seller phase
-
-Each traveler arrives with:
+Each offer has:
 
 - one item
 - one ask price
 - `2` patience
 
-You must decide how much information you need before buying.
+Actions:
 
-#### Appraise / Inspect
+- `Appraise`: free, reveals condition first, then deeper clues
+- `Gentle Bargain`: tries for `10%` off and is safer
+- `Hard Bargain`: tries for `20%` off and is riskier
+- `Claim`: buys the item at the current price
+- `Decline`: skips to the next traveler
 
-Inspecting is free.
+If patience reaches `0`, the traveler leaves.
 
-The first inspect reveals the item condition.
+### Reading quality
 
-The next inspect reveals deeper info such as authenticity hints and the weird tag.
-
-If you own `Blacklight Lamp`, inspection can reveal stronger omen information for elite, cursed, or fake items.
-
-#### Gentle Bargain
-
-- aims for `10%` off
-- safer than the hard bargain
-- can only be used once per seller
-
-If it fails, the seller loses `1` patience.
-
-#### Hard Bargain
-
-- aims for `20%` off
-- riskier than the gentle bargain
-- can only be used once per seller
-
-If it fails, the seller loses `1` patience.
-
-#### Seller patience
-
-Every seller starts with `2` patience.
-
-When patience reaches `0`, the traveler walks away with the item and you lose that opportunity.
-
-#### Claim
-
-This buys the relic for the current asking price and moves it into your inventory.
-
-You cannot claim an item if you do not have enough cash.
-
-#### Decline
-
-This skips the relic and moves on to the next traveler.
-
-Use this when:
-
-- the price is bad
-- the item looks weak
-- you want to preserve cash for a better offer later in the night
-
-### Reading item quality
-
-Every relic is shaped by several hidden or semi-hidden values:
+Each relic is shaped by:
 
 - category
 - rarity
@@ -196,305 +348,90 @@ Every relic is shaped by several hidden or semi-hidden values:
 - authenticity
 - weird tag
 
-#### Category
+Important ideas:
 
-Tonight's rumor board matters a lot.
+- hot category items sell more easily
+- cold category items sell less easily
+- clean and pristine items are stronger than wrecked items
+- fake items can mislead you until verified
+- elite and cursed items may be worth binding instead of selling
 
-- hot category items are easier to sell
-- cold category items are harder to sell
+### Inventory phase
 
-#### Rarity
+Owned relics can be:
 
-Rarity bands are:
+- polished
+- mended
+- verified
+- listed
+- enshrined
 
-- `junk`
-- `solid`
-- `vintage`
-- `elite`
-- `cursed`
+Prep actions:
 
-In general:
+- `Polish`: costs `$5`, adds `+10%` resale multiplier
+- `Mend`: costs `$12`, adds `+25%` resale multiplier
+- `Verify`: costs `$8`, reveals real authenticity
 
-- higher rarity can mean much stronger value
-- elite and cursed items can also be vaulted in the reliquary
-- higher rarity items are often worth inspecting more carefully
+### Listing and reliquary
 
-#### Condition
+Only listed relics can sell at closeout.
 
-Condition affects sale chance and value.
+Only `elite` and `cursed` relics can be enshrined.
 
-Possible conditions:
-
-- `wrecked`
-- `rough`
-- `clean`
-- `pristine`
-
-Cleaner items usually sell better and for more money.
-
-#### Authenticity
-
-Some relics are genuine. Some are fake.
-
-You only fully know this after `Verify / Authenticate`.
-
-Until then, you are often working from estimated value rather than true value.
-
-### What to do after you buy an item
-
-Bought items go into `Broker Inventory`.
-
-From there, you can take several actions.
-
-#### Polish
-
-- cost: `$5`
-- effect: `+10%` resale multiplier
-- can only be used once per item
-
-Use it on items you are likely to list soon.
-
-#### Mend
-
-- cost: `$12`
-- effect: `+25%` resale multiplier
-- can only be used once per item
-
-This is expensive early, so use it on items that already look promising.
-
-#### Verify
-
-- cost: `$8`
-- effect: reveals whether the relic is authentic or fake
-- can only be used once per item
-
-This is especially useful on higher-rarity items or anything you suspect is suspiciously overpriced.
-
-#### Place on Stall
-
-This moves the item into `Active Wares`, where it can be sold at closeout.
-
-Important:
-
-- only listed items can sell at closeout
-- your stall has limited shelf space
-- shelf space can be expanded with upgrades
-
-#### Enshrine
-
-Only `elite` and `cursed` relics can be moved into `Bound Relics`.
-
-Vaulted relics do not sell, but they give passive bonuses.
+Enshrined relics do not sell, but they provide passive bonuses.
 
 Current reliquary boons:
 
-- elite relic: `+3%` sale chance, `+2%` bargain chance, `+2%` sale price
-- cursed relic: `+5%` sale chance, `+5%` bargain chance, `+4%` sale price
+- each elite relic adds `+3%` sale chance, `+2%` bargain chance, `+2%` sale price
+- each cursed relic adds `+5%` sale chance, `+5%` bargain chance, `+4%` sale price
 
-Use the reliquary when a relic is more valuable as a permanent bonus than as a one-time sale.
+### Closeout
 
-### Closeout and end of night
+When the chapter ends:
 
-You can manually end the night with `Close Deal`, or the game will move to closeout after the last traveler is resolved.
-
-At closeout:
-
-- listed relics roll to see whether they sell
+- listed relics roll for sale
 - sold relics pay out cash immediately
-- unsold relics remain in your inventory
-- vaulted relics stay in the reliquary
-- if your nightly profit meets the target, you get the bounty bonus
+- unsold relics stay in inventory
+- enshrined relics stay bound
+- the bounty is checked
 
-The nightly target formula is:
+Target formula:
 
 - `60 + (night - 1) * 35`
 
-The bonus for hitting the target is:
+Bounty reward:
 
 - `25%` of that night's target
-- `+1` reputation
-
-### Upgrades
-
-Upgrades are permanent and bought from `Guild Talents`.
-
-#### Blacklight Lamp
-
-- makes inspection more informative
-- helps spot strong omens on elite, cursed, and fake items
-
-#### Fast Talk Lessons
-
-- improves haggle success
-
-#### Shelf Extension
-
-- adds stall listing space
-- max shelf size is `8`
-
-#### Repair Cart
-
-- reduces prep costs
-- current reduced costs become:
-  - polish `4`
-  - mend `9`
-  - verify `6`
-
-#### Neon Window Sign
-
-- improves sale chance
-
-#### Lockbox Room
-
-- adds reliquary space
-- max reliquary size is `5`
+- `+1` renown
 
 ### Good beginner strategy
 
-If you are learning the game, this is a reliable first approach:
+Reliable play:
 
-1. Inspect before buying unless the item is obviously cheap.
-2. Use `Gentle Bargain` more often than `Hard Bargain`.
-3. Avoid spending too much cash too early in the night.
-4. Prioritize items in the hot category.
-5. Do not overpay for low-condition junk just because it sounds funny.
-6. Polish cheap wins, mend strong items, and verify suspicious expensive ones.
-7. Keep your stall filled before closeout.
-8. Vault elite or cursed relics when their passive bonus is worth more than a short-term cash spike.
+1. Appraise before buying unless the item is clearly cheap.
+2. Use `Gentle Bargain` more than `Hard Bargain`.
+3. Do not spend all cash early in the night.
+4. Favor hot-category items.
+5. Fill the stall before closeout.
+6. Verify expensive or suspicious relics.
+7. Consider binding elite and cursed relics instead of always selling them.
 
 ### Common mistakes
 
-New players usually lose money by doing one of these:
-
-- buying too many items without enough cash left for better deals later
+- overspending early
 - forgetting to list items before closeout
-- using hard bargain too aggressively and losing the seller
-- spending prep costs on weak junk that still will not sell well
-- ignoring the hot and cold category board
-- selling every elite or cursed item instead of considering the reliquary
+- using `Hard Bargain` too aggressively
+- spending prep money on weak junk
+- ignoring the rumor board
+- selling every elite and cursed relic instead of checking reliquary value
 
-### How to tell if you are doing well
+## Current Tuning And Content
 
-You are in good shape when:
+These values are important project assumptions.
 
-- you regularly hit the nightly bounty
-- your stall is full at closeout
-- your reliquary is generating useful passive bonuses
-- you are buying below value instead of at face price
-- your reputation is climbing
+### Core constants
 
-### Saving and resetting
-
-The game saves automatically in browser `localStorage`.
-
-Normal save key:
-
-- `neverwet-midnight-pawn-save-v1`
-
-To fully restart the run, open `Camp` and use the reset option.
-
-### Short version
-
-If someone asks how to play in one paragraph:
-
-`Midnight Pawn` is about buying weird relics from 8 travelers each night, using inspect and haggles to avoid bad deals, prepping the good items, listing them for closeout, and occasionally vaulting elite or cursed relics for passive bonuses. Hit the nightly bounty target to earn extra cash and reputation, then repeat with stronger upgrades and a better stall.
-
-## 1. Project Identity
-
-### What the game is
-
-Mechanically, `Midnight Pawn` is:
-
-- a merchant sim
-- a shopkeeping / inventory management game
-- a negotiation sim
-- a light arcade progression game with persistent browser save data
-
-Thematically, it is:
-
-- a dark fantasy / occult-flavored relic broker game
-- presented like an RPG merchant interface
-- currently styled as a vintage `Broker's Ledger`
-
-Important distinction:
-
-- It looks like an RPG merchant game.
-- It plays like a pawn / merchant management sim.
-
-Do not accidentally redesign it into:
-
-- a generic dashboard
-- a modern SaaS admin panel
-- a bright gacha interface
-- a full combat RPG
-
-## 2. Current Visual Direction
-
-### Source of truth for the UI style
-
-The current UI direction intentionally copies from the stitched visual reference set in:
-
-- `games/midnight-pawn/stitch_mythic_relic_broker/`
-
-The most important references are the **vintage** `Broker's Ledger` screens, especially:
-
-- `stitch_mythic_relic_broker/the_shop_floor_vintage/`
-- `stitch_mythic_relic_broker/appraisal_desk_vintage/`
-- `stitch_mythic_relic_broker/the_backroom_vintage/`
-
-The stitched folder is **reference material only**. It is not the runtime app.
-
-### UI principles that should remain true
-
-- Dark, heavy, low-light atmosphere
-- `Newsreader` display typography + `Noto Serif` body + `Space Grotesk` labels
-- Gold / parchment / mahogany palette
-- Sharp or lightly softened corners, not bubbly rounded UI
-- Strong editorial layout instead of generic cards
-- Drawers and overlays should feel like physical folios / ledgers
-- Big serif headlines, small technical labels
-- CSS-first visuals, not image-heavy runtime UI
-
-### Things that were explicitly fixed and should not regress
-
-- The old layout felt like a generic dashboard. That is no longer acceptable.
-- The drawer overlay used to be broken because inactive drawers still affected layout.
-- Visible scrollbars were intentionally hidden.
-
-If you touch overlays, drawers, or page structure, preserve:
-
-- the fixed overlay behavior
-- hidden scrollbars
-- the `Broker's Ledger` style language
-
-## 3. Game Loop
-
-Each night:
-
-1. A night is generated with exactly `8` sellers.
-2. A market gets one hot category and one cold category.
-3. The player sees one seller offer at a time.
-4. The player can:
-   - inspect
-   - soft haggle
-   - firm haggle
-   - buy
-   - pass
-5. Bought items move into inventory.
-6. Inventory items can be:
-   - polished
-   - repaired
-   - authenticated
-   - listed
-   - vaulted
-7. Listed items roll sales at closeout.
-8. If the nightly target is met, the player gains bonus cash and reputation.
-9. The next night unlocks regardless of success.
-
-## 4. Core Numbers and Progression
-
-These values live in `script.js` and are important project assumptions:
-
+- `SAVE_VERSION = 1`
 - `SELLERS_PER_NIGHT = 8`
 - `STARTING_CASH = 120`
 - `STARTING_REPUTATION = 0`
@@ -507,12 +444,12 @@ These values live in `script.js` and are important project assumptions:
 - `TARGET_PROFIT_STEP = 35`
 - `BASE_SALE_CHANCE = 0.55`
 - `HOT_CATEGORY_SALE_BONUS = 0.15`
-- `COLD_CATEGORY_SALE_PENALTY = 0.1`
-- sale variance range: `0.92 .. 1.15`
+- `COLD_CATEGORY_SALE_PENALTY = 0.10`
+- sale variance range: `0.92` to `1.15`
 
 ### Categories
 
-The game has 6 categories:
+The six categories are:
 
 - `tech` -> `Devices`
 - `media` -> `Archives`
@@ -521,9 +458,7 @@ The game has 6 categories:
 - `house` -> `Curios`
 - `occult` -> `Occult`
 
-### Rarities
-
-The game has 5 rarity bands:
+### Rarity bands
 
 - `junk`
 - `solid`
@@ -531,9 +466,7 @@ The game has 5 rarity bands:
 - `elite`
 - `cursed`
 
-### Conditions
-
-The game has 4 condition states:
+### Condition states
 
 - `wrecked`
 - `rough`
@@ -542,16 +475,12 @@ The game has 4 condition states:
 
 ### Content scope
 
-Current item content is built around:
-
 - `30` item templates
-- `6` categories
-- `5` rarities
 - `8` seller archetypes
+- `4` guidebook spreads
+- `8` guidebook pages
 
 ### Seller archetypes
-
-The current archetypes are:
 
 - `Honest Peddler`
 - `Green Traveler`
@@ -562,9 +491,7 @@ The current archetypes are:
 - `Estate Warden`
 - `Occult Pilgrim`
 
-### Upgrades
-
-The permanent upgrade set is:
+### Permanent upgrades
 
 - `Blacklight Lamp`
 - `Fast Talk Lessons`
@@ -573,111 +500,189 @@ The permanent upgrade set is:
 - `Neon Window Sign`
 - `Lockbox Room`
 
-### Prep actions
+### Prep costs
 
-Prep action definitions:
+Base costs:
 
-- `wipe` -> cost `5`, resale multiplier `1.1`
-- `repair` -> cost `12`, resale multiplier `1.25`
-- `authenticate` -> cost `8`
+- `wipe` / `Wipe Down`: `5`
+- `repair` / `Repair`: `12`
+- `authenticate` / `Authenticate`: `8`
 
-## 5. File Ownership
+With `Repair Cart`:
 
-These are the important runtime files:
+- `wipe`: `4`
+- `repair`: `9`
+- `authenticate`: `6`
+
+### Sale math summary
+
+`computeSaleChance(item, market)` uses:
+
+- base sale chance
+- hot or cold category modifier
+- condition sale modifier
+- renown bonus at `0.02` per renown
+- `Neon Window Sign` bonus of `0.08`
+- reliquary sale chance bonus
+- final clamp to `0.20 .. 0.95`
+
+`computeSalePrice(item)` uses:
+
+- current valuation
+- prep multiplier
+- reliquary sale multiplier
+- random variance
+- minimum floor of `6`
+
+## File Ownership
+
+The runtime files are:
 
 - `games/midnight-pawn/index.html`
 - `games/midnight-pawn/styles.css`
 - `games/midnight-pawn/script.js`
 
+Reference-only folder:
+
+- `games/midnight-pawn/stitch_mythic_relic_broker/`
+
 ### `index.html`
 
 Owns:
 
-- the static page shell
-- the top bar
-- the left rail
-- the main layout containers
+- the static shell
+- structural regions
+- ids used by the JS render layer
 - drawer containers
-- recap overlay container
-- ids consumed by the render layer
+- guidebook container
+- recap container
 
 Important note:
 
-- Most of the meaningful gameplay content is **not** hardcoded in the HTML.
-- `script.js` renders most dynamic UI into placeholder containers.
+Most visible game content is not hardcoded in HTML. The HTML is mostly scaffolding for the dynamic render layer.
 
 ### `styles.css`
 
 Owns:
 
-- the complete visual system
+- the full visual system
 - layout
 - typography
-- drawer behavior
-- guidebook modal behavior and open-book styling
-- guidebook page-turn animation
-- guidebook scroll layout fix so long page content does not clip at the bottom
-- guidebook page sizing is intentionally slightly reduced so more of each spread fits on shorter screens
 - overlay behavior
-- responsive behavior
-- hidden scrollbar behavior
-- all visual language for the `Broker's Ledger` look
+- drawer behavior
+- scrollbar hiding
+- guidebook appearance
+- guidebook page-flip animation
+- responsive breakpoints
+- short-laptop compression behavior for the full page
 
 Important note:
 
-- The drawer overlay fix lives here.
-- The hidden scrollbar behavior lives here.
+Several major bug fixes live here:
+
+- fixed overlay drawer behavior
+- hidden scrollbars
+- taskbar-safe left rail behavior
+- guidebook fit and compactness rules
 
 ### `script.js`
 
 Owns:
 
-- constants and game tuning
+- constants
 - content definitions
+- game rules
 - save normalization
 - night generation
 - offer generation
-- economy and sale math
-- dynamic rendering
-- guidebook spread content and guidebook page rendering
-- guidebook spread navigation state and flip timing
-- `data-action` event handling
+- sale math
+- render functions
+- action routing
+- top-nav indicator behavior
+- guidebook content and state
 - self-test mode
-- small debug query param behavior
+- debug query params
 
-Important guidebook note:
+## DOM Map
 
-- `guidebook-book` uses `grid-template-rows: auto auto minmax(0, 1fr) auto` so the body becomes the scrolling row.
-- Do not remove that row setup unless you replace it with an equivalent layout.
-- Without it, the footer can get pushed out of view and the lower text on long guidebook spreads gets clipped.
-- The guidebook pages are intentionally a bit smaller than the first version:
-  narrower book width, shorter page min-height, tighter padding, and smaller spread headings.
-- This is a readability tradeoff to keep more of each spread visible before scrolling.
-- Current target behavior: in the desktop two-page layout, the longest spread should fit without guidebook-body scrolling.
+These ids are important and should stay in sync with JS lookups.
 
-## 6. Runtime Structure
+### Structural ids
 
-The page is shell + dynamic render.
+- `topNav`
+- `topNavIndicator`
+- `exchangeSection`
+- `stashSection`
+- `sellerStage`
+- `listedItemsList`
+- `inventoryList`
+- `curioList`
+- `panelLayer`
+- `guidebookLayer`
+- `guidebookBody`
+- `guidebookSpread`
+- `recapLayer`
+- `toast`
+- `selfTestReport`
 
-### Static shell in HTML
+### Main status ids
 
-The main static regions are:
+- `cashDisplay`
+- `cashTrend`
+- `reputationDisplay`
+- `repHint`
+- `nightDisplay`
+- `queueDisplay`
+- `profitDisplay`
+- `targetDisplay`
+- `targetStatus`
+- `hotCategoryDisplay`
+- `coldCategoryDisplay`
+- `hotMarketChip`
+- `coldMarketChip`
+- `curioBonusChip`
+- `curioPassiveSummary`
 
-- top shell
-- side rail
-- session hero
-- seller stage container
-- listed items container
-- inventory container
-- curio container
-- drawer layer
-- guidebook modal layer
-- recap layer
-- toast
+### Capacity and counts
 
-### Dynamic render in JS
+- `shelfCapacityLabel`
+- `inventoryCountLabel`
+- `curioCapacityLabel`
 
-These functions matter the most:
+### Drawer content roots
+
+- `upgradesList`
+- `ledgerContent`
+- `settingsContent`
+
+### Guidebook ids
+
+- `guidebookTabs`
+- `guidebookBody`
+- `guidebookSpread`
+- `guidebookPageLabel`
+- `guidebookPrevButton`
+- `guidebookNextButton`
+
+### Recap ids
+
+- `recapTitle`
+- `recapSubtitle`
+- `recapProfit`
+- `recapSoldCount`
+- `recapBonus`
+- `recapTargetBadge`
+- `recapUnsoldBadge`
+- `recapSalesList`
+- `startNextNightButton`
+
+## Runtime Structure
+
+The page is a shell plus a dynamic render layer.
+
+### Main render functions
+
+The most important render functions are:
 
 - `renderHud()`
 - `renderSellerStage()`
@@ -686,35 +691,27 @@ These functions matter the most:
 - `renderLedger()`
 - `renderSettings()`
 - `renderPanels()`
+- `renderGuidebook()`
 - `renderRecap()`
 - `renderAll()`
 
-If the UI looks wrong, the bug is often in one of:
+`renderAll()` is the main UI refresh entry point.
 
-- rendered markup in `renderSellerStage()`
-- rendered markup in `renderItemCard()`
-- ids and shell structure in `index.html`
+### Common render bug locations
+
+If the UI looks wrong, the likely places are:
+
+- markup returned by `renderSellerStage()`
+- markup returned by `renderItemCard()`
+- guidebook markup in `renderGuidebook()`
+- structural ids in `index.html`
 - layout rules in `styles.css`
 
-## 7. Save Model
+## Data Model
 
-### Storage keys
+### Persistent save shape
 
-Normal mode uses:
-
-- `localStorage["neverwet-midnight-pawn-save-v1"]`
-
-Self-test mode uses:
-
-- `localStorage["neverwet-midnight-pawn-save-v1-self-test"]`
-
-### Save version
-
-- `SAVE_VERSION = 1`
-
-### `createDefaultSave()`
-
-The base save includes:
+`createDefaultSave()` includes:
 
 - `version`
 - `cash`
@@ -729,38 +726,106 @@ The base save includes:
 - `currentNight`
 - `settings`
 
-### Stats tracked
+### `InventoryItem` shape
 
-Current stats include:
+`normalizeInventoryItem()` keeps these fields:
 
-- `totalBuys`
-- `totalSales`
-- `totalPasses`
-- `totalVaulted`
-- `totalSpent`
-- `totalRevenue`
-- `nightsCompleted`
-- `nightsHitTarget`
-- `haggleWins`
-- `haggleLosses`
-- `bonusCashEarned`
-- `bestSale`
-- `bestSaleName`
+- `id`
+- `templateId`
+- `name`
+- `category`
+- `rarity`
+- `condition`
+- `authenticity`
+- `weirdTag`
+- `baseValue`
+- `estimatedValue`
+- `trueValue`
+- `purchasePrice`
+- `acquiredNight`
+- `sellerArchetypeId`
+- `blurb`
+- `wipedDown`
+- `repaired`
+- `isAuthenticated`
+- `listed`
+- `vaulted`
 
-### Collection tracked
+### `SellerOffer` shape
 
-Current collection fields:
+`normalizeOffer()` keeps these fields:
 
-- `templateSeenIds`
-- `sellerSeenIds`
-- `weirdTagsSeen`
-- `soldByRarity`
+- `id`
+- `sellerName`
+- `archetypeId`
+- `story`
+- `askPrice`
+- `currentPrice`
+- `patience`
+- `status`
+- `inspectionCount`
+- `revealState`
+- `haggleState`
+- `itemDraft`
 
-### Why normalization matters
+`revealState` contains:
 
-The save is aggressively normalized so refreshes and old data do not crash the page.
+- `conditionKnown`
+- `authenticityHintKnown`
+- `weirdTagKnown`
+- `rareReadKnown`
 
-Important normalization functions:
+`haggleState` contains:
+
+- `soft`
+- `firm`
+
+### `currentNight` shape
+
+`generateNight()` and `normalizeCurrentNight()` keep these fields:
+
+- `number`
+- `status`
+- `market`
+- `targetProfit`
+- `todayProfit`
+- `activeIndex`
+- `queue`
+- `closeoutResults`
+- `goalMet`
+- `bonusCash`
+- `manualClose`
+
+`market` contains:
+
+- `hotCategory`
+- `coldCategory`
+
+### Runtime-only UI state
+
+The `runtime` object currently tracks:
+
+- `openPanel`
+- `guidebookOpen`
+- `guidebookSpreadIndex`
+- `guidebookFlipDirection`
+- `guidebookFlipTimer`
+- `topNavActive`
+- `toastTimer`
+- `lastMessage`
+- `lastOfferId`
+- `counterFrame`
+- `animatedValues`
+
+## Save, Normalization, And Compatibility
+
+Normalization matters because the page is meant to survive:
+
+- refreshes mid-night
+- older save shapes
+- partial or malformed browser data
+
+Important functions:
 
 - `normalizeInventoryItem()`
 - `normalizeOffer()`
@@ -769,19 +834,21 @@ Important normalization functions:
 
 If you add fields:
 
-- add them to `createDefaultSave()`
-- add them to the correct normalization function
-- preserve backward compatibility
+1. add them to `createDefaultSave()`
+2. add them to the right normalization function
+3. keep old saves readable
 
-## 8. Actions and Event Model
+Do not change save shape casually.
+
+## Actions And Event Model
 
 The page uses document-level event delegation.
 
-### Central handler
+Main router:
 
-`handleAction(action, trigger)` is the action router.
+- `handleAction(action, trigger)`
 
-### Current `data-action` values
+Current `data-action` values:
 
 - `open-panel`
 - `close-panel`
@@ -804,35 +871,213 @@ The page uses document-level event delegation.
 - `start-next-night`
 - `reset-save`
 
-If any button “does nothing”, the first places to inspect are:
+If a button appears broken, inspect:
 
-- the rendered button markup
-- the `data-action` string
+- rendered markup
+- the `data-action` value
+- disabled state
 - `handleAction()`
-- whether the button is disabled
+- follow-up state transitions
 
-## 9. Debug Hooks and AI-Friendly Hooks
+## Top Navigation Indicator
 
-### Global debug object
+The moving gold underline is not purely CSS. It is actively positioned by JS.
+
+Main functions:
+
+- `updateTopNavIndicator()`
+- `setTopNavActive()`
+
+Important behavior:
+
+- hover and focus temporarily move the underline
+- it follows `data-nav-key`
+- when the ledger drawer opens, the active nav key becomes `chronicles`
+- after anchor navigation, it snaps back to the correct active section state
+
+If the line stops moving, check:
+
+- `#topNav`
+- `#topNavIndicator`
+- `[data-nav-key]`
+- `updateTopNavIndicator()`
+- `setTopNavActive()`
+
+## Guidebook System
+
+The guidebook is important because the user explicitly wanted the full how-to-play inside the game.
+
+### Location and entry point
+
+Open path:
+
+- `Camp -> Open Guidebook`
+
+### Current guidebook chapters
+
+- `Primer`
+- `Travelers`
+- `Inventory`
+- `Strategy`
+
+### Current guidebook behavior
+
+- centered modal book
+- two-page spread on larger desktop widths
+- single-column pages on smaller widths
+- tabs for direct spread jump
+- previous and next buttons
+- page counter label
+- close button
+- page-flip animation
+
+### Guidebook state and functions
+
+Main functions:
+
+- `renderGuidebookPage()`
+- `renderGuidebook()`
+- `queueGuidebookFlip()`
+- `openGuidebook()`
+- `closeGuidebook()`
+- `setGuidebookSpread()`
+- `shiftGuidebookSpread()`
+
+Main runtime fields:
+
+- `guidebookOpen`
+- `guidebookSpreadIndex`
+- `guidebookFlipDirection`
+- `guidebookFlipTimer`
+
+### Important layout rule
+
+The guidebook shell uses:
+
+- `grid-template-rows: auto auto minmax(0, 1fr) auto`
+
+This is critical. It makes the body the scrollable row and prevents the bottom of long spreads from being clipped.
+
+Do not remove this unless you replace it with equivalent behavior.
+
+### Current fit target
+
+The guidebook was intentionally compacted.
+
+Current target behavior:
+
+- on normal desktop, the longest spread should fit without guidebook-body scrolling
+- on short laptop screens such as `1366x768`, the longest spread should still fit in the desktop-style book layout
+
+## Responsive System
+
+The current responsive system matters a lot because the user asked for media-query handling for the whole site.
+
+Current breakpoints in `styles.css`:
+
+- `@media (max-width: 1380px)`
+- `@media (min-width: 1101px) and (max-height: 820px)`
+- `@media (max-width: 1100px)`
+- `@media (max-width: 820px)`
+- `@media (max-width: 640px)`
+
+### What each breakpoint does
+
+`max-width: 1380px`
+
+- simplifies some wide layouts
+- reduces seller desk density before collapsing all the way down
+
+`min-width: 1101px and max-height: 820px`
+
+- short-laptop desktop breakpoint
+- keeps the desktop feel but scales the whole site tighter
+- affects top shell, left rail, hero, seller desk, action cards, item cards, drawers, recap, and guidebook
+- exists specifically so shorter laptop screens do not feel cropped and oversized
+
+`max-width: 1100px`
+
+- collapses the main layout toward a single-column flow
+- turns the guidebook into a single-page vertical stack
+
+`max-width: 820px`
+
+- stacks more major regions
+- simplifies top shell alignment
+- pushes more content into one-column mobile/tablet behavior
+
+`max-width: 640px`
+
+- tightens spacing and typography further for phone-width screens
+
+### Left rail and taskbar fix
+
+The left rail uses sticky positioning on larger screens and internal scrolling with hidden scrollbar.
+
+Important CSS ideas there:
+
+- `max-height` using viewport math
+- extra bottom breathing room
+- safe-area-aware padding
+- hidden rail scrollbar
+
+This exists because the user reported that lower left-rail content could be hidden by Windows taskbar overlap.
+
+## Overlay And Scrollbar Rules
+
+These fixes should not regress.
+
+### Drawer overlay rule
+
+The drawer layer must behave like a true overlay:
+
+- `panelLayer` is fixed
+- drawers are positioned absolutely inside the overlay
+- inactive drawers must not take layout space
+
+If you accidentally turn the drawer layer into a normal layout grid again, the old giant black overlay bug can come back.
+
+### Scrollbar rule
+
+Scrollbars are intentionally hidden on:
+
+- page root
+- left rail
+- drawer panels
+- guidebook body
+- recap panel
+
+Scrolling still works. Only the visible bars are hidden.
+
+## Debug Hooks
+
+### Global runtime handle
 
 The page exposes:
 
 - `window.__MIDNIGHT_PAWN__`
 
-This is useful for tests and debugging.
-
-It currently exposes useful methods and state such as:
+Useful exposed helpers include:
 
 - `state`
 - `renderAll`
 - `handleAction`
 - `startNextNight`
 - `runNightCloseout`
-- item / prep / haggle / buy helpers
+- `buyUpgrade`
+- `openGuidebook`
+- `closeGuidebook`
+- `listItem`
+- `pullListing`
+- `vaultItem`
+- `unvaultItem`
+- `applyPrepAction`
+- `inspectOffer`
+- `haggleOffer`
+- `buyActiveOffer`
+- `passActiveOffer`
 
 ### Query params
-
-Current query params:
 
 - `?self-test=1`
 - `?panel=upgrades`
@@ -841,129 +1086,132 @@ Current query params:
 
 What they do:
 
-- `self-test=1` runs the browser smoke test on load using an isolated storage key
-- `panel=...` opens a drawer on load for debugging and screenshot verification
+- `self-test=1` runs the smoke test using the isolated storage key
+- `panel=...` opens a drawer on load for debugging and screenshots
 
-## 10. Self-Test Mode
+## Self-Test And Verification
 
-### Purpose
+### Built-in self-test
 
-This exists so an AI agent can verify real interactions without relying only on static screenshots.
+Purpose:
 
-### URL
+- verify real interactions
+- catch broken buttons
+- make visual tasks safer
 
-Open:
+Self-test route:
 
 - `games/midnight-pawn/index.html?self-test=1`
 
-### What it verifies
+The self-test currently checks:
 
-It validates:
+- upgrades drawer open
+- ledger drawer open
+- settings drawer open
+- guidebook open
+- guidebook next spread
+- guidebook close
+- inspect
+- gentle bargain
+- buy
+- prep
+- list
+- withdraw
+- vault
+- unvault
+- close-night
+- start-next-night
 
-- drawer open / close
-- inspect button
-- soft haggle
-- buy flow
-- prep flow
-- list flow
-- withdraw flow
-- vault flow
-- unvault flow
-- close-night flow
-- next-night flow
-
-### Output
-
-The test writes a hidden report into:
+Output goes into:
 
 - `#selfTestReport`
 
-The report contains:
+Expected status:
 
 - `SELF_TEST:PASS`
-- or `SELF_TEST:FAIL`
 
-### Important implementation note
+### Verification workflow
 
-The self-test currently uses timeout-based waiting because animation-frame-only waiting was unreliable in some headless browser DOM dump runs.
-
-Do not casually remove this unless you re-verify headless reliability.
-
-## 11. Verification Workflow
-
-When making changes, the safest baseline verification is:
+For most changes, use this baseline:
 
 1. `node --check games/midnight-pawn/script.js`
-2. verify all `getElementById(...)` hooks still exist in `index.html`
-3. render a headless screenshot
-4. if overlays changed, render with `?panel=ledger` or another panel
-5. run `?self-test=1`
+2. verify important `getElementById(...)` hooks still exist
+3. inspect the affected view visually
+4. run `?self-test=1` if the change could affect interactions
 
-### Example checks used in practice
+### Windows and PowerShell notes
 
-- syntax check:
-  - `node --check games/midnight-pawn/script.js`
-- DOM hook check:
-  - compare `getElementById("...")` ids in JS against ids in HTML
-- screenshot:
-  - render with Edge headless and inspect the output image
-- self-test:
-  - render DOM with `?self-test=1` and inspect `#selfTestReport`
+On this machine, `rg.exe` may not be usable from the current shell. If search fails, use PowerShell-native search instead:
 
-### If the user mentions broken buttons
+- `Select-String` for text search
+- `Get-Content` for file reads
 
-Do not stop after a syntax check.
+### Browser-based checks
 
-At minimum:
+A reliable local workflow on this machine is:
 
-- run the self-test
-- inspect a screenshot
-- reproduce the exact panel or state if possible
+1. run a local server from the repo root
+2. use Edge headless for screenshots or DOM dumps
 
-## 12. Known Project Rules / Invariants
+Typical server command:
 
-These are important assumptions the current implementation relies on:
+- `py -m http.server 4173`
 
-- The project is vanilla HTML/CSS/JS. There is no framework.
-- Most visible content is rendered by `script.js`.
-- `index.html` ids and `script.js` element lookups must stay in sync.
-- Buttons use `data-action`, not direct inline handlers.
-- The drawer layer must behave like a true overlay, not a layout grid.
-- Scrollbars are intentionally hidden.
-- The stitched reference folder is visual reference only.
-- The current visual source of truth is the **vintage** ledger direction, not the cyber-neon direction.
+Typical Edge path on this machine:
 
-## 13. Common Change Recipes
+- `C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe`
+
+You do not always need this, but it is useful when the user reports a real visual or interaction bug.
+
+## Known Good Behavior
+
+These are current expectations that should remain true unless intentionally changed.
+
+- `Camp` contains an `Open Guidebook` button.
+- The guidebook opens as a book popup, not as plain inline text.
+- The guidebook supports tabs plus previous and next spread navigation.
+- The guidebook animates page turns.
+- The gold top-nav underline moves.
+- `Chronicles` opens the ledger drawer instead of navigating to a different page.
+- The drawer overlay does not create black layout blocks.
+- Scrollbars are hidden.
+- The left rail remains usable on short desktop windows.
+- The game auto-saves.
+- The self-test passes.
+
+## Common Change Recipes
 
 ### If the user asks for gameplay tuning
 
 Check:
 
-- top-level constants in `script.js`
-- sale chance and sale price helpers
+- top-level constants
 - prep action definitions
 - upgrade definitions
-- seller archetype defs
+- sale chance and sale price logic
+- seller archetypes
+- night generation
 
-### If the user asks for UI restyling
+### If the user asks for visual restyling
 
 Check:
 
 - `styles.css` first
-- then dynamic markup in `renderSellerStage()` and `renderItemCard()`
-- then static shell in `index.html` if layout needs structural changes
+- then render markup in `script.js`
+- then `index.html` only if structure truly needs to change
 
-Do not revert back to generic rounded-card UI.
+Do not drift back into generic rounded-card UI.
 
 ### If the user says a button is broken
 
 Check:
 
-- rendered HTML for the button
+- rendered button markup
 - `data-action`
 - `handleAction()`
 - disabled conditions
-- self-test mode
+- state transitions after click
+- self-test
 
 ### If the user says a drawer or overlay is broken
 
@@ -977,79 +1225,71 @@ Check:
 - `closePanel()`
 - `renderPanels()`
 
-### If the user says the page still looks old after a change
+### If the user says the guidebook is clipped or too large
 
-Likely causes:
+Check:
 
-- browser cache
-- CSS not reloaded
-- screenshot taken from old build state
+- `.guidebook-book`
+- `.guidebook-body`
+- `.guidebook-page`
+- the `grid-template-rows` rule
+- desktop width and height breakpoints
 
-Ask them to hard refresh if needed, but verify locally first.
+### If the user says the site does not fit on a small laptop
 
-## 14. Common Pitfalls
+Check:
 
-- Do not assume the stitched reference folder is executable app code.
-- Do not edit only `index.html` and expect the UI to change; most content comes from JS render functions.
+- the short-laptop breakpoint at `@media (min-width: 1101px) and (max-height: 820px)`
+- left rail max-height behavior
+- overall top shell and app shell spacing
+- guidebook sizing
+- action card heights
+
+## Regression Traps
+
+- Do not assume the stitched reference folder is runnable app code.
+- Do not edit only `index.html` and expect the whole UI to change.
 - Do not rename ids casually.
 - Do not rename `data-action` values casually.
-- Do not break the isolated self-test storage key.
-- Do not reintroduce visible scrollbars unless the user explicitly asks for them.
-- Do not revert the drawer overlay to grid-based layout.
-- Do not “modernize” the visual design into flat dashboard cards.
+- Do not remove the isolated self-test storage key.
+- Do not reintroduce visible scrollbars unless asked.
+- Do not turn drawers back into layout-participating panels.
+- Do not remove the guidebook and replace it with plain settings text.
+- Do not forget responsive behavior when changing major UI.
+- Do not forget to document the change here.
 
-## 15. Design Intent in Plain Language
+## What To Read First Before Editing
 
-If you are another AI and need a quick visual read:
+If you need to move quickly:
 
-- This should feel like a relic broker’s desk in a dark shop.
-- The UI should read like ledgers, folios, trays, and appraisal notes.
-- Typography should feel editorial and antique, not app-like.
-- The page should feel rich and moody even without bespoke assets.
-- Strong CSS styling is preferred over adding unnecessary runtime images.
+1. Read this README all the way through.
+2. Read `games/midnight-pawn/index.html`.
+3. Read the render functions in `games/midnight-pawn/script.js`.
+4. Read the layout and overlay sections in `games/midnight-pawn/styles.css`.
+5. Open the stitched vintage reference folder if the task is visual.
 
-## 16. What to Read First Before Editing
+## Quick Start For Future AI Agents
 
-If you need to get productive quickly:
+If you are another AI and want the shortest useful plan:
 
-1. Read this README completely.
-2. Read `index.html`.
-3. Read the render functions in `script.js`.
-4. Read the drawer / overlay / layout parts of `styles.css`.
-5. Open the stitched vintage reference screenshots if the task is visual.
+1. Trust this README as the current memory source.
+2. Treat the game as a merchant sim with a vintage ledger UI.
+3. Preserve the in-game guidebook, overlay fixes, hidden scrollbars, and responsive rules.
+4. Use `script.js` for logic and rendered content, `styles.css` for most visual work, and `index.html` for shell structure only.
+5. Verify buttons with actual interaction checks, not just syntax.
+6. Update this README in the same change.
 
-## 17. Recommended Workflow for Future AI Agents
+## Final Reminder
 
-Before editing:
+This project is already opinionated.
 
-- inspect current HTML shell
-- inspect render functions
-- inspect relevant CSS section
+The safest defaults are:
 
-Before finishing:
-
-- run syntax check
-- run DOM hook check
-- run or inspect self-test
-- render at least one screenshot for visual tasks
-
-If the request is specifically UI-related:
-
-- verify both desktop and a narrow/mobile width
-
-## 18. Final Reminder
-
-This project is already opinionated now.
-
-Future work should usually:
-
-- preserve the merchant-sim mechanics
-- preserve the vintage ledger look
+- preserve the merchant-sim loop
+- preserve the vintage `Broker's Ledger` presentation
+- preserve the guidebook and top-nav polish
 - preserve the overlay and scrollbar fixes
-- preserve the AI-friendly debug and self-test hooks
+- preserve responsive handling for the whole page
+- preserve self-test and debug hooks
 
-If you are unsure whether a change matches the project, the safest default is:
-
-- keep the `Broker's Ledger` presentation
-- keep the current game loop
-- verify with the built-in self-test
+If you are unsure, prefer preserving the existing feel and documenting the change rather than improvising a new direction.

@@ -6,6 +6,24 @@ This README is meant to be a real handoff document for future developers and AIs
 
 If another AI reads only one file before working on this game, it should read this README first.
 
+## Project Memory File
+
+Treat this README as the memory file for `Reels Pull`.
+
+Working rule:
+
+- before changing the game, read this file first
+- after changing the game, update this file if the real project state changed
+- if chat history and this file disagree, re-check the code and update this file so it matches reality
+- prefer relying on this file for project context instead of trying to carry every detail in conversation memory
+
+This README is supposed to function like the persistent operating memory for the project.
+
+Extra memory rule:
+
+- once a project detail is written here clearly, future work should rely on this file instead of clinging to old chat-only memory
+- if an older remembered detail conflicts with this file, re-check the code and update this file so it stays the source of truth
+
 ## README Maintenance Rule
 
 From this point forward, this README is supposed to stay in sync with the real game.
@@ -21,6 +39,8 @@ That means:
 The goal is for this file to describe what is true right now, so another AI can read it and start working correctly immediately.
 
 Treat this README as the primary source of current project context for future work. Prefer checking this file first instead of relying on old chat history.
+
+This file is also meant to reduce context load for future sessions. If something important about the current game state exists only in chat and not here, this README is incomplete and should be updated.
 
 ## Quick Start
 
@@ -50,6 +70,157 @@ This is a static front-end project. There is no backend for this game.
 - 10,000 achievements
 - export to PNG
 - hidden draggable dev tools
+
+## Current Verified State
+
+This section is a plain-language "where the project stands right now" snapshot.
+
+- the game is still a single-page app in `index.html`
+- the reel / spin feel is currently treated as tuned and protected
+- the belt uses placeholder/static art, not live GIF playback
+- result GIF playback happens in result cards / overlays, not inside the moving reel belt
+- auto pull exists and is intentionally faster / shorter than manual pull flow
+- all banners are data-driven from one banner table
+- achievements are generated to `10,000`
+- the achievements box tracks all `10,000`, but now loads cards in batches while scrolling so the page stays fast
+- locked achievements appear first, cleared ones appear afterward, and built-in order is preserved inside each group
+- full saved roll history is still preserved, but the visible history list now loads in batches while scrolling
+- full achievement completion now gives signal, all banners, and stacked Godlike rewards
+- the page now has a dedicated small-laptop responsive pass in CSS
+- the save system was recently audited and the long-term progression state looks consistent from the code side
+- save writes are now lightly debounced before hitting `localStorage`
+- synced GIF thumbnails now refresh only for images near the viewport instead of every synced image on the page
+
+## Current Page Structure
+
+The visible page is organized like this:
+
+1. Hero
+   - back button
+   - album button
+   - game title and intro text
+2. Main play row
+   - left: reel, pull buttons, result banner, latest results
+   - right: account stats, pull counts, full roll history
+3. Collection section
+4. Control Center
+   - featured banners
+   - workshop
+   - daily + challenge
+   - showcase + settings
+5. Achievements
+6. Signal Lab
+   - odds
+   - drought
+   - rare hit chart
+   - banner history
+
+### Important DOM Anchors
+
+Useful IDs for future edits:
+
+- `slotStrip`
+- `singlePullButton`
+- `multiPullButton`
+- `hundredPullButton`
+- `autoPullButton`
+- `resetProgressButton`
+- `resultContainer`
+- `resultsGrid`
+- `statsGrid`
+- `historyList`
+- `recentList`
+- `collectionGrid`
+- `bannerList`
+- `resourceCard`
+- `craftGrid`
+- `dailyCard`
+- `challengeCard`
+- `showcaseCard`
+- `themeList`
+- `soundList`
+- `achievementGrid`
+- `oddsGrid`
+- `droughtCard`
+- `rareHitChart`
+- `bannerHistoryList`
+
+## Responsive Layout
+
+The page now has explicit responsive tuning. This is no longer "desktop only with a tiny mobile fallback."
+
+Current breakpoint intent:
+
+- `max-width: 1280px`
+  - small-laptop spacing compression
+  - tighter main grid
+  - smaller collection / results / systems sizing
+  - smaller modal / dev window sizing
+- `max-width: 1160px`
+  - main two-column area collapses into one column
+  - side stack becomes a 3-card grid
+- `max-height: 860px` with desktop widths
+  - short laptop compression
+  - tighter hero / panel spacing
+  - shorter slot and scroll regions
+- `max-width: 920px`
+  - tablet-ish collapse
+  - systems and lab grids shift to 2 columns
+- `max-width: 760px`
+  - further collapse toward one-column content blocks
+- `max-width: 600px`
+  - mobile stacking
+  - buttons go full-width
+
+Responsive goal:
+
+- keep the game readable on small laptops
+- do not change gameplay behavior
+- do not change reel feel
+- do not make the UI look like a separate mobile redesign
+
+## Performance Guardrails
+
+The game can feel laggy if future edits casually re-introduce huge DOM or storage work. Current performance-sensitive rules:
+
+- do not render the full saved roll history into the DOM at once
+- do not render all `10,000` achievement cards into the DOM at once
+- keep scroll-heavy areas staged / incremental
+- avoid refreshing synced GIF thumbnails that are offscreen
+- avoid synchronous save spam; writes are intentionally lightly debounced now
+
+Current implementation intent:
+
+- roll history shows the full saved count, but only loads more cards when the user scrolls down
+- achievements show the full tracked total, but only load more cards as the user scrolls the achievement vault
+- thumbnail sync skips offscreen media to reduce repeated image reload work
+- `persistProgress()` is no longer meant to hammer `localStorage` instantly on every tiny state change
+
+## Current Banner Ladder
+
+The banner shop is intentionally ordered from cheapest to most expensive, and the intent is that higher-cost banners should generally feel more valuable.
+
+Current order:
+
+1. `Signal Drift`
+2. `Chaos Static`
+3. `Neon Bloom`
+4. `Mythic Voltage`
+5. `Mirage Archive`
+6. `Ember Rush`
+7. `Royal Relay`
+8. `Void Choir`
+9. `Celestial Crown`
+10. `Solar Flare`
+
+Interpretation:
+
+- cheap banners = utility / collection / ladder climbing
+- middle banners = progression / hunting
+- expensive banners = serious chase banners
+- most expensive banners = top-end chase specialization
+
+If banner prices or strengths change, update both the table below and this meaning section.
 
 ## The Most Important Rule
 
@@ -125,6 +296,15 @@ This is effectively a single-file app with an asset directory.
 - `persistProgress()`
 - `loadProgress()`
 
+Responsive layout now also matters here. The page includes dedicated media-query tuning for:
+
+- small laptops / tighter desktop widths
+- shorter laptop heights
+- tablet widths
+- mobile widths
+
+Those responsive rules are CSS-only and are meant to preserve the current game feel while making the layout fit better on smaller screens.
+
 ### Mental Model
 
 Use this mental model when navigating the code:
@@ -196,6 +376,14 @@ Listed from cheapest to most expensive:
 | `solar` | Solar Flare | 26000 | super-premium pure top-end chase banner stronger than Celestial |
 
 Banner multipliers are real gameplay changes, not cosmetic. The user explicitly wanted banners to provide actual odds benefits, and the paid banners are intentionally ordered so the shop climbs from cheap utility banners into very expensive chase banners with stronger benefits.
+
+Banner modal wording currently uses:
+
+- `Boosted Odds`
+- `Reduced Odds`
+- chips like `65% higher` and `22% lower`
+
+That wording was chosen because `+/-` looked too easy to misread.
 
 ### Variant Table
 
@@ -284,6 +472,13 @@ Important:
 - auto mode popup sizing is intentionally different from manual mode
 - do not assume manual popup changes should also apply to auto mode
 
+Auto-pull specific presentation rules:
+
+- skip the long reveal feel
+- flash the revealed state faster
+- use smaller contained media
+- keep cycling without waiting for long celebratory pauses
+
 ### Crafting
 
 Current crafting is intentionally expensive:
@@ -332,6 +527,29 @@ Current sort order in that modal:
 
 That order was requested by the user.
 
+## Achievement Box Behavior
+
+The achievements panel is intentionally staged now for performance.
+
+Current ordering rule:
+
+- locked achievements first
+- unlocked achievements after that
+- built-in achievement order preserved inside each group
+
+Current loading rule:
+
+- the vault tracks all `10,000`
+- only part of the list is in the DOM at once
+- more cards load as the player scrolls deeper into the box
+
+Reason:
+
+- the user wanted to see what can be cleared next without scrolling through old clears first
+- the full immediate `10,000`-card render made the page lag badly
+
+If you change this again, update both this section and the "Current Verified State" section.
+
 ## Achievement System
 
 Achievements are large-scale now.
@@ -347,7 +565,7 @@ The achievements header should show progress like:
 Important UI note:
 
 - the game really tracks all `10,000`
-- the achievements panel now renders all `10,000` inside the scrollable box
+- the achievements panel now loads them in batches inside the scrollable box
 - locked achievements appear first so the player can see what to clear next
 - cleared achievements move to the bottom, while built-in order is preserved inside each group
 
@@ -375,6 +593,55 @@ Banner reward note:
 - this should apply retroactively to old saves that already have the grand prize claimed
 
 After the achievement completion modal is closed, the game should open a real winner-style reward popup for that stacked Godlike reward.
+
+## Save / Load Audit Summary
+
+This is the current code-level understanding of persistence.
+
+### What Is Intentionally Saved
+
+- pity
+- total pulls
+- per-GIF pull counts
+- unlocked collection
+- full recent history entries
+- stacked favorite state
+- stacked best pull state
+- signal dust
+- active and owned banners
+- banner history
+- achievements and achievement dates
+- grand prize claim flags
+- variant counts
+- total variant pulls
+- daily streak info
+- selected theme
+- sound settings
+- challenge state and challenge completion counts
+- drought / luck / spend stats
+- rare-hit history
+- auto-pull unlock
+- 10-pull and 100-pull unlock counters
+
+### What Is Intentionally Not Saved
+
+- in-progress reel animation state
+- currently open popup/modal state
+- pending unreconciled spin results
+- whether auto pull is actively spinning at that exact moment
+- other temporary live UI-only state
+
+### Save Confidence Note
+
+The save system has been code-audited recently. From the current code:
+
+- `createDefaultStats()` defines the long-term shape
+- `persistProgress()` writes `state.stats`
+- `loadProgress()` restores and normalizes old saves
+- `normalizeDevStatsState()` also repairs newer fields after debug edits
+- `resetProgress()` clears storage and rebuilds defaults
+
+This does not replace live browser QA, but it does mean the progression save model currently looks internally consistent.
 
 ## Winner Popup Rules
 
@@ -565,6 +832,14 @@ It can control a huge amount of game state, including:
 
 This is used heavily for testing. Do not casually remove power from it.
 
+Dev mode current behavior notes:
+
+- draggable floating window
+- no blur overlay behind it
+- custom pickers instead of native ugly dropdowns
+- hidden scrollbars
+- wide save/debug mutation coverage
+
 ## Things That Were Buggy Before
 
 These are known historical bug zones. If you touch related code, re-check them.
@@ -589,11 +864,13 @@ These are not generic style notes. They are actual product expectations gathered
 - do not change reel motion unless explicitly asked
 - do not put live GIF playback back into the reel belt
 - do not reintroduce visible browser-default scrollbars
+- do not undo the small-laptop responsive pass with one-off desktop-only spacing edits
 - do not remove stacked variant support
 - do not break auto-pull fast flow
 - do not simplify banner effects into pure cosmetics
 - do not flatten best-pull or favorite state to one variant
 - do not make top-tier popup celebrations generic again
+- do not let README and real behavior drift apart
 
 ### If The User Says Something "Feels Off"
 
@@ -627,6 +904,12 @@ If you need to work on:
   - inspect `openDevModeOverlay()` and its event wiring
 - saving:
   - inspect `persistProgress()` and `loadProgress()`
+- responsiveness / layout:
+  - inspect the CSS grid definitions and media queries near the end of the style block
+- achievements:
+  - inspect `buildAchievements()`, `renderAchievements()`, and grand-prize helpers
+- banners:
+  - inspect `BANNERS`, banner shop rendering, and banner info modal helpers
 
 ## How To Validate Changes
 
@@ -658,6 +941,8 @@ At minimum, a careful pass should cover:
 - export single card
 - export batch
 - top-tier popup effects
+- small-laptop layout
+- short-height laptop layout
 
 ## Recommended Editing Style For Future AIs
 

@@ -670,6 +670,8 @@
             align-items: center;
             justify-content: space-between;
             gap: 12px;
+            content-visibility: auto;
+            contain-intrinsic-size: 74px;
         }
 
         .history-list,
@@ -1051,6 +1053,11 @@
         .achievement-card.locked {
             opacity: 0.58;
             filter: grayscale(1);
+        }
+
+        .achievement-card {
+            content-visibility: auto;
+            contain-intrinsic-size: 168px;
         }
 
         .achievement-title {
@@ -2893,6 +2900,147 @@
             100% { transform: translateY(-34px) scale(1.22); opacity: 0; }
         }
 
+        @media (max-width: 1280px) {
+            body {
+                padding: 20px;
+            }
+
+            .page {
+                gap: 20px;
+            }
+
+            .hero {
+                padding: 24px;
+            }
+
+            .panel {
+                padding: 18px;
+            }
+
+            .subpanel {
+                padding: 16px;
+            }
+
+            .main-grid {
+                grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.95fr);
+                gap: 20px;
+            }
+
+            .systems-grid,
+            .lab-grid {
+                grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            }
+
+            .results-grid {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            }
+
+            .collection-grid {
+                grid-template-columns: repeat(auto-fit, minmax(168px, 1fr));
+            }
+
+            .achievement-grid {
+                grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+                max-height: 980px;
+            }
+
+            .history-panel .recent-list {
+                max-height: min(58vh, 960px);
+            }
+
+            .section-heading,
+            .banner-top,
+            .challenge-card-top,
+            .challenge-log-head,
+            .showcase-head,
+            .modal-header {
+                flex-wrap: wrap;
+            }
+
+            .section-meta {
+                white-space: normal;
+            }
+
+            .banner-controls {
+                flex-wrap: wrap;
+                margin-left: 0;
+                justify-content: flex-start;
+            }
+
+            .modal-card {
+                width: min(960px, 100%);
+                max-height: min(84vh, 860px);
+                padding: 20px;
+            }
+
+            .floating-window {
+                width: min(700px, calc(100vw - 28px));
+                max-height: min(84vh, 720px);
+            }
+
+            .floating-window-body {
+                max-height: calc(min(84vh, 720px) - 92px);
+            }
+        }
+
+        @media (max-width: 1160px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .side-stack {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+                gap: 16px;
+            }
+
+            .play-panel,
+            .side-stack {
+                gap: 16px;
+            }
+        }
+
+        @media (max-height: 860px) and (min-width: 921px) {
+            body {
+                padding: 16px;
+            }
+
+            .page {
+                gap: 18px;
+            }
+
+            .hero {
+                padding: 20px;
+            }
+
+            .hero p {
+                font-size: 0.96rem;
+            }
+
+            .slot-container {
+                height: 124px;
+            }
+
+            .achievement-grid {
+                max-height: 780px;
+            }
+
+            .history-panel .recent-list {
+                max-height: min(50vh, 720px);
+            }
+
+            .modal-card {
+                max-height: 86vh;
+            }
+
+            .floating-window {
+                max-height: 86vh;
+            }
+
+            .floating-window-body {
+                max-height: calc(86vh - 92px);
+            }
+        }
+
         @media (max-width: 920px) {
             body {
                 padding: 18px;
@@ -2900,6 +3048,73 @@
 
             .main-grid {
                 grid-template-columns: 1fr;
+            }
+
+            .side-stack,
+            .systems-grid,
+            .lab-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .hero,
+            .panel {
+                padding: 18px;
+            }
+
+            .subpanel {
+                padding: 15px;
+            }
+
+            .achievement-grid {
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                max-height: none;
+            }
+
+            .modal-overlay {
+                padding: 16px;
+            }
+
+            .modal-card {
+                padding: 18px;
+            }
+
+            .floating-window {
+                width: min(100vw - 20px, 680px);
+            }
+        }
+
+        @media (max-width: 760px) {
+            .side-stack,
+            .systems-grid,
+            .lab-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .banner-top,
+            .banner-controls,
+            .challenge-card-top,
+            .challenge-log-head,
+            .showcase-head,
+            .section-heading {
+                align-items: flex-start;
+            }
+
+            .modal-overlay {
+                padding: 12px;
+            }
+
+            .overlay-card,
+            .modal-card {
+                padding: 16px;
+                border-radius: 22px;
+            }
+
+            .floating-window {
+                width: min(100vw - 16px, 640px);
             }
         }
 
@@ -3076,6 +3291,7 @@
         const DEV_MODE_CODE = "never-wet";
         const MIN_SPIN_STEPS = 30;
         const THUMBNAIL_SYNC_DURATION_MS = 4000;
+        const THUMBNAIL_SYNC_VIEWPORT_MARGIN_PX = 220;
         const BATCH_REVEAL_DELAY_MS = 220;
         const AUTO_PULL_UNLOCK_COST = 5000;
         const AUTO_PULL_NEXT_SPIN_DELAY_MS = 280;
@@ -3083,6 +3299,13 @@
         const TEN_PULL_UNLOCK_REQUIREMENT = 100;
         const HUNDRED_PULL_UNLOCK_REQUIREMENT = 1000;
         const GODLIKE_SHINY_TOTAL_PROBABILITY = 1 / 252000000;
+        const RECENT_HISTORY_INITIAL_RENDER_COUNT = 120;
+        const RECENT_HISTORY_RENDER_BATCH_SIZE = 120;
+        const RECENT_HISTORY_LOAD_THRESHOLD_PX = 260;
+        const ACHIEVEMENT_INITIAL_RENDER_COUNT = 180;
+        const ACHIEVEMENT_RENDER_BATCH_SIZE = 180;
+        const ACHIEVEMENT_LOAD_THRESHOLD_PX = 320;
+        const SAVE_WRITE_DEBOUNCE_MS = 180;
         const GIFS = [
             { key: "absmal", name: "Abysmal", path: "gif/absmal.gif", rarity: "Glitched", weight: 28, color: "#68758f", rank: 1 },
             { key: "common", name: "Common", path: "gif/common.gif", rarity: "Common", weight: 24, color: "#7a8da5", rank: 2 },
@@ -3353,6 +3576,7 @@
         const achievementMap = Object.fromEntries(ACHIEVEMENTS.map((achievement) => [achievement.key, achievement]));
         const achievementKeySet = new Set(ACHIEVEMENTS.map((achievement) => achievement.key));
         let thumbnailSyncTimeoutId = null;
+        let persistProgressTimeoutId = null;
         let devModeCodeBuffer = "";
         const exportPosterArtCache = new Map();
 
@@ -3372,6 +3596,8 @@
             pendingResults: [],
             pendingMeta: null,
             latestResults: [],
+            recentRenderCount: 0,
+            achievementRenderCount: 0,
             devForcedVariantConfig: {
                 gifKey: "",
                 variantKeys: []
@@ -3389,6 +3615,14 @@
         abandonChallengeButton.addEventListener("click", abandonChallengeMode);
         openAlbumButton.addEventListener("click", openAlbumOverlay);
         document.addEventListener("keydown", handleDevModeCodeEntry);
+        recentList.addEventListener("scroll", handleRecentHistoryScroll, { passive: true });
+        achievementGrid.addEventListener("scroll", handleAchievementGridScroll, { passive: true });
+        document.addEventListener("visibilitychange", () => {
+            if (document.visibilityState === "hidden") {
+                flushPersistProgress(true);
+            }
+        });
+        window.addEventListener("pagehide", () => flushPersistProgress(true));
 
         setupSlots();
         loadProgress();
@@ -4220,7 +4454,7 @@
 
             return `
                 <div class="${getResultMediaFrameClass(result, extraClass)}">
-                    <img class="${getResultImageClass(result)}" src="${src}" alt="${alt}"${syncAttrs}>
+                    <img class="${getResultImageClass(result)}" src="${src}" alt="${alt}" decoding="async"${syncAttrs}>
                     ${hideGifAccent ? "" : getGifAccentOverlayMarkup(result)}
                     ${getVariantOverlayMarkup(result)}
                 </div>
@@ -4243,6 +4477,7 @@
             image.className = getResultImageClass(result);
             image.src = src;
             image.alt = alt;
+            image.decoding = "async";
 
             if (syncPath) {
                 image.dataset.syncGif = syncPath;
@@ -4708,6 +4943,7 @@
 
         function finalizeResults(results) {
             state.latestResults = results;
+            resetIncrementalPanelState();
 
             if (state.pendingMeta?.source === "pull") {
                 if (state.pendingMeta.pullCount === 1) {
@@ -5070,6 +5306,84 @@
             };
         }
 
+        function getRecentRenderCount() {
+            if (state.stats.recent.length === 0) {
+                state.recentRenderCount = 0;
+                return 0;
+            }
+
+            state.recentRenderCount = Math.min(
+                state.stats.recent.length,
+                Math.max(state.recentRenderCount || RECENT_HISTORY_INITIAL_RENDER_COUNT, RECENT_HISTORY_INITIAL_RENDER_COUNT)
+            );
+            return state.recentRenderCount;
+        }
+
+        function getOrderedAchievements(unlockedKeys = new Set(state.stats.achievementKeys)) {
+            const lockedAchievements = [];
+            const unlockedAchievements = [];
+
+            ACHIEVEMENTS.forEach((achievement) => {
+                if (unlockedKeys.has(achievement.key)) {
+                    unlockedAchievements.push(achievement);
+                } else {
+                    lockedAchievements.push(achievement);
+                }
+            });
+
+            return [...lockedAchievements, ...unlockedAchievements];
+        }
+
+        function getAchievementRenderCount(totalAchievements) {
+            if (totalAchievements === 0) {
+                state.achievementRenderCount = 0;
+                return 0;
+            }
+
+            state.achievementRenderCount = Math.min(
+                totalAchievements,
+                Math.max(state.achievementRenderCount || ACHIEVEMENT_INITIAL_RENDER_COUNT, ACHIEVEMENT_INITIAL_RENDER_COUNT)
+            );
+            return state.achievementRenderCount;
+        }
+
+        function isNearScrollEnd(element, thresholdPx) {
+            return element.scrollTop + element.clientHeight >= element.scrollHeight - thresholdPx;
+        }
+
+        function resetIncrementalPanelState() {
+            state.recentRenderCount = Math.min(state.stats.recent.length, RECENT_HISTORY_INITIAL_RENDER_COUNT);
+            state.achievementRenderCount = ACHIEVEMENT_INITIAL_RENDER_COUNT;
+        }
+
+        function handleRecentHistoryScroll() {
+            if (state.recentRenderCount >= state.stats.recent.length || !isNearScrollEnd(recentList, RECENT_HISTORY_LOAD_THRESHOLD_PX)) {
+                return;
+            }
+
+            state.recentRenderCount = Math.min(
+                state.stats.recent.length,
+                getRecentRenderCount() + RECENT_HISTORY_RENDER_BATCH_SIZE
+            );
+            renderRecentPulls({ preserveScrollTop: true });
+        }
+
+        function handleAchievementGridScroll() {
+            const orderedAchievements = getOrderedAchievements();
+            if (
+                state.achievementRenderCount >= orderedAchievements.length ||
+                !isNearScrollEnd(achievementGrid, ACHIEVEMENT_LOAD_THRESHOLD_PX)
+            ) {
+                return;
+            }
+
+            state.achievementRenderCount = Math.min(
+                orderedAchievements.length,
+                getAchievementRenderCount(orderedAchievements.length) + ACHIEVEMENT_RENDER_BATCH_SIZE
+            );
+            renderAchievements({ preserveScrollTop: true });
+        }
+
         function renderAll() {
             const thumbnailSyncCycle = getThumbnailSyncCycle();
             applyTheme();
@@ -5143,10 +5457,15 @@
                 });
         }
 
-        function renderRecentPulls() {
+        function renderRecentPulls(options = {}) {
+            const { preserveScrollTop = true } = options;
+            const previousScrollTop = preserveScrollTop ? recentList.scrollTop : 0;
             recentList.innerHTML = "";
+            const renderedCount = getRecentRenderCount();
             if (recentHistorySummary) {
-                recentHistorySummary.textContent = `${state.stats.recent.length.toLocaleString()} saved`;
+                recentHistorySummary.textContent = state.stats.recent.length > renderedCount
+                    ? `${state.stats.recent.length.toLocaleString()} saved · showing ${renderedCount.toLocaleString()}`
+                    : `${state.stats.recent.length.toLocaleString()} saved`;
             }
 
             if (state.stats.recent.length === 0) {
@@ -5158,7 +5477,7 @@
             }
 
             const fragment = document.createDocumentFragment();
-            state.stats.recent.forEach((entry, index) => {
+            state.stats.recent.slice(0, renderedCount).forEach((entry, index) => {
                 const recentEntry = normalizeRecentEntry(entry);
                 const gif = gifMap[recentEntry.key];
                 if (!gif) {
@@ -5178,6 +5497,9 @@
                 fragment.appendChild(item);
             });
             recentList.appendChild(fragment);
+            if (preserveScrollTop) {
+                recentList.scrollTop = Math.min(previousScrollTop, Math.max(recentList.scrollHeight - recentList.clientHeight, 0));
+            }
         }
 
         function renderCollection(syncCycle = getThumbnailSyncCycle()) {
@@ -5645,13 +5967,14 @@
             });
         }
 
-        function renderAchievements() {
+        function renderAchievements(options = {}) {
+            const { preserveScrollTop = true } = options;
+            const previousScrollTop = preserveScrollTop ? achievementGrid.scrollTop : 0;
             achievementGrid.innerHTML = "";
             achievementProgressText.textContent = `${state.stats.achievementKeys.length.toLocaleString()} / ${ACHIEVEMENTS.length.toLocaleString()} complete`;
             const unlockedKeys = new Set(state.stats.achievementKeys);
-            const lockedAchievements = ACHIEVEMENTS.filter((achievement) => !unlockedKeys.has(achievement.key));
-            const unlockedAchievements = ACHIEVEMENTS.filter((achievement) => unlockedKeys.has(achievement.key));
-            const orderedAchievements = [...lockedAchievements, ...unlockedAchievements];
+            const orderedAchievements = getOrderedAchievements(unlockedKeys);
+            const renderedCount = getAchievementRenderCount(orderedAchievements.length);
             const fragment = document.createDocumentFragment();
             const summaryCard = document.createElement("article");
             summaryCard.className = "achievement-card";
@@ -5660,14 +5983,15 @@
                     <span class="achievement-title">Achievement Vault</span>
                     <span class="achievement-reward">${state.stats.achievementKeys.length.toLocaleString()}/${ACHIEVEMENTS.length.toLocaleString()}</span>
                 </div>
-                <span class="secondary-meta">This account now renders all ${ACHIEVEMENTS.length.toLocaleString()} achievements with locked goals first and cleared ones moved to the bottom, while keeping built-in order inside each group.</span>
+                <span class="secondary-meta">Tracks all ${ACHIEVEMENTS.length.toLocaleString()} achievements. Locked goals stay first, cleared ones stay at the bottom, and the box loads more as you scroll so the page stays fast.</span>
+                <span class="muted-line">Currently showing ${Math.min(renderedCount, orderedAchievements.length).toLocaleString()} of ${orderedAchievements.length.toLocaleString()} achievement cards.</span>
                 <span class="muted-line">${state.stats.achievementGrandPrizeClaimed
                     ? `Grand prize claimed ${formatDate(state.stats.achievementGrandPrizeClaimedAt)}`
                     : `Grand prize: +${ACHIEVEMENT_GRAND_PRIZE_SIGNAL.toLocaleString()} signal and ${ACHIEVEMENT_GRAND_PRIZE_VARIANT_COUNT} Godlikes with every variant stacked.`}</span>
             `;
             fragment.appendChild(summaryCard);
 
-            orderedAchievements.forEach((achievement) => {
+            orderedAchievements.slice(0, renderedCount).forEach((achievement) => {
                 const unlocked = unlockedKeys.has(achievement.key);
                 const card = document.createElement("article");
                 card.className = `achievement-card${unlocked ? "" : " locked"}`;
@@ -5682,6 +6006,9 @@
                 fragment.appendChild(card);
             });
             achievementGrid.appendChild(fragment);
+            if (preserveScrollTop) {
+                achievementGrid.scrollTop = Math.min(previousScrollTop, Math.max(achievementGrid.scrollHeight - achievementGrid.clientHeight, 0));
+            }
         }
 
         function renderOddsGrid() {
@@ -7913,10 +8240,28 @@
             return `${path}?sync=${syncCycle}`;
         }
 
+        function isElementNearViewport(element, marginPx = THUMBNAIL_SYNC_VIEWPORT_MARGIN_PX) {
+            const rect = element.getBoundingClientRect();
+            if (rect.width <= 0 || rect.height <= 0) {
+                return false;
+            }
+
+            return (
+                rect.bottom >= -marginPx &&
+                rect.top <= window.innerHeight + marginPx &&
+                rect.right >= -marginPx &&
+                rect.left <= window.innerWidth + marginPx
+            );
+        }
+
         function syncVisibleGifThumbnails(syncCycle = getThumbnailSyncCycle()) {
+            if (document.hidden) {
+                return;
+            }
+
             document.querySelectorAll("img[data-sync-gif]").forEach((image) => {
                 const path = image.dataset.syncGif;
-                if (!path || image.dataset.syncCycle === String(syncCycle)) {
+                if (!path || image.dataset.syncCycle === String(syncCycle) || !isElementNearViewport(image)) {
                     return;
                 }
 
@@ -7944,13 +8289,40 @@
             return `${path}?play=${Date.now()}-${Math.random().toString(16).slice(2)}`;
         }
 
-        function persistProgress() {
+        function flushPersistProgress(skipFlash = false) {
+            if (persistProgressTimeoutId !== null) {
+                clearTimeout(persistProgressTimeoutId);
+                persistProgressTimeoutId = null;
+            }
+
             try {
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(state.stats));
-                flashSaveStatus("Progress saved");
+                if (!skipFlash) {
+                    flashSaveStatus("Progress saved");
+                }
             } catch (error) {
-                flashSaveStatus("Progress save failed");
+                if (!skipFlash) {
+                    flashSaveStatus("Progress save failed");
+                } else {
+                    saveStatus.textContent = "Progress save failed";
+                }
             }
+        }
+
+        function persistProgress(options = {}) {
+            const { immediate = false, skipFlash = false } = options;
+            if (immediate) {
+                flushPersistProgress(skipFlash);
+                return;
+            }
+
+            if (persistProgressTimeoutId !== null) {
+                clearTimeout(persistProgressTimeoutId);
+            }
+
+            persistProgressTimeoutId = setTimeout(() => {
+                flushPersistProgress(skipFlash);
+            }, SAVE_WRITE_DEBOUNCE_MS);
         }
 
         let saveStatusTimeoutId = null;
@@ -8066,9 +8438,11 @@
                 state.stats.favoriteVariantKeys = state.stats.favoriteKey ? normalizeVariantKeys(parsed.favoriteVariantKeys, state.stats.favoriteVariant) : [];
                 state.stats.bestPullVariantKeys = state.stats.bestPullKey ? normalizeVariantKeys(parsed.bestPullVariantKeys, state.stats.bestPullVariant) : [];
                 state.stats.challenge = normalizeChallengeState(parsed.challenge, defaults.challenge);
+                resetIncrementalPanelState();
                 saveStatus.textContent = "Saved progress loaded";
             } catch (error) {
                 state.stats = defaults;
+                resetIncrementalPanelState();
                 saveStatus.textContent = "Save data reset due to an error";
             }
         }
@@ -8117,6 +8491,7 @@
                 saveStatus.textContent = "Progress storage is unavailable";
             }
             state.stats = createDefaultStats();
+            resetIncrementalPanelState();
             state.latestResults = [];
             state.pendingMeta = null;
             resetProgressButton.disabled = false;
