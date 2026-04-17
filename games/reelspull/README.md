@@ -20,6 +20,8 @@ That means:
 
 The goal is for this file to describe what is true right now, so another AI can read it and start working correctly immediately.
 
+Treat this README as the primary source of current project context for future work. Prefer checking this file first instead of relying on old chat history.
+
 ## Quick Start
 
 - Site path: `/games/reelspull/`
