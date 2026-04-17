@@ -501,6 +501,222 @@ const PREP_ACTIONS = {
   authenticate: { id: "authenticate", label: "Authenticate", cost: 8 },
 };
 
+const GUIDEBOOK_SPREADS = [
+  {
+    chapter: "Primer",
+    left: {
+      eyebrow: "Broker's Primer",
+      title: "What wins a night",
+      intro:
+        "Midnight Pawn is about buying strange relics below value, preparing the best ones, and clearing the nightly bounty before the chapter closes.",
+      facts: ["8 travelers", "Bounty starts at $60", "Misses never end the run"],
+      sections: [
+        {
+          title: "Core loop",
+          bullets: [
+            "Read the current traveler and relic.",
+            "Inspect or bargain if the price is uncertain.",
+            "Claim good deals and decline bad ones.",
+            "Prep, list, and close the night with a full stall.",
+          ],
+        },
+      ],
+      note:
+        "You are not trying to buy everything. You are trying to buy the right relics at the right price.",
+    },
+    right: {
+      eyebrow: "The screen",
+      title: "What each area means",
+      intro:
+        "The interface is split into a few jobs: live bargaining, inventory handling, long-term bonuses, and codex tracking.",
+      sections: [
+        {
+          title: "Main zones",
+          bullets: [
+            "Left rail: purse, renown, chapter progress, rumor board, reliquary boons.",
+            "Exchange: the active traveler, item readout, and negotiation actions.",
+            "Active Wares: listed relics waiting for closeout sales.",
+            "Broker Inventory: owned relics that still need prep or listing.",
+            "Bound Relics: elite and cursed relics saved for passive bonuses.",
+          ],
+        },
+        {
+          title: "Drawers",
+          bullets: [
+            "Guild Talents sells permanent upgrades.",
+            "Chronicles tracks discoveries and sale history.",
+            "Camp holds save tools and this guidebook.",
+          ],
+        },
+      ],
+    },
+  },
+  {
+    chapter: "Travelers",
+    left: {
+      eyebrow: "Traveler phase",
+      title: "How bargaining works",
+      intro:
+        "Every traveler brings one relic, one price, and 2 patience. Your job is to judge how much pressure the deal can take.",
+      facts: ["Inspect is free", "Gentle bargain: 10% off try", "Hard bargain: 20% off try"],
+      sections: [
+        {
+          title: "Your actions",
+          bullets: [
+            "Inspect reveals condition first, then deeper clues like authenticity hints and the weird tag.",
+            "Gentle Bargain is safer and only spends one soft angle.",
+            "Hard Bargain pushes harder but is much riskier.",
+            "Claim buys the relic at the current tribute.",
+            "Decline skips the traveler and preserves cash.",
+          ],
+        },
+      ],
+      note:
+        "If patience hits zero, the traveler leaves with the relic. Failed bargains are the main way good items slip away.",
+    },
+    right: {
+      eyebrow: "Reading relics",
+      title: "What makes an item good",
+      intro:
+        "A relic is driven by category, rarity, condition, authenticity, and tonight's rumor board.",
+      facts: ["Hot category sells easier", "Cold category sells harder", "Condition changes value and sale chance"],
+      sections: [
+        {
+          title: "Quality signals",
+          bullets: [
+            "Rarity bands run from junk to cursed.",
+            "Clean and pristine relics are easier to move than wrecked ones.",
+            "Authenticity matters because fake items can fool your estimate until verified.",
+            "Elite and cursed relics are worth considering for the reliquary instead of instant sale.",
+          ],
+        },
+        {
+          title: "Good reasons to pass",
+          bullets: [
+            "The price is too close to the item's likely ceiling.",
+            "The relic looks weak and sits in the cold category.",
+            "Buying it would leave you unable to act on later travelers.",
+          ],
+        },
+      ],
+    },
+  },
+  {
+    chapter: "Inventory",
+    left: {
+      eyebrow: "Workshop phase",
+      title: "What to do after you buy",
+      intro:
+        "A claimed relic enters Broker Inventory. From there you choose whether to polish it, mend it, verify it, list it, or enshrine it.",
+      facts: ["Polish: +10% resale", "Mend: +25% resale", "Verify reveals true or fake"],
+      sections: [
+        {
+          title: "Prep tools",
+          bullets: [
+            "Polish is cheap and good for items you already plan to list.",
+            "Mend costs more, so use it on relics with strong resale potential.",
+            "Verify is best for suspiciously expensive or high-rarity items.",
+            "Listed relics are the only ones that can sell at closeout.",
+          ],
+        },
+        {
+          title: "Stall space",
+          bullets: [
+            "You begin with 4 listing slots.",
+            "Shelf Extension can push the stall up to 8 slots.",
+            "A full stall before closeout is usually better than hoarding too many unlisted relics.",
+          ],
+        },
+      ],
+    },
+    right: {
+      eyebrow: "Reliquary",
+      title: "When to bind relics",
+      intro:
+        "Elite and cursed relics can be saved in the Bound Relics wing instead of sold right away. This trades short cash for stronger future nights.",
+      facts: ["Elite: +3% sale, +2% bargain, +2% price", "Cursed: +5% sale, +5% bargain, +4% price"],
+      sections: [
+        {
+          title: "Binding rules",
+          bullets: [
+            "Only elite and cursed relics can be enshrined.",
+            "Vaulted relics never enter closeout sale rolls.",
+            "Lockbox Room expands reliquary capacity from 2 up to 5 slots.",
+          ],
+        },
+        {
+          title: "Good binding logic",
+          bullets: [
+            "Bind relics that strengthen many future nights.",
+            "Sell relics when you urgently need the cash spike to hit the current bounty.",
+            "Do not fill the reliquary with weak pieces just because they are rare.",
+          ],
+        },
+      ],
+      note:
+        "If a relic is amazing but the passive bonus will make the next five nights easier, binding it can be the smarter long game.",
+    },
+  },
+  {
+    chapter: "Strategy",
+    left: {
+      eyebrow: "Closeout",
+      title: "How nights actually pay out",
+      intro:
+        "When the chapter ends, every listed relic rolls for sale. Sold items pay cash immediately. Unsold items stay with you for the next night.",
+      facts: ["Base sale chance: 55%", "Bounty grows by $35 each night", "Target bonus: 25% of target"],
+      sections: [
+        {
+          title: "What helps closeout",
+          bullets: [
+            "Hot-category listings.",
+            "Better condition and better prep.",
+            "Renown and Neon Window Sign.",
+            "Reliquary bonuses from bound relics.",
+          ],
+        },
+        {
+          title: "If you hit the bounty",
+          bullets: [
+            "You get bonus cash equal to 25% of that night's target.",
+            "You gain +1 renown.",
+            "The next night still gets harder, but your run momentum improves.",
+          ],
+        },
+      ],
+    },
+    right: {
+      eyebrow: "Field advice",
+      title: "Strong beginner habits",
+      intro:
+        "You do not need perfect math to play well. A few disciplined habits carry most runs.",
+      sections: [
+        {
+          title: "Reliable habits",
+          bullets: [
+            "Inspect before buying unless the relic is obviously cheap.",
+            "Use Gentle Bargain more than Hard Bargain early on.",
+            "Favor hot-category relics when choosing between two similar deals.",
+            "Do not spend all your cash on the first half of the night.",
+            "Try to enter closeout with the stall filled.",
+          ],
+        },
+        {
+          title: "Common mistakes",
+          bullets: [
+            "Overpaying for junk because the flavor text is funny.",
+            "Forgetting to list items before closing the night.",
+            "Wasting prep costs on relics that still are not worth selling.",
+            "Selling every elite or cursed piece instead of considering the reliquary.",
+          ],
+        },
+      ],
+      note:
+        "If you are ever unsure, buy fewer relics, inspect more often, and make sure the best items actually reach the stall before closeout.",
+    },
+  },
+];
+
 const currencyFormatter = new Intl.NumberFormat("en-US", {
   maximumFractionDigits: 0,
 });
@@ -1882,101 +2098,84 @@ function renderLedger() {
   `;
 }
 
+function renderGuidebookPage(page, pageNumber, sideClass) {
+  const facts = Array.isArray(page.facts)
+    ? page.facts
+        .map((fact) => `<span class="guidebook-fact">${escapeHtml(fact)}</span>`)
+        .join("")
+    : "";
+
+  const sections = Array.isArray(page.sections)
+    ? page.sections
+        .map((section) => {
+          const bullets = Array.isArray(section.bullets)
+            ? `<ul class="guidebook-list">${section.bullets
+                .map((bullet) => `<li>${escapeHtml(bullet)}</li>`)
+                .join("")}</ul>`
+            : "";
+          const copy = section.copy
+            ? `<p class="guidebook-page-copy">${escapeHtml(section.copy)}</p>`
+            : "";
+          return `
+            <section class="guidebook-page-section">
+              <p class="guide-subhead">${escapeHtml(section.title)}</p>
+              ${copy}
+              ${bullets}
+            </section>
+          `;
+        })
+        .join("")
+    : "";
+
+  return `
+    <article class="guidebook-page ${sideClass}">
+      <div class="guidebook-page-head">
+        <p class="section-eyebrow">${escapeHtml(page.eyebrow)}</p>
+        <span class="guidebook-page-number">Page ${pageNumber}</span>
+      </div>
+      <h3>${escapeHtml(page.title)}</h3>
+      <p class="guidebook-page-copy">${escapeHtml(page.intro)}</p>
+      ${facts ? `<div class="guidebook-fact-strip">${facts}</div>` : ""}
+      ${sections}
+      ${page.note ? `<p class="guidebook-note">${escapeHtml(page.note)}</p>` : ""}
+    </article>
+  `;
+}
+
 function renderSettings() {
   elements.settingsContent.innerHTML = `
     <article class="settings-card">
-      <p class="section-eyebrow">How to play</p>
-      <h3>Quick start</h3>
+      <p class="section-eyebrow">Guidebook</p>
+      <h3>Open the handbook</h3>
       <p class="settings-copy">
-        Each night brings <strong>8 travelers</strong>. Buy good relics cheaply, prep them,
-        fill the stall before closeout, and beat the nightly bounty for bonus cash and renown.
+        If the run still feels confusing, open the in-world guidebook. It explains the full loop,
+        traveler actions, relic quality, reliquary bonuses, closeout, and beginner strategy.
       </p>
       <div class="stat-grid">
-        <span class="line-pill is-highlight">Inspect is free</span>
-        <span class="line-pill is-highlight">Gentle bargain: 10% off attempt</span>
-        <span class="line-pill is-highlight">Hard bargain: 20% off attempt</span>
-        <span class="line-pill is-highlight">Travelers have 2 patience</span>
+        <span class="line-pill is-highlight">4 spreads</span>
+        <span class="line-pill is-highlight">8 pages</span>
+        <span class="line-pill is-highlight">Rules + strategy</span>
       </div>
-      <ol class="settings-list">
-        <li>Inspect when you need more information.</li>
-        <li>Try to haggle the price down without burning all patience.</li>
-        <li>Claim the relic if the deal looks good, or decline and wait for the next traveler.</li>
-        <li>Prep strong items, list them on the stall, and let closeout do the selling.</li>
-      </ol>
-    </article>
-
-    <article class="settings-card">
-      <p class="section-eyebrow">Traveler phase</p>
-      <h3>Reading a deal</h3>
-      <p class="settings-copy">
-        Relics are shaped by category, rarity, condition, authenticity, and the current rumor board.
-        Hot-category items are easier to move. Cold-category items are harder to sell.
-      </p>
-      <p class="guide-subhead">What your actions do</p>
-      <ul class="settings-list">
-        <li><strong>Inspect / Appraise:</strong> first reveal shows condition, later reads uncover deeper clues.</li>
-        <li><strong>Gentle Bargain:</strong> safer discount attempt. Failure costs 1 patience.</li>
-        <li><strong>Hard Bargain:</strong> bigger discount attempt. Failure also costs 1 patience.</li>
-        <li><strong>Claim:</strong> buy the relic at the current asking price.</li>
-        <li><strong>Decline:</strong> skip the offer and preserve cash for later travelers.</li>
-      </ul>
-      <p class="guide-subhead">When to pass</p>
-      <ul class="settings-list">
-        <li>The price is too high for the item quality.</li>
-        <li>The item is in a cold category and looks weak.</li>
-        <li>You need to save cash for stronger offers later in the night.</li>
-      </ul>
-    </article>
-
-    <article class="settings-card">
-      <p class="section-eyebrow">Inventory phase</p>
-      <h3>After you buy</h3>
-      <p class="settings-copy">
-        Bought relics go into <strong>Broker Inventory</strong>. From there you decide whether to prep,
-        list, or enshrine them.
-      </p>
-      <div class="stat-grid">
-        <span class="line-pill is-highlight">Polish ${formatCurrency(getPrepCost("wipe"))}</span>
-        <span class="line-pill is-highlight">Mend ${formatCurrency(getPrepCost("repair"))}</span>
-        <span class="line-pill is-highlight">Verify ${formatCurrency(getPrepCost("authenticate"))}</span>
+      <div class="settings-actions">
+        <button class="primary-button" type="button" data-action="open-guidebook">
+          Open Guidebook
+        </button>
       </div>
-      <ul class="settings-list">
-        <li><strong>Polish:</strong> cheap improvement, good for items you already plan to list.</li>
-        <li><strong>Mend:</strong> stronger value boost, best used on already-promising relics.</li>
-        <li><strong>Verify:</strong> reveals whether the relic is genuine or fake.</li>
-        <li><strong>Place on Stall:</strong> required if you want the item to sell at closeout.</li>
-        <li><strong>Enshrine:</strong> only elite and cursed relics can enter the reliquary.</li>
-      </ul>
     </article>
 
     <article class="settings-card">
-      <p class="section-eyebrow">Reliquary rules</p>
-      <h3>Bound relics</h3>
+      <p class="section-eyebrow">Quick reminder</p>
+      <h3>The shortest version</h3>
       <p class="settings-copy">
-        Elite and cursed relics can be kept for passive guild boons instead of sold immediately.
-        This is often stronger in the long run than cashing out one good item.
+        Inspect when the deal is unclear, bargain when the price is close, buy only what helps the
+        night, prep the best relics, fill the stall, and beat the bounty before closeout.
       </p>
       <ul class="settings-list">
-        <li><strong>Elite relic:</strong> +3% sale chance, +2% bargain chance, +2% sale price.</li>
-        <li><strong>Cursed relic:</strong> +5% sale chance, +5% bargain chance, +4% sale price.</li>
-        <li>Vaulted relics do not sell during closeout.</li>
-        <li>Use reliquary slots on relics that help many future nights, not just one.</li>
-      </ul>
-    </article>
-
-    <article class="settings-card">
-      <p class="section-eyebrow">Winning nights</p>
-      <h3>Closeout and strategy</h3>
-      <p class="settings-copy">
-        Listed items roll for sale when the chapter closes. Unsold listed relics stay with you for the next night.
-        The bounty target starts at <strong>${formatCurrency(getTargetProfitForNight(STARTING_NIGHT))}</strong> and rises every night.
-      </p>
-      <ul class="settings-list">
-        <li>Keep the stall as full as possible before you end the night.</li>
-        <li>Hot-category items are usually your easiest profit.</li>
-        <li>Do not overspend early and leave yourself unable to buy better relics later.</li>
-        <li>Use Gentle Bargain more often than Hard Bargain until your upgrades improve haggling.</li>
-        <li>Hitting the bounty gives bonus cash and +1 renown, but missing it never ends the run.</li>
+        <li><strong>Inspect</strong> is free and reveals condition first.</li>
+        <li><strong>Gentle Bargain</strong> is the safer haggle.</li>
+        <li><strong>Hard Bargain</strong> is stronger, but more dangerous.</li>
+        <li><strong>Place on Stall</strong> is required for closeout sales.</li>
+        <li><strong>Enshrine</strong> saves elite and cursed relics for passive bonuses.</li>
       </ul>
     </article>
 
@@ -2000,8 +2199,52 @@ function renderSettings() {
           Reset Progress
         </button>
       </div>
-    </article>
+      </article>
+    `;
+}
+
+function renderGuidebook() {
+  const isOpen = Boolean(runtime.guidebookOpen);
+  elements.guidebookLayer.classList.toggle("is-open", isOpen);
+  elements.guidebookLayer.setAttribute("aria-hidden", String(!isOpen));
+
+  if (!isOpen) {
+    return;
+  }
+
+  const maxIndex = GUIDEBOOK_SPREADS.length - 1;
+  const spreadIndex = clamp(runtime.guidebookSpreadIndex, 0, maxIndex);
+  runtime.guidebookSpreadIndex = spreadIndex;
+  const spread = GUIDEBOOK_SPREADS[spreadIndex];
+  const leftPageNumber = spreadIndex * 2 + 1;
+  const rightPageNumber = leftPageNumber + 1;
+  const flipDirection = runtime.guidebookFlipDirection;
+
+  elements.guidebookTabs.innerHTML = GUIDEBOOK_SPREADS.map((entry, index) => {
+    return `
+      <button
+        class="guidebook-tab ${index === spreadIndex ? "is-active" : ""}"
+        type="button"
+        data-action="set-guidebook-spread"
+        data-spread-index="${index}"
+      >
+        ${escapeHtml(entry.chapter)}
+      </button>
+    `;
+  }).join("");
+
+  elements.guidebookSpread.className = `guidebook-spread${flipDirection ? ` is-flipping-${flipDirection}` : ""}`;
+  elements.guidebookSpread.innerHTML = `
+    ${renderGuidebookPage(spread.left, leftPageNumber, "left-page")}
+    <div class="guidebook-spine" aria-hidden="true"></div>
+    ${renderGuidebookPage(spread.right, rightPageNumber, "right-page")}
+    ${flipDirection ? `<div class="guidebook-flip-sheet flip-${flipDirection}" aria-hidden="true"></div>` : ""}
   `;
+
+  elements.guidebookPageLabel.textContent = `Pages ${leftPageNumber}-${rightPageNumber}`;
+  elements.guidebookPrevButton.disabled = spreadIndex <= 0;
+  elements.guidebookNextButton.disabled = spreadIndex >= maxIndex;
+  elements.guidebookBody.scrollTop = 0;
 }
 
 function renderPanels() {
@@ -2108,6 +2351,7 @@ function renderAll() {
   renderLedger();
   renderSettings();
   renderPanels();
+  renderGuidebook();
   renderRecap();
 }
 
@@ -2539,6 +2783,50 @@ function runNightCloseout(manualClose) {
   renderAll();
 }
 
+function queueGuidebookFlip(direction) {
+  window.clearTimeout(runtime.guidebookFlipTimer);
+  runtime.guidebookFlipDirection = direction;
+  runtime.guidebookFlipTimer = window.setTimeout(() => {
+    runtime.guidebookFlipDirection = "";
+    if (runtime.guidebookOpen) {
+      renderGuidebook();
+    }
+  }, 760);
+}
+
+function openGuidebook(spreadIndex = runtime.guidebookSpreadIndex) {
+  window.clearTimeout(runtime.guidebookFlipTimer);
+  runtime.guidebookOpen = true;
+  runtime.guidebookFlipDirection = "";
+  runtime.guidebookSpreadIndex = clamp(safeNumber(spreadIndex, 0), 0, GUIDEBOOK_SPREADS.length - 1);
+  renderAll();
+}
+
+function closeGuidebook() {
+  window.clearTimeout(runtime.guidebookFlipTimer);
+  runtime.guidebookOpen = false;
+  runtime.guidebookFlipDirection = "";
+  renderAll();
+}
+
+function setGuidebookSpread(spreadIndex) {
+  const nextIndex = clamp(
+    safeNumber(spreadIndex, runtime.guidebookSpreadIndex),
+    0,
+    GUIDEBOOK_SPREADS.length - 1,
+  );
+  const previousIndex = runtime.guidebookSpreadIndex;
+  runtime.guidebookSpreadIndex = nextIndex;
+  if (runtime.guidebookOpen && nextIndex !== previousIndex) {
+    queueGuidebookFlip(nextIndex > previousIndex ? "next" : "prev");
+  }
+  renderAll();
+}
+
+function shiftGuidebookSpread(direction) {
+  setGuidebookSpread(runtime.guidebookSpreadIndex + direction);
+}
+
 function startNextNight() {
   state.currentNight = generateNight(state.night);
   runtime.openPanel = null;
@@ -2586,6 +2874,22 @@ function handleAction(action, trigger) {
   }
   if (action === "close-panel") {
     closePanel();
+    return;
+  }
+  if (action === "open-guidebook") {
+    openGuidebook(0);
+    return;
+  }
+  if (action === "close-guidebook") {
+    closeGuidebook();
+    return;
+  }
+  if (action === "guidebook-nav") {
+    shiftGuidebookSpread(trigger.dataset.direction === "prev" ? -1 : 1);
+    return;
+  }
+  if (action === "set-guidebook-spread") {
+    setGuidebookSpread(trigger.dataset.spreadIndex);
     return;
   }
   if (action === "inspect-offer") {
@@ -2654,6 +2958,10 @@ ensureCurrentNight();
 
 const runtime = {
   openPanel: INITIAL_PANEL,
+  guidebookOpen: false,
+  guidebookSpreadIndex: 0,
+  guidebookFlipDirection: "",
+  guidebookFlipTimer: 0,
   topNavActive: INITIAL_PANEL === "ledger" ? "chronicles" : getDefaultTopNavKey(),
   toastTimer: 0,
   lastMessage: "",
@@ -2698,6 +3006,13 @@ const elements = {
   upgradesList: document.getElementById("upgradesList"),
   ledgerContent: document.getElementById("ledgerContent"),
   settingsContent: document.getElementById("settingsContent"),
+  guidebookLayer: document.getElementById("guidebookLayer"),
+  guidebookTabs: document.getElementById("guidebookTabs"),
+  guidebookBody: document.getElementById("guidebookBody"),
+  guidebookSpread: document.getElementById("guidebookSpread"),
+  guidebookPageLabel: document.getElementById("guidebookPageLabel"),
+  guidebookPrevButton: document.getElementById("guidebookPrevButton"),
+  guidebookNextButton: document.getElementById("guidebookNextButton"),
   recapLayer: document.getElementById("recapLayer"),
   recapTitle: document.getElementById("recapTitle"),
   recapSubtitle: document.getElementById("recapSubtitle"),
@@ -2769,6 +3084,8 @@ window.__MIDNIGHT_PAWN__ = {
   startNextNight,
   runNightCloseout,
   buyUpgrade,
+  openGuidebook,
+  closeGuidebook,
   listItem,
   pullListing,
   vaultItem,
@@ -2850,16 +3167,40 @@ async function runSelfTests() {
     getTestButton("close-panel").click();
     await waitFrames();
 
-    getTestButton("open-panel", '[data-panel="settings"]').click();
-    await waitFrames();
-    record(
-      "drawer-settings",
-      runtime.openPanel === "settings" &&
-        document.querySelector('.drawer-panel[data-panel-name="settings"]')?.classList.contains("is-active"),
-      "Camp drawer opens from button",
-    );
-    getTestButton("close-panel").click();
-    await waitFrames();
+      getTestButton("open-panel", '[data-panel="settings"]').click();
+      await waitFrames();
+      record(
+        "drawer-settings",
+        runtime.openPanel === "settings" &&
+          document.querySelector('.drawer-panel[data-panel-name="settings"]')?.classList.contains("is-active"),
+        "Camp drawer opens from button",
+      );
+      getTestButton("open-guidebook").click();
+      await waitFrames();
+      record(
+        "guidebook-open",
+        runtime.guidebookOpen === true &&
+          elements.guidebookLayer.classList.contains("is-open") &&
+          elements.guidebookPageLabel.textContent.includes("Pages 1-2"),
+        "Guidebook opens from Camp and renders the first spread",
+      );
+      getTestButton("guidebook-nav", '[data-direction="next"]').click();
+      await waitFrames();
+      record(
+        "guidebook-next",
+        runtime.guidebookSpreadIndex === 1 &&
+          elements.guidebookPageLabel.textContent.includes("Pages 3-4"),
+        "Guidebook next button advances the spread",
+      );
+      getTestButton("close-guidebook").click();
+      await waitFrames();
+      record(
+        "guidebook-close",
+        runtime.guidebookOpen === false && !elements.guidebookLayer.classList.contains("is-open"),
+        "Guidebook close button dismisses the book popup",
+      );
+      getTestButton("close-panel").click();
+      await waitFrames();
 
     const activeOfferBeforeInspect = getActiveOffer();
     const hadConditionKnowledge = activeOfferBeforeInspect?.revealState.conditionKnown;

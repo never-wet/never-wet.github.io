@@ -31,6 +31,12 @@ Do not leave this README stale after updating the game.
 
 This section is for someone who wants to actually play `Midnight Pawn`.
 
+In the live game UI, the full manual is available inside:
+
+- `Camp` -> `Open Guidebook`
+
+The guidebook is now a centered open-book modal with spread navigation and a page-turn animation when you move between sections.
+
 ### Goal
 
 Your job is to survive each night by buying strange relics cheaply, preparing them well, and selling them for profit.
@@ -608,6 +614,10 @@ Owns:
 - layout
 - typography
 - drawer behavior
+- guidebook modal behavior and open-book styling
+- guidebook page-turn animation
+- guidebook scroll layout fix so long page content does not clip at the bottom
+- guidebook page sizing is intentionally slightly reduced so more of each spread fits on shorter screens
 - overlay behavior
 - responsive behavior
 - hidden scrollbar behavior
@@ -629,9 +639,21 @@ Owns:
 - offer generation
 - economy and sale math
 - dynamic rendering
+- guidebook spread content and guidebook page rendering
+- guidebook spread navigation state and flip timing
 - `data-action` event handling
 - self-test mode
 - small debug query param behavior
+
+Important guidebook note:
+
+- `guidebook-book` uses `grid-template-rows: auto auto minmax(0, 1fr) auto` so the body becomes the scrolling row.
+- Do not remove that row setup unless you replace it with an equivalent layout.
+- Without it, the footer can get pushed out of view and the lower text on long guidebook spreads gets clipped.
+- The guidebook pages are intentionally a bit smaller than the first version:
+  narrower book width, shorter page min-height, tighter padding, and smaller spread headings.
+- This is a readability tradeoff to keep more of each spread visible before scrolling.
+- Current target behavior: in the desktop two-page layout, the longest spread should fit without guidebook-body scrolling.
 
 ## 6. Runtime Structure
 
@@ -649,6 +671,7 @@ The main static regions are:
 - inventory container
 - curio container
 - drawer layer
+- guidebook modal layer
 - recap layer
 - toast
 
@@ -762,6 +785,10 @@ The page uses document-level event delegation.
 
 - `open-panel`
 - `close-panel`
+- `open-guidebook`
+- `close-guidebook`
+- `guidebook-nav`
+- `set-guidebook-spread`
 - `inspect-offer`
 - `haggle-soft`
 - `haggle-firm`

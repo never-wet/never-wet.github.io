@@ -313,6 +313,64 @@
       </section>
     </div>
 
+    <div id="guidebookLayer" class="guidebook-layer" aria-hidden="true">
+      <button
+        class="guidebook-backdrop"
+        type="button"
+        data-action="close-guidebook"
+        aria-label="Close guidebook"
+      ></button>
+
+      <section class="guidebook-book" aria-label="Broker guidebook">
+        <div class="guidebook-header">
+          <div>
+            <p class="label-line">Camp Reference</p>
+            <h2>The Broker's Handbook</h2>
+          </div>
+          <button
+            class="icon-button guidebook-close"
+            type="button"
+            data-action="close-guidebook"
+            aria-label="Close guidebook"
+          >
+            <span class="material-symbols-outlined" aria-hidden="true"
+              >close</span
+            >
+          </button>
+        </div>
+
+        <div id="guidebookTabs" class="guidebook-tabs"></div>
+
+        <div id="guidebookBody" class="guidebook-body">
+          <div id="guidebookSpread" class="guidebook-spread"></div>
+        </div>
+
+        <div class="guidebook-footer">
+          <button
+            class="secondary-button"
+            type="button"
+            data-action="guidebook-nav"
+            data-direction="prev"
+            id="guidebookPrevButton"
+          >
+            Previous Spread
+          </button>
+          <span id="guidebookPageLabel" class="line-pill is-highlight"
+            >Pages 1-2</span
+          >
+          <button
+            class="secondary-button"
+            type="button"
+            data-action="guidebook-nav"
+            data-direction="next"
+            id="guidebookNextButton"
+          >
+            Next Spread
+          </button>
+        </div>
+      </section>
+    </div>
+
     <div id="recapLayer" class="recap-layer" aria-hidden="true">
       <div class="recap-backdrop"></div>
       <section class="recap-panel" aria-label="Night recap">
