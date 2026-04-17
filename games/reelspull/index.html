@@ -3126,28 +3126,82 @@
                 key: "chaos",
                 name: "Chaos Static",
                 accent: "#ff4f81",
-                cost: 140,
-                description: "A noisier banner that leans into Glitched, Exotic, and Insane pulls.",
+                cost: 900,
+                description: "The cheapest specialty banner. A small chaos shove toward Glitched, Exotic, and Insane pulls.",
                 featuredKeys: ["absmal", "exotic", "insane"],
-                multipliers: { absmal: 1.35, exotic: 1.3, insane: 1.3, common: 0.9, uncommon: 0.92 }
+                multipliers: { absmal: 1.45, exotic: 1.35, insane: 1.25, common: 0.82, uncommon: 0.88 }
+            },
+            {
+                key: "neon",
+                name: "Neon Bloom",
+                accent: "#7ae8ff",
+                cost: 1200,
+                description: "A cheap ladder-climber banner that noticeably boosts Uncommon, Rare, and Exotic pulls.",
+                featuredKeys: ["uncommon", "rare", "exotic"],
+                multipliers: { uncommon: 1.6, rare: 1.7, exotic: 1.55, absmal: 0.7, common: 0.78 }
             },
             {
                 key: "mythic",
                 name: "Mythic Voltage",
                 accent: "#d166ff",
-                cost: 260,
-                description: "Pushes the middle-top end with better Mythic and Legendary rates.",
+                cost: 2200,
+                description: "An early premium banner that starts pushing Mythic and Legendary pulls in a real way.",
                 featuredKeys: ["mythic", "legendary", "unreal"],
-                multipliers: { mythic: 1.35, legendary: 1.28, unreal: 1.12, absmal: 0.9, common: 0.9 }
+                multipliers: { mythic: 1.7, legendary: 1.55, unreal: 1.25, absmal: 0.64, common: 0.72, uncommon: 0.84 }
+            },
+            {
+                key: "mirage",
+                name: "Mirage Archive",
+                accent: "#8ff4c6",
+                cost: 2600,
+                description: "A broader collection-builder banner that improves the whole useful middle of the pool.",
+                featuredKeys: ["common", "uncommon", "mythic"],
+                multipliers: { common: 1.55, uncommon: 1.7, rare: 1.6, exotic: 1.4, mythic: 1.25, insane: 0.82, godlike: 0.76 }
+            },
+            {
+                key: "ember",
+                name: "Ember Rush",
+                accent: "#ff8d5c",
+                cost: 4200,
+                description: "A strong progression banner that sharply improves Rare, Exotic, and Mythic pulls.",
+                featuredKeys: ["rare", "exotic", "mythic"],
+                multipliers: { rare: 1.85, exotic: 1.95, mythic: 1.75, absmal: 0.52, common: 0.6, uncommon: 0.74 }
+            },
+            {
+                key: "royal",
+                name: "Royal Relay",
+                accent: "#c58bff",
+                cost: 6800,
+                description: "A true upper-mid hunting banner with bigger Mythic and Legendary pressure than the cheaper options.",
+                featuredKeys: ["mythic", "legendary", "unreal"],
+                multipliers: { mythic: 2.0, legendary: 2.1, unreal: 1.45, common: 0.56, uncommon: 0.66, rare: 0.8 }
+            },
+            {
+                key: "voidsong",
+                name: "Void Choir",
+                accent: "#9f7cff",
+                cost: 12000,
+                description: "A late-game chase banner with much heavier pressure toward Unreal, Insane, and Godlike pulls.",
+                featuredKeys: ["unreal", "insane", "godlike"],
+                multipliers: { unreal: 2.3, insane: 2.6, godlike: 1.75, absmal: 0.38, common: 0.44, uncommon: 0.54, rare: 0.7, exotic: 0.84 }
             },
             {
                 key: "celestial",
                 name: "Celestial Crown",
                 accent: "#ffd76a",
-                cost: 420,
-                description: "The premium chase banner. Slightly kinder to the top end, but still brutal.",
+                cost: 18000,
+                description: "A premium crown banner with a very strong all-around chase profile and excellent upper-tier pressure.",
                 featuredKeys: ["legendary", "unreal", "godlike"],
-                multipliers: { legendary: 1.2, unreal: 1.15, insane: 1.1, godlike: 1.08, absmal: 0.95, common: 0.92 }
+                multipliers: { mythic: 1.4, legendary: 2.6, unreal: 2.5, insane: 2.2, godlike: 1.95, absmal: 0.32, common: 0.38, uncommon: 0.48, rare: 0.64 }
+            },
+            {
+                key: "solar",
+                name: "Solar Flare",
+                accent: "#ffcf63",
+                cost: 26000,
+                description: "The super-premium sun banner. More expensive than Celestial and the strongest pure top-end chase in the shop.",
+                featuredKeys: ["legendary", "unreal", "godlike"],
+                multipliers: { mythic: 1.18, legendary: 3.1, unreal: 2.95, insane: 2.55, godlike: 2.35, absmal: 0.26, common: 0.32, uncommon: 0.4, rare: 0.52 }
             }
         ];
         const VARIANT_TYPES = [
@@ -3239,7 +3293,6 @@
             { key: "royal", name: "Royal Gold", unlock: (stats) => getBestPullRankFromStats(stats) >= 10 }
         ];
         const ACHIEVEMENT_TARGET_COUNT = 10000;
-        const ACHIEVEMENT_RENDER_LIMIT = 240;
         const ACHIEVEMENT_GRAND_PRIZE_SIGNAL = 10000;
         const ACHIEVEMENT_GRAND_PRIZE_VARIANT_COUNT = 10;
         const BASE_ACHIEVEMENTS = [
@@ -4793,10 +4846,10 @@
             return (bannerMap[bannerKey] || BANNERS[0]).name;
         }
 
-        function formatBannerMultiplier(multiplier) {
+        function formatBannerMultiplier(multiplier, direction = "boost") {
             const delta = Math.abs((multiplier - 1) * 100);
             const rounded = Number.isInteger(delta) ? delta.toFixed(0) : delta.toFixed(1);
-            return `${multiplier > 1 ? "+" : "-"}${rounded}%`;
+            return direction === "boost" ? `${rounded}% higher` : `${rounded}% lower`;
         }
 
         function getBannerChanges(banner, direction = "boost") {
@@ -4808,7 +4861,7 @@
                 )
                 .map(([key, multiplier]) => ({
                     gif: gifMap[key],
-                    changeText: formatBannerMultiplier(multiplier)
+                    changeText: formatBannerMultiplier(multiplier, direction)
                 }));
         }
 
@@ -5596,13 +5649,10 @@
             achievementGrid.innerHTML = "";
             achievementProgressText.textContent = `${state.stats.achievementKeys.length.toLocaleString()} / ${ACHIEVEMENTS.length.toLocaleString()} complete`;
             const unlockedKeys = new Set(state.stats.achievementKeys);
-            const unlockedAchievements = ACHIEVEMENTS
-                .filter((achievement) => unlockedKeys.has(achievement.key))
-                .sort((left, right) => new Date(state.stats.achievementDates[right.key] || 0) - new Date(state.stats.achievementDates[left.key] || 0))
-                .slice(0, Math.floor(ACHIEVEMENT_RENDER_LIMIT / 2));
-            const lockedAchievements = ACHIEVEMENTS
-                .filter((achievement) => !unlockedKeys.has(achievement.key))
-                .slice(0, ACHIEVEMENT_RENDER_LIMIT - unlockedAchievements.length);
+            const lockedAchievements = ACHIEVEMENTS.filter((achievement) => !unlockedKeys.has(achievement.key));
+            const unlockedAchievements = ACHIEVEMENTS.filter((achievement) => unlockedKeys.has(achievement.key));
+            const orderedAchievements = [...lockedAchievements, ...unlockedAchievements];
+            const fragment = document.createDocumentFragment();
             const summaryCard = document.createElement("article");
             summaryCard.className = "achievement-card";
             summaryCard.innerHTML = `
@@ -5610,14 +5660,14 @@
                     <span class="achievement-title">Achievement Vault</span>
                     <span class="achievement-reward">${state.stats.achievementKeys.length.toLocaleString()}/${ACHIEVEMENTS.length.toLocaleString()}</span>
                 </div>
-                <span class="secondary-meta">This account now tracks ${ACHIEVEMENTS.length.toLocaleString()} achievements. Showing the newest unlocked cards first, then the next locked goals.</span>
+                <span class="secondary-meta">This account now renders all ${ACHIEVEMENTS.length.toLocaleString()} achievements with locked goals first and cleared ones moved to the bottom, while keeping built-in order inside each group.</span>
                 <span class="muted-line">${state.stats.achievementGrandPrizeClaimed
                     ? `Grand prize claimed ${formatDate(state.stats.achievementGrandPrizeClaimedAt)}`
                     : `Grand prize: +${ACHIEVEMENT_GRAND_PRIZE_SIGNAL.toLocaleString()} signal and ${ACHIEVEMENT_GRAND_PRIZE_VARIANT_COUNT} Godlikes with every variant stacked.`}</span>
             `;
-            achievementGrid.appendChild(summaryCard);
+            fragment.appendChild(summaryCard);
 
-            [...unlockedAchievements, ...lockedAchievements].forEach((achievement) => {
+            orderedAchievements.forEach((achievement) => {
                 const unlocked = unlockedKeys.has(achievement.key);
                 const card = document.createElement("article");
                 card.className = `achievement-card${unlocked ? "" : " locked"}`;
@@ -5629,8 +5679,9 @@
                     <span class="secondary-meta">${achievement.description}</span>
                     <span class="muted-line">${unlocked ? `Unlocked ${formatDate(state.stats.achievementDates[achievement.key])}` : "Locked"}</span>
                 `;
-                achievementGrid.appendChild(card);
+                fragment.appendChild(card);
             });
+            achievementGrid.appendChild(fragment);
         }
 
         function renderOddsGrid() {
@@ -6096,6 +6147,16 @@
             state.stats.counts[godlikeKey] += grantedBundleCount;
         }
 
+        function grantAllBannerUnlocks(keepActiveKey = state.stats.activeBannerKey) {
+            state.stats.ownedBannerKeys = normalizeOwnedBannerKeys(
+                BANNERS.map((banner) => banner.key),
+                keepActiveKey
+            );
+            state.stats.activeBannerKey = bannerMap[keepActiveKey]
+                ? keepActiveKey
+                : state.stats.ownedBannerKeys[0] || BANNERS[0].key;
+        }
+
         function createAchievementGrandPrizeResult() {
             const godlike = gifMap.godlike;
             if (!godlike) {
@@ -6147,9 +6208,10 @@
                     <span class="variant-chip">+${ACHIEVEMENT_GRAND_PRIZE_SIGNAL.toLocaleString()} signal</span>
                     <span class="variant-chip">${ACHIEVEMENT_GRAND_PRIZE_VARIANT_COUNT} stacked Godlikes</span>
                     <span class="variant-chip">Each one includes Void + Holo + Alt + Shiny</span>
+                    <span class="variant-chip">All banners unlocked</span>
                 </div>
                 <div class="banner-benefit-copy">
-                    Your account just got ${ACHIEVEMENT_GRAND_PRIZE_VARIANT_COUNT} Godlikes, and every single one has all four variants stacked on it. This is not four separate variant bundles.
+                    Your account just got ${ACHIEVEMENT_GRAND_PRIZE_VARIANT_COUNT} Godlikes with all four variants stacked on each one, plus full banner ownership across the whole shop.
                 </div>
             `;
             card.appendChild(content);
@@ -6164,6 +6226,7 @@
             state.stats.achievementGrandPrizeClaimedAt = new Date().toISOString();
             state.stats.signalDust += ACHIEVEMENT_GRAND_PRIZE_SIGNAL;
             grantAllAchievementGrandPrize();
+            grantAllBannerUnlocks();
             showAllAchievementsCompletionModal();
             return true;
         }
@@ -6964,6 +7027,9 @@
             state.stats.resultSoundsEnabled = typeof state.stats.resultSoundsEnabled === "boolean" ? state.stats.resultSoundsEnabled : defaults.resultSoundsEnabled;
             state.stats.challengeCompletionCounts = normalizeChallengeCompletionRecord(state.stats.challengeCompletionCounts);
             deriveVariantTotalsFromStats();
+            if (state.stats.achievementGrandPrizeClaimed) {
+                grantAllBannerUnlocks(state.stats.activeBannerKey);
+            }
             state.stats.ownedBannerKeys = normalizeOwnedBannerKeys(state.stats.ownedBannerKeys, state.stats.activeBannerKey);
             state.stats.activeBannerKey = isBannerOwned(state.stats.activeBannerKey, state.stats)
                 ? state.stats.activeBannerKey
@@ -7985,6 +8051,9 @@
                         clampNumber(parsed.tenPullUnlockCount, 0, Number.MAX_SAFE_INTEGER, defaults.tenPullUnlockCount)
                     )
                 };
+                if (state.stats.achievementGrandPrizeClaimed) {
+                    grantAllBannerUnlocks(state.stats.activeBannerKey);
+                }
                 state.stats.ownedBannerKeys = normalizeOwnedBannerKeys(state.stats.ownedBannerKeys, state.stats.activeBannerKey);
                 state.stats.activeBannerKey = isBannerOwned(state.stats.activeBannerKey, state.stats)
                     ? state.stats.activeBannerKey
