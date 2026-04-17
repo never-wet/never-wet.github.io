@@ -5,6 +5,7 @@ Puzzle Escape Lab is a premium single-page puzzle platform built with React, Typ
 ## Features
 
 - Dark, polished mystery UI with responsive layouts and animated cards
+- Custom-styled form controls, including themed checkboxes and fully styled dropdown option lists
 - React Router navigation for Home, All Puzzles, Categories, Puzzle Play, Escape Mode, View Mode, Settings, and About
 - Reusable puzzle engine supporting:
   - Multiple choice
@@ -72,6 +73,7 @@ index.html           Published static homepage after build
 ## Main Memory Files
 
 - `src/memory/gameManifest.ts`
+- `src/memory/uiManifest.ts`
 - `src/memory/puzzleIndex.ts`
 - `src/memory/escapeRoomIndex.ts`
 - `src/memory/storageKeys.ts`
@@ -80,7 +82,16 @@ index.html           Published static homepage after build
 - `src/memory/activitySchema.ts`
 - `src/memory/contentRegistry.ts`
 
-These files are the compact source of truth for app metadata, shared schemas, storage keys, puzzle indexes, and escape room indexes.
+These files are the compact source of truth for app metadata, UI rules, shared schemas, storage keys, puzzle indexes, and escape room indexes.
+
+`src/memory/uiManifest.ts` is the short “remember this later” file for:
+
+- UI direction and layout rules
+- Custom control decisions
+- Instruction-writing rules
+- Visual-clue presentation rules
+
+When a lasting product or UI decision is made, update the relevant memory file in the same change so future edits do not depend on chat context alone.
 
 ## Adding New Puzzle Content
 
@@ -88,6 +99,12 @@ These files are the compact source of truth for app metadata, shared schemas, st
 2. Use the helper builders in `src/data/puzzles/builders.ts`.
 3. The puzzle is automatically included through `src/memory/contentRegistry.ts`.
 4. It will appear in the browser, category pages, dashboard, and unlock system.
+
+## Custom Form Controls
+
+- `src/components/common/SelectMenu.tsx` provides the custom dropdown used throughout the app.
+- The opened option list is intentionally custom-rendered so it can match the app theme instead of falling back to the browser's native menu.
+- Checkbox and dropdown styling is centralized in `src/styles/global.css`.
 
 ## Adding a New Escape Room
 

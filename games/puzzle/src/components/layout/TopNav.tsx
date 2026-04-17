@@ -1,6 +1,8 @@
 import { NavLink } from "react-router-dom";
 import { useGame } from "../../hooks/useGame";
 
+const gamesHubHref = "../index.html";
+
 const navItems = [
   { to: "/", label: "System" },
   { to: "/puzzles", label: "Modes" },
@@ -35,6 +37,9 @@ export function TopNav() {
         </nav>
 
         <div className="topbar__actions">
+          <a href={gamesHubHref} className="button button--ghost">
+            Games
+          </a>
           {hasProgress && (
             <NavLink to={getResumeRoute()} className="button button--ghost">
               Resume

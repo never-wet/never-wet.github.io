@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { SelectMenu } from "../components/common/SelectMenu";
 import { PageHero } from "../components/layout/PageHero";
 import { PuzzleCard } from "../components/puzzle/PuzzleCard";
 import { useGame } from "../hooks/useGame";
@@ -26,7 +27,7 @@ export function AllPuzzlesPage() {
       />
 
       <section className="panel filters">
-        <label className="field">
+        <label className="field field--search">
           <span>Search</span>
           <input
             className="text-input"
@@ -35,17 +36,21 @@ export function AllPuzzlesPage() {
             onChange={(event) => setSearch(event.target.value)}
           />
         </label>
-        <label className="field">
+        <div className="field">
           <span>Category</span>
-          <select className="select-input" value={categoryFilter} onChange={(event) => setCategoryFilter(event.target.value)}>
-            <option value="all">All categories</option>
-            {gameManifest.categories.map((category) => (
-              <option key={category.id} value={category.id}>
-                {category.name}
-              </option>
-            ))}
-          </select>
-        </label>
+          <SelectMenu
+            ariaLabel="Filter puzzles by category"
+            value={categoryFilter}
+            onChange={setCategoryFilter}
+            options={[
+              { value: "all", label: "All categories" },
+              ...gameManifest.categories.map((category) => ({
+                value: category.id,
+                label: category.name,
+              })),
+            ]}
+          />
+        </div>
       </section>
 
       <section className="card-grid">

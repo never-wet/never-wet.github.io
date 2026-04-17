@@ -45,6 +45,12 @@ export interface HintDefinition {
   penalty: number;
 }
 
+export interface PuzzleGuide {
+  title?: string;
+  summary: string;
+  steps?: string[];
+}
+
 export interface UnlockCondition {
   description?: string;
   requiredPuzzleIds?: string[];
@@ -53,21 +59,53 @@ export interface UnlockCondition {
   requiredCategoryCounts?: Partial<Record<PuzzleCategoryId, number>>;
 }
 
+export interface VisualGlyph {
+  kind: "rect" | "circle" | "ring" | "diamond" | "line" | "triangle" | "text";
+  x: number;
+  y: number;
+  width?: number;
+  height?: number;
+  size?: number;
+  rotation?: number;
+  fill?: string;
+  stroke?: string;
+  strokeWidth?: number;
+  opacity?: number;
+  text?: string;
+  fontSize?: number;
+  letterSpacing?: number;
+  align?: "start" | "middle" | "end";
+}
+
+export interface PuzzleVisual {
+  variant?: "tile" | "diagram" | "code" | "paper";
+  background?: string;
+  accent?: string;
+  frameLabel?: string;
+  caption?: string;
+  aspectRatio?: "square" | "wide";
+  grid?: boolean;
+  glyphs: VisualGlyph[];
+}
+
 export interface PuzzleChoice {
   id: string;
   label: string;
   detail?: string;
+  visual?: PuzzleVisual;
 }
 
 export interface MatchItem {
   id: string;
   label: string;
+  visual?: PuzzleVisual;
 }
 
 export interface ArrangeItem {
   id: string;
   label: string;
   note?: string;
+  visual?: PuzzleVisual;
 }
 
 export interface SceneElement {
@@ -117,12 +155,14 @@ export interface ClueBlock {
   title: string;
   body: string;
   tone?: "neutral" | "warning" | "success";
+  visual?: PuzzleVisual;
 }
 
 export interface MultipleChoiceContent {
   kind: "multipleChoice";
   prompt: string;
   question: string;
+  promptVisual?: PuzzleVisual;
   choices: PuzzleChoice[];
   correctChoiceId: string;
   evidence?: string[];
@@ -131,6 +171,7 @@ export interface MultipleChoiceContent {
 export interface TextInputContent {
   kind: "textInput";
   prompt: string;
+  promptVisual?: PuzzleVisual;
   placeholder: string;
   acceptedAnswers: string[];
   clueBlocks?: ClueBlock[];
@@ -140,15 +181,19 @@ export interface TextInputContent {
 export interface SequenceContent {
   kind: "sequence";
   prompt: string;
+  promptVisual?: PuzzleVisual;
   sequence: string[];
+  sequenceVisuals?: PuzzleVisual[];
   missingIndex?: number;
   options: string[];
+  optionVisuals?: Record<string, PuzzleVisual>;
   acceptedAnswer: string;
 }
 
 export interface MatchPairsContent {
   kind: "matchPairs";
   prompt: string;
+  promptVisual?: PuzzleVisual;
   left: MatchItem[];
   right: MatchItem[];
   solution: Record<string, string>;
@@ -157,6 +202,7 @@ export interface MatchPairsContent {
 export interface ArrangeContent {
   kind: "arrange";
   prompt: string;
+  promptVisual?: PuzzleVisual;
   items: ArrangeItem[];
   solution: string[];
   completionText: string;
@@ -178,6 +224,7 @@ export interface HotspotContent {
 export interface CombinationLockContent {
   kind: "combinationLock";
   prompt: string;
+  promptVisual?: PuzzleVisual;
   keypadLabel: string;
   codeLength: number;
   acceptedCode: string;
@@ -218,6 +265,7 @@ export interface PuzzleDefinition {
   };
   hints: HintDefinition[];
   unlock: UnlockCondition;
+  guide?: PuzzleGuide;
   tags: string[];
   estimatedTime: number;
   relatedPuzzles: string[];

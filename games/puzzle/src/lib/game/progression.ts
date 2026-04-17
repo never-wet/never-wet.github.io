@@ -75,6 +75,25 @@ export function getPuzzleById(puzzleId: string) {
   return allPuzzles.find((puzzle) => puzzle.id === puzzleId);
 }
 
+export function getNextPuzzleId(currentPuzzleId: string, state?: GameState) {
+  const currentIndex = allPuzzles.findIndex((puzzle) => puzzle.id === currentPuzzleId);
+  if (currentIndex < 0 || allPuzzles.length === 0) {
+    return undefined;
+  }
+
+  const orderedCandidates = [...allPuzzles.slice(currentIndex + 1), ...allPuzzles.slice(0, currentIndex)];
+  if (orderedCandidates.length === 0) {
+    return undefined;
+  }
+
+  if (!state) {
+    return orderedCandidates[0]?.id;
+  }
+
+  const nextAccessible = orderedCandidates.find((puzzle) => getPuzzleStatus(puzzle, state) !== "locked");
+  return nextAccessible?.id ?? orderedCandidates[0]?.id;
+}
+
 export function getRoomById(roomId: string) {
   return escapeRooms.find((room) => room.id === roomId);
 }

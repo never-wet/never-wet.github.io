@@ -1,3 +1,4 @@
+import { SelectMenu } from "../components/common/SelectMenu";
 import { PageHero } from "../components/layout/PageHero";
 import { useGame } from "../hooks/useGame";
 
@@ -63,21 +64,22 @@ export function SettingsPage() {
             />
             <span>Reduced motion</span>
           </label>
-          <label className="field">
+          <div className="field">
             <span>Default view mode</span>
-            <select
-              className="select-input"
+            <SelectMenu
+              ariaLabel="Choose the default view mode"
               value={state.settings.defaultViewMode}
-              onChange={(event) =>
+              onChange={(value) =>
                 updateSettings({
-                  defaultViewMode: event.target.value as "immersive" | "compact",
+                  defaultViewMode: value as "immersive" | "compact",
                 })
               }
-            >
-              <option value="immersive">Immersive</option>
-              <option value="compact">Compact</option>
-            </select>
-          </label>
+              options={[
+                { value: "immersive", label: "Immersive", description: "Large panels and cinematic spacing." },
+                { value: "compact", label: "Compact", description: "Tighter information density." },
+              ]}
+            />
+          </div>
         </article>
 
         <article className="panel">

@@ -7,6 +7,7 @@ import { PuzzleTimer } from "../components/puzzle/PuzzleTimer";
 import { UnlockSystem } from "../components/puzzle/UnlockSystem";
 import { useGame } from "../hooks/useGame";
 import { formatDateTime } from "../lib/game/format";
+import { getNextPuzzleId } from "../lib/game/progression";
 import { contentRegistry } from "../memory/contentRegistry";
 
 export function PuzzlePage() {
@@ -17,6 +18,9 @@ export function PuzzlePage() {
   const puzzle = puzzleId ? contentRegistry[puzzleId] : undefined;
   const progress = puzzle ? state.puzzleProgress[puzzle.id] : undefined;
   const status = puzzle ? getPuzzleStatus(puzzle.id) : "locked";
+  const nextPuzzleId = puzzle ? getNextPuzzleId(puzzle.id, state) : undefined;
+  const nextPuzzle = nextPuzzleId ? contentRegistry[nextPuzzleId] : undefined;
+  const nextPuzzleStatus = nextPuzzle ? getPuzzleStatus(nextPuzzle.id) : undefined;
 
   useEffect(() => {
     if (puzzle && status !== "locked") {
@@ -82,6 +86,22 @@ export function PuzzlePage() {
         ) : (
           <PuzzleRenderer puzzle={puzzle} progress={progress} elapsedSeconds={elapsedSeconds} />
         )}
+        <div className="puzzle-page__actions">
+          <Link to="/puzzles" className="button button--ghost">
+            All Puzzles
+          </Link>
+          {nextPuzzle ? (
+            <Link to={`/puzzle/${nextPuzzle.id}`} className="button button--primary">
+              Next Puzzle
+            </Link>
+          ) : null}
+        </div>
+        {nextPuzzle ? (
+          <p className="puzzle-page__next-copy">
+            Up next: <strong>{nextPuzzle.title}</strong>
+            {nextPuzzleStatus === "locked" ? " (locked)" : ""}
+          </p>
+        ) : null}
       </PuzzleLayout>
     </div>
   );

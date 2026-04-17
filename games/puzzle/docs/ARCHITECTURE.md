@@ -4,6 +4,19 @@
 
 Puzzle Escape Lab is organized around a lightweight memory-file architecture. The goal is to keep the project easy to extend without forcing future contributors to read large UI files to understand where content and rules live.
 
+## Memory Maintenance Rule
+
+When a decision is meant to persist beyond the current chat, write it into the repo in the same change.
+
+Examples:
+
+- Update `src/memory/uiManifest.ts` for durable UI, layout, control, or instruction-writing decisions.
+- Update `src/memory/gameManifest.ts` for product-level direction, categories, featured content, or progression summaries.
+- Update `src/memory/storageKeys.ts`, `src/memory/defaultState.ts`, or `src/memory/types.ts` when persistence behavior or schemas change.
+- Update `docs/ARCHITECTURE.md` when the extension workflow or memory-map itself changes.
+
+This keeps future edits dependent on compact source-of-truth files instead of chat history.
+
 ## Main Source-of-Truth Files
 
 ### `src/memory/gameManifest.ts`
@@ -18,6 +31,18 @@ Stores:
 - Featured challenge ids
 
 Read this first when orienting yourself to the app.
+
+### `src/memory/uiManifest.ts`
+
+Stores:
+
+- Current visual direction and UI identity
+- Layout rules such as full-bleed width and responsive behavior
+- Control-system rules such as using the custom dropdown instead of native opened select menus
+- Puzzle wording rules such as preferring literal, step-by-step instructions
+- The primary files to inspect for UI or puzzle-presentation edits
+
+Read this before changing layout, controls, styling, or puzzle phrasing.
 
 ### `src/memory/puzzleIndex.ts`
 
@@ -182,6 +207,8 @@ The UI is intentionally split into small focused folders:
 
 Pages should consume the memory/config files and context actions instead of hardcoding game rules.
 
+For UI changes, use `src/memory/uiManifest.ts` as the compact source of truth before opening large style or page files.
+
 ## How to Add a New Puzzle
 
 1. Choose the correct category file under `src/data/puzzles/`.
@@ -229,9 +256,10 @@ Pages should consume the memory/config files and context actions instead of hard
 When making future edits, read files in this order:
 
 1. `src/memory/gameManifest.ts`
-2. `src/memory/puzzleIndex.ts`
-3. `src/memory/escapeRoomIndex.ts`
-4. `src/memory/types.ts`
-5. The specific content file you want to change
+2. `src/memory/uiManifest.ts`
+3. `src/memory/puzzleIndex.ts`
+4. `src/memory/escapeRoomIndex.ts`
+5. `src/memory/types.ts`
+6. The specific content file you want to change
 
 That path usually gives enough context without opening large route or component files.

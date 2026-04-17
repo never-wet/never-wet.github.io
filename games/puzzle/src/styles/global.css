@@ -934,6 +934,15 @@ code {
   gap: 0.75rem;
 }
 
+.filters > * {
+  flex: 1 1 16rem;
+  min-width: 0;
+}
+
+.filters .field--search {
+  flex: 1.45 1 26rem;
+}
+
 .puzzle-card--locked {
   opacity: 0.6;
   background: var(--bg-lowest);
@@ -1044,6 +1053,22 @@ code {
   color: var(--muted);
 }
 
+.puzzle-page__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+.puzzle-page__next-copy {
+  margin-top: 0.8rem;
+  color: var(--muted);
+}
+
+.puzzle-page__next-copy strong {
+  color: var(--text);
+}
+
 .stat-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1084,6 +1109,34 @@ code {
   font-size: 1.05rem;
 }
 
+.question-guide {
+  display: grid;
+  gap: 0.45rem;
+  padding: 0.9rem 1rem;
+  background: rgba(0, 251, 251, 0.08);
+  box-shadow: inset 4px 0 0 var(--accent);
+}
+
+.question-guide strong {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 0.74rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.question-guide p {
+  color: var(--text);
+}
+
+.question-guide__steps {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0;
+  padding-left: 1rem;
+  color: var(--muted);
+}
+
 .muted {
   color: var(--muted);
 }
@@ -1098,9 +1151,16 @@ code {
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
+.choice-grid--visual {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
 .choice-card {
-  min-height: 8.25rem;
-  padding: 1rem;
+  display: grid;
+  gap: 0.7rem;
+  align-content: start;
+  min-height: 7rem;
+  padding: 0.8rem;
   background: var(--surface-low);
   color: var(--text);
   text-align: left;
@@ -1114,6 +1174,87 @@ code {
   background: rgba(0, 251, 251, 0.1);
   color: var(--accent);
   box-shadow: inset 0 0 0 1px var(--ghost-border-strong);
+}
+
+.choice-card__caption {
+  color: var(--muted);
+  font-size: 0.72rem;
+  line-height: 1.35;
+}
+
+.puzzle-visual {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.puzzle-visual--compact {
+  gap: 0.35rem;
+}
+
+.puzzle-visual__frame {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  min-height: 104px;
+  background: var(--surface-low);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+
+.puzzle-visual--compact .puzzle-visual__frame {
+  min-height: 72px;
+}
+
+.puzzle-visual__frame::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0 auto;
+  width: 38%;
+  height: 38%;
+  background: linear-gradient(135deg, transparent 0 35%, rgba(255, 255, 255, 0.05) 35% 100%);
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.puzzle-visual__label {
+  position: absolute;
+  left: 0.65rem;
+  top: 0.65rem;
+  z-index: 1;
+  padding: 0.22rem 0.45rem;
+  background: rgba(14, 14, 14, 0.82);
+  color: var(--visual-accent);
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.puzzle-visual__svg {
+  width: 100%;
+  height: 100%;
+}
+
+.puzzle-visual__caption {
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.sequence-visual-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 1px;
+}
+
+.play-surface > .puzzle-visual .puzzle-visual__frame {
+  max-width: 460px;
+}
+
+.choice-card .puzzle-visual__label,
+.arrange-item .puzzle-visual__label,
+.pair-row .puzzle-visual__label {
+  font-size: 0.54rem;
+  padding: 0.16rem 0.35rem;
 }
 
 .sequence-strip {
@@ -1135,6 +1276,7 @@ code {
 .field-label {
   display: grid;
   gap: 0.45rem;
+  min-width: 0;
 }
 
 .field span,
@@ -1154,17 +1296,173 @@ code {
   border: 0;
   background: var(--bg-lowest);
   color: var(--text);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.05),
+    inset 0 -2px 0 rgba(0, 251, 251, 0.08);
+  transition:
+    box-shadow 150ms var(--ease),
+    background 150ms var(--ease),
+    color 150ms var(--ease);
+}
+
+.text-input:hover,
+.select-input:hover {
+  background: rgba(28, 27, 27, 0.96);
+  box-shadow:
+    inset 0 0 0 1px rgba(0, 251, 251, 0.18),
+    inset 0 -2px 0 rgba(0, 251, 251, 0.16);
 }
 
 .text-input:focus,
 .select-input:focus {
-  box-shadow: inset 0 0 0 1px var(--accent);
+  box-shadow:
+    inset 0 0 0 1px var(--accent),
+    inset 0 -2px 0 rgba(0, 251, 251, 0.3);
   outline: none;
 }
 
+.select-input {
+  appearance: none;
+  cursor: pointer;
+  padding-right: 3rem;
+  background-image:
+    linear-gradient(180deg, rgba(14, 14, 14, 0.08), rgba(255, 255, 255, 0)),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 18 18' fill='none'%3E%3Cpath d='M4 6.5L9 11.5L14 6.5' stroke='%2300fbfb' stroke-width='1.8' stroke-linecap='square'/%3E%3C/svg%3E");
+  background-repeat: no-repeat, no-repeat;
+  background-position: center center, calc(100% - 1rem) 50%;
+  background-size: 100% 100%, 0.9rem;
+}
+
 .select-input option {
-  color: #111;
+  background: #131313;
+  color: var(--text);
+}
+
+.select-input option:checked {
+  background: rgba(0, 251, 251, 0.18);
+  color: #ffffff;
+}
+
+.select-menu {
+  position: relative;
+  width: 100%;
+}
+
+.select-menu__trigger {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.85rem;
+  width: 100%;
+  min-height: 3.1rem;
+  padding: 0.85rem 0.95rem;
+  border: 0;
+  background: var(--bg-lowest);
+  color: var(--text);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.05),
+    inset 0 -2px 0 rgba(0, 251, 251, 0.08);
+  cursor: pointer;
+  transition:
+    box-shadow 150ms var(--ease),
+    background 150ms var(--ease),
+    color 150ms var(--ease),
+    transform 150ms var(--ease);
+}
+
+.select-menu__trigger:hover {
+  background: rgba(28, 27, 27, 0.96);
+  box-shadow:
+    inset 0 0 0 1px rgba(0, 251, 251, 0.18),
+    inset 0 -2px 0 rgba(0, 251, 251, 0.16);
+}
+
+.select-menu__trigger:focus-visible,
+.select-menu--open .select-menu__trigger {
+  box-shadow:
+    inset 0 0 0 1px var(--accent),
+    inset 0 -2px 0 rgba(0, 251, 251, 0.3);
+  outline: none;
+}
+
+.select-menu__value {
+  min-width: 0;
+  overflow: hidden;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.select-menu__arrow {
+  flex-shrink: 0;
+  width: 0.9rem;
+  height: 0.9rem;
+  border-right: 2px solid var(--accent);
+  border-bottom: 2px solid var(--accent);
+  transform: rotate(45deg) translateY(-2px);
+  transition: transform 150ms var(--ease);
+}
+
+.select-menu--open .select-menu__arrow {
+  transform: rotate(225deg) translateY(-1px);
+}
+
+.select-menu__popover {
+  position: fixed;
+  z-index: 140;
+  display: grid;
+  gap: 1px;
+  overflow-y: auto;
+  padding: 1px;
+  background: rgba(58, 74, 73, 0.24);
+  backdrop-filter: blur(18px);
+  box-shadow:
+    0 0 0 1px rgba(0, 251, 251, 0.18),
+    0 18px 46px rgba(0, 0, 0, 0.42);
+}
+
+.select-menu__option {
+  display: grid;
+  gap: 0.2rem;
+  width: 100%;
+  padding: 0.8rem 0.9rem;
+  border: 0;
+  background: rgba(19, 19, 19, 0.98);
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background 140ms var(--ease),
+    color 140ms var(--ease),
+    box-shadow 140ms var(--ease);
+}
+
+.select-menu__option span {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.select-menu__option small {
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.select-menu__option:hover,
+.select-menu__option--highlighted {
+  background: rgba(32, 31, 31, 0.98);
+  box-shadow: inset 3px 0 0 rgba(0, 251, 251, 0.8);
+}
+
+.select-menu__option--selected {
+  background: rgba(0, 251, 251, 0.1);
+  color: var(--accent);
+}
+
+.select-menu__option--selected small {
+  color: var(--muted-strong);
 }
 
 .clue-block {
@@ -1208,6 +1506,14 @@ code {
 .arrange-list {
   display: grid;
   gap: 1px;
+}
+
+.pair-row > span {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted-strong);
 }
 
 .arrange-item,
@@ -1534,13 +1840,69 @@ code {
 .toggle {
   grid-template-columns: auto 1fr;
   align-items: center;
+  gap: 0.9rem;
+  min-height: 3.35rem;
+  padding: 0.8rem 0.9rem;
+  background: var(--surface-low);
   color: var(--text);
+  cursor: pointer;
+  transition:
+    background 150ms var(--ease),
+    box-shadow 150ms var(--ease),
+    transform 150ms var(--ease);
+}
+
+.toggle:hover {
+  background: var(--surface-high);
+  box-shadow: inset 0 0 0 1px rgba(0, 251, 251, 0.12);
+}
+
+.toggle span {
+  font-size: 1rem;
+  line-height: 1.35;
 }
 
 .toggle input {
-  width: 1rem;
-  height: 1rem;
-  accent-color: var(--accent);
+  appearance: none;
+  -webkit-appearance: none;
+  width: 1.2rem;
+  height: 1.2rem;
+  margin: 0;
+  border: 0;
+  background:
+    linear-gradient(180deg, rgba(14, 14, 14, 0.96), rgba(28, 27, 27, 0.96));
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.14),
+    inset 0 -2px 0 rgba(0, 251, 251, 0.08);
+  cursor: pointer;
+  transition:
+    background 150ms var(--ease),
+    box-shadow 150ms var(--ease),
+    transform 150ms var(--ease);
+}
+
+.toggle input:hover {
+  transform: translateY(-1px);
+  box-shadow:
+    inset 0 0 0 1px rgba(0, 251, 251, 0.35),
+    inset 0 -2px 0 rgba(0, 251, 251, 0.18);
+}
+
+.toggle input:checked {
+  background-image:
+    linear-gradient(180deg, rgba(0, 251, 251, 0.24), rgba(0, 251, 251, 0.1)),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16' fill='none'%3E%3Cpath d='M3 8.2L6.3 11.4L13 4.8' stroke='%23002020' stroke-width='2' stroke-linecap='square' stroke-linejoin='miter'/%3E%3C/svg%3E");
+  background-repeat: no-repeat, no-repeat;
+  background-position: center center, center center;
+  background-size: 100% 100%, 0.9rem;
+  box-shadow:
+    inset 0 0 0 1px rgba(0, 251, 251, 0.68),
+    0 0 20px rgba(0, 251, 251, 0.14);
+}
+
+.toggle input:focus-visible {
+  outline: 1px solid var(--accent);
+  outline-offset: 3px;
 }
 
 .toast-viewport {
@@ -1664,8 +2026,10 @@ code {
 
   .stat-grid,
   .choice-grid,
+  .choice-grid--visual,
   .choice-grid--tight,
-  .passcode__grid {
+  .passcode__grid,
+  .sequence-visual-grid {
     grid-template-columns: 1fr;
   }
 
@@ -1679,6 +2043,12 @@ code {
   .room-card,
   .category-card {
     min-width: 0;
+  }
+}
+
+@media (min-width: 901px) and (max-width: 1280px) {
+  .choice-grid--visual {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 

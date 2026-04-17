@@ -1,5 +1,6 @@
 import { choicePuzzle, matchPuzzle, sequencePuzzle, unlockAfter } from "./builders";
 import type { PuzzleDefinition } from "../../memory/types";
+import { analogyCard, glyphCard, lanternTile, questionTile, ringSequence } from "./visuals";
 
 export const logicPuzzles: PuzzleDefinition[] = [
   choicePuzzle({
@@ -8,19 +9,26 @@ export const logicPuzzles: PuzzleDefinition[] = [
     category: "pattern-recognition",
     difficulty: "Novice",
     description: "A 3x3 lantern grid hides a rotational rule.",
-    instructions: "Find the missing lantern pattern based on how light beams rotate and dim across rows.",
+    instructions: "Check arm direction across the row and spark count down the column, then pick the missing tile.",
     estimatedTime: 6,
     clueData: ["Rows rotate clockwise by 90 degrees while one lantern dims each step."],
+    guide: {
+      summary: "This is a missing-picture puzzle. One rule changes the arm direction, and another rule changes the number of sparks.",
+      steps: [
+        "First compare the arm direction from left to right.",
+        "Then compare the number of sparks from top to bottom.",
+        "Pick the picture that matches both rules at the empty spot.",
+      ],
+    },
     tags: ["iq", "matrix", "pattern"],
     featured: true,
-    prompt:
-      "Each row rotates the glowing arm clockwise. Each column removes one spark from the lantern. Which option completes the grid?",
+    prompt: "Look at the lantern pictures and choose the one that fits the empty spot.",
     question: "Choose the missing lantern tile.",
     choices: [
-      { id: "a", label: "Arm east, two sparks" },
-      { id: "b", label: "Arm south, one spark" },
-      { id: "c", label: "Arm south, two sparks" },
-      { id: "d", label: "Arm west, one spark" },
+      { id: "a", label: "Arm east, two sparks", visual: lanternTile("east", 2) },
+      { id: "b", label: "Arm south, one spark", visual: lanternTile("south", 1) },
+      { id: "c", label: "Arm south, two sparks", visual: lanternTile("south", 2) },
+      { id: "d", label: "Arm west, one spark", visual: lanternTile("west", 1) },
     ],
     correctChoiceId: "b",
     hints: [
@@ -36,18 +44,25 @@ export const logicPuzzles: PuzzleDefinition[] = [
     category: "analogies",
     difficulty: "Novice",
     description: "Translate a relationship from one symbol pair to another.",
-    instructions: "Infer how the first symbol transforms into the second, then apply the same change.",
+    instructions: "See how the first picture changes into the second picture, then apply that same change to the new picture.",
     estimatedTime: 5,
     clueData: ["A notch flips sides and the inner bar doubles."],
+    guide: {
+      summary: "This is a picture analogy. The first pair shows the rule, and the answer choices show possible results.",
+      steps: [
+        "Look at what changes from the first symbol to the second symbol.",
+        "Use that same change on the new starting symbol.",
+        "Choose the option that follows the same pattern.",
+      ],
+    },
     tags: ["iq", "analogy", "abstract"],
-    prompt:
-      "If a crescent with one notch becomes a diamond with two inner bars, what should a square with one inner bar become under the same transformation?",
+    prompt: "The first pair shows a picture rule. Which answer follows that same rule?",
     question: "Pick the best analogy outcome.",
     choices: [
-      { id: "a", label: "Diamond with one inner bar" },
-      { id: "b", label: "Hexagon with two inner bars" },
-      { id: "c", label: "Mirrored square with doubled inner bars" },
-      { id: "d", label: "Circle with one outer notch" },
+      { id: "a", label: "Diamond with one inner bar", visual: analogyCard("diamond-bar") },
+      { id: "b", label: "Hexagon with two inner bars", visual: analogyCard("hex-bars") },
+      { id: "c", label: "Mirrored square with doubled inner bars", visual: analogyCard("square-double") },
+      { id: "d", label: "Circle with one outer notch", visual: analogyCard("circle-notch") },
     ],
     correctChoiceId: "c",
     hints: [
@@ -63,18 +78,25 @@ export const logicPuzzles: PuzzleDefinition[] = [
     category: "odd-one-out",
     difficulty: "Novice",
     description: "One glyph breaks the system shared by the others.",
-    instructions: "Find the option that does not follow the same symmetry and stroke count rules.",
+    instructions: "Find the one picture that breaks the shared pattern.",
     estimatedTime: 4,
     clueData: ["All valid glyphs can be folded vertically into a match."],
+    guide: {
+      summary: "Three pictures follow the same rule. One picture breaks it.",
+      steps: [
+        "Compare the four symbols side by side.",
+        "Look for the one that is not balanced like the others.",
+        "Pick the picture that does not belong.",
+      ],
+    },
     tags: ["iq", "odd-one-out", "visual"],
-    prompt:
-      "Four archive glyphs belong to the same family: mirrored vertical axis and an even number of strokes. One does not. Which glyph is the intruder?",
+    prompt: "Three of these symbols belong together. Which one does not belong?",
     question: "Select the odd glyph.",
     choices: [
-      { id: "a", label: "Twin arches with center dot" },
-      { id: "b", label: "Forked branch with left hook" },
-      { id: "c", label: "Double pillar with cap" },
-      { id: "d", label: "Hourglass with split base" },
+      { id: "a", label: "Twin arches with center dot", visual: glyphCard("arches") },
+      { id: "b", label: "Forked branch with left hook", visual: glyphCard("fork-hook") },
+      { id: "c", label: "Double pillar with cap", visual: glyphCard("pillars") },
+      { id: "d", label: "Hourglass with split base", visual: glyphCard("hourglass") },
     ],
     correctChoiceId: "b",
     hints: [
@@ -170,13 +192,34 @@ export const logicPuzzles: PuzzleDefinition[] = [
     category: "sequence-systems",
     difficulty: "Analyst",
     description: "A ring of symbols rotates and sheds one segment each step.",
-    instructions: "Choose the symbol frame that continues the visual sequence.",
+    instructions: "Look at how the ring changes from frame to frame and choose the next frame.",
     estimatedTime: 6,
     clueData: ["The open side rotates clockwise while one segment disappears every second frame."],
+    guide: {
+      summary: "The ring changes in two simple ways: the opening moves around, and the number of rays slowly drops.",
+      steps: [
+        "Track where the open gap moves in each picture.",
+        "Count how many rays are still visible.",
+        "Pick the answer that continues both patterns.",
+      ],
+    },
     tags: ["visual-sequence", "pattern", "iq"],
-    prompt: "Which frame comes next in the observatory ring sequence?",
+    prompt: "Look at the ring pictures and choose the next picture in the sequence.",
     sequence: ["Open North / 4 rays", "Open East / 4 rays", "Open South / 3 rays", "Open West / 3 rays", "?"],
+    sequenceVisuals: [
+      ringSequence("north", 4),
+      ringSequence("east", 4),
+      ringSequence("south", 3),
+      ringSequence("west", 3),
+      questionTile(),
+    ],
     options: ["Open North / 2 rays", "Open North / 3 rays", "Open East / 2 rays", "Open South / 2 rays"],
+    optionVisuals: {
+      "Open North / 2 rays": ringSequence("north", 2),
+      "Open North / 3 rays": ringSequence("north", 3),
+      "Open East / 2 rays": ringSequence("east", 2),
+      "Open South / 2 rays": ringSequence("south", 2),
+    },
     acceptedAnswer: "Open North / 2 rays",
     hints: [
       "Rotation changes every frame.",

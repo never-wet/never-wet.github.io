@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { ActivityLog } from "../components/dashboard/ActivityLog";
+import { SelectMenu } from "../components/common/SelectMenu";
 import { PageHero } from "../components/layout/PageHero";
 import { ProgressTracker } from "../components/puzzle/ProgressTracker";
 import { useGame } from "../hooks/useGame";
@@ -102,16 +103,21 @@ export function DashboardPage() {
       {tab === "puzzles" ? (
         <>
           <section className="panel filters">
-            <label className="field">
+            <div className="field">
               <span>Status filter</span>
-              <select className="select-input" value={filter} onChange={(event) => setFilter(event.target.value)}>
-                <option value="all">All statuses</option>
-                <option value="solved">Solved</option>
-                <option value="started">Started</option>
-                <option value="available">Available</option>
-                <option value="locked">Locked</option>
-              </select>
-            </label>
+              <SelectMenu
+                ariaLabel="Filter puzzles by status"
+                value={filter}
+                onChange={setFilter}
+                options={[
+                  { value: "all", label: "All statuses" },
+                  { value: "solved", label: "Solved" },
+                  { value: "started", label: "Started" },
+                  { value: "available", label: "Available" },
+                  { value: "locked", label: "Locked" },
+                ]}
+              />
+            </div>
           </section>
           <section className="panel">
             <div className="table-shell">

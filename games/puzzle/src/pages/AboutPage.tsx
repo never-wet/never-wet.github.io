@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { PageHero } from "../components/layout/PageHero";
 import { gameManifest } from "../memory/gameManifest";
+import { uiManifest } from "../memory/uiManifest";
 
 export function AboutPage() {
   return (
@@ -47,6 +48,18 @@ export function AboutPage() {
             ))}
           </ul>
         </article>
+
+        <article className="panel">
+          <div className="section-heading">
+            <h2>Interface memory</h2>
+          </div>
+          <ul className="detail-list">
+            <li>{uiManifest.designDirection.summary}</li>
+            <li>{uiManifest.layoutRules[0]}</li>
+            <li>{uiManifest.controlRules[0]}</li>
+            <li>{uiManifest.puzzleCommunicationRules[0]}</li>
+          </ul>
+        </article>
       </section>
 
       <section className="panel">
@@ -55,7 +68,8 @@ export function AboutPage() {
         </div>
         <p>
           The compact memory files live in <code>src/memory</code>, with detailed instructions in
-          <code> docs/ARCHITECTURE.md</code>.
+          <code> docs/ARCHITECTURE.md</code>. The UI-specific decisions are summarized in
+          <code> src/memory/uiManifest.ts</code>.
         </p>
         <Link to="/puzzles" className="button button--primary">
           Explore the puzzle catalog

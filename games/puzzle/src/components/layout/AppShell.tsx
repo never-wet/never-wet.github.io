@@ -6,6 +6,7 @@ import { TopNav } from "./TopNav";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const { state } = useGame();
+  const gamesHubHref = "../index.html";
 
   return (
     <div
@@ -25,6 +26,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <p>puzzle_escape_lab // local-first // original-content // no backend</p>
         </div>
         <div className="app-footer__links">
+          <a href={gamesHubHref}>GAMES_HUB</a>
           <Link to="/puzzles">MODE_DIRECTORY</Link>
           <Link to="/escape">ESCAPE_MATRIX</Link>
           <Link to="/dashboard">ACTIVITY_LOGS</Link>

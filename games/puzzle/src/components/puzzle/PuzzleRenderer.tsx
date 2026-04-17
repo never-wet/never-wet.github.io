@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
+import { SelectMenu } from "../common/SelectMenu";
 import { useGame } from "../../hooks/useGame";
-import type { PuzzleDefinition, PuzzleProgress } from "../../memory/types";
+import type { ClueBlock, PuzzleDefinition, PuzzleProgress } from "../../memory/types";
 import { PasscodeInput } from "./PasscodeInput";
 import { SceneHotspotLayer } from "../escape/SceneHotspotLayer";
+import { PuzzleVisual } from "./PuzzleVisual";
 
 function moveItem(order: string[], fromId: string, toId: string) {
   const next = order.slice();
@@ -15,6 +17,36 @@ function moveItem(order: string[], fromId: string, toId: string) {
   next.splice(fromIndex, 1);
   next.splice(toIndex, 0, fromId);
   return next;
+}
+
+function renderClueBlocks(blocks?: ClueBlock[]) {
+  return blocks?.map((block) => (
+    <article key={block.title} className={`clue-block clue-block--${block.tone ?? "neutral"}`}>
+      <strong>{block.title}</strong>
+      {block.visual ? <PuzzleVisual visual={block.visual} compact /> : null}
+      <p>{block.body}</p>
+    </article>
+  ));
+}
+
+function renderGuide(puzzle: PuzzleDefinition) {
+  if (!puzzle.guide) {
+    return null;
+  }
+
+  return (
+    <section className="question-guide">
+      <strong>{puzzle.guide.title ?? "Plain Language"}</strong>
+      <p>{puzzle.guide.summary}</p>
+      {puzzle.guide.steps?.length ? (
+        <ul className="question-guide__steps">
+          {puzzle.guide.steps.map((step) => (
+            <li key={step}>{step}</li>
+          ))}
+        </ul>
+      ) : null}
+    </section>
+  );
 }
 
 export function PuzzleRenderer({
@@ -53,11 +85,15 @@ export function PuzzleRenderer({
   }, [puzzle.id, progress?.sessionData, puzzle.content]);
 
   if (puzzle.content.kind === "multipleChoice") {
+    const hasVisualChoices = puzzle.content.choices.some((choice) => Boolean(choice.visual));
+
     return (
       <div className="play-surface">
+        {puzzle.content.promptVisual ? <PuzzleVisual visual={puzzle.content.promptVisual} /> : null}
+        {renderGuide(puzzle)}
         <p className="lead">{puzzle.content.prompt}</p>
-        <div className="choice-grid">
-          {puzzle.content.choices.map((choice) => (
+        <div className={`choice-grid ${hasVisualChoices ? "choice-grid--visual" : ""}`}>
+          {puzzle.content.choices.map((choice, index) => (
             <button
               key={choice.id}
               type="button"
@@ -67,8 +103,10 @@ export function PuzzleRenderer({
                 savePuzzleSession(puzzle.id, { choiceAnswer: choice.id });
               }}
             >
-              <strong>{choice.label}</strong>
-              {choice.detail ? <p>{choice.detail}</p> : null}
+              {choice.visual ? <PuzzleVisual visual={choice.visual} compact /> : null}
+              <strong>{hasVisualChoices ? `Option ${String.fromCharCode(65 + index)}` : choice.label}</strong>
+              {choice.visual ? <p className="choice-card__caption">{choice.label}</p> : null}
+              {!choice.visual && choice.detail ? <p>{choice.detail}</p> : null}
             </button>
           ))}
         </div>
@@ -82,13 +120,10 @@ export function PuzzleRenderer({
   if (puzzle.content.kind === "textInput") {
     return (
       <div className="play-surface">
+        {puzzle.content.promptVisual ? <PuzzleVisual visual={puzzle.content.promptVisual} /> : null}
+        {renderGuide(puzzle)}
         <p className="lead">{puzzle.content.prompt}</p>
-        {puzzle.content.clueBlocks?.map((block) => (
-          <article key={block.title} className={`clue-block clue-block--${block.tone ?? "neutral"}`}>
-            <strong>{block.title}</strong>
-            <p>{block.body}</p>
-          </article>
-        ))}
+        {renderClueBlocks(puzzle.content.clueBlocks)}
         <label className="field-label" htmlFor={`${puzzle.id}-answer`}>
           Answer
         </label>
@@ -110,16 +145,29 @@ export function PuzzleRenderer({
   }
 
   if (puzzle.content.kind === "sequence") {
+    const content = puzzle.content;
+    const hasVisualOptions = content.options.some((option) => Boolean(content.optionVisuals?.[option]));
+
     return (
       <div className="play-surface">
-        <p className="lead">{puzzle.content.prompt}</p>
-        <div className="sequence-strip">
-          {puzzle.content.sequence.map((item, index) => (
-            <span key={`${item}-${index}`}>{item}</span>
-          ))}
-        </div>
-        <div className="choice-grid choice-grid--tight">
-          {puzzle.content.options.map((option) => (
+        {content.promptVisual ? <PuzzleVisual visual={content.promptVisual} /> : null}
+        {renderGuide(puzzle)}
+        <p className="lead">{content.prompt}</p>
+        {content.sequenceVisuals?.length ? (
+          <div className="sequence-visual-grid">
+            {content.sequenceVisuals.map((visual, index) => (
+              <PuzzleVisual key={`sequence-visual-${index}`} visual={visual} compact />
+            ))}
+          </div>
+        ) : (
+          <div className="sequence-strip">
+            {content.sequence.map((item, index) => (
+              <span key={`${item}-${index}`}>{item}</span>
+            ))}
+          </div>
+        )}
+        <div className={`choice-grid choice-grid--tight ${hasVisualOptions ? "choice-grid--visual" : ""}`}>
+          {content.options.map((option, index) => (
             <button
               key={option}
               type="button"
@@ -129,7 +177,9 @@ export function PuzzleRenderer({
                 savePuzzleSession(puzzle.id, { textAnswer: option });
               }}
             >
-              <strong>{option}</strong>
+              {content.optionVisuals?.[option] ? <PuzzleVisual visual={content.optionVisuals[option]} compact /> : null}
+              <strong>{content.optionVisuals?.[option] ? `Pattern ${String.fromCharCode(65 + index)}` : option}</strong>
+              {content.optionVisuals?.[option] ? <p className="choice-card__caption">{option}</p> : null}
             </button>
           ))}
         </div>
@@ -145,28 +195,32 @@ export function PuzzleRenderer({
 
     return (
       <div className="play-surface">
+        {content.promptVisual ? <PuzzleVisual visual={content.promptVisual} /> : null}
+        {renderGuide(puzzle)}
         <p className="lead">{content.prompt}</p>
         <div className="pair-grid">
           {content.left.map((item) => (
-            <label key={item.id} className="pair-row">
+            <div key={item.id} className="pair-row">
+              {item.visual ? <PuzzleVisual visual={item.visual} compact /> : null}
               <span>{item.label}</span>
-              <select
-                className="select-input"
+              <SelectMenu
+                ariaLabel={`Choose a match for ${item.label}`}
                 value={pairAnswer[item.id] ?? ""}
-                onChange={(event) => {
-                  const next = { ...pairAnswer, [item.id]: event.target.value };
+                placeholder="Choose a match"
+                onChange={(value) => {
+                  const next = { ...pairAnswer, [item.id]: value };
                   setPairAnswer(next);
                   savePuzzleSession(puzzle.id, { pairAnswer: next });
                 }}
-              >
-                <option value="">Choose a match</option>
-                {content.right.map((option) => (
-                  <option key={option.id} value={option.id}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </label>
+                options={[
+                  { value: "", label: "Choose a match" },
+                  ...content.right.map((option) => ({
+                    value: option.id,
+                    label: option.label,
+                  })),
+                ]}
+              />
+            </div>
           ))}
         </div>
         <button type="button" className="button button--primary" onClick={() => submitPuzzle(puzzle.id, pairAnswer, elapsedSeconds)}>
@@ -186,6 +240,8 @@ export function PuzzleRenderer({
 
     return (
       <div className="play-surface">
+        {content.promptVisual ? <PuzzleVisual visual={content.promptVisual} /> : null}
+        {renderGuide(puzzle)}
         <p className="lead">{content.prompt}</p>
         <div className="arrange-list">
           {orderedItems.map((item) => {
@@ -208,6 +264,7 @@ export function PuzzleRenderer({
                 }}
               >
                 <div>
+                  {item.visual ? <PuzzleVisual visual={item.visual} compact /> : null}
                   <strong>{item.label}</strong>
                   {item.note ? <p>{item.note}</p> : null}
                 </div>
@@ -257,13 +314,10 @@ export function PuzzleRenderer({
   if (puzzle.content.kind === "combinationLock") {
     return (
       <div className="play-surface">
+        {puzzle.content.promptVisual ? <PuzzleVisual visual={puzzle.content.promptVisual} /> : null}
+        {renderGuide(puzzle)}
         <p className="lead">{puzzle.content.prompt}</p>
-        {puzzle.content.clueBlocks?.map((block) => (
-          <article key={block.title} className={`clue-block clue-block--${block.tone ?? "neutral"}`}>
-            <strong>{block.title}</strong>
-            <p>{block.body}</p>
-          </article>
-        ))}
+        {renderClueBlocks(puzzle.content.clueBlocks)}
         <PasscodeInput
           label={puzzle.content.keypadLabel}
           value={textAnswer}
@@ -286,6 +340,7 @@ export function PuzzleRenderer({
 
     return (
       <div className="play-surface">
+        {renderGuide(puzzle)}
         <div className="section-heading">
           <div>
             <h2>Scene Puzzle</h2>
@@ -341,6 +396,7 @@ export function PuzzleRenderer({
   if (puzzle.content.kind === "spotDifference") {
     return (
       <div className="play-surface">
+        {renderGuide(puzzle)}
         <p className="lead">{puzzle.content.prompt}</p>
         <div className="scene-compare">
           <SceneHotspotLayer

@@ -1,13 +1,19 @@
 import type {
   ArrangeContent,
+  ClueBlock,
   EscapeRoomDefinition,
   HotspotContent,
+  MatchItem,
   PuzzleCategoryId,
+  PuzzleChoice,
   PuzzleDefinition,
   PuzzleDifficulty,
+  PuzzleGuide,
+  PuzzleVisual,
   PuzzleType,
   SceneDefinition,
   SceneElement,
+  SequenceContent,
   SpotDifferenceContent,
   UnlockCondition,
 } from "../../memory/types";
@@ -23,6 +29,7 @@ type BaseConfig = {
   assets?: string[];
   clueData?: string[];
   unlock?: UnlockCondition;
+  guide?: PuzzleGuide;
   tags?: string[];
   relatedPuzzles?: string[];
   featured?: boolean;
@@ -57,7 +64,8 @@ export function choicePuzzle(
   config: BaseConfig & {
     prompt: string;
     question: string;
-    choices: { id: string; label: string; detail?: string }[];
+    promptVisual?: PuzzleVisual;
+    choices: PuzzleChoice[];
     correctChoiceId: string;
     evidence?: string[];
   },
@@ -76,6 +84,7 @@ export function choicePuzzle(
       kind: "multipleChoice",
       prompt: config.prompt,
       question: config.question,
+      promptVisual: config.promptVisual,
       choices: config.choices,
       correctChoiceId: config.correctChoiceId,
       evidence: config.evidence,
@@ -86,9 +95,10 @@ export function choicePuzzle(
 export function textPuzzle(
   config: BaseConfig & {
     prompt: string;
+    promptVisual?: PuzzleVisual;
     placeholder: string;
     acceptedAnswers: string[];
-    clueBlocks?: { title: string; body: string; tone?: "neutral" | "warning" | "success" }[];
+    clueBlocks?: ClueBlock[];
     answerFormat?: string;
   },
 ): PuzzleDefinition {
@@ -105,6 +115,7 @@ export function textPuzzle(
     content: {
       kind: "textInput",
       prompt: config.prompt,
+      promptVisual: config.promptVisual,
       placeholder: config.placeholder,
       acceptedAnswers: config.acceptedAnswers,
       clueBlocks: config.clueBlocks,
@@ -116,8 +127,11 @@ export function textPuzzle(
 export function sequencePuzzle(
   config: BaseConfig & {
     prompt: string;
+    promptVisual?: PuzzleVisual;
     sequence: string[];
+    sequenceVisuals?: SequenceContent["sequenceVisuals"];
     options: string[];
+    optionVisuals?: SequenceContent["optionVisuals"];
     acceptedAnswer: string;
     missingIndex?: number;
   },
@@ -135,8 +149,11 @@ export function sequencePuzzle(
     content: {
       kind: "sequence",
       prompt: config.prompt,
+      promptVisual: config.promptVisual,
       sequence: config.sequence,
+      sequenceVisuals: config.sequenceVisuals,
       options: config.options,
+      optionVisuals: config.optionVisuals,
       acceptedAnswer: config.acceptedAnswer,
       missingIndex: config.missingIndex,
     },
@@ -146,8 +163,9 @@ export function sequencePuzzle(
 export function matchPuzzle(
   config: BaseConfig & {
     prompt: string;
-    left: { id: string; label: string }[];
-    right: { id: string; label: string }[];
+    promptVisual?: PuzzleVisual;
+    left: MatchItem[];
+    right: MatchItem[];
     solution: Record<string, string>;
   },
 ): PuzzleDefinition {
@@ -163,6 +181,7 @@ export function matchPuzzle(
     content: {
       kind: "matchPairs",
       prompt: config.prompt,
+      promptVisual: config.promptVisual,
       left: config.left,
       right: config.right,
       solution: config.solution,
@@ -173,6 +192,7 @@ export function matchPuzzle(
 export function arrangePuzzle(
   config: BaseConfig & {
     prompt: string;
+    promptVisual?: PuzzleVisual;
     items: ArrangeContent["items"];
     solution: string[];
     completionText: string;
@@ -190,6 +210,7 @@ export function arrangePuzzle(
     content: {
       kind: "arrange",
       prompt: config.prompt,
+      promptVisual: config.promptVisual,
       items: config.items,
       solution: config.solution,
       completionText: config.completionText,
@@ -230,10 +251,11 @@ export function hotspotPuzzle(
 export function lockPuzzle(
   config: BaseConfig & {
     prompt: string;
+    promptVisual?: PuzzleVisual;
     keypadLabel: string;
     codeLength: number;
     acceptedCode: string;
-    clueBlocks?: { title: string; body: string; tone?: "neutral" | "warning" | "success" }[];
+    clueBlocks?: ClueBlock[];
   },
 ): PuzzleDefinition {
   const puzzle = basePuzzle(config);
@@ -249,6 +271,7 @@ export function lockPuzzle(
     content: {
       kind: "combinationLock",
       prompt: config.prompt,
+      promptVisual: config.promptVisual,
       keypadLabel: config.keypadLabel,
       codeLength: config.codeLength,
       acceptedCode: config.acceptedCode,
