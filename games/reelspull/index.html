@@ -45,6 +45,18 @@
             box-sizing: border-box;
         }
 
+        html,
+        body {
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        html::-webkit-scrollbar,
+        body::-webkit-scrollbar {
+            width: 0;
+            height: 0;
+        }
+
         body {
             margin: 0;
             min-height: 100vh;
@@ -1851,10 +1863,11 @@
             gap: 8px;
             padding: 10px;
             max-height: min(360px, 52vh);
-            overflow-y: scroll;
+            overflow-y: auto;
             overscroll-behavior: contain;
-            scrollbar-gutter: stable;
-            scrollbar-width: thin;
+            scrollbar-gutter: auto;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
             border-radius: 16px;
             border: 1px solid rgba(255, 255, 255, 0.14);
             background: linear-gradient(180deg, rgba(14, 23, 39, 0.98), rgba(8, 15, 28, 0.98));
@@ -1863,19 +1876,8 @@
         }
 
         .dev-picker-menu::-webkit-scrollbar {
-            width: 10px;
-        }
-
-        .dev-picker-menu::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.04);
-            border-radius: 999px;
-        }
-
-        .dev-picker-menu::-webkit-scrollbar-thumb {
-            background: rgba(255, 215, 106, 0.32);
-            border-radius: 999px;
-            border: 2px solid transparent;
-            background-clip: padding-box;
+            width: 0;
+            height: 0;
         }
 
         .dev-picker-option {
@@ -2404,11 +2406,13 @@
         }
 
         .overlay-result-media.auto-overlay-media {
-            width: min(248px, 72%);
+            width: min(220px, 64%);
         }
 
         .overlay-result-media.auto-overlay-media .variant-media-image {
             opacity: 1;
+            object-fit: contain;
+            transform: scale(0.9);
         }
 
         .overlay-card p {
@@ -3353,6 +3357,7 @@
                 recent: [],
                 bestPullKey: null,
                 bestPullVariant: "",
+                bestPullVariantKeys: [],
                 signalDust: 0,
                 activeBannerKey: BANNERS[0].key,
                 ownedBannerKeys: [BANNERS[0].key],
@@ -3746,6 +3751,10 @@
             return normalizeVariantKeys(stats?.favoriteVariantKeys, stats?.favoriteVariant || "");
         }
 
+        function getBestPullVariantKeys(stats = state.stats) {
+            return normalizeVariantKeys(stats?.bestPullVariantKeys, stats?.bestPullVariant || "");
+        }
+
         function getFavoriteResult(stats = state.stats) {
             if (!stats?.favoriteKey || !gifMap[stats.favoriteKey]) {
                 return null;
@@ -3755,6 +3764,18 @@
                 ...gifMap[stats.favoriteKey],
                 variantKey: stats.favoriteVariant || "",
                 variantKeys: getFavoriteVariantKeys(stats)
+            };
+        }
+
+        function getBestPullResult(stats = state.stats) {
+            if (!stats?.bestPullKey || !gifMap[stats.bestPullKey]) {
+                return null;
+            }
+
+            return {
+                ...gifMap[stats.bestPullKey],
+                variantKey: stats.bestPullVariant || "",
+                variantKeys: getBestPullVariantKeys(stats)
             };
         }
 
@@ -3842,14 +3863,44 @@
         }
 
         function formatVariantOddsValue(percent) {
+            if (percent > 0 && percent < 0.000000000001) {
+                return "<0.000000000001%";
+            }
+
             return formatOddsPercent(percent);
         }
 
+        function getFullVariantStackOddsPercent(gif, basePercent) {
+            const rollTable = getVariantRollTableForGif(gif, { baseProbability: basePercent / 100 });
+            if (rollTable.length < 2) {
+                return null;
+            }
+
+            const fullStackChance = rollTable.reduce((product, { chance }) => product * chance, 1);
+            return basePercent * fullStackChance;
+        }
+
+        function formatFullVariantOddsValue(percent) {
+            if (percent > 0 && percent < 0.000000000001) {
+                return "0.000000000001%";
+            }
+
+            return formatVariantOddsValue(percent);
+        }
+
         function renderVariantOddsBadges(gif, basePercent) {
-            return getVariantRollTableForGif(gif, { baseProbability: basePercent / 100 }).map(({ variant, chance }) => {
+            const rollTable = getVariantRollTableForGif(gif, { baseProbability: basePercent / 100 });
+            const badges = rollTable.map(({ variant, chance }) => {
                 const exactPercent = basePercent * chance;
                 return `<span class="variant-chip" style="${getVariantChipStyle(variant)}">${variant.label} ${formatVariantOddsValue(exactPercent)}</span>`;
-            }).join("");
+            });
+            const fullStackPercent = getFullVariantStackOddsPercent(gif, basePercent);
+
+            if (fullStackPercent !== null) {
+                badges.push(`<span class="variant-chip" style="border-color: rgba(255, 255, 255, 0.45); color: rgba(255, 255, 255, 0.94);">All Variants ${formatFullVariantOddsValue(fullStackPercent)}</span>`);
+            }
+
+            return badges.join("");
         }
 
         function getTotalVariantPullCountFromStats(stats) {
@@ -3897,6 +3948,87 @@
             return variant ? variant.accent : result.color;
         }
 
+        function hexToRgba(hex, alpha) {
+            if (typeof hex !== "string") {
+                return `rgba(255, 255, 255, ${alpha})`;
+            }
+
+            const normalized = hex.replace("#", "");
+            const safeHex = normalized.length === 3
+                ? normalized.split("").map((char) => char + char).join("")
+                : normalized;
+
+            if (!/^[0-9a-fA-F]{6}$/.test(safeHex)) {
+                return `rgba(255, 255, 255, ${alpha})`;
+            }
+
+            const red = Number.parseInt(safeHex.slice(0, 2), 16);
+            const green = Number.parseInt(safeHex.slice(2, 4), 16);
+            const blue = Number.parseInt(safeHex.slice(4, 6), 16);
+            return `rgba(${red}, ${green}, ${blue}, ${alpha})`;
+        }
+
+        function getOwnedGlowVariantKeysForGif(gifKey) {
+            const counts = state.stats.variantCounts?.[gifKey] || createEmptyVariantCountRecord();
+            return ["void", "holo", "shiny"].filter((variantKey) => (counts[variantKey] || 0) > 0);
+        }
+
+        function getOuterGlowVariantConfigs(result) {
+            const directVariantKeys = getResultVariantKeys(result).filter((variantKey) => ["void", "holo", "shiny"].includes(variantKey));
+            const explicitGlowVariantKeys = normalizeVariantKeys(result?.glowVariantKeys).filter((variantKey) => ["void", "holo", "shiny"].includes(variantKey));
+            const glowVariantKeys = explicitGlowVariantKeys.length > 0 ? explicitGlowVariantKeys : directVariantKeys;
+
+            return glowVariantKeys
+                .map((variantKey) => getVariantConfig(variantKey))
+                .filter(Boolean);
+        }
+
+        function getOuterCardAccentStyle(result) {
+            const glowVariants = getOuterGlowVariantConfigs(result);
+            if (glowVariants.length === 0) {
+                return null;
+            }
+
+            const glowExpansion = 1.12;
+
+            const borderColor = glowVariants.length === 1
+                ? hexToRgba(glowVariants[0].accent, 0.72)
+                : "rgba(255, 255, 255, 0.22)";
+            const glowLayers = [
+                "0 0 0 1px rgba(255, 255, 255, 0.1)"
+            ];
+            const directionalOffsets = glowVariants.length === 1
+                ? [[0, 0]]
+                : glowVariants.length === 2
+                    ? [[-16 * glowExpansion, 0], [16 * glowExpansion, 0]]
+                    : [[-18 * glowExpansion, -6 * glowExpansion], [18 * glowExpansion, -6 * glowExpansion], [0, 18 * glowExpansion]];
+
+            glowVariants.forEach((variant, index) => {
+                const [offsetX, offsetY] = directionalOffsets[index] || [0, 0];
+                glowLayers.push(`${offsetX}px ${offsetY}px ${26 * glowExpansion}px ${hexToRgba(variant.accent, 0.42)}`);
+                glowLayers.push(`${offsetX}px ${offsetY}px ${48 * glowExpansion}px ${hexToRgba(variant.accent, 0.24)}`);
+                glowLayers.push(`${offsetX}px ${offsetY}px ${72 * glowExpansion}px ${hexToRgba(variant.accent, 0.12)}`);
+            });
+
+            return {
+                borderColor,
+                boxShadow: glowLayers.join(", ")
+            };
+        }
+
+        function applyOuterCardAccent(node, result) {
+            const outerAccentClass = getOuterCardAccentClass(result).trim();
+            node.classList.remove("unreal-card", "insane-card", "godlike-card");
+
+            if (outerAccentClass) {
+                node.classList.add(outerAccentClass);
+            }
+
+            const accentStyle = getOuterCardAccentStyle(result);
+            node.style.borderColor = accentStyle?.borderColor || "";
+            node.style.boxShadow = accentStyle?.boxShadow || "";
+        }
+
         function getOuterCardAccentClass(result) {
             if (!result?.key) {
                 return "";
@@ -3940,10 +4072,12 @@
 
         function getPreviewResultForGif(gif) {
             const variantKey = getOwnedPreviewVariantKeyForGif(gif.key);
+            const glowVariantKeys = getOwnedGlowVariantKeysForGif(gif.key);
             return {
                 ...gif,
                 variantKey,
-                variantKeys: variantKey ? [variantKey] : []
+                variantKeys: variantKey ? [variantKey] : [],
+                glowVariantKeys
             };
         }
 
@@ -4563,9 +4697,11 @@
 
                 state.stats.recent.unshift(createRecentEntry(result));
 
-                if (!state.stats.bestPullKey || getResultScore(result) > getResultScore({ ...gifMap[state.stats.bestPullKey], variantKey: state.stats.bestPullVariant || "" })) {
+                const currentBestPull = getBestPullResult();
+                if (!currentBestPull || getResultScore(result) > getResultScore(currentBestPull)) {
                     state.stats.bestPullKey = result.key;
                     state.stats.bestPullVariant = result.variantKey || "";
+                    state.stats.bestPullVariantKeys = getResultVariantKeys(result);
                 }
 
                 if (result.rank >= BIG_PULL_RANK) {
@@ -4920,7 +5056,7 @@
                 ["Unlocked", `${state.stats.unlocked.length}/${GIFS.length}`],
                 ["Current Banner", activeBanner.name],
                 ["Most Pulled", mostPulled ? `${mostPulled.name} (${state.stats.counts[mostPulled.key]})` : "None yet"],
-                ["Best Pull", state.stats.bestPullKey ? getResultDisplayName({ ...gifMap[state.stats.bestPullKey], variantKey: state.stats.bestPullVariant || "" }) : "None yet"],
+                ["Best Pull", getBestPullResult() ? getResultDisplayName(getBestPullResult()) : "None yet"],
                 ["Luck Score", avgLuck],
                 ["Achievements", `${state.stats.achievementKeys.length}/${ACHIEVEMENTS.length}`]
             ].forEach(([label, value]) => {
@@ -5002,6 +5138,7 @@
                 const isFavorite = isFavoriteResult(previewResult);
                 const card = document.createElement("article");
                 card.className = `collection-card${getOuterCardAccentClass(previewResult)}${unlocked ? "" : " locked"}`;
+                applyOuterCardAccent(card, previewResult);
                 card.innerHTML = `
                     ${getResultMediaMarkup(previewResult, getSyncedGifUrl(gif.path, syncCycle), {
                         alt: getResultDisplayName(previewResult),
@@ -5055,6 +5192,7 @@
                 const showVariantChip = getResultVariantKeys(gif).length > 1;
                 const card = document.createElement("article");
                 card.className = `card pull-card${getOuterCardAccentClass(gif)}`;
+                applyOuterCardAccent(card, gif);
                 card.innerHTML = `
                     ${getResultMediaMarkup(gif, getSyncedGifUrl(gif.path, syncCycle), {
                         syncPath: gif.path,
@@ -5313,16 +5451,18 @@
         function renderShowcase(syncCycle = getThumbnailSyncCycle()) {
             const favoriteResult = getFavoriteResult();
             const favoriteGif = favoriteResult?.key ? gifMap[favoriteResult.key] : null;
-            const bestGif = state.stats.bestPullKey ? gifMap[state.stats.bestPullKey] : null;
+            const bestResult = getBestPullResult();
             const selected = favoriteResult
                 ? favoriteResult
-                : bestGif
-                    ? { ...bestGif, variantKey: state.stats.bestPullVariant || "" }
+                : bestResult
+                    ? bestResult
                     : null;
             const rarityOuterClasses = ["unreal-card", "insane-card", "godlike-card"];
 
             if (!selected) {
                 showcaseCard.classList.remove(...rarityOuterClasses);
+                showcaseCard.style.borderColor = "";
+                showcaseCard.style.boxShadow = "";
                 showcaseCard.innerHTML = `<div class="showcase-empty">Pull something good and set it as your showcase.</div>`;
                 return;
             }
@@ -5349,10 +5489,7 @@
             `;
 
             showcaseCard.classList.remove(...rarityOuterClasses);
-            const outerAccentClass = getOuterCardAccentClass(selected).trim();
-            if (outerAccentClass) {
-                showcaseCard.classList.add(outerAccentClass);
-            }
+            applyOuterCardAccent(showcaseCard, selected);
 
             const [exportButton, clearButton] = showcaseCard.querySelectorAll("button");
             exportButton.addEventListener("click", () => exportResultCard(selected));
@@ -6305,7 +6442,8 @@
             };
 
             const activeBanner = getActiveBanner();
-            const bestPull = state.stats.bestPullKey ? getResultDisplayName({ ...gifMap[state.stats.bestPullKey], variantKey: state.stats.bestPullVariant || "" }) : "None";
+            const bestPullResult = getBestPullResult();
+            const bestPull = bestPullResult ? getResultDisplayName(bestPullResult) : "None";
             const favoriteResult = getFavoriteResult();
             const favorite = favoriteResult ? getResultDisplayName(favoriteResult) : "None";
             const activeChallenge = state.stats.challenge ? `${state.stats.challenge.name} (${state.stats.challenge.status})` : "None";
@@ -6774,6 +6912,7 @@
             if (state.stats.bestPullKey === gifKey) {
                 state.stats.bestPullKey = null;
                 state.stats.bestPullVariant = "";
+                state.stats.bestPullVariantKeys = [];
             }
 
             if (state.devForcedVariantConfig.gifKey === gifKey) {
@@ -6832,6 +6971,7 @@
             state.stats.selectedTheme = THEMES.some((theme) => theme.key === state.stats.selectedTheme) ? state.stats.selectedTheme : defaults.selectedTheme;
             state.stats.bestPullKey = gifMap[state.stats.bestPullKey] ? state.stats.bestPullKey : null;
             state.stats.bestPullVariant = state.stats.bestPullKey && getVariantConfig(state.stats.bestPullVariant) ? state.stats.bestPullVariant : "";
+            state.stats.bestPullVariantKeys = state.stats.bestPullKey ? normalizeVariantKeys(state.stats.bestPullVariantKeys, state.stats.bestPullVariant) : [];
             state.stats.favoriteKey = gifMap[state.stats.favoriteKey] ? state.stats.favoriteKey : "";
             state.stats.favoriteVariant = state.stats.favoriteKey && getVariantConfig(state.stats.favoriteVariant) ? state.stats.favoriteVariant : "";
             state.stats.favoriteVariantKeys = state.stats.favoriteKey ? normalizeVariantKeys(state.stats.favoriteVariantKeys, state.stats.favoriteVariant) : [];
@@ -7065,6 +7205,7 @@
                 markGifUnlockedForDev(gif.key);
                 state.stats.bestPullKey = gif.key;
                 state.stats.bestPullVariant = variantKey;
+                state.stats.bestPullVariantKeys = normalizeVariantKeys([], variantKey);
             });
         }
 
@@ -7072,6 +7213,7 @@
             runDevMutation("Dev mode: best pull cleared", () => {
                 state.stats.bestPullKey = null;
                 state.stats.bestPullVariant = "";
+                state.stats.bestPullVariantKeys = [];
             });
         }
 
@@ -7134,6 +7276,7 @@
                 }
                 if (state.stats.bestPullKey === gif.key && state.stats.bestPullVariant) {
                     state.stats.bestPullVariant = "";
+                    state.stats.bestPullVariantKeys = [];
                 }
             });
         }
@@ -7152,6 +7295,7 @@
                 state.stats.variantCounts = Object.fromEntries(GIFS.map((gif) => [gif.key, createEmptyVariantCountRecord()]));
                 state.stats.bestPullKey = null;
                 state.stats.bestPullVariant = "";
+                state.stats.bestPullVariantKeys = [];
                 state.stats.favoriteKey = "";
                 state.stats.favoriteVariant = "";
                 state.stats.favoriteVariantKeys = [];
@@ -7366,6 +7510,7 @@
                 const previewResult = getPreviewResultForGif(gif);
                 const cardNode = document.createElement("article");
                 cardNode.className = `album-card${getOuterCardAccentClass(previewResult)}${unlocked ? "" : " locked"}`;
+                applyOuterCardAccent(cardNode, previewResult);
                 cardNode.innerHTML = `
                     ${getResultMediaMarkup(previewResult, getSyncedGifUrl(gif.path, syncCycle), {
                         alt: getResultDisplayName(previewResult),
@@ -7396,6 +7541,7 @@
             results.forEach((result, index) => {
                 const revealCard = document.createElement("article");
                 revealCard.className = `reveal-card${getOuterCardAccentClass(result)}`;
+                applyOuterCardAccent(revealCard, result);
                 revealCard.style.animationDelay = `${index * 55}ms`;
                 revealCard.innerHTML = `
                     ${getResultMediaMarkup(result, getSyncedGifUrl(result.path, syncCycle), {
@@ -7849,6 +7995,7 @@
                     : "";
                 state.stats.favoriteVariant = state.stats.favoriteKey && getVariantConfig(state.stats.favoriteVariant) ? state.stats.favoriteVariant : "";
                 state.stats.favoriteVariantKeys = state.stats.favoriteKey ? normalizeVariantKeys(parsed.favoriteVariantKeys, state.stats.favoriteVariant) : [];
+                state.stats.bestPullVariantKeys = state.stats.bestPullKey ? normalizeVariantKeys(parsed.bestPullVariantKeys, state.stats.bestPullVariant) : [];
                 state.stats.challenge = normalizeChallengeState(parsed.challenge, defaults.challenge);
                 saveStatus.textContent = "Saved progress loaded";
             } catch (error) {
