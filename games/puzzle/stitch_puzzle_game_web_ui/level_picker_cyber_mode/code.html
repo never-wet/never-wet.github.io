@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>KINETIC_CORE_V1 // LEVEL_SELECT</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-primary-fixed": "#002020",
+                        "secondary": "#dab9ff",
+                        "on-surface-variant": "#b9cac9",
+                        "on-tertiary": "#313030",
+                        "surface-container-lowest": "#0e0e0e",
+                        "on-tertiary-fixed": "#1c1b1b",
+                        "surface-container-high": "#2a2a2a",
+                        "on-primary-fixed-variant": "#004f4f",
+                        "surface-variant": "#353534",
+                        "surface-container-highest": "#353534",
+                        "on-surface": "#e5e2e1",
+                        "outline": "#839493",
+                        "inverse-primary": "#006a6a",
+                        "background": "#131313",
+                        "surface-bright": "#3a3939",
+                        "surface-dim": "#131313",
+                        "on-tertiary-fixed-variant": "#474646",
+                        "tertiary": "#ffffff",
+                        "on-background": "#e5e2e1",
+                        "on-error": "#690005",
+                        "on-primary-container": "#007070",
+                        "surface": "#131313",
+                        "primary": "#ffffff",
+                        "secondary-fixed-dim": "#dab9ff",
+                        "inverse-surface": "#e5e2e1",
+                        "secondary-fixed": "#efdbff",
+                        "on-error-container": "#ffdad6",
+                        "tertiary-fixed-dim": "#c9c6c5",
+                        "inverse-on-surface": "#313030",
+                        "error-container": "#93000a",
+                        "primary-fixed-dim": "#00dddd",
+                        "error": "#ffb4ab",
+                        "tertiary-fixed": "#e5e2e1",
+                        "primary-container": "#00fbfb",
+                        "secondary-container": "#8f03ff",
+                        "on-primary": "#003737",
+                        "surface-container": "#201f1f",
+                        "surface-container-low": "#1c1b1b",
+                        "on-tertiary-container": "#656464",
+                        "on-secondary-container": "#f0ddff",
+                        "on-secondary-fixed-variant": "#6500b8",
+                        "surface-tint": "#00dddd",
+                        "outline-variant": "#3a4a49",
+                        "primary-fixed": "#00fbfb",
+                        "on-secondary": "#470083",
+                        "tertiary-container": "#e5e2e1",
+                        "on-secondary-fixed": "#2b0053"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0px",
+                        "lg": "0px",
+                        "xl": "0px",
+                        "full": "0px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Space Grotesk"],
+                        "body": ["Inter"],
+                        "label": ["Space Grotesk"]
+                    }
+                },
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .signature-glow {
+            background: linear-gradient(135deg, #00fbfb 0%, rgba(0, 251, 251, 0.2) 100%);
+        }
+        .ambient-aura {
+            box-shadow: 0 0 50px rgba(143, 3, 255, 0.06);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body selection:bg-primary-container selection:text-on-primary-container">
+<!-- TopAppBar -->
+<header class="flex justify-between items-center w-full px-6 py-4 bg-[#131313] fixed top-0 z-50">
+<div class="text-xl font-bold tracking-tighter text-cyan-400 font-headline uppercase">KINETIC_CORE_V1</div>
+<nav class="hidden md:flex gap-8">
+<a class="text-neutral-500 font-headline tracking-tighter uppercase cursor-pointer hover:text-cyan-300 transition-colors duration-200" href="#">SYSTEM</a>
+<a class="text-cyan-400 border-b-2 border-cyan-400 pb-1 font-headline tracking-tighter uppercase cursor-pointer transition-colors duration-200" href="#">MODES</a>
+<a class="text-neutral-500 font-headline tracking-tighter uppercase cursor-pointer hover:text-cyan-300 transition-colors duration-200" href="#">DECRYPT</a>
+<a class="text-neutral-500 font-headline tracking-tighter uppercase cursor-pointer hover:text-cyan-300 transition-colors duration-200" href="#">LOGS</a>
+</nav>
+<div class="flex items-center gap-4 text-cyan-400">
+<span class="material-symbols-outlined cursor-pointer active:opacity-80">terminal</span>
+<span class="material-symbols-outlined cursor-pointer active:opacity-80">settings</span>
+</div>
+</header>
+<main class="pt-24 pb-16 px-6 max-w-7xl mx-auto">
+<!-- Header Metadata -->
+<div class="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
+<div class="w-full md:w-1/2">
+<span class="font-label text-xs tracking-widest text-primary-fixed uppercase block mb-2">// DIRECTORY: SECTOR_07</span>
+<h1 class="font-headline text-5xl md:text-7xl font-bold tracking-tighter leading-none uppercase text-primary">NODAL_MAP</h1>
+<p class="mt-4 text-on-surface-variant max-w-md font-light">Select an active neural node to initiate decryption sequence. Locked sectors require higher clearance levels.</p>
+</div>
+<div class="flex gap-4 w-full md:w-auto">
+<div class="bg-surface-container-low px-6 py-4 flex flex-col items-end flex-grow md:flex-grow-0">
+<span class="text-[10px] font-label tracking-widest text-neutral-500 uppercase">Total Progress</span>
+<span class="text-2xl font-headline font-bold text-secondary">64.2%</span>
+</div>
+<div class="bg-surface-container-low px-6 py-4 flex flex-col items-end flex-grow md:flex-grow-0">
+<span class="text-[10px] font-label tracking-widest text-neutral-500 uppercase">Nodes Resolved</span>
+<span class="text-2xl font-headline font-bold text-primary-fixed">18/28</span>
+</div>
+</div>
+</div>
+<!-- Puzzle Grid Canvas -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+<!-- Main Level Grid (Bento Style) -->
+<div class="lg:col-span-8 grid grid-cols-2 md:grid-cols-4 gap-4">
+<!-- Level Node: Completed -->
+<div class="group relative aspect-square bg-surface-container hover:bg-surface-bright transition-all cursor-pointer border border-primary-container/20">
+<div class="absolute inset-0 signature-glow opacity-10"></div>
+<div class="p-4 flex flex-col justify-between h-full relative z-10">
+<div class="flex justify-between items-start">
+<span class="font-label text-xs text-primary-fixed font-bold tracking-tighter">NODE_001</span>
+<span class="material-symbols-outlined text-primary-fixed text-lg" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<div>
+<span class="block font-headline text-2xl font-black text-primary leading-none uppercase">PRISM</span>
+<span class="text-[10px] font-label text-on-surface-variant uppercase tracking-widest">DIFF: BASIC</span>
+</div>
+</div>
+</div>
+<!-- Level Node: Completed -->
+<div class="group relative aspect-square bg-surface-container hover:bg-surface-bright transition-all cursor-pointer border border-primary-container/20">
+<div class="absolute inset-0 signature-glow opacity-10"></div>
+<div class="p-4 flex flex-col justify-between h-full relative z-10">
+<div class="flex justify-between items-start">
+<span class="font-label text-xs text-primary-fixed font-bold tracking-tighter">NODE_002</span>
+<span class="material-symbols-outlined text-primary-fixed text-lg" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<div>
+<span class="block font-headline text-2xl font-black text-primary leading-none uppercase">FLOW</span>
+<span class="text-[10px] font-label text-on-surface-variant uppercase tracking-widest">DIFF: BASIC</span>
+</div>
+</div>
+</div>
+<!-- Level Node: Active/Next -->
+<div class="group relative aspect-square bg-surface-container-high border-2 border-primary-container ambient-aura transition-all cursor-pointer">
+<div class="absolute inset-0 signature-glow opacity-20"></div>
+<div class="p-4 flex flex-col justify-between h-full relative z-10">
+<div class="flex justify-between items-start">
+<span class="font-label text-xs text-primary-fixed font-bold tracking-tighter">NODE_003</span>
+<span class="text-[10px] bg-primary-container text-on-primary-fixed px-1 font-bold">READY</span>
+</div>
+<div>
+<span class="block font-headline text-2xl font-black text-primary leading-none uppercase">MATRIX</span>
+<span class="text-[10px] font-label text-primary-fixed uppercase tracking-widest">DIFF: MID</span>
+</div>
+</div>
+</div>
+<!-- Level Node: Locked -->
+<div class="group aspect-square bg-surface-container-lowest transition-all border border-white/5 opacity-50 grayscale">
+<div class="p-4 flex flex-col justify-between h-full">
+<div class="flex justify-between items-start">
+<span class="font-label text-xs text-neutral-600 font-bold tracking-tighter">NODE_004</span>
+<span class="material-symbols-outlined text-neutral-600 text-lg">lock</span>
+</div>
+<div>
+<span class="block font-headline text-2xl font-black text-neutral-600 leading-none uppercase">VOID</span>
+<span class="text-[10px] font-label text-neutral-700 uppercase tracking-widest">REQS: LEVEL_003</span>
+</div>
+</div>
+</div>
+<!-- Feature Node: Large Hero Card -->
+<div class="col-span-2 row-span-2 relative bg-surface-container-low overflow-hidden group">
+<img alt="technical abstract" class="absolute inset-0 w-full h-full object-cover opacity-30 mix-blend-overlay group-hover:scale-105 transition-transform duration-700" data-alt="abstract tech background with glowing cyan and violet geometric lines and microchip patterns in high contrast" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDq2eZWkZWTlrYF44vsWQtbjHHRx6dbyuofrocWNQr7tcuV7-UwEf5I3DlwhnqE0O7Vq1DVU3WangvbwcpCE4O-fHKGJ01MeX9NoedEKKldMQ1aJNXkwBKFfNr7MCQrSeOd4mbWg-JLSocmsRki1L3CK8cypVm6PN2QleHq2e6E0YtX5h6SxzsAE_iTSlHrcDpvZH7ltHJfi9_XQl7BUPq36YYtSJaaLY_DDGHa1XOmVVzkzarEmH-ubwGUl8Pgtn3Es5ZMovdUUgc"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container-lowest via-transparent to-transparent"></div>
+<div class="relative p-8 h-full flex flex-col justify-between">
+<div>
+<span class="inline-block bg-secondary-container text-on-secondary-container px-2 py-0.5 text-[10px] font-black tracking-widest uppercase mb-4">CHALLENGE_MODE_UNLOCKED</span>
+<h2 class="font-headline text-4xl font-bold tracking-tighter uppercase text-primary">THE_OBELISK</h2>
+</div>
+<div class="flex items-center gap-6">
+<div>
+<span class="block text-[10px] font-label text-neutral-500 uppercase tracking-widest">BEST_TIME</span>
+<span class="font-headline text-xl text-secondary">00:42:158</span>
+</div>
+<button class="bg-primary-container text-on-primary-container px-8 py-3 font-headline font-bold uppercase tracking-tighter active:opacity-80 transition-all">RE-RUN_SIM</button>
+</div>
+</div>
+</div>
+<!-- Small Nodes -->
+<div class="group aspect-square bg-surface-container-lowest transition-all border border-white/5 opacity-50 grayscale">
+<div class="p-4 flex flex-col justify-between h-full">
+<div class="flex justify-between items-start">
+<span class="font-label text-xs text-neutral-600 font-bold tracking-tighter">NODE_005</span>
+<span class="material-symbols-outlined text-neutral-600 text-lg">lock</span>
+</div>
+<div><span class="block font-headline text-2xl font-black text-neutral-600 leading-none uppercase">CORE</span></div>
+</div>
+</div>
+<div class="group aspect-square bg-surface-container-lowest transition-all border border-white/5 opacity-50 grayscale">
+<div class="p-4 flex flex-col justify-between h-full">
+<div class="flex justify-between items-start">
+<span class="font-label text-xs text-neutral-600 font-bold tracking-tighter">NODE_006</span>
+<span class="material-symbols-outlined text-neutral-600 text-lg">lock</span>
+</div>
+<div><span class="block font-headline text-2xl font-black text-neutral-600 leading-none uppercase">GRID</span></div>
+</div>
+</div>
+</div>
+<!-- Sidebar: Technical Specs -->
+<div class="lg:col-span-4 flex flex-col gap-4">
+<!-- Status Panel -->
+<div class="bg-surface-container-lowest p-6 border-l-4 border-secondary">
+<h3 class="font-label text-[10px] tracking-[0.3em] text-secondary uppercase mb-6">OPERATOR_PROFILE</h3>
+<div class="space-y-4">
+<div class="flex justify-between items-end border-b border-white/5 pb-2">
+<span class="text-neutral-500 text-xs font-label uppercase">IDENT:</span>
+<span class="text-on-surface font-headline font-bold">USR_8812</span>
+</div>
+<div class="flex justify-between items-end border-b border-white/5 pb-2">
+<span class="text-neutral-500 text-xs font-label uppercase">RANK:</span>
+<span class="text-on-surface font-headline font-bold">SR_ARCHITECT</span>
+</div>
+<div class="flex justify-between items-end border-b border-white/5 pb-2">
+<span class="text-neutral-500 text-xs font-label uppercase">STREAK:</span>
+<span class="text-secondary font-headline font-bold">12_CYCLES</span>
+</div>
+</div>
+</div>
+<!-- Global Readouts -->
+<div class="bg-surface-container p-6 space-y-8">
+<div>
+<div class="flex justify-between items-center mb-2">
+<span class="text-[10px] font-label text-neutral-500 tracking-widest uppercase">SYNERGY_LOAD</span>
+<span class="text-[10px] font-label text-primary-fixed">72%</span>
+</div>
+<div class="h-1 w-full bg-surface-container-highest">
+<div class="h-full bg-primary-fixed-dim" style="width: 72%"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between items-center mb-2">
+<span class="text-[10px] font-label text-neutral-500 tracking-widest uppercase">SYSTEM_STABILITY</span>
+<span class="text-[10px] font-label text-secondary">94%</span>
+</div>
+<div class="h-1 w-full bg-surface-container-highest">
+<div class="h-full bg-secondary" style="width: 94%"></div>
+</div>
+</div>
+</div>
+<!-- Action Module -->
+<div class="bg-surface-container-high p-8 flex flex-col items-center justify-center text-center gap-4 group cursor-pointer hover:bg-surface-bright transition-colors">
+<span class="material-symbols-outlined text-4xl text-primary-fixed" style="font-variation-settings: 'FILL' 0, 'wght' 200;">refresh</span>
+<div>
+<span class="block font-headline text-xl font-bold uppercase text-primary">INITIALIZE_RANDOM_GRID</span>
+<span class="text-[10px] font-label text-neutral-500 uppercase tracking-widest">GENERATES UNSTABLE PROCEDURAL PUZZLE</span>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Footer -->
+<footer class="flex flex-row justify-between items-center w-full px-6 py-3 bg-[#0e0e0e] border-t border-white/5 fixed bottom-0 z-50">
+<div class="text-xs font-black text-neutral-600 font-headline">MONOLITH_OPERATIONS</div>
+<div class="flex gap-6">
+<a class="text-neutral-600 hover:text-violet-300 font-inter text-[10px] uppercase tracking-widest transition-colors duration-200" href="#">PRIVACY_PROTOCOL</a>
+<a class="text-neutral-600 hover:text-violet-300 font-inter text-[10px] uppercase tracking-widest transition-colors duration-200" href="#">SECURITY_LAYER</a>
+<a class="text-violet-400 font-inter text-[10px] uppercase tracking-widest transition-colors duration-200" href="#">SUPPORT_COMMS</a>
+</div>
+<div class="text-[10px] font-inter uppercase tracking-widest text-neutral-600">© 2024 MONOLITH_OPERATIONS. ALL RIGHTS RESERVED.</div>
+</footer>
+</body></html>

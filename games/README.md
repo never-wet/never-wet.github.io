@@ -12,6 +12,8 @@ This folder holds the web game section for `never-wet.github.io`.
   A GIF gacha / reel-pull game with rarity effects, pity, collection tracking, exports, and a large dev mode.
 - `midnight-pawn/`
   A neon pawn-shop resale sim with night shifts, seller negotiation, item prep, listings, upgrades, and browser save data.
+- `puzzle/`
+  A React + TypeScript + Vite puzzle platform with logic puzzles, ciphers, hotspot scenes, local progress tracking, and multi-room escape mode.
 - `soccer-idle/`
   A playable soccer idle game with upgrades, passive income, multiple screens, and browser save data.
 - `stitch_soccer_clicker_tycoon/`
@@ -24,6 +26,7 @@ From the site:
 - `/games/`
 - `/games/reelspull/`
 - `/games/midnight-pawn/`
+- `/games/puzzle/`
 - `/games/soccer-idle/`
 
 If you are testing locally, serve the repo as a static site and open the same paths in your browser.
