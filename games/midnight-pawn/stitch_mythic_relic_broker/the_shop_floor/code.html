@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Manrope:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-secondary-fixed-variant": "#004e5c",
+                    "surface-container-lowest": "#0e0e0f",
+                    "error-container": "#93000a",
+                    "on-surface-variant": "#cbc3d7",
+                    "error": "#ffb4ab",
+                    "tertiary-fixed": "#ffe088",
+                    "on-primary-fixed-variant": "#5516be",
+                    "primary-fixed": "#e9ddff",
+                    "surface-variant": "#353436",
+                    "surface-container-highest": "#353436",
+                    "on-error-container": "#ffdad6",
+                    "background": "#131314",
+                    "primary": "#d0bcff",
+                    "primary-container": "#a078ff",
+                    "tertiary-container": "#cca830",
+                    "on-secondary-container": "#00424e",
+                    "on-tertiary-container": "#4f3e00",
+                    "surface-bright": "#3a393a",
+                    "on-primary": "#3c0091",
+                    "secondary": "#4cd7f6",
+                    "surface-dim": "#131314",
+                    "on-surface": "#e5e2e3",
+                    "secondary-fixed": "#acedff",
+                    "outline-variant": "#494454",
+                    "surface": "#131314",
+                    "inverse-surface": "#e5e2e3",
+                    "outline": "#958ea0",
+                    "tertiary-fixed-dim": "#e9c349",
+                    "primary-fixed-dim": "#d0bcff",
+                    "on-background": "#e5e2e3",
+                    "inverse-on-surface": "#313031",
+                    "surface-tint": "#d0bcff",
+                    "on-primary-fixed": "#23005c",
+                    "surface-container": "#201f20",
+                    "surface-container-low": "#1c1b1c",
+                    "on-secondary": "#003640",
+                    "on-secondary-fixed": "#001f26",
+                    "surface-container-high": "#2a2a2b",
+                    "tertiary": "#e9c349",
+                    "on-tertiary": "#3c2f00",
+                    "secondary-container": "#03b5d3",
+                    "inverse-primary": "#6d3bd7",
+                    "secondary-fixed-dim": "#4cd7f6",
+                    "on-error": "#690005",
+                    "on-tertiary-fixed-variant": "#574500"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0px",
+                    "lg": "0px",
+                    "xl": "0px",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Space Grotesk"],
+                    "body": ["Manrope"],
+                    "label": ["Space Grotesk"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+      .neon-glow-primary {
+        box-shadow: 0 0 20px rgba(208, 188, 255, 0.2);
+      }
+      .neon-border-top {
+        box-shadow: 0 -2px 0 0 #d0bcff;
+      }
+      .glitch-hover:hover {
+        box-shadow: 2px 2px 0px #4cd7f6;
+      }
+      .custom-scrollbar::-webkit-scrollbar {
+        width: 4px;
+      }
+      .custom-scrollbar::-webkit-scrollbar-track {
+        background: #131314;
+      }
+      .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #494454;
+      }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body select-none">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-[#131314] text-[#d0bcff] font-['Space_Grotesk'] uppercase tracking-[0.05em] flex justify-between items-center px-6 py-4 border-b-2 border-[#d0bcff]/20 shadow-[0_0_20px_rgba(208,188,255,0.1)]">
+<div class="text-xl font-bold text-[#e9c349] tracking-widest">THE BROKER'S LEDGER</div>
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-2 group">
+<span class="material-symbols-outlined text-[#e9c349]">monetization_on</span>
+<span class="font-headline font-bold text-lg tracking-normal">42,850 <span class="text-xs text-[#e9c349]/70">CREDITS</span></span>
+</div>
+<div class="flex items-center gap-2 group">
+<span class="material-symbols-outlined text-[#4cd7f6]">military_tech</span>
+<span class="font-headline font-bold text-lg tracking-normal text-[#4cd7f6]">742 <span class="text-xs opacity-70">REPUTATION</span></span>
+</div>
+<div class="flex items-center gap-4 ml-4">
+<span class="material-symbols-outlined cursor-pointer hover:bg-[#353436] p-2 transition-transform duration-150 active:scale-95">wb_twilight</span>
+</div>
+</div>
+</header>
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-0 h-full w-64 bg-[#0e0e0f] text-[#d0bcff] font-['Space_Grotesk'] text-sm font-bold uppercase flex flex-col py-8 border-r border-[#494454]/20 z-40 mt-16">
+<div class="px-6 mb-8">
+<div class="flex items-center gap-3 mb-2">
+<div class="w-10 h-10 bg-surface-container-highest border border-tertiary flex items-center justify-center overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Digital alchemist portrait with glowing circuitry tattoos on face and ornate hood" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDDuDIEIY5mX1FLAUibv7tCmVBkKL7vziq-ComZ46BVBhUoAVzctrh61Nk7SnuQL4YO0GB9NyeqZ0fVJRQAIt5U9TCybPFNf1lWSYVx1JLJUNMNDJnAE1Fza_V7AmeWoEdIIkH07iEcqyyKXhLiaLaUnhJHKS0HH_-7WTg37MuD9aBlGW-d--9Uz49x80PcLJXgFgbauXDCqF1Sb_LQJY6fP_RPHgTQiDwqWkE9GY6AJvyBBvnFnI65S_70QHF00XHMWUFUkCu27KY"/>
+</div>
+<div>
+<div class="text-sm font-black text-[#e9c349]">MASTER BROKER</div>
+<div class="text-[10px] text-[#cbc3d7] opacity-70">Tier III Relic Hunter</div>
+</div>
+</div>
+</div>
+<nav class="flex-1">
+<div class="px-3 space-y-1">
+<a class="flex items-center gap-4 px-4 py-3 bg-[#2a2a2b] text-[#e9c349] border-l-4 border-[#e9c349]" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">token</span>
+<span>EXCHANGE</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 text-[#cbc3d7] opacity-70 hover:text-[#d0bcff] hover:bg-[#201f20] transition-colors" href="#">
+<span class="material-symbols-outlined">inventory_2</span>
+<span>STASH</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 text-[#cbc3d7] opacity-70 hover:text-[#d0bcff] hover:bg-[#201f20] transition-colors" href="#">
+<span class="material-symbols-outlined">stars</span>
+<span>REPUTATION</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 text-[#cbc3d7] opacity-70 hover:text-[#d0bcff] hover:bg-[#201f20] transition-colors" href="#">
+<span class="material-symbols-outlined">menu_book</span>
+<span>CHRONICLES</span>
+</a>
+</div>
+</nav>
+<div class="px-6 mt-auto">
+<button class="w-full py-3 bg-tertiary text-on-tertiary font-black text-center glitch-hover transition-all">
+                CLOSE DEAL
+            </button>
+</div>
+</aside>
+<!-- Main Shop Floor -->
+<main class="ml-64 mt-16 min-h-[calc(100vh-64px)] relative overflow-hidden bg-surface">
+<!-- Background Scene Overlay -->
+<div class="absolute inset-0 z-0">
+<img class="w-full h-full object-cover opacity-30 mix-blend-luminosity" data-alt="Interior of a dark futuristic antique shop with dusty shelves, floating holographic displays, and dim purple neon lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCbBHgXQNw-H-LMFxfZTnKExl0hoeKYemoqar6npnnbl9FF-mE_y3W8jvze25Yv0UvH9vQU_DAVPu4o_ql2nmojvY5pbHWKkcwAFDDbUvwDmXtzzg2S9PkBdiTP_prUkVSGMftd4aV3R1vAc6iwyJk8YCbC9lddhdZF8cECKaZDyMq4ljKop3WdPZXqehtSpBe3uYoqYIqv4yZ7z0GMRs-pXHroc3YtGRRTLPDjnY2vvMXmDez43TgJbkOgWnLRd-EGjPAl4vZup9A"/>
+<div class="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent"></div>
+</div>
+<!-- Gameplay Canvas -->
+<div class="relative z-10 p-8 grid grid-cols-12 gap-8 h-full max-w-[1600px] mx-auto">
+<!-- Customer Section -->
+<div class="col-span-12 lg:col-span-5 flex flex-col justify-end pb-12">
+<div class="relative group">
+<!-- Customer Portrait -->
+<div class="w-full h-[600px] overflow-hidden bg-surface-container relative border-b-4 border-primary/30">
+<img class="w-full h-full object-cover object-top grayscale hover:grayscale-0 transition-all duration-700" data-alt="Mysterious customer with a metallic mask and tattered velvet cloak standing in a dark alleyway" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBUUu-PJ69pSXEIYDYOV0gc9God5GGl4We_vkPdjySTI-di41n_sXvnNTje7KITZQI2Z1dNk-qrr7ObFKpxe-s1_BWa-YvUZglFsEaz5JdN02WD72TW0EdOkcXhrbqb7aQTYYRGqdbU0FaekzGaJuv5ODnluqDrggC2dzLiY7Vzbur51jaKTqK6NnVAre459eRTvw20XWWvOUnYTAIQ3CvXaprl4MOxQ6KT3lwbPlFRvd_Uy7xwkrQpNopS3I_qp6eNtnjhXqmmnuM"/>
+<!-- Dialogue Box -->
+<div class="absolute bottom-8 left-8 right-8 bg-surface-container-highest border-t-2 border-primary p-6 backdrop-blur-md bg-opacity-90">
+<div class="flex justify-between items-start mb-4">
+<span class="font-headline text-tertiary text-xs tracking-widest uppercase">The Nameless Collector</span>
+<span class="material-symbols-outlined text-primary text-sm">chat_bubble</span>
+</div>
+<p class="font-body text-on-surface text-lg leading-relaxed italic">
+                                "These trinkets hum with a frequency I haven't heard in cycles. I offer 12,000 credits for the set, or we can discuss... alternative forms of payment."
+                            </p>
+<div class="mt-6 flex gap-4">
+<button class="px-6 py-2 bg-primary text-on-primary font-headline text-sm font-bold uppercase tracking-widest hover:bg-primary-container transition-colors">Accept Offer</button>
+<button class="px-6 py-2 border border-outline text-on-surface font-headline text-sm font-bold uppercase tracking-widest hover:bg-surface-variant transition-colors">Haggle</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Shop Counter & Relics -->
+<div class="col-span-12 lg:col-span-7 flex flex-col gap-8">
+<div class="flex items-center justify-between">
+<h2 class="font-headline text-2xl font-bold text-on-surface tracking-widest uppercase border-l-4 border-tertiary pl-4">The Display Counter</h2>
+<div class="flex gap-2">
+<div class="w-3 h-3 bg-tertiary"></div>
+<div class="w-3 h-3 bg-primary"></div>
+<div class="w-3 h-3 bg-secondary"></div>
+</div>
+</div>
+<!-- Relic Cards Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<!-- Relic Card 1 -->
+<div class="bg-surface-container-low border-r-2 border-b-2 border-outline-variant/30 group hover:border-primary transition-colors duration-300">
+<div class="h-48 overflow-hidden bg-surface-container-lowest p-2 relative">
+<div class="absolute top-4 right-4 z-10">
+<span class="material-symbols-outlined text-tertiary text-2xl" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+</div>
+<img class="w-full h-full object-cover brightness-75 group-hover:brightness-100 transition-all duration-500" data-alt="Antique glowing hourglass with purple sand and complex brass mechanical gears" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDNRvdJnr7xV_4DXrPVlj-yz89gctqhE97z7fv_YwzAxuc6lkaYt3vMXxZBLrnrDKHoI8muRW-Sd5Xe5DeIkHBzheX1BSyxGewKKTjomd0KjByunQPv0fIo21Yw2At1jZyTAOWCeXbYoaqBjKPD1Gg1WW8ctkZ3ej5NLx9_-IUYEYoAoUhW4za3bBpAu_8xNqFB-rVfgnaejh_JQ7btytwyvOq1Jk9WyLRojz4DXIE3jvRzRNH13gaSwRu1AsFwgwR7-rB4eI05Lq8"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container-low to-transparent"></div>
+</div>
+<div class="p-6">
+<div class="flex justify-between items-center mb-2">
+<span class="font-headline text-primary text-[10px] tracking-widest uppercase">RARE ARTIFACT</span>
+<span class="font-headline text-tertiary font-black text-lg">7,500 <span class="text-xs">CR</span></span>
+</div>
+<h3 class="font-headline text-xl font-bold text-on-surface mb-2">Enchanted Hourglass</h3>
+<p class="font-body text-sm text-on-surface-variant line-clamp-2 mb-4">
+                                A chronal stabilization device retrieved from the ruins of sector 7. The sand flows upwards during solar flares.
+                            </p>
+<div class="flex gap-2">
+<div class="px-2 py-1 bg-surface-variant text-[10px] font-headline text-secondary uppercase">Chronal</div>
+<div class="px-2 py-1 bg-surface-variant text-[10px] font-headline text-secondary uppercase">Mechanical</div>
+</div>
+</div>
+</div>
+<!-- Relic Card 2 -->
+<div class="bg-surface-container-low border-r-2 border-b-2 border-outline-variant/30 group hover:border-primary transition-colors duration-300">
+<div class="h-48 overflow-hidden bg-surface-container-lowest p-2 relative">
+<div class="absolute top-4 right-4 z-10">
+<span class="material-symbols-outlined text-secondary text-2xl">offline_bolt</span>
+</div>
+<img class="w-full h-full object-cover brightness-75 group-hover:brightness-100 transition-all duration-500" data-alt="Obsidian dagger with etched neon blue circuitry patterns glowing on the blade" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDfzqR6JhXwwZnJIXugCWo39hifWK1OolTN-FWp3r6sGmK-WwHpzRflCuPZoSvP1DkrIlMbr2Wn3m2cd9YpMtD5eOyF1Gqcd93FkInCubN1OleSaydQD0HUEk1N07bgbxBValdJMasSxdce9N2b1RMucGMA6Y6Cpmywg6eqTFjNKgmAcTUVbkIqipd1XHcP3KrwoTaVFCsyqcZ4sSI373LLS0IpcjwMID1Ds3-n3lheSVlhTL0lgzqm3anyNWimAzEyuQGYgI3INYs"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container-low to-transparent"></div>
+</div>
+<div class="p-6">
+<div class="flex justify-between items-center mb-2">
+<span class="font-headline text-primary text-[10px] tracking-widest uppercase">CYBER RELIC</span>
+<span class="font-headline text-tertiary font-black text-lg">4,800 <span class="text-xs">CR</span></span>
+</div>
+<h3 class="font-headline text-xl font-bold text-on-surface mb-2">Circuitry-Etched Dagger</h3>
+<p class="font-body text-sm text-on-surface-variant line-clamp-2 mb-4">
+                                A ritualistic blade infused with data-mining nanites. Can pierce both physical armor and firewall encryption.
+                            </p>
+<div class="flex gap-2">
+<div class="px-2 py-1 bg-surface-variant text-[10px] font-headline text-secondary uppercase">Offensive</div>
+<div class="px-2 py-1 bg-surface-variant text-[10px] font-headline text-secondary uppercase">Void-Data</div>
+</div>
+</div>
+</div>
+<!-- Relic Card 3 (Bonus/Empty Slot style) -->
+<div class="col-span-full bg-surface-container-lowest border border-dashed border-outline-variant/40 p-8 flex flex-col items-center justify-center group cursor-pointer hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined text-4xl text-outline-variant group-hover:text-primary mb-4">add_circle</span>
+<div class="font-headline text-sm text-outline-variant uppercase tracking-widest">Place item from inventory</div>
+</div>
+</div>
+<!-- Ledger List (Recent Transactions) -->
+<div class="mt-4 bg-surface-container border-t-2 border-secondary/30">
+<div class="px-6 py-4 flex justify-between items-center bg-surface-container-high">
+<span class="font-headline text-xs font-bold uppercase tracking-widest text-secondary">Merchant Log: 14.02.XX</span>
+<span class="material-symbols-outlined text-secondary text-lg">list_alt</span>
+</div>
+<div class="divide-y divide-outline-variant/10">
+<div class="px-6 py-4 flex justify-between items-center hover:bg-surface-container-highest transition-colors">
+<div class="flex items-center gap-4">
+<div class="w-1 h-8 bg-tertiary"></div>
+<div>
+<div class="font-headline text-sm text-on-surface uppercase">Sold: Rusty Core</div>
+<div class="text-[10px] text-on-surface-variant">Buyer: Scrap Merchant Jace</div>
+</div>
+</div>
+<div class="text-right">
+<div class="font-headline text-tertiary text-sm">+1,200 CR</div>
+<div class="text-[10px] text-secondary font-bold">+5 REP</div>
+</div>
+</div>
+<div class="px-6 py-4 flex justify-between items-center bg-surface-container-low hover:bg-surface-container-highest transition-colors">
+<div class="flex items-center gap-4">
+<div class="w-1 h-8 bg-primary"></div>
+<div>
+<div class="font-headline text-sm text-on-surface uppercase">Acquired: Void Fragment</div>
+<div class="text-[10px] text-on-surface-variant">Seller: Deep Void Nomad</div>
+</div>
+</div>
+<div class="text-right">
+<div class="font-headline text-error text-sm">-3,400 CR</div>
+<div class="text-[10px] text-secondary font-bold">+12 REP</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Ambient Particle Effect (Simulated with simple divs for Cyber-Antique feel) -->
+<div class="fixed top-20 right-20 w-32 h-32 bg-primary/5 blur-[80px] rounded-full pointer-events-none"></div>
+<div class="fixed bottom-40 left-80 w-64 h-64 bg-secondary/5 blur-[120px] rounded-full pointer-events-none"></div>
+</main>
+<!-- Floating Reputation HUD (Bottom Left) -->
+<div class="fixed bottom-8 left-72 z-50 flex flex-col gap-2">
+<div class="bg-surface-container-highest/80 backdrop-blur-md p-4 border-l-4 border-secondary flex items-center gap-4">
+<div class="w-10 h-10 flex items-center justify-center bg-secondary/10">
+<span class="material-symbols-outlined text-secondary">query_stats</span>
+</div>
+<div>
+<div class="text-[10px] font-headline text-secondary uppercase tracking-[0.2em]">Market Influence</div>
+<div class="w-48 h-1 bg-outline-variant mt-1">
+<div class="h-full bg-secondary w-2/3 shadow-[0_0_8px_#4cd7f6]"></div>
+</div>
+</div>
+</div>
+</div>
+</body></html>

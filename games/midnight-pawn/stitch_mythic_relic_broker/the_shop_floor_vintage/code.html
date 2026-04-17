@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>THE BROKER'S LEDGER - Shop Floor</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&amp;family=Noto+Serif:ital,wght@0,100..900;1,100..900&amp;family=Space+Grotesk:wght@300..700&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "surface-container-high": "#2a2a2a",
+                      "on-tertiary-fixed": "#141e16",
+                      "on-primary-container": "#af8c47",
+                      "surface-dim": "#131313",
+                      "secondary-container": "#643d2e",
+                      "on-surface-variant": "#d5c3bc",
+                      "surface-container-lowest": "#0e0e0e",
+                      "surface-container": "#201f1f",
+                      "secondary": "#f2baa6",
+                      "surface": "#131313",
+                      "background": "#131313",
+                      "on-background": "#e5e2e1",
+                      "on-surface": "#e5e2e1",
+                      "on-secondary-container": "#dfa996",
+                      "surface-tint": "#e9c176",
+                      "error-container": "#93000a",
+                      "primary-fixed-dim": "#e9c176",
+                      "on-secondary-fixed-variant": "#643d2e",
+                      "on-primary-fixed-variant": "#5d4201",
+                      "surface-container-highest": "#353534",
+                      "on-primary-fixed": "#261900",
+                      "on-tertiary-container": "#899488",
+                      "on-primary": "#412d00",
+                      "inverse-primary": "#775a19",
+                      "tertiary-container": "#222c23",
+                      "error": "#ffb4ab",
+                      "on-secondary-fixed": "#311307",
+                      "on-secondary": "#4a271a",
+                      "surface-container-low": "#1c1b1b",
+                      "primary-container": "#392700",
+                      "tertiary": "#becabd",
+                      "primary": "#e9c176",
+                      "on-tertiary-fixed-variant": "#3f4940",
+                      "primary-fixed": "#ffdea5",
+                      "tertiary-fixed": "#dae6d8",
+                      "outline": "#9e8d88",
+                      "on-error-container": "#ffdad6",
+                      "inverse-on-surface": "#313030",
+                      "surface-bright": "#3a3939",
+                      "on-tertiary": "#29332a",
+                      "tertiary-fixed-dim": "#becabd",
+                      "inverse-surface": "#e5e2e1",
+                      "on-error": "#690005",
+                      "secondary-fixed": "#ffdbce",
+                      "outline-variant": "#51443f",
+                      "secondary-fixed-dim": "#f2baa6",
+                      "surface-variant": "#353534"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.125rem",
+                      "lg": "0.25rem",
+                      "xl": "0.5rem",
+                      "full": "0.75rem"
+              },
+              "fontFamily": {
+                      "headline": ["Newsreader"],
+                      "body": ["Noto Serif"],
+                      "label": ["Space Grotesk"]
+              }
+            },
+          },
+        }
+    </script>
+<style>.material-symbols-outlined {
+    font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
+    display: inline-block;
+    line-height: 1
+    }
+.parchment-texture {
+    background-image: url(https://lh3.googleusercontent.com/aida-public/AB6AXuAK6dBvsVdFGGChblmOLqHIooGoVbE_9Y310iwk7saaybGXi-cpDiVdyZs0QK4dnUZg4lrqLng4aoK2yaTlyrzNX0i9z3BF3UjSEaj7NKNHlMZ6cdJGC31qFeayyNmmlaI3gS53kSVZpcbFY3sgmkvznRb4Jt4nXNtyJzx-2KdzyigsLfdXTur5AeoxcoYlmYFhMFT-Lkk1T7h7Am25_Qvhl65_UtwFln8GGcFPpilExZT8na5eIJT4ROBfe0VupIDoZCzZgrZ5u1c);
+    background-color: #d5c3bc
+    }
+.mahogany-grain {
+    background-image: radial-gradient(circle at center, #1c1c1c 0%, #131313 100%)
+    }
+.wax-seal {
+    box-shadow: inset 2px 2px 4px rgba(0, 0, 0, 0.4), 2px 2px 8px rgba(0, 0, 0, 0.6)
+    }</style>
+</head>
+<body class="bg-background text-on-background font-body selection:bg-primary/30 selection:text-primary">
+<!-- Top Navigation Shell -->
+<nav class="bg-[#131313] shadow-[0px_20px_40px_rgba(0,0,0,0.4)] flex justify-between items-center w-full px-8 py-4 fixed top-0 z-50">
+<div class="text-2xl font-bold text-[#e9c176] font-['Newsreader'] uppercase tracking-widest">THE BROKER'S LEDGER</div>
+<div class="hidden md:flex items-center space-x-12">
+<a class="font-['Newsreader'] uppercase tracking-widest text-sm text-[#e9c176] border-b-2 border-[#e9c176] pb-1 hover:text-[#e9c176] transition-colors duration-300" href="#">EXCHANGE</a>
+<a class="font-['Newsreader'] uppercase tracking-widest text-sm text-[#f2baa6]/60 hover:text-[#e9c176] transition-colors duration-300" href="#">STASH</a>
+<a class="font-['Newsreader'] uppercase tracking-widest text-sm text-[#f2baa6]/60 hover:text-[#e9c176] transition-colors duration-300" href="#">CHRONICLES</a>
+</div>
+<div class="flex items-center space-x-6">
+<span class="material-symbols-outlined text-[#e9c176] cursor-pointer scale-95 transition-transform hover:scale-110">history_edu</span>
+<span class="material-symbols-outlined text-[#e9c176] cursor-pointer scale-95 transition-transform hover:scale-110">shopping_bag</span>
+<span class="material-symbols-outlined text-[#e9c176] cursor-pointer scale-95 transition-transform hover:scale-110">hourglass_empty</span>
+</div>
+</nav>
+<!-- Side Navigation Shell -->
+<aside class="hidden lg:flex bg-[#1c1c1c] w-64 h-full fixed left-0 top-0 shadow-2xl flex-col p-6 space-y-8 z-40 mt-16 pt-12">
+<div class="flex flex-col items-center text-center space-y-3">
+<div class="w-24 h-24 rounded-sm overflow-hidden border border-outline-variant/20 shadow-lg">
+<img class="w-full h-full object-cover grayscale opacity-80" data-alt="Classic oil painting portrait of an elderly distinguished master broker with silver hair in a dark study" src="https://lh3.googleusercontent.com/aida-public/AB6AXuANMTJnfRutNBwePgBJfmefO5o8jgYuBTw0G-zukglywnYkzrkulFZM8pTWSW3tQYkB6igSMD3e9lj6bmmUB9KjLwDWjodv3Wfj-pFY_3Nw1OnuEUeYXDuVcANIn_TxvCtgs8RyH-77anvJ7BcdT3X6SnvSbva3L9d31Azna3RIBQ95Eavht5YxUdZT52Rk1s2ijEOvt-EWwdlomBblEpcRjDen6cqELPGhsZpS1qpJ0ELsVsTE7pCE_zO_k_3CcL8b6FoA_RRaf74"/>
+</div>
+<div>
+<h3 class="text-[#e9c176] font-['Newsreader'] text-lg">MASTER BROKER</h3>
+<p class="font-['Space_Grotesk'] text-[10px] tracking-tighter text-[#f2baa6]/40 uppercase">Archivist of the Deep Mahogany</p>
+</div>
+</div>
+<div class="space-y-4 pt-4">
+<div class="flex items-center space-x-3 text-[#e9c176] font-bold cursor-pointer group">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">payments</span>
+<span class="font-['Space_Grotesk'] text-xs tracking-tighter uppercase">Wealth</span>
+</div>
+<div class="flex items-center space-x-3 text-[#f2baa6]/40 cursor-pointer hover:bg-[#e9c176]/10 p-1 rounded-sm transition-all group">
+<span class="material-symbols-outlined text-sm">verified</span>
+<span class="font-['Space_Grotesk'] text-xs tracking-tighter uppercase">Reputation</span>
+</div>
+</div>
+<div class="mt-auto pb-8">
+<button class="w-full py-3 bg-primary text-on-primary font-['Newsreader'] text-sm tracking-widest rounded-sm active:shadow-inner transition-all hover:brightness-110">
+                CLOSE DEAL
+            </button>
+</div>
+</aside>
+<!-- Main Content: The Shop Floor -->
+<main class="lg:ml-64 pt-24 pb-12 px-8 min-h-screen mahogany-grain">
+<!-- Top Row: Character & Artifacts -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+<!-- Left: Character Parchment Scroll -->
+<div class="lg:col-span-3 h-full flex flex-col items-center">
+<div class="parchment-texture p-8 shadow-2xl relative w-full border-x border-[#8d7b6d]/30">
+<!-- Scroll top decorative element -->
+<div class="absolute -top-4 left-0 right-0 h-8 bg-[#4a271a] rounded-full shadow-lg flex justify-between px-2 items-center">
+<div class="w-4 h-4 bg-primary rounded-full"></div>
+<div class="w-4 h-4 bg-primary rounded-full"></div>
+</div>
+<div class="pt-6 text-center space-y-6">
+<div class="w-full aspect-[3/4] bg-surface overflow-hidden shadow-inner border border-[#131313]">
+<img class="w-full h-full object-cover mix-blend-multiply opacity-90 contrast-125" data-alt="A mysterious figure in a heavy dark wool cloak and a rusted iron mask with narrow eye slits standing in shadow" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAo1fZh86TgujU5rRTsGet4AymuTJd3OETumWzGmELZERWvHqyhvlk9ZQNkdnodujM1ECavenzQHgO430kETaRoeU_ZgVDjWy_FPBSznGHSIAw6m9A1ICBlPlrr1_FAVBQH3QJikz2q9eNfjbwbD9MGQCllJg2WkaxL46L4JJunre0QYaC_w4BsE4_du-CfbVVipH7I0AHl_KyeTIykLPFG1G6qu_YGFIYo8HvbQ3skqqINtrcD_R2QA_w0Nv_C2kvZIDsy7L_MmV0"/>
+</div>
+<div class="border-y border-[#4a271a]/20 py-4">
+<h2 class="font-headline text-2xl text-on-secondary italic">The Nameless Collector</h2>
+<p class="font-['Space_Grotesk'] text-[10px] tracking-[0.2em] text-on-secondary/60 mt-1 uppercase">Wanderer of the Void</p>
+</div>
+<div class="text-on-secondary font-headline italic text-lg leading-relaxed text-left py-4 px-2">
+                            "I seek that which time forgot... the gears that turn against the sun. Do you have the Astrolabe, or must I trade with the silences?"
+                        </div>
+<div class="flex justify-center mt-4">
+<div class="w-12 h-12 bg-secondary-container rounded-full wax-seal flex items-center justify-center -rotate-12 border border-secondary/20">
+<span class="material-symbols-outlined text-on-secondary-container text-2xl" style="font-variation-settings: 'FILL' 1;">fingerprint</span>
+</div>
+</div>
+</div>
+<!-- Scroll bottom decorative element -->
+<div class="absolute -bottom-4 left-0 right-0 h-8 bg-[#4a271a] rounded-full shadow-lg flex justify-between px-2 items-center">
+<div class="w-4 h-4 bg-primary rounded-full"></div>
+<div class="w-4 h-4 bg-primary rounded-full"></div>
+</div>
+</div>
+</div>
+<!-- Center/Right: Artifact Display & Scales -->
+<div class="lg:col-span-9 space-y-12">
+<!-- Artifact Trays -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+<!-- Artifact 1: Enchanted Hourglass -->
+<div class="bg-surface-container-low p-1 rounded-sm shadow-2xl group hover:shadow-primary/5 transition-all duration-500">
+<div class="bg-[#2a1a14] border-4 border-[#3e271e] p-6 h-full flex flex-col">
+<div class="mb-6 relative overflow-hidden h-80 bg-surface-container-lowest">
+<div class="absolute inset-0 bg-primary/5 mix-blend-overlay"></div>
+<img class="w-full h-full object-cover grayscale brightness-75 group-hover:brightness-100 transition-all duration-700" data-alt="An ornate antique hourglass made of carved dark wood and glowing golden sand sitting on a velvet surface" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCRni45fQj04rSV80WyhW5WuQBErpgxUT5kYJk2_3CgO5WybZl2y_w28voP-pWOpfNLWM6cYmZXPz5y7kUb0T__2fmuBkuyEABbq5-SbAthyjPN9zFzB7DiA4JRXzpznKAUaa6568ow94E5regHg4EJISW2w_31b8o_Uq8YROA3UsbYcbNujNWVBddsr9aldS9YJm7hoC01W_xLdVHcgY48Mq92U_QHHlBa0kCwKfAEK0dqpaDvX4p4S5Ht4TLsErCQhKgDObzA2PU"/>
+<div class="absolute top-4 right-4 bg-primary px-3 py-1 text-on-primary font-label text-[10px] uppercase tracking-tighter shadow-lg">UNIQUE</div>
+</div>
+<div class="flex flex-col flex-grow">
+<h3 class="font-headline text-3xl text-primary mb-2">Enchanted Hourglass</h3>
+<p class="font-body text-sm text-on-surface-variant/80 italic mb-4">Sands harvested from the Chronos Wastes, rumored to flow backwards during a lunar eclipse.</p>
+<div class="mt-auto flex justify-between items-end border-t border-outline-variant/20 pt-4">
+<div class="font-label text-xl text-primary-fixed-dim">1,250 <span class="text-xs">GOLD</span></div>
+<button class="px-6 py-2 border border-primary/40 text-primary hover:bg-primary hover:text-on-primary font-headline text-sm uppercase transition-all">INSPECT</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Artifact 2: Brass Astrolabe -->
+<div class="bg-surface-container-low p-1 rounded-sm shadow-2xl group hover:shadow-primary/5 transition-all duration-500">
+<div class="bg-[#2a1a14] border-4 border-[#3e271e] p-6 h-full flex flex-col">
+<div class="mb-6 relative overflow-hidden h-80 bg-surface-container-lowest">
+<div class="absolute inset-0 bg-primary/5 mix-blend-overlay"></div>
+<img class="w-full h-full object-cover grayscale brightness-75 group-hover:brightness-100 transition-all duration-700" data-alt="A complex mechanical brass astrolabe with multiple rotating rings and celestial engravings in soft warm candlelight" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDWHNgvM4zoqlNjU_ltkISk7er6h0XtkaOHuxx09stsBKLKtWTluysIGSCBJXwAXI2aMNNdNIqA8KiIWskl9LM1XB0P59P626B0nIvajyvfRHKkMQjzIYw134A54qLuUSflgiRBPFCm21BGaRTZ4pWenO3aupMka9GcjLR0bHJOiGGjVVEgYYBgPghNwkjkpIXs37mzR_aytaC23YNyPZMb805AaAKRoOxYvCdawaA0mHpmtK-fCIA1t6v-GJGWgRWkD7ijgUuinM0"/>
+<div class="absolute top-4 right-4 bg-tertiary px-3 py-1 text-on-tertiary font-label text-[10px] uppercase tracking-tighter shadow-lg">RARE</div>
+</div>
+<div class="flex flex-col flex-grow">
+<h3 class="font-headline text-3xl text-primary mb-2">Brass Astrolabe</h3>
+<p class="font-body text-sm text-on-surface-variant/80 italic mb-4">An intricate navigator's tool engraved with forgotten constellations from the third era.</p>
+<div class="mt-auto flex justify-between items-end border-t border-outline-variant/20 pt-4">
+<div class="font-label text-xl text-primary-fixed-dim">840 <span class="text-xs">GOLD</span></div>
+<button class="px-6 py-2 border border-primary/40 text-primary hover:bg-primary hover:text-on-primary font-headline text-sm uppercase transition-all">INSPECT</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Middle Section: Physical Brass Scale (Influence Meter) -->
+<div class="bg-surface-container-highest p-12 relative overflow-hidden border border-outline-variant/10 shadow-inner">
+<div class="absolute top-0 right-0 p-4">
+<span class="font-label text-[10px] text-primary/40 uppercase tracking-[0.3em]">Market Equilibrium</span>
+</div>
+<div class="flex flex-col items-center space-y-8 relative z-10">
+<div class="text-center">
+<h4 class="font-headline text-primary text-xl uppercase tracking-widest mb-1">Current Standing</h4>
+<p class="font-label text-on-surface-variant/40 text-[10px] uppercase">The Weight of Influence</p>
+</div>
+<!-- Physical Brass Scale Representation -->
+<div class="w-full max-w-2xl flex items-center justify-between gap-12">
+<!-- Left Weight (The Shop) -->
+<div class="flex flex-col items-center">
+<div class="w-16 h-24 border-x border-b-2 border-primary/20 relative flex items-end">
+<div class="w-full bg-primary/20 h-[70%] transition-all"></div>
+<div class="absolute -top-4 left-1/2 -translate-x-1/2 font-label text-xs text-primary">SHOP</div>
+</div>
+</div>
+<!-- Pivot -->
+<div class="flex-grow flex flex-col items-center relative h-16">
+<div class="w-full h-1 bg-gradient-to-r from-primary/10 via-primary/80 to-primary/10 -rotate-[4deg]"></div>
+<div class="w-4 h-4 bg-primary absolute -bottom-2 rotate-45 border-2 border-primary-container"></div>
+<div class="absolute -top-8 font-headline italic text-primary">Tilted Advantage</div>
+</div>
+<!-- Right Weight (The Market) -->
+<div class="flex flex-col items-center">
+<div class="w-16 h-24 border-x border-b-2 border-primary/20 relative flex items-end">
+<div class="w-full bg-primary/10 h-[30%] transition-all"></div>
+<div class="absolute -top-4 left-1/2 -translate-x-1/2 font-label text-xs text-on-surface-variant/40">MARKET</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Bottom: Merchant Log (Ledger Page) -->
+<div class="parchment-texture p-12 shadow-2xl text-[#1c1b1b] border border-[#8d7b6d]/40">
+<div class="flex justify-between items-center mb-10 border-b-2 border-[#4a271a]/20 pb-4">
+<div>
+<h2 class="font-headline text-4xl">Merchant Log</h2>
+<p class="font-['Space_Grotesk'] text-[10px] uppercase tracking-widest opacity-60">Session Cycle 402 // Deep Mahogany Vaults</p>
+</div>
+<div class="text-right">
+<span class="font-label text-xs opacity-50 block uppercase">Clerk Initialed</span>
+<span class="font-headline text-xl italic font-bold">M.B.</span>
+</div>
+</div>
+<div class="space-y-6">
+<!-- Entry 1 -->
+<div class="grid grid-cols-12 gap-4 items-center border-b border-[#4a271a]/10 pb-4">
+<div class="col-span-2">
+<div class="border-2 border-error text-error px-2 py-1 text-center font-label font-bold rotate-[-10deg] uppercase text-sm mix-blend-multiply">SOLD</div>
+</div>
+<div class="col-span-1 font-label text-xs opacity-40">12:04</div>
+<div class="col-span-6 font-headline text-lg italic">Aetheric Compass (Damaged)</div>
+<div class="col-span-3 text-right font-label text-lg font-bold">+ 320 G</div>
+</div>
+<!-- Entry 2 -->
+<div class="grid grid-cols-12 gap-4 items-center border-b border-[#4a271a]/10 pb-4">
+<div class="col-span-2">
+<div class="border-2 border-tertiary text-on-tertiary-fixed-variant px-2 py-1 text-center font-label font-bold rotate-[5deg] uppercase text-sm mix-blend-multiply">ACQUIRED</div>
+</div>
+<div class="col-span-1 font-label text-xs opacity-40">11:52</div>
+<div class="col-span-6 font-headline text-lg italic">Void-Touched Scribe's Pen</div>
+<div class="col-span-3 text-right font-label text-lg font-bold">- 150 G</div>
+</div>
+<!-- Entry 3 -->
+<div class="grid grid-cols-12 gap-4 items-center border-b border-[#4a271a]/10 pb-4">
+<div class="col-span-2">
+<div class="border-2 border-error text-error px-2 py-1 text-center font-label font-bold rotate-[-3deg] uppercase text-sm mix-blend-multiply">SOLD</div>
+</div>
+<div class="col-span-1 font-label text-xs opacity-40">10:15</div>
+<div class="col-span-6 font-headline text-lg italic">Map of the Shifting Sands</div>
+<div class="col-span-3 text-right font-label text-lg font-bold">+ 2,100 G</div>
+</div>
+<!-- Entry 4 -->
+<div class="grid grid-cols-12 gap-4 items-center opacity-60">
+<div class="col-span-2">
+<div class="border-2 border-tertiary text-on-tertiary-fixed-variant px-2 py-1 text-center font-label font-bold rotate-[8deg] uppercase text-sm mix-blend-multiply">ACQUIRED</div>
+</div>
+<div class="col-span-1 font-label text-xs opacity-40">09:30</div>
+<div class="col-span-6 font-headline text-lg italic">Obsidian Mortar &amp; Pestle</div>
+<div class="col-span-3 text-right font-label text-lg font-bold">- 45 G</div>
+</div>
+</div>
+<div class="mt-12 pt-8 flex justify-end">
+<div class="text-right border-t-2 border-[#4a271a]/20 pt-4 w-64">
+<span class="font-label text-xs uppercase opacity-50 block mb-1">Total Ledger Balance</span>
+<span class="font-label text-2xl font-bold text-on-secondary-fixed">84,402.00 G</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</body></html>

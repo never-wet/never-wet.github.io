@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&amp;family=Manrope:wght@200..800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-secondary-fixed-variant": "#004e5c",
+                    "surface-container-lowest": "#0e0e0f",
+                    "error-container": "#93000a",
+                    "on-surface-variant": "#cbc3d7",
+                    "error": "#ffb4ab",
+                    "tertiary-fixed": "#ffe088",
+                    "on-primary-fixed-variant": "#5516be",
+                    "primary-fixed": "#e9ddff",
+                    "surface-variant": "#353436",
+                    "surface-container-highest": "#353436",
+                    "on-error-container": "#ffdad6",
+                    "background": "#131314",
+                    "primary": "#d0bcff",
+                    "primary-container": "#a078ff",
+                    "tertiary-container": "#cca830",
+                    "on-secondary-container": "#00424e",
+                    "on-tertiary-container": "#4f3e00",
+                    "surface-bright": "#3a393a",
+                    "on-primary-container": "#340080",
+                    "on-tertiary-fixed": "#241a00",
+                    "on-primary": "#3c0091",
+                    "secondary": "#4cd7f6",
+                    "surface-dim": "#131314",
+                    "on-surface": "#e5e2e3",
+                    "secondary-fixed": "#acedff",
+                    "outline-variant": "#494454",
+                    "surface": "#131314",
+                    "inverse-surface": "#e5e2e3",
+                    "outline": "#958ea0",
+                    "tertiary-fixed-dim": "#e9c349",
+                    "primary-fixed-dim": "#d0bcff",
+                    "on-background": "#e5e2e3",
+                    "inverse-on-surface": "#313031",
+                    "surface-tint": "#d0bcff",
+                    "on-primary-fixed": "#23005c",
+                    "surface-container": "#201f20",
+                    "surface-container-low": "#1c1b1c",
+                    "on-secondary": "#003640",
+                    "on-secondary-fixed": "#001f26",
+                    "surface-container-high": "#2a2a2b",
+                    "tertiary": "#e9c349",
+                    "on-tertiary": "#3c2f00",
+                    "secondary-container": "#03b5d3",
+                    "inverse-primary": "#6d3bd7",
+                    "secondary-fixed-dim": "#4cd7f6",
+                    "on-error": "#690005",
+                    "on-tertiary-fixed-variant": "#574500"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0px",
+                    "lg": "0px",
+                    "xl": "0px",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Space Grotesk"],
+                    "body": ["Manrope"],
+                    "label": ["Space Grotesk"]
+            }
+          },
+        },
+      }
+    </script>
+<style>.material-symbols-outlined {
+    font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24
+    }
+.neon-halo-active {
+    box-shadow: 0 0 20px rgba(208, 188, 255, 0.15)
+    }
+.glitch-effect-hover:hover {
+    box-shadow: 2px 2px 0 #4cd7f6
+    }
+.rain-texture {
+    background-image: url(https://lh3.googleusercontent.com/aida-public/AB6AXuApz4L6xZuU7ZiLkQZ_z7bqCwSOt6-XADBDbZsTeE3ic1OBSIT8FAN6BirL8WsZKINtmLqMt7_by9stT2D_w5F2BVw5r1lBTlADMF7z6JlIHH9rNe67bGwcukb3gq5prcbCKdW4oH3P0EeaO_7XuJsjuSH2z_hAnghCEfwpCcLOHk8kLh96nHzb04mC3iF9Bl_Xxs9NdmhffSt3OwV7uJwoBkPSjisNgifHIb30OIclQDxtNgLT-5LAK6-8vLUbnMk3Sq-kKFC2mfs);
+    opacity: 0.05
+    }</style>
+</head>
+<body class="bg-background text-on-surface font-body selection:bg-primary selection:text-on-primary-container">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full rounded-none border-b-2 border-[#d0bcff]/20 bg-[#131314] z-50 flex justify-between items-center px-6 py-4 w-full shadow-[0_0_20px_rgba(208,188,255,0.1)]">
+<div class="flex items-center gap-4">
+<span class="text-xl font-bold text-[#e9c349] tracking-widest font-['Space_Grotesk'] uppercase">THE BROKER'S LEDGER</span>
+</div>
+<div class="hidden md:flex gap-8">
+<button class="font-['Space_Grotesk'] uppercase tracking-[0.05em] text-[#d0bcff] border-b-2 border-[#d0bcff] text-sm py-1 transition-all duration-150 scale-95">EXCHANGE</button>
+<button class="font-['Space_Grotesk'] uppercase tracking-[0.05em] text-[#cbc3d7] text-sm py-1 hover:bg-[#353436] hover:shadow-[0_0_15px_rgba(208,188,255,0.3)] transition-all duration-150">STASH</button>
+<button class="font-['Space_Grotesk'] uppercase tracking-[0.05em] text-[#cbc3d7] text-sm py-1 hover:bg-[#353436] hover:shadow-[0_0_15px_rgba(208,188,255,0.3)] transition-all duration-150">REPUTATION</button>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-2 bg-surface-container px-3 py-1 border-l-2 border-tertiary">
+<span class="material-symbols-outlined text-tertiary text-sm" style="font-variation-settings: 'FILL' 1;">monetization_on</span>
+<span class="font-headline font-bold text-tertiary">14,250.00</span>
+</div>
+<div class="flex gap-4">
+<span class="material-symbols-outlined text-[#d0bcff] cursor-pointer hover:bg-[#353436] p-1">military_tech</span>
+<span class="material-symbols-outlined text-[#d0bcff] cursor-pointer hover:bg-[#353436] p-1">wb_twilight</span>
+</div>
+</div>
+</header>
+<!-- SideNavBar (Hidden on small screens) -->
+<aside class="hidden md:flex fixed left-0 top-0 h-full w-64 rounded-none border-r border-[#494454]/20 bg-[#0e0e0f] flex-col py-8 z-40 mt-16">
+<div class="px-6 mb-10">
+<div class="flex items-center gap-3 mb-4">
+<div class="w-12 h-12 bg-surface-container-highest border border-outline-variant flex items-center justify-center">
+<img class="w-10 h-10 object-cover" data-alt="close-up of a futuristic cybernetic character mask with glowing violet eyes and gold filigree details" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCVCchPl45LJk92yiO6NeN5GVEUiSHi1p93MfNVSOY6AJcTfDL1_JnvGnDVTbnVnWUjUwAVG4j6qzD_xIsXz_QpEFjWncI57B3zCHeRpwq1YY7S6ZGm-hqEGdk4G9EDv7BJqRo9UYPktpeNQEU3Oy-Wn0wSNIPiHq_m4W1mPqHZtdmjYaXP4XqdMiXO3Fh91C9JjzlU0bE-p4o-_XGoo5Mut4PF8iqXu5ein_C2uFIGAPcL40c2Ew53qdKZsDpkdDSWxkdze3EgRVI"/>
+</div>
+<div>
+<p class="font-headline text-xs font-black text-[#e9c349] uppercase">MASTER BROKER</p>
+<p class="text-[10px] text-on-surface-variant font-label uppercase tracking-tighter">Tier III Relic Hunter</p>
+</div>
+</div>
+</div>
+<nav class="flex-grow flex flex-col">
+<a class="flex items-center gap-4 px-6 py-4 bg-[#2a2a2b] text-[#e9c349] border-l-4 border-[#e9c349] font-['Space_Grotesk'] text-sm font-bold uppercase group" href="#">
+<span class="material-symbols-outlined">token</span>
+<span>EXCHANGE</span>
+</a>
+<a class="flex items-center gap-4 px-6 py-4 text-[#cbc3d7] opacity-70 hover:text-[#d0bcff] hover:bg-[#201f20] font-['Space_Grotesk'] text-sm font-bold uppercase transition-all" href="#">
+<span class="material-symbols-outlined">inventory_2</span>
+<span>STASH</span>
+</a>
+<a class="flex items-center gap-4 px-6 py-4 text-[#cbc3d7] opacity-70 hover:text-[#d0bcff] hover:bg-[#201f20] font-['Space_Grotesk'] text-sm font-bold uppercase transition-all" href="#">
+<span class="material-symbols-outlined">stars</span>
+<span>REPUTATION</span>
+</a>
+<a class="flex items-center gap-4 px-6 py-4 text-[#cbc3d7] opacity-70 hover:text-[#d0bcff] hover:bg-[#201f20] font-['Space_Grotesk'] text-sm font-bold uppercase transition-all" href="#">
+<span class="material-symbols-outlined">menu_book</span>
+<span>CHRONICLES</span>
+</a>
+</nav>
+<div class="px-6 mt-auto">
+<button class="w-full bg-tertiary text-on-tertiary font-headline font-bold py-3 text-sm uppercase tracking-widest glitch-effect-hover transition-all">
+                CLOSE DEAL
+            </button>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="md:ml-64 pt-24 pb-12 px-6 min-h-screen relative overflow-hidden">
+<!-- Environmental Background Effects -->
+<div class="absolute inset-0 rain-texture pointer-events-none"></div>
+<div class="absolute top-0 right-0 w-1/2 h-1/2 bg-primary/5 blur-[120px] pointer-events-none"></div>
+<div class="absolute bottom-0 left-0 w-1/3 h-1/3 bg-secondary/5 blur-[100px] pointer-events-none"></div>
+<!-- Hero Section: The Square -->
+<div class="relative w-full h-[400px] bg-surface-container overflow-hidden mb-12 border-t-2 border-secondary/20">
+<img class="w-full h-full object-cover opacity-60" data-alt="A bustling futuristic night market with glowing neon signs in alien scripts, rain-slicked pavement reflecting blue and violet lights, crowded merchant stalls" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB7UHmm5uSkTHuViSMYHLsRVCqWIkQ45QNhUdo4VLf-9NmyyBFkA4h5p-uDD8Jc8NkEmir3dIEJ8Y25f_Dav7z58xN6nJfQfNsKKnN3ukC13IAJxPBI5QNotdbUDnWDTLzXb3N8fYYdind1U7hC5ptOn_wsEmyqbT7MSjPzmBP-HGvHsYnPdMW7JyWoYEpJLkk1bS4aqHG_NdneCwWj5rGByoduTXUFuKu3oJr74VBpVctrXRssRx_zH-QVsAmyap5SYqsp869ZLTQ"/>
+<div class="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent"></div>
+<div class="absolute bottom-8 left-8">
+<h1 class="font-headline text-5xl font-black text-on-surface uppercase tracking-tight mb-2">Market Square</h1>
+<p class="font-label text-secondary tracking-[0.2em] uppercase text-sm">Sector 7 // District: The Vaults</p>
+</div>
+<div class="absolute top-8 right-8 flex gap-2">
+<div class="bg-surface-container-highest/80 backdrop-blur-md px-4 py-2 border-r-2 border-primary">
+<span class="font-label text-xs text-primary block uppercase">Atmosphere</span>
+<span class="font-headline font-bold text-on-surface">Acid Rain / High Conflict</span>
+</div>
+</div>
+</div>
+<!-- Merchant Bento Grid -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+<!-- Featured Merchant: The Alchemist -->
+<div class="md:col-span-8 bg-surface-container-low border-t-2 border-tertiary/30 p-8 flex flex-col md:flex-row gap-8 relative group">
+<div class="w-full md:w-1/2">
+<div class="relative h-64 w-full bg-surface-container-highest border border-outline-variant">
+<img class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700" data-alt="An elderly merchant with cybernetic augmentations sitting behind a desk filled with glowing crystals and brass clockwork mechanisms" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBvv0RKgyPuBEyrEdp5UsBmYt1FHRBBQ48RR_OIJKyGgrJYgcJ1u3XGeCK_qYqfdNdwncO_HHW0ecXTof_PfzAuJ4SjG7NvIFRLjriRFhxGDZpLoAyNLAnUbXqs-gGAfokgQu18AlrCVJNZPTJY_D5M920Q2tRTw5w3Fs-Sx3Tb5s-bmgvMSEBRm8T4KdX0gl5m3EZ3qtBdv1lS_saKyYgQ7d9YZVGPnqR63DGpM5XlmmYa7bMxmlAhCv73Boz2eL3D_ejljs4SMy4"/>
+<div class="absolute top-0 right-0 p-2 bg-tertiary text-on-tertiary font-label text-[10px] font-bold">LEGENDARY MERCHANT</div>
+</div>
+</div>
+<div class="w-full md:w-1/2 flex flex-col justify-between">
+<div>
+<h3 class="font-headline text-3xl font-bold text-tertiary mb-2 uppercase">Kaelen the Pure</h3>
+<p class="text-on-surface-variant text-sm mb-6 leading-relaxed">Dealer in ancient scripts and repurposed neural interfaces. Currently seeking Tier II data shards from the Obsidian Wastes.</p>
+<div class="space-y-3">
+<div class="flex justify-between items-center bg-surface-container-highest p-3 border-l-2 border-secondary">
+<span class="font-label text-xs uppercase text-secondary">Rare Relic</span>
+<span class="font-headline font-bold text-on-surface">Pulse Core</span>
+</div>
+<div class="flex justify-between items-center bg-surface-container-highest p-3 border-l-2 border-primary">
+<span class="font-label text-xs uppercase text-primary">Price</span>
+<span class="font-headline font-bold text-tertiary">4,500 <span class="text-[10px]">GOLD</span></span>
+</div>
+</div>
+</div>
+<button class="mt-6 w-full py-4 bg-surface-container-highest border border-outline hover:bg-surface-bright transition-all font-headline font-bold uppercase tracking-widest text-xs">COMMENCE TRADE</button>
+</div>
+</div>
+<!-- Small Merchant Card: Electronics -->
+<div class="md:col-span-4 bg-surface-container border-t-2 border-primary/20 p-6 flex flex-col justify-between relative">
+<span class="material-symbols-outlined absolute top-4 right-4 text-primary opacity-20 text-6xl" style="font-variation-settings: 'FILL' 1;">memory</span>
+<div>
+<h4 class="font-headline text-xl font-bold text-primary mb-4 uppercase">Circuit Breaker's Hut</h4>
+<ul class="space-y-4">
+<li class="flex items-center gap-4 group cursor-pointer">
+<div class="w-12 h-12 bg-surface-container-lowest border border-outline-variant flex-shrink-0 flex items-center justify-center">
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary">developer_board</span>
+</div>
+<div>
+<p class="font-label text-xs uppercase text-on-surface">Bio-Adapter</p>
+<p class="font-headline font-bold text-tertiary text-sm">850 G</p>
+</div>
+</li>
+<li class="flex items-center gap-4 group cursor-pointer">
+<div class="w-12 h-12 bg-surface-container-lowest border border-outline-variant flex-shrink-0 flex items-center justify-center">
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary">cable</span>
+</div>
+<div>
+<p class="font-label text-xs uppercase text-on-surface">Neural Link (Frayed)</p>
+<p class="font-headline font-bold text-tertiary text-sm">320 G</p>
+</div>
+</li>
+</ul>
+</div>
+<button class="mt-8 text-xs font-label uppercase tracking-widest text-secondary hover:underline underline-offset-8 transition-all">BROWSE ALL HARDWARE</button>
+</div>
+<!-- Wide Row: Rare Findings -->
+<div class="md:col-span-12 bg-surface-container-low p-8 border-t-2 border-secondary/30">
+<div class="flex flex-col md:flex-row justify-between items-end mb-8 gap-4">
+<div>
+<h2 class="font-headline text-4xl font-black text-on-surface uppercase tracking-tight">Oddities of the Night</h2>
+<p class="font-label text-secondary text-xs uppercase tracking-widest">Global Supply Status: Volatile</p>
+</div>
+<div class="flex gap-4">
+<button class="bg-surface-container-highest px-4 py-2 border border-outline-variant text-[10px] font-label uppercase">Category: Bio</button>
+<button class="bg-surface-container-highest px-4 py-2 border border-outline-variant text-[10px] font-label uppercase">Category: Tech</button>
+<button class="bg-surface-container-highest px-4 py-2 border border-outline-variant text-[10px] font-label uppercase">Category: Curio</button>
+</div>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+<!-- Relic Card 1 -->
+<div class="bg-surface-container-lowest p-5 border border-transparent hover:border-tertiary/50 transition-all cursor-crosshair group relative">
+<div class="absolute -top-1 -left-1 w-4 h-4 border-t-2 border-l-2 border-tertiary opacity-0 group-hover:opacity-100 transition-opacity"></div>
+<div class="mb-4 h-40 bg-surface-container-high overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Macro photo of a glowing mysterious blue crystal inside a weathered brass cage" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDJekPxed38MWGj98hDdNcXAFDU9M8zvgexm1xukmBkSWqLCYfFaD0tExkyohaijS_DewJj_rgkRO6PqWOjnmx0bvAKg4G6F_b-yNl7Yv5BOZuM-1RMxPsyqz7WEV_zTogW2MSBYJ9luoxfnovBfpFShjr09hMh6V2XauiD1B3i-ojq6dOFYEtDWoSXvgeUAnwJ3GYU2XY04XhtGQJv2YrRzCztYagMbEb6uKU-XlWwpy0sRR0RoFJJfZFv12gpgfV9W1otl3kC8aM"/>
+</div>
+<h5 class="font-headline font-bold text-on-surface uppercase mb-1">Aether Flask</h5>
+<p class="font-label text-[10px] text-on-surface-variant uppercase mb-4 tracking-tighter">Essential for deep-vault breathing.</p>
+<div class="flex justify-between items-center">
+<span class="font-headline font-black text-tertiary text-lg">1,200 G</span>
+<span class="material-symbols-outlined text-secondary text-sm">bolt</span>
+</div>
+</div>
+<!-- Relic Card 2 -->
+<div class="bg-surface-container-lowest p-5 border border-transparent hover:border-tertiary/50 transition-all cursor-crosshair group relative">
+<div class="absolute -top-1 -left-1 w-4 h-4 border-t-2 border-l-2 border-tertiary opacity-0 group-hover:opacity-100 transition-opacity"></div>
+<div class="mb-4 h-40 bg-surface-container-high overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A vintage brass compass with integrated holographic projector emitting a faint red grid map" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB4YQJL3QhjB6sY5vji5cWg_c8pHI3PzRrIwX9gzcBxXp6MiaMNJhSfr7y8x40GfR0tzo2uMHliTHadwf8O2H2ExtkEBfRaE05oTR6sMW_vZnJZSQRYggQUiJgNa8BXeHnlqy77dcztSj3cQUZH4Aie6yFKy8k0k6s56fpF_IM7BxYCjVqgN0Qr1OCvVlY1fxgkyEyx7bV71eF8OrkuOEBN77sPEbxe3mMPckhcPIxoE9JMPGdPT58kZI_eyK7hlFi8n2ZRgT9SkyM"/>
+</div>
+<h5 class="font-headline font-bold text-on-surface uppercase mb-1">Ghost Compass</h5>
+<p class="font-label text-[10px] text-on-surface-variant uppercase mb-4 tracking-tighter">Points to the nearest digital echo.</p>
+<div class="flex justify-between items-center">
+<span class="font-headline font-black text-tertiary text-lg">3,400 G</span>
+<span class="material-symbols-outlined text-secondary text-sm" style="font-variation-settings: 'FILL' 1;">explore</span>
+</div>
+</div>
+<!-- Relic Card 3 -->
+<div class="bg-surface-container-lowest p-5 border border-transparent hover:border-tertiary/50 transition-all cursor-crosshair group relative">
+<div class="absolute -top-1 -left-1 w-4 h-4 border-t-2 border-l-2 border-tertiary opacity-0 group-hover:opacity-100 transition-opacity"></div>
+<div class="mb-4 h-40 bg-surface-container-high overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A high-tech circuit board with gold-plated connectors and a large, glowing central microchip" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDyyBUXIEknueTxHZHUVMyMaX-9NsQZtutfRyPbS4NdZxxWbUoD-0_CBjDagVvSJH3_AqyRawK-EATkSHyM276_tNS8C0MDYfJiskxkdnuf2vNA580Y2Kh98lTutaTgRlOyUT4yqWFVy9SzNGhtqnjqJrfoHev6AjJ_QwvVDMajPe67VWXUrIVPb2KYJuwimM2Yf00-G7trGXQ6RWsgf0gRTLq1mCWKfYCJlPLEe7dbNXm9TZiUnSpPeNMevFlYdexu8zgj10_WqCs"/>
+</div>
+<h5 class="font-headline font-bold text-on-surface uppercase mb-1">Logic Core</h5>
+<p class="font-label text-[10px] text-on-surface-variant uppercase mb-4 tracking-tighter">Used to decrypt high-level merchant logs.</p>
+<div class="flex justify-between items-center">
+<span class="font-headline font-black text-tertiary text-lg">900 G</span>
+<span class="material-symbols-outlined text-secondary text-sm">settings_input_component</span>
+</div>
+</div>
+<!-- Relic Card 4 -->
+<div class="bg-surface-container-lowest p-5 border border-transparent hover:border-tertiary/50 transition-all cursor-crosshair group relative">
+<div class="absolute -top-1 -left-1 w-4 h-4 border-t-2 border-l-2 border-tertiary opacity-0 group-hover:opacity-100 transition-opacity"></div>
+<div class="mb-4 h-40 bg-surface-container-high overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Dark computer terminal showing glowing green lines of matrix-style code and cryptic symbols" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAGB14F-qrzD2_3yS0ext6INgi9JGeSeyyC_xb-PCZ3NLVG6QJAeWIyu5tgu8QgQmX92TqdhST3IHLcRgqU8pufNCtku5CiAzGYNYg-ldlEUpy5cH5iz335ypkoA_Y_rn7QY91pwBj9S12xfqhX4ZIKaMzIQEXHt1Hh3CqXEFmtdk5I0StxY9pIhvq3Zw9y-evE04w8-Q5ztFlD4QkVxZbQL7FgKG0kLTzZTlgqGdl13WNUuMgldW73xVceSbyz_LuE8uuhLYUya5Y"/>
+</div>
+<h5 class="font-headline font-bold text-on-surface uppercase mb-1">Fragmented Map</h5>
+<p class="font-label text-[10px] text-on-surface-variant uppercase mb-4 tracking-tighter">Leads to the legendary 'Chrome Garden'.</p>
+<div class="flex justify-between items-center">
+<span class="font-headline font-black text-tertiary text-lg">12,000 G</span>
+<span class="material-symbols-outlined text-secondary text-sm" style="font-variation-settings: 'FILL' 1;">map</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- FAB Action (Only for Primary Marketplace screen) -->
+<button class="fixed bottom-8 right-8 w-16 h-16 bg-primary text-on-primary-container shadow-[0_0_30px_rgba(208,188,255,0.4)] flex items-center justify-center hover:scale-105 transition-transform z-50">
+<span class="material-symbols-outlined text-3xl">shopping_cart</span>
+</button>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="md:hidden fixed bottom-0 w-full bg-[#131314] flex justify-around items-center py-3 border-t border-outline-variant/30 z-50">
+<div class="flex flex-col items-center text-[#e9c349]">
+<span class="material-symbols-outlined">token</span>
+<span class="text-[10px] font-label font-bold">TRADE</span>
+</div>
+<div class="flex flex-col items-center text-[#cbc3d7]">
+<span class="material-symbols-outlined">inventory_2</span>
+<span class="text-[10px] font-label">STASH</span>
+</div>
+<div class="flex flex-col items-center text-[#cbc3d7]">
+<span class="material-symbols-outlined">stars</span>
+<span class="text-[10px] font-label">RANK</span>
+</div>
+<div class="flex flex-col items-center text-[#cbc3d7]">
+<span class="material-symbols-outlined">menu_book</span>
+<span class="text-[10px] font-label">LOGS</span>
+</div>
+</nav>
+</body></html>

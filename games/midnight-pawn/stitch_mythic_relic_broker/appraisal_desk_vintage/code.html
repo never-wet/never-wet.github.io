@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,700;6..72,800&amp;family=Noto+Serif:wght@400;700&amp;family=Space+Grotesk:wght@300;500;700&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container-high": "#2a2a2a",
+                        "on-tertiary-fixed": "#141e16",
+                        "on-primary-container": "#af8c47",
+                        "surface-dim": "#131313",
+                        "secondary-container": "#643d2e",
+                        "on-surface-variant": "#d5c3bc",
+                        "surface-container-lowest": "#0e0e0e",
+                        "surface-container": "#201f1f",
+                        "secondary": "#f2baa6",
+                        "surface": "#131313",
+                        "background": "#131313",
+                        "on-background": "#e5e2e1",
+                        "on-surface": "#e5e2e1",
+                        "on-secondary-container": "#dfa996",
+                        "surface-tint": "#e9c176",
+                        "error-container": "#93000a",
+                        "primary-fixed-dim": "#e9c176",
+                        "on-secondary-fixed-variant": "#643d2e",
+                        "on-primary-fixed-variant": "#5d4201",
+                        "surface-container-highest": "#353534",
+                        "on-primary-fixed": "#261900",
+                        "on-tertiary-container": "#899488",
+                        "on-primary": "#412d00",
+                        "inverse-primary": "#775a19",
+                        "tertiary-container": "#222c23",
+                        "error": "#ffb4ab",
+                        "on-secondary-fixed": "#311307",
+                        "on-secondary": "#4a271a",
+                        "surface-container-low": "#1c1b1b",
+                        "primary-container": "#392700",
+                        "tertiary": "#becabd",
+                        "primary": "#e9c176",
+                        "on-tertiary-fixed-variant": "#3f4940",
+                        "primary-fixed": "#ffdea5",
+                        "tertiary-fixed": "#dae6d8",
+                        "outline": "#9e8d88",
+                        "on-error-container": "#ffdad6",
+                        "inverse-on-surface": "#313030",
+                        "surface-bright": "#3a3939",
+                        "on-tertiary": "#29332a",
+                        "tertiary-fixed-dim": "#becabd",
+                        "inverse-surface": "#e5e2e1",
+                        "on-error": "#690005",
+                        "secondary-fixed": "#ffdbce",
+                        "outline-variant": "#51443f",
+                        "secondary-fixed-dim": "#f2baa6",
+                        "surface-variant": "#353534"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "fontFamily": {
+                        "headline": ["Newsreader"],
+                        "body": ["Noto Serif"],
+                        "label": ["Space Grotesk"]
+                    }
+                },
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 48;
+            display: inline-block;
+            vertical-align: middle;
+        }
+        .parchment-texture {
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+            opacity: 0.05;
+        }
+        .radial-glow {
+            background: radial-gradient(circle at center, rgba(233, 193, 118, 0.08) 0%, transparent 70%);
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-body selection:bg-primary/30 selection:text-primary min-h-screen overflow-x-hidden">
+<!-- TopNavBar -->
+<nav class="bg-[#131313] shadow-[0px_20px_40px_rgba(0,0,0,0.4)] flex justify-between items-center w-full px-8 py-4 fixed top-0 z-50">
+<div class="text-2xl font-bold text-[#e9c176] font-headline uppercase tracking-widest">
+            THE BROKER'S LEDGER
+        </div>
+<div class="hidden md:flex space-x-12">
+<a class="font-headline uppercase tracking-widest text-sm text-[#e9c176] border-b-2 border-[#e9c176] pb-1 hover:text-[#e9c176] transition-colors duration-300" href="#">EXCHANGE</a>
+<a class="font-headline uppercase tracking-widest text-sm text-[#f2baa6]/60 hover:text-[#e9c176] transition-colors duration-300" href="#">STASH</a>
+<a class="font-headline uppercase tracking-widest text-sm text-[#f2baa6]/60 hover:text-[#e9c176] transition-colors duration-300" href="#">CHRONICLES</a>
+</div>
+<div class="flex items-center space-x-6">
+<span class="material-symbols-outlined text-[#f2baa6]/60 cursor-pointer hover:text-[#e9c176] transition-colors duration-300">history_edu</span>
+<span class="material-symbols-outlined text-[#f2baa6]/60 cursor-pointer hover:text-[#e9c176] transition-colors duration-300">shopping_bag</span>
+<span class="material-symbols-outlined text-[#f2baa6]/60 cursor-pointer hover:text-[#e9c176] transition-colors duration-300">hourglass_empty</span>
+</div>
+</nav>
+<!-- SideNavBar -->
+<aside class="hidden lg:flex flex-col h-full w-64 fixed left-0 top-0 bg-[#1c1c1c] shadow-2xl p-6 pt-24 space-y-8 z-40">
+<div class="flex items-center space-x-4 mb-4">
+<div class="w-12 h-12 rounded-sm border border-outline-variant/30 overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Classic oil painting portrait of an elderly man with a sharp gaze, wearing dark velvet robes in a dimly lit study" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC9ZL3quOBdMqMvn6mgDOASvNdN6JnaAgxtxOqI0lAvnOAsKBXWc1DGXx_CuGS3PUpKfoUNg0dNSe7hc0gAMYMZjNPW6t5YnqQwiqvOY248Wh10rYDlfnfq-d2cVKv5LO3wypW9EtMXAbNR9KEzNyoae30YKrcLqQ-Y6FfAvlYVEXI7VY0L0E9_IVwlfZ12mXNpRd_tJI17DoW381sBQtC0JkIwIbupDWUaGaHIPrHB5gLrBAyvjAPWWDAN8Kc7F2SAeaVicwYNR54"/>
+</div>
+<div>
+<h3 class="text-lg font-headline text-[#e9c176] leading-tight">MASTER BROKER</h3>
+<p class="font-label text-[10px] tracking-tighter text-[#f2baa6]/40 uppercase">Archivist of the Deep Mahogany</p>
+</div>
+</div>
+<nav class="flex flex-col space-y-4">
+<div class="group cursor-pointer flex items-center space-x-3 text-[#e9c176] font-bold py-2">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">payments</span>
+<span class="font-label text-xs tracking-tighter uppercase">Wealth</span>
+</div>
+<div class="group cursor-pointer flex items-center space-x-3 text-[#f2baa6]/40 hover:bg-[#e9c176]/10 py-2 transition-all">
+<span class="material-symbols-outlined">verified</span>
+<span class="font-label text-xs tracking-tighter uppercase">Reputation</span>
+</div>
+</nav>
+<div class="mt-auto pt-8 border-t border-outline-variant/10">
+<button class="w-full py-3 bg-primary text-on-primary font-label text-xs tracking-widest font-bold rounded-sm active:shadow-inner transform active:scale-95 transition-all">
+                CLOSE DEAL
+            </button>
+</div>
+</aside>
+<!-- Main Canvas -->
+<main class="lg:pl-64 pt-24 min-h-screen relative">
+<div class="absolute inset-0 radial-glow pointer-events-none"></div>
+<div class="absolute inset-0 parchment-texture pointer-events-none"></div>
+<div class="max-w-7xl mx-auto px-8 pb-20">
+<!-- Page Header -->
+<header class="mb-12 relative">
+<span class="font-label text-xs uppercase tracking-[0.3em] text-secondary/60">Current Session</span>
+<h1 class="text-5xl font-headline font-extrabold text-primary tracking-tight mt-2 italic">The Appraisal Desk</h1>
+</header>
+<div class="grid grid-cols-12 gap-8">
+<!-- Central Focus: The Sketch -->
+<div class="col-span-12 lg:col-span-8 space-y-12">
+<div class="relative bg-surface-container-low p-8 rounded-sm shadow-2xl border border-outline-variant/5 overflow-hidden group">
+<div class="absolute top-4 right-4 flex space-x-2">
+<span class="w-2 h-2 rounded-full bg-error/40"></span>
+<span class="w-2 h-2 rounded-full bg-primary/40"></span>
+</div>
+<div class="aspect-video relative rounded-sm overflow-hidden bg-black/40">
+<img class="w-full h-full object-cover opacity-80 mix-blend-luminosity hover:opacity-100 transition-opacity duration-700" data-alt="A detailed pencil sketch of a complex brass orrery with glowing crystals, surrounded by drafting tools on weathered parchment" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDcaxpE-ozHkKYFQGwZlv0xb1mLi7Me4uq-RvxoyU7-5OpdKwj4tSSz4uKcrNliSssWqUUTaP4uIyq_hivBuNPcaGK9FflbOGSvqHBjAMDx9LUwkHEdTfZKv5pLTZTMZbD-cb6O08GPGqG-ROOXIla8JyHoqVpgPo89eOD51mouhenjSQuWSvw60g3Giv0pwkcjs9e86D2fg1yCjpUUiSIt7FehsDFpc8dgffo-v4pMcqEe9IaugpndM0AiFUq-6FoS18qCuTotIC4"/>
+<!-- Overlapping Annotations -->
+<div class="absolute top-10 left-10 p-4 bg-surface-container-highest/80 backdrop-blur-md border-l-2 border-primary max-w-[200px]">
+<p class="font-label text-[10px] uppercase text-primary mb-1">Subject #402</p>
+<p class="text-xs font-body italic text-on-surface-variant">"Void Resonance Sphere: Exhibits unusual rhythmic pulsing in the lower quadrants."</p>
+</div>
+</div>
+<div class="mt-6 flex justify-between items-end">
+<div class="space-y-1">
+<h2 class="text-2xl font-headline text-on-surface">Void Resonance Sphere</h2>
+<p class="font-label text-xs text-outline tracking-widest uppercase">Ornate Mechanical Brass Orrery</p>
+</div>
+<div class="text-right">
+<p class="font-label text-xs text-secondary/60 uppercase">Est. Market Value</p>
+<p class="text-3xl font-label font-bold text-primary tracking-tighter">8,450 <span class="text-sm font-normal">GC</span></p>
+</div>
+</div>
+</div>
+<!-- Negotiation Action Cards -->
+<div class="relative">
+<h3 class="font-headline text-xl text-primary-fixed mb-8 border-b border-outline-variant/20 pb-2 inline-block">Negotiation Gambit</h3>
+<div class="flex flex-wrap lg:flex-nowrap gap-6 justify-center lg:justify-start">
+<!-- Card 1: Flattery -->
+<div class="w-64 bg-surface-container-high p-5 rounded-sm shadow-xl hover:-translate-y-2 transition-transform duration-300 cursor-pointer group border border-transparent hover:border-primary/20">
+<div class="h-40 bg-surface-dim mb-4 overflow-hidden rounded-sm relative">
+<img class="w-full h-full object-cover opacity-50 group-hover:opacity-80 transition-opacity" data-alt="Stylized ink drawing of a jovial merchant with a wide, calculating smile, wearing a feathered cap" src="https://lh3.googleusercontent.com/aida-public/AB6AXuADmGI4chf8_y3bTHBnkeevvyyy7cxZdQ8mswh12prx32OWL966O-piL-DznOci9YI7IlvEBtocCJDE9HzyyCF7w3227-QKVvomxoRatNl9mqkFYUX9Y6GJQHw1gw_m5A0yIM_8-F_bKVo-SgwspFCTMZbgQOfO4VVeoNuOaANnFkh_Fq6b1mbQNa2YlZQZhXUv-xFzk8QpFeEdTg6UAD6dPYHsdsyz5d1QV3GG2ryDsZB3MqQMYyyE3_v2CmbHDdkDle1fYgyOZeY"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container-high to-transparent"></div>
+</div>
+<h4 class="font-headline text-lg text-primary mb-1">Flattery</h4>
+<p class="text-xs text-on-surface-variant leading-relaxed">Appeal to the seller's ego to soften the initial price anchor.</p>
+<div class="mt-4 flex items-center text-[10px] font-label text-tertiary uppercase tracking-tighter">
+<span class="material-symbols-outlined text-sm mr-1">trending_up</span> Success: +15%
+                                </div>
+</div>
+<!-- Card 2: Hard Bargain -->
+<div class="w-64 bg-surface-container-high p-5 rounded-sm shadow-xl hover:-translate-y-2 transition-transform duration-300 cursor-pointer group border border-transparent hover:border-primary/20 -mt-4 lg:mt-0">
+<div class="h-40 bg-surface-dim mb-4 overflow-hidden rounded-sm relative">
+<img class="w-full h-full object-cover opacity-50 group-hover:opacity-80 transition-opacity" data-alt="Classical charcoal sketch of a massive iron-bound wooden chest with a heavy, rusted padlock" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCFwRpjMImgY6B4eF2yWpnYv0Esfx3_-JvtbXk044cv1h6igj6G3JaZUxoOXFUAl-o0SRY0PUiu6ZpqaPHWk7XH3_fcTg-MsR_eN7An6suodmnjIjrPWzjC_Dn6A96UDI-EuqeRCyUzAdXHKDBjKkCPaL2AUwot9cQVAIR6ATutcISrJLwqWDmS3fmvNTZVqGvRxXQHlMcPKYJ4FCLQvtNd6vZjM_0ovzYVu8vOujerT1BgPlcqWulFdbmhvYd1_M91JwHZA7-ldIw"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container-high to-transparent"></div>
+</div>
+<h4 class="font-headline text-lg text-primary mb-1">Hard Bargain</h4>
+<p class="text-xs text-on-surface-variant leading-relaxed">Stand firm on a low offer. Risks ending the negotiation early.</p>
+<div class="mt-4 flex items-center text-[10px] font-label text-error uppercase tracking-tighter">
+<span class="material-symbols-outlined text-sm mr-1">warning</span> High Risk
+                                </div>
+</div>
+<!-- Card 3: Appraise Flaw -->
+<div class="w-64 bg-surface-container-high p-5 rounded-sm shadow-xl hover:-translate-y-2 transition-transform duration-300 cursor-pointer group border border-transparent hover:border-primary/20 mt-4 lg:mt-0">
+<div class="h-40 bg-surface-dim mb-4 overflow-hidden rounded-sm relative">
+<img class="w-full h-full object-cover opacity-50 group-hover:opacity-80 transition-opacity" data-alt="Delicate fine-line drawing of an ornate silver magnifying glass resting on a stack of ancient blueprints" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA9IDVHtW9hohi1FyG_TUDupJvxRcVOEz_J_hXjcOsoDPywElWfSuH0gbZ1sip-ZY3bWDBq5Ur4LxthGJ4ON_ZTdCfoF2YMbYQTBg-V6nUaeOIYcyMG3-VVUWacs8VrORV4X83lqOfvKAhFc-o50o42fpj5Tyjbd43LWVjtLt434jvMi23e4TA-VxqwNWinsqvDJOWXVzXF_f4eUyylY5s8A-ubi5Qn3rk9VoEK6dZ-WrAcqcOG1E_I2NHWTuwGI_H_9WrRU6k70Ks"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container-high to-transparent"></div>
+</div>
+<h4 class="font-headline text-lg text-primary mb-1">Appraise Flaw</h4>
+<p class="text-xs text-on-surface-variant leading-relaxed">Highlight structural defects to justify a significant discount.</p>
+<div class="mt-4 flex items-center text-[10px] font-label text-on-tertiary-container uppercase tracking-tighter">
+<span class="material-symbols-outlined text-sm mr-1" style="font-variation-settings: 'FILL' 1;">zoom_in</span> Precision Skill
+                                </div>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Column: Diagnostic Feed -->
+<aside class="col-span-12 lg:col-span-4 space-y-8">
+<div class="bg-[#f4ead5] text-[#261900] p-8 shadow-inner shadow-black/20 min-h-[600px] relative border-b-4 border-black/10">
+<!-- Torn Paper Effect top -->
+<div class="absolute -top-4 left-0 w-full h-8 bg-surface-dim" style="clip-path: polygon(0% 0%, 5% 40%, 10% 0%, 15% 50%, 20% 0%, 25% 45%, 30% 0%, 35% 60%, 40% 0%, 45% 35%, 50% 0%, 55% 55%, 60% 0%, 65% 40%, 70% 0%, 75% 50%, 80% 0%, 85% 45%, 90% 0%, 95% 60%, 100% 0%, 100% 100%, 0% 100%);"></div>
+<div class="flex justify-between items-start mb-10 mt-4">
+<div class="font-headline font-bold text-2xl uppercase tracking-tighter border-b-2 border-black/80 pb-1">Diagnostic Feed</div>
+<span class="material-symbols-outlined text-black/40">edit_note</span>
+</div>
+<div class="space-y-12">
+<!-- Resonance -->
+<div class="space-y-4">
+<div class="flex justify-between items-end">
+<h5 class="font-headline text-xl italic font-bold">Resonance</h5>
+<span class="font-label text-sm">82%</span>
+</div>
+<div class="h-1 bg-black/10 w-full relative">
+<div class="absolute top-0 left-0 h-full bg-black/80 w-[82%]" style="box-shadow: 0 0 10px rgba(0,0,0,0.2);"></div>
+<div class="absolute -top-1 left-[82%] w-3 h-3 bg-black rounded-full border-2 border-[#f4ead5]"></div>
+</div>
+<p class="text-[11px] font-body text-black/60 leading-tight">Stable harmonic output detected. Minor fluctuations in the aetheric core during observation.</p>
+</div>
+<!-- Stability -->
+<div class="space-y-4">
+<div class="flex justify-between items-end">
+<h5 class="font-headline text-xl italic font-bold">Stability</h5>
+<span class="font-label text-sm">45%</span>
+</div>
+<div class="h-1 bg-black/10 w-full relative">
+<div class="absolute top-0 left-0 h-full bg-black/80 w-[45%]" style="box-shadow: 0 0 10px rgba(0,0,0,0.2);"></div>
+<div class="absolute -top-1 left-[45%] w-3 h-3 bg-black rounded-full border-2 border-[#f4ead5]"></div>
+</div>
+<p class="text-[11px] font-body text-black/60 leading-tight">Critical structural fatigue in the brass rotating assembly. Immediate reinforcement recommended.</p>
+</div>
+<!-- Age -->
+<div class="space-y-4">
+<div class="flex justify-between items-end">
+<h5 class="font-headline text-xl italic font-bold">Age</h5>
+<span class="font-label text-sm">96%</span>
+</div>
+<div class="h-1 bg-black/10 w-full relative">
+<div class="absolute top-0 left-0 h-full bg-black/80 w-[96%]" style="box-shadow: 0 0 10px rgba(0,0,0,0.2);"></div>
+<div class="absolute -top-1 left-[96%] w-3 h-3 bg-black rounded-full border-2 border-[#f4ead5]"></div>
+</div>
+<p class="text-[11px] font-body text-black/60 leading-tight">Carbon dating indicates origin in the Silent Era. Patina is authentic and deeply seated.</p>
+</div>
+</div>
+<div class="mt-16 pt-8 border-t border-black/10">
+<div class="bg-black/5 p-4 italic font-body text-xs text-black/70">
+<span class="font-bold block not-italic mb-1">Appraiser's Note:</span>
+                                "The sphere hums a melody long forgotten. A rare find, but handle with caution; the mechanism is brittle as winter glass."
+                            </div>
+</div>
+<!-- Wax Seal Status -->
+<div class="absolute -bottom-6 -right-6 w-20 h-20 bg-[#643d2e] rounded-full flex items-center justify-center shadow-2xl border-4 border-black/5 rotate-12">
+<span class="material-symbols-outlined text-[#dfa996] text-3xl" style="font-variation-settings: 'FILL' 1;">verified</span>
+</div>
+</div>
+<!-- Market Context Card -->
+<div class="bg-surface-container-highest p-6 border border-outline-variant/10 rounded-sm">
+<h4 class="font-label text-[10px] uppercase tracking-[0.2em] text-secondary mb-4">Market Trend</h4>
+<div class="flex items-center justify-between">
+<span class="text-3xl font-headline font-extrabold text-on-surface">Ascending</span>
+<div class="text-right">
+<div class="text-tertiary font-label text-sm">+4.2%</div>
+<div class="text-[10px] text-outline uppercase tracking-tighter">This Fortnight</div>
+</div>
+</div>
+</div>
+</aside>
+</div>
+</div>
+</main>
+<!-- Mobile Bottom NavBar -->
+<nav class="md:hidden fixed bottom-0 left-0 right-0 bg-[#131313] px-8 py-3 flex justify-around items-center z-50 border-t border-outline-variant/10">
+<div class="flex flex-col items-center text-[#e9c176]">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">home</span>
+<span class="font-label text-[8px] uppercase tracking-widest mt-1">EXCHANGE</span>
+</div>
+<div class="flex flex-col items-center text-[#f2baa6]/60">
+<span class="material-symbols-outlined">inventory_2</span>
+<span class="font-label text-[8px] uppercase tracking-widest mt-1">STASH</span>
+</div>
+<div class="flex flex-col items-center text-[#f2baa6]/60">
+<span class="material-symbols-outlined">history_edu</span>
+<span class="font-label text-[8px] uppercase tracking-widest mt-1">CHRONICLES</span>
+</div>
+</nav>
+</body></html>

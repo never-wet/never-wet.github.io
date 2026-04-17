@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>THE BROKER'S LEDGER - The Backroom</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Manrope:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-secondary-fixed-variant": "#004e5c",
+                        "surface-container-lowest": "#0e0e0f",
+                        "error-container": "#93000a",
+                        "on-surface-variant": "#cbc3d7",
+                        "error": "#ffb4ab",
+                        "tertiary-fixed": "#ffe088",
+                        "on-primary-fixed-variant": "#5516be",
+                        "primary-fixed": "#e9ddff",
+                        "surface-variant": "#353436",
+                        "surface-container-highest": "#353436",
+                        "on-error-container": "#ffdad6",
+                        "background": "#131314",
+                        "primary": "#d0bcff",
+                        "primary-container": "#a078ff",
+                        "tertiary-container": "#cca830",
+                        "on-secondary-container": "#00424e",
+                        "on-tertiary-container": "#4f3e00",
+                        "surface-bright": "#3a393a",
+                        "on-primary": "#3c0091",
+                        "secondary": "#4cd7f6",
+                        "surface-dim": "#131314",
+                        "on-surface": "#e5e2e3",
+                        "secondary-fixed": "#acedff",
+                        "outline-variant": "#494454",
+                        "surface": "#131314",
+                        "inverse-surface": "#e5e2e3",
+                        "outline": "#958ea0",
+                        "tertiary-fixed-dim": "#e9c349",
+                        "primary-fixed-dim": "#d0bcff",
+                        "on-background": "#e5e2e3",
+                        "inverse-on-surface": "#313031",
+                        "surface-tint": "#d0bcff",
+                        "on-primary-fixed": "#23005c",
+                        "surface-container": "#201f20",
+                        "surface-container-low": "#1c1b1c",
+                        "on-secondary": "#003640",
+                        "on-secondary-fixed": "#001f26",
+                        "surface-container-high": "#2a2a2b",
+                        "tertiary": "#e9c349",
+                        "on-tertiary": "#3c2f00",
+                        "secondary-container": "#03b5d3",
+                        "inverse-primary": "#6d3bd7",
+                        "secondary-fixed-dim": "#4cd7f6",
+                        "on-error": "#690005",
+                        "on-tertiary-fixed-variant": "#574500"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0px",
+                        "lg": "0px",
+                        "xl": "0px",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Space Grotesk"],
+                        "body": ["Manrope"],
+                        "label": ["Space Grotesk"]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .neon-violet-glow {
+            box-shadow: 0 -2px 15px rgba(208, 188, 255, 0.4);
+        }
+        .gold-filigree {
+            border-top: 2px solid #e9c349;
+            border-left: 2px solid #e9c349;
+        }
+        .inventory-grid-bg {
+            background-image: linear-gradient(#49445415 1px, transparent 1px), linear-gradient(90deg, #49445415 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+        .scan-line {
+            background: linear-gradient(to bottom, transparent 50%, rgba(208, 188, 255, 0.05) 50%);
+            background-size: 100% 4px;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body selection:bg-primary selection:text-on-primary">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-[#131314] text-[#d0bcff] font-['Space_Grotesk'] uppercase tracking-[0.05em] rounded-none border-b-2 border-[#d0bcff]/20 flex justify-between items-center px-6 py-4 neon-violet-glow">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-2xl">menu_open</span>
+<h1 class="text-xl font-bold text-[#e9c349] tracking-widest">THE BROKER'S LEDGER</h1>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-2 px-3 py-1 bg-surface-container-highest">
+<span class="material-symbols-outlined text-tertiary">monetization_on</span>
+<span class="font-label text-sm">42,080</span>
+</div>
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined cursor-pointer hover:bg-[#353436] p-2 transition-transform duration-150 active:scale-95">military_tech</span>
+<span class="material-symbols-outlined cursor-pointer hover:bg-[#353436] p-2 transition-transform duration-150 active:scale-95">wb_twilight</span>
+</div>
+</div>
+</header>
+<!-- SideNavBar -->
+<nav class="fixed left-0 top-0 h-full w-64 bg-[#0e0e0f] text-[#d0bcff] font-['Space_Grotesk'] text-sm font-bold uppercase rounded-none border-r border-[#494454]/20 pt-24 pb-8 flex flex-col z-40">
+<div class="px-6 mb-8">
+<div class="flex items-center gap-3 mb-4">
+<div class="w-12 h-12 bg-surface-container-high border border-tertiary p-1">
+<img alt="The Digital Alchemist Avatar" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCavo4uPyaueAsDx_O1A0waqotynq6mIK9hfQsSEecju4LKaNsQi4O5G1xus-McS-LX4fYcfOOu3SQbFl4OQxElrNHTImnHIf2brGTPNmSftljHVYMnaP_2KjMJyyq_wcPv4Fx9Qxsw4u9jwbLiVvb4i8BTvAluunzHvhJOfsD1Ry-zS6sgkrwbRX2wJjerMbCu4-udL81AS-CTcCYGwF_NCmlmZFSaOFD5EQ-WcnHLJieyfQSSHyHTQPNSKkx3qzwBeMteDE18kc8"/>
+</div>
+<div>
+<p class="text-lg font-black text-[#e9c349] leading-none">MASTER BROKER</p>
+<p class="text-[10px] text-on-surface-variant tracking-widest mt-1 opacity-70">Tier III Relic Hunter</p>
+</div>
+</div>
+</div>
+<div class="flex-grow flex flex-col gap-1">
+<a class="flex items-center gap-4 px-6 py-4 text-[#cbc3d7] opacity-70 hover:text-[#d0bcff] hover:bg-[#201f20] transition-all group" href="#">
+<span class="material-symbols-outlined group-hover:animate-pulse">token</span>
+<span>EXCHANGE</span>
+</a>
+<a class="flex items-center gap-4 px-6 py-4 bg-[#2a2a2b] text-[#e9c349] border-l-4 border-[#e9c349] transition-all" href="#">
+<span class="material-symbols-outlined">inventory_2</span>
+<span>STASH</span>
+</a>
+<a class="flex items-center gap-4 px-6 py-4 text-[#cbc3d7] opacity-70 hover:text-[#d0bcff] hover:bg-[#201f20] transition-all group" href="#">
+<span class="material-symbols-outlined group-hover:animate-pulse">stars</span>
+<span>REPUTATION</span>
+</a>
+<a class="flex items-center gap-4 px-6 py-4 text-[#cbc3d7] opacity-70 hover:text-[#d0bcff] hover:bg-[#201f20] transition-all group" href="#">
+<span class="material-symbols-outlined group-hover:animate-pulse">menu_book</span>
+<span>CHRONICLES</span>
+</a>
+</div>
+<div class="px-6 mt-auto">
+<button class="w-full bg-tertiary text-on-tertiary py-3 font-label font-bold tracking-widest hover:shadow-[2px_2px_0px_#4cd7f6] transition-all active:scale-95">
+                CLOSE DEAL
+            </button>
+</div>
+</nav>
+<!-- Main Content Canvas -->
+<main class="ml-64 pt-24 min-h-screen relative overflow-hidden">
+<!-- Workshop Background Decor -->
+<div class="absolute inset-0 -z-10 bg-surface opacity-40">
+<div class="absolute right-0 bottom-0 w-2/3 h-2/3 opacity-20 saturate-50 blur-sm mix-blend-screen overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="cinematic shot of a cluttered cyberpunk workshop with dusty shelves, floating holographic terminals, and stacks of leather-bound books" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAG9CiXIBP7QyTRDXGJ98l7eZ0kdOCRsk5hMhIQFBjrd-kDI04bHDO0Ac0p0ojGhicvvoruGHUVCBYSrOPVXLk32VLwxlgaD32bPOzwnqV6n1ZcfYWJ3_B9IaCpsrW1ifBXgI6BFGardrO5HeGIenIxIv2VMSpQkgyabnzh7FG4utMRq8HnschB0T0QM-cff_qoOwnvT6zlYLe88MxAte_MlVh5ZoM_drtdnqyBQ3Apr9eaY2pLC6P7t13tER0Hu_WHbsmlGeMZX4o"/>
+</div>
+<div class="absolute top-0 left-0 w-full h-full scan-line pointer-events-none"></div>
+</div>
+<div class="p-8 grid grid-cols-12 gap-8 h-full max-w-[1600px] mx-auto">
+<!-- Inventory Header Section -->
+<div class="col-span-12 flex justify-between items-end mb-4">
+<div>
+<h2 class="font-headline text-4xl font-bold text-on-surface uppercase tracking-tight">The Backroom</h2>
+<p class="font-body text-on-surface-variant max-w-xl mt-2">Manage your decrypted artifacts and modify your brokerage deck. Higher rarity relics require 'Stable' slots.</p>
+</div>
+<div class="flex gap-4">
+<div class="bg-surface-container border-b-2 border-primary px-4 py-2 flex flex-col items-end">
+<span class="text-[10px] font-label text-primary uppercase">Storage Capacity</span>
+<span class="text-xl font-headline font-bold">24 / 64</span>
+</div>
+</div>
+</div>
+<!-- Main Inventory Grid (Left Column) -->
+<div class="col-span-8 bg-surface-container/80 backdrop-blur-md p-6 border border-outline-variant/20 relative">
+<div class="absolute top-0 right-0 p-2">
+<span class="text-[10px] font-label text-outline uppercase tracking-tighter">System Status: Nominal</span>
+</div>
+<div class="flex justify-between items-center mb-6">
+<div class="flex gap-2">
+<button class="bg-surface-container-highest px-4 py-1 text-xs font-label text-primary border border-primary/30">ALL</button>
+<button class="bg-transparent px-4 py-1 text-xs font-label text-on-surface-variant hover:bg-surface-container-high">RELICS</button>
+<button class="bg-transparent px-4 py-1 text-xs font-label text-on-surface-variant hover:bg-surface-container-high">SCRIPTS</button>
+<button class="bg-transparent px-4 py-1 text-xs font-label text-on-surface-variant hover:bg-surface-container-high">COMPONENTS</button>
+</div>
+<div class="flex items-center gap-2 bg-surface-container-lowest px-3 py-1 border border-outline-variant/30">
+<span class="material-symbols-outlined text-sm text-outline">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-xs font-label text-on-surface-variant placeholder:text-outline/50 w-32" placeholder="FILTER LEDGER..." type="text"/>
+</div>
+</div>
+<div class="grid grid-cols-6 gap-3 inventory-grid-bg p-4 bg-surface-container-lowest/50">
+<!-- Artifact Slots -->
+<!-- Active/Rare Slot -->
+<div class="aspect-square bg-surface-container-highest border border-tertiary group cursor-pointer relative overflow-hidden transition-all hover:bg-tertiary/10">
+<div class="absolute top-0 right-0 p-1">
+<span class="material-symbols-outlined text-[10px] text-tertiary" style="font-variation-settings: 'FILL' 1;">stars</span>
+</div>
+<div class="h-full w-full flex items-center justify-center p-4">
+<img class="w-full h-full object-contain mix-blend-lighten group-hover:scale-110 transition-transform" data-alt="a small golden crystalline artifact with pulsing neon violet veins floating in darkness" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAjXzAhhujAJbIheD_G07mN6jvvS43fnQ8qud0PCi-aFHv0hZ-LHmW5C3vYLxcLFsrwtmFBWiG1ZIYLvedxEPcsKcIz0beYBnrHHg8u5CznJ4RMw4ZL7_PXyd6jFRCZUgOIfe2dPMqCMCMRpzGMoBCZHqMzkSFxszubzVH6nVAJJ8f-ChCe508yEMWo3I-lR9X_djkp8JBrkEfHB8IBQA72HPuhkiGqFczmUiHPEUT-5vEZRWXFilXZygER-t_CP6KWe8MdV6oMUL0"/>
+</div>
+<div class="absolute bottom-0 left-0 w-full bg-tertiary/90 py-0.5 px-2">
+<p class="text-[8px] font-label text-on-tertiary font-black truncate">CHRONOS_SHARD</p>
+</div>
+</div>
+<!-- Standard Slots -->
+<div class="aspect-square bg-surface-container-low border border-outline-variant/30 group cursor-pointer hover:border-secondary transition-all">
+<div class="h-full w-full flex items-center justify-center p-4">
+<img class="w-full h-full object-contain grayscale group-hover:grayscale-0 transition-all" data-alt="a corroded silver circuitry key with glowing cyan data tracks" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBqoRABnS8v7dhke09xyNmu9RZjHka1L-Aq1nS4flO9e7aDiq0BQBXtVmRctsP5gjD1W9V7ylN-2SbXpH9X10CChiXpfR90ag1ASoQS7xH_pCI11NHXyiOIFaRoJfWCUIJprR5XUUqUvXbWktd_SaB4CgStHT-w1Ivpa_zRjOpvSRktm5JaOPzUqc8tB0l5PMzg29y8XHdn4V_9L6DhdmEZKgSYVE4qTiOP-0Rm4UW_qW7PLfy1-VHJitCOs09ulZFPXmhSmxm-18w"/>
+</div>
+</div>
+<div class="aspect-square bg-surface-container-low border border-outline-variant/30 group cursor-pointer hover:border-secondary transition-all">
+<div class="h-full w-full flex items-center justify-center p-4">
+<img class="w-full h-full object-contain grayscale group-hover:grayscale-0 transition-all" data-alt="a glass vial filled with glowing green nanites and digital artifacts" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCptH7TzPikklfdHFXzdOKsFXIvv39-nNXc_kx84l1vBaQNDIwQSx6leTBCUGRkBiYekeW-5nFn7v4yWhg_oWVEnZ26kkQRJdC2Bur6qA7dRuwDXocaoGVz5npVZTZ83IT5HLJMu5A2qFLPV-F6H9Pu1K_JL8yHVYqau9R9bYi5IaCrCCgaxliLarlNRwYvgZ_1vptKzEZWNcEw3fOjddZszEBeMq7NEJLdCjak8ijxGViRW4fI1UM00vkke6d3lya9v_Sb0wMRfNw"/>
+</div>
+</div>
+<!-- Empty Slot -->
+<div class="aspect-square bg-surface-container-lowest/30 border border-outline-variant/10 flex items-center justify-center group cursor-pointer">
+<span class="material-symbols-outlined text-outline/20 group-hover:text-outline transition-colors">add</span>
+</div>
+<!-- Repeat Grid Items for Layout -->
+<div class="aspect-square bg-surface-container-low border border-outline-variant/30"></div>
+<div class="aspect-square bg-surface-container-low border border-outline-variant/30"></div>
+<div class="aspect-square bg-surface-container-low border border-outline-variant/30"></div>
+<div class="aspect-square bg-surface-container-low border border-outline-variant/30"></div>
+<div class="aspect-square bg-surface-container-low border border-outline-variant/30"></div>
+<div class="aspect-square bg-surface-container-low border border-outline-variant/30"></div>
+<div class="aspect-square bg-surface-container-low border border-outline-variant/30"></div>
+<div class="aspect-square bg-surface-container-low border border-outline-variant/30"></div>
+<div class="aspect-square bg-surface-container-low border border-outline-variant/30"></div>
+<div class="aspect-square bg-surface-container-low border border-outline-variant/30"></div>
+<div class="aspect-square bg-surface-container-low border border-outline-variant/30"></div>
+<div class="aspect-square bg-surface-container-low border border-outline-variant/30"></div>
+<div class="aspect-square bg-surface-container-low border border-outline-variant/30"></div>
+<div class="aspect-square bg-surface-container-low border border-outline-variant/30"></div>
+<div class="aspect-square bg-surface-container-low border border-outline-variant/30"></div>
+<div class="aspect-square bg-surface-container-low border border-outline-variant/30"></div>
+<div class="aspect-square bg-surface-container-low border border-outline-variant/30"></div>
+<div class="aspect-square bg-surface-container-low border border-outline-variant/30"></div>
+</div>
+<!-- Footer Stats -->
+<div class="mt-6 pt-6 border-t border-outline-variant/20 flex gap-12">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 flex items-center justify-center bg-surface-container-high border-r-2 border-secondary">
+<span class="material-symbols-outlined text-secondary">memory</span>
+</div>
+<div>
+<p class="text-[10px] font-label text-outline uppercase">Neural Load</p>
+<p class="font-headline font-bold text-on-surface">14.5%</p>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 flex items-center justify-center bg-surface-container-high border-r-2 border-tertiary">
+<span class="material-symbols-outlined text-tertiary">diamond</span>
+</div>
+<div>
+<p class="text-[10px] font-label text-outline uppercase">Essence Yield</p>
+<p class="font-headline font-bold text-on-surface">+124 / HR</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Broker Deck Sidebar (Right Column) -->
+<div class="col-span-4 flex flex-col gap-6">
+<!-- Active Deck Panel -->
+<div class="bg-surface-container p-6 gold-filigree relative">
+<div class="flex justify-between items-center mb-6">
+<h3 class="font-headline text-xl font-bold uppercase tracking-tight text-tertiary">Broker Deck</h3>
+<span class="text-[10px] font-label bg-surface-container-highest px-2 py-1 text-on-surface-variant">ACTIVE_v2.0</span>
+</div>
+<!-- Deck Slots (Asymmetric Stack) -->
+<div class="flex flex-col gap-3">
+<!-- Card 1 -->
+<div class="group relative bg-surface-container-low p-4 flex gap-4 border-l border-primary hover:bg-surface-container-high transition-colors cursor-pointer">
+<div class="w-16 h-20 bg-background border border-outline-variant overflow-hidden flex-shrink-0">
+<div class="w-full h-full bg-primary/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-3xl">token</span>
+</div>
+</div>
+<div class="flex-grow">
+<div class="flex justify-between items-start">
+<p class="font-headline font-bold text-sm uppercase text-on-surface">Venture Capital</p>
+<span class="text-[10px] font-label text-primary">LVL 4</span>
+</div>
+<p class="text-[10px] text-on-surface-variant mt-1 leading-tight font-body">Increases trade efficiency by 12%. Passive income trigger.</p>
+<div class="mt-2 h-1 bg-outline-variant w-full overflow-hidden">
+<div class="h-full bg-primary w-2/3 shadow-[0_0_8px_#d0bcff]"></div>
+</div>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="group relative bg-surface-container-low p-4 flex gap-4 border-l border-secondary hover:bg-surface-container-high transition-colors cursor-pointer">
+<div class="w-16 h-20 bg-background border border-outline-variant overflow-hidden flex-shrink-0">
+<div class="w-full h-full bg-secondary/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-secondary text-3xl">hub</span>
+</div>
+</div>
+<div class="flex-grow">
+<div class="flex justify-between items-start">
+<p class="font-headline font-bold text-sm uppercase text-on-surface">Data Leakage</p>
+<span class="text-[10px] font-label text-secondary">LVL 2</span>
+</div>
+<p class="text-[10px] text-on-surface-variant mt-1 leading-tight font-body">Exposes rival merchant inventory during trades.</p>
+<div class="mt-2 h-1 bg-outline-variant w-full overflow-hidden">
+<div class="h-full bg-secondary w-1/4 shadow-[0_0_8px_#4cd7f6]"></div>
+</div>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="group relative bg-surface-container-low p-4 flex gap-4 border-l border-tertiary hover:bg-surface-container-high transition-colors cursor-pointer">
+<div class="w-16 h-20 bg-background border border-outline-variant overflow-hidden flex-shrink-0">
+<div class="w-full h-full bg-tertiary/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-tertiary text-3xl">auto_fix_high</span>
+</div>
+</div>
+<div class="flex-grow">
+<div class="flex justify-between items-start">
+<p class="font-headline font-bold text-sm uppercase text-on-surface">Relic Polishing</p>
+<span class="text-[10px] font-label text-tertiary">LVL MAX</span>
+</div>
+<p class="text-[10px] text-on-surface-variant mt-1 leading-tight font-body">Increases resale value of damaged artifacts by 40%.</p>
+<div class="mt-2 h-1 bg-tertiary w-full shadow-[0_0_8px_#e9c349]"></div>
+</div>
+</div>
+</div>
+<div class="mt-6">
+<button class="w-full py-2 bg-transparent border border-outline-variant text-xs font-label uppercase text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all">
+                            UPGRADE DECK CAPACITY
+                        </button>
+</div>
+</div>
+<!-- Inspect/Quick Action -->
+<div class="bg-surface-container-low p-6 border-l-2 border-secondary/30">
+<div class="flex items-center gap-2 mb-4">
+<span class="material-symbols-outlined text-secondary text-sm">bolt</span>
+<h4 class="text-xs font-label font-bold uppercase tracking-widest text-secondary">Quick Calibration</h4>
+</div>
+<div class="space-y-4">
+<div class="flex justify-between items-center text-[11px]">
+<span class="text-on-surface-variant">Selected Artifact</span>
+<span class="text-on-surface">CHRONOS_SHARD</span>
+</div>
+<div class="flex justify-between items-center text-[11px]">
+<span class="text-on-surface-variant">Sync Rate</span>
+<span class="text-secondary font-bold">98.2%</span>
+</div>
+<button class="w-full py-3 bg-secondary text-on-secondary font-label font-black text-sm tracking-tighter hover:shadow-[0_0_20px_rgba(76,215,246,0.4)] active:scale-95 transition-all">
+                            CALIBRATE RELIC
+                        </button>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- UI Overlay elements -->
+<div class="fixed bottom-6 right-6 flex flex-col gap-2 pointer-events-none">
+<div class="bg-surface-container-highest px-3 py-1 border-r-2 border-tertiary">
+<span class="text-[8px] font-label text-outline block leading-none">TERMINAL_REFRESH</span>
+<span class="text-[10px] font-label text-tertiary">CONNECTED</span>
+</div>
+<div class="bg-surface-container-highest px-3 py-1 border-r-2 border-secondary">
+<span class="text-[8px] font-label text-outline block leading-none">STASH_ENCRYPTION</span>
+<span class="text-[10px] font-label text-secondary">SECURE</span>
+</div>
+</div>
+</body></html>

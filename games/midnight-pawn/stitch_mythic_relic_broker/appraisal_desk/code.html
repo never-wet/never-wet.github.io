@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>THE BROKER'S LEDGER - Relic Appraisal</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Manrope:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .neon-glow-primary {
+            box-shadow: 0 0 20px rgba(208, 188, 255, 0.2);
+        }
+        .neon-glow-tertiary {
+            box-shadow: 0 0 15px rgba(233, 195, 73, 0.3);
+        }
+        .glitch-border {
+            position: relative;
+        }
+        .glitch-border::after {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            border: 1px solid #4cd7f6;
+            opacity: 0.3;
+            z-index: -1;
+        }
+        body {
+            background-color: #131314;
+            color: #e5e2e3;
+            overflow: hidden;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-secondary-fixed-variant": "#004e5c",
+                      "surface-container-lowest": "#0e0e0f",
+                      "error-container": "#93000a",
+                      "on-surface-variant": "#cbc3d7",
+                      "error": "#ffb4ab",
+                      "tertiary-fixed": "#ffe088",
+                      "on-primary-fixed-variant": "#5516be",
+                      "primary-fixed": "#e9ddff",
+                      "surface-variant": "#353436",
+                      "surface-container-highest": "#353436",
+                      "on-error-container": "#ffdad6",
+                      "background": "#131314",
+                      "primary": "#d0bcff",
+                      "primary-container": "#a078ff",
+                      "tertiary-container": "#cca830",
+                      "on-secondary-container": "#00424e",
+                      "on-tertiary-container": "#4f3e00",
+                      "surface-bright": "#3a393a",
+                      "on-primary": "#3c0091",
+                      "secondary": "#4cd7f6",
+                      "surface-dim": "#131314",
+                      "on-surface": "#e5e2e3",
+                      "secondary-fixed": "#acedff",
+                      "outline-variant": "#494454",
+                      "surface": "#131314",
+                      "inverse-surface": "#e5e2e3",
+                      "outline": "#958ea0",
+                      "tertiary-fixed-dim": "#e9c349",
+                      "primary-fixed-dim": "#d0bcff",
+                      "on-background": "#e5e2e3",
+                      "inverse-on-surface": "#313031",
+                      "surface-tint": "#d0bcff",
+                      "on-primary-fixed": "#23005c",
+                      "surface-container": "#201f20",
+                      "surface-container-low": "#1c1b1c",
+                      "on-secondary": "#003640",
+                      "on-secondary-fixed": "#001f26",
+                      "surface-container-high": "#2a2a2b",
+                      "tertiary": "#e9c349",
+                      "on-tertiary": "#3c2f00",
+                      "secondary-container": "#03b5d3",
+                      "inverse-primary": "#6d3bd7",
+                      "secondary-fixed-dim": "#4cd7f6",
+                      "on-error": "#690005",
+                      "on-tertiary-fixed-variant": "#574500"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0px",
+                      "lg": "0px",
+                      "xl": "0px",
+                      "full": "9999px"
+              },
+              "fontFamily": {
+                      "headline": ["Space Grotesk"],
+                      "body": ["Manrope"],
+                      "label": ["Space Grotesk"]
+              }
+            },
+          }
+        }
+      </script>
+</head>
+<body class="font-body selection:bg-primary selection:text-on-primary">
+<!-- TopAppBar Shell -->
+<header class="fixed top-0 w-full rounded-none border-b-2 border-[#d0bcff]/20 bg-[#131314] flex justify-between items-center px-6 py-4 w-full z-50">
+<div class="flex items-center gap-4">
+<span class="text-xl font-bold text-[#e9c349] tracking-widest font-['Space_Grotesk'] uppercase">THE BROKER'S LEDGER</span>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-4 text-[#cbc3d7]">
+<span class="material-symbols-outlined cursor-pointer hover:bg-[#353436] hover:shadow-[0_0_15px_rgba(208,188,255,0.3)] transition-all p-1" data-icon="monetization_on">monetization_on</span>
+<span class="material-symbols-outlined cursor-pointer hover:bg-[#353436] hover:shadow-[0_0_15px_rgba(208,188,255,0.3)] transition-all p-1" data-icon="military_tech">military_tech</span>
+<span class="material-symbols-outlined cursor-pointer hover:bg-[#353436] hover:shadow-[0_0_15px_rgba(208,188,255,0.3)] transition-all p-1" data-icon="wb_twilight">wb_twilight</span>
+</div>
+<div class="w-10 h-10 bg-surface-container-high border-2 border-tertiary flex items-center justify-center">
+<span class="material-symbols-outlined text-tertiary" data-icon="person">person</span>
+</div>
+</div>
+</header>
+<main class="relative h-screen w-full flex overflow-hidden">
+<!-- Appraisal Desk Canvas (Top-Down View) -->
+<div class="absolute inset-0 bg-[#0e0e0f]">
+<!-- Velvet Texture Layer -->
+<div class="absolute inset-0 opacity-40 mix-blend-overlay pointer-events-none" data-alt="top-down macro shot of deep burgundy velvet fabric texture with dramatic shadows and subtle sheen" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDmKEBTtdy5l-9g89uIzkTil_I9CcZijqsNHjjNIg_m4MOrFApv6lLzCAqU4fRgcqSP3CEXl_plBXO01naO2Wggu7QJzgOBvNqWghWM-aOlLXu86ILq8XmQ0f0-mmcHKGOpPvkz3-Kdk79Icg2KPeSE4z4myEO9LG6s9t3a-DnyIxOlt-7j-vdzizHgS0wnPBmU_y5eq5hUM4LvLW2jRcfziqoAhAsy-q7-trfcYQIpxppiQDu-fLei1kVZ6imaP53JFcC5Kus5W5A'); background-size: cover;"></div>
+<!-- Desk Centerpiece: The Relic -->
+<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[450px] h-[450px] flex items-center justify-center">
+<!-- Occult Ritual Glow -->
+<div class="absolute inset-0 bg-primary/10 blur-[80px] rounded-full"></div>
+<div class="relative z-10 w-80 h-80 bg-surface-container-lowest border border-primary/30 flex items-center justify-center group cursor-crosshair">
+<!-- The Artifact Image -->
+<img class="w-72 h-72 object-cover grayscale brightness-75 contrast-125 group-hover:grayscale-0 transition-all duration-700" data-alt="glowing intricate alien mechanical orb with neon violet light pulsing from internal circuits on dark pedestal" src="https://lh3.googleusercontent.com/aida-public/AB6AXuChXpgPqB_zCwy7dMqsE_HDuVsTG1Jmt40zAOuRVgXpmQSLPTyqlRxvLkIT4kUCs4Ub-3uWcTZC9hh6LQkuxVWH-7YNTF66_jUSQ6_6bmC159M1jrbuJ2ymULOC9Cudfue-J4xHI0p4JRA8Ib7tEmiduBj6hAVE1LGLhLwgaOgqwh8KMSnpsOBeikYADH4KqArDHQ0FEMRGSVO9X6gWmokHxTVps3h7wKwPOzwoFPMUIrh03zFcWyYiIg1wl_pmNCRg53lXKlSBDrE"/>
+<!-- Scanner Lines Overlay -->
+<div class="absolute inset-0 pointer-events-none overflow-hidden opacity-20">
+<div class="w-full h-1 bg-secondary shadow-[0_0_15px_#4cd7f6] animate-pulse mt-[20%]"></div>
+<div class="w-full h-1 bg-secondary shadow-[0_0_15px_#4cd7f6] animate-pulse mt-[40%]"></div>
+<div class="w-full h-1 bg-secondary shadow-[0_0_15px_#4cd7f6] animate-pulse mt-[60%]"></div>
+</div>
+<!-- Asymmetric Filigree Corners -->
+<div class="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-tertiary"></div>
+<div class="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-tertiary"></div>
+</div>
+</div>
+<!-- Left Tools: Golden Ornate Set -->
+<div class="absolute left-12 top-1/2 -translate-y-1/2 flex flex-col gap-8">
+<div class="p-4 bg-surface-container-low border-r-2 border-tertiary/40">
+<span class="font-headline text-[10px] text-tertiary tracking-widest block mb-4">REAGENT_TOOLS</span>
+<div class="flex flex-col gap-6">
+<div class="group cursor-pointer">
+<span class="material-symbols-outlined text-4xl text-on-surface-variant group-hover:text-tertiary transition-colors" data-icon="architecture">architecture</span>
+<div class="hidden group-hover:block absolute left-full ml-4 py-1 px-3 bg-tertiary text-on-tertiary font-label text-[10px] whitespace-nowrap">CALIPERS OF TRUTH</div>
+</div>
+<span class="material-symbols-outlined text-4xl text-on-surface-variant hover:text-tertiary transition-colors cursor-pointer" data-icon="colorize">colorize</span>
+<span class="material-symbols-outlined text-4xl text-on-surface-variant hover:text-tertiary transition-colors cursor-pointer" data-icon="ink_eraser">ink_eraser</span>
+</div>
+</div>
+</div>
+<!-- Right Tools: Neon Scanner Interface -->
+<div class="absolute right-12 top-1/2 -translate-y-1/2 w-64 bg-surface-container-high/80 backdrop-blur-md p-6 border-l border-secondary/30">
+<div class="flex flex-col gap-4">
+<div class="flex justify-between items-end border-b border-outline-variant pb-2">
+<span class="font-headline text-xs text-secondary">DIAGNOSTIC_FEED</span>
+<span class="font-label text-[10px] text-on-surface-variant">LVL 0.89</span>
+</div>
+<div class="space-y-3">
+<div class="flex justify-between items-center text-[11px]">
+<span class="text-on-surface-variant">VOID RESONANCE</span>
+<span class="text-secondary font-bold">92.4%</span>
+</div>
+<div class="w-full h-1 bg-surface-container-lowest">
+<div class="h-full bg-secondary w-[92%] shadow-[0_0_8px_#4cd7f6]"></div>
+</div>
+<div class="flex justify-between items-center text-[11px] pt-2">
+<span class="text-on-surface-variant">AGE STABILITY</span>
+<span class="text-primary font-bold">STABLE</span>
+</div>
+<div class="w-full h-1 bg-surface-container-lowest">
+<div class="h-full bg-primary w-[45%] shadow-[0_0_8px_#d0bcff]"></div>
+</div>
+</div>
+<div class="mt-4 p-3 bg-surface-container-lowest border-t-2 border-error">
+<p class="font-label text-[10px] text-error leading-tight uppercase">WARNING: NON-HUMAN RESIDUE DETECTED IN CORE</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Negotiation Card HUD (Bottom Layer) -->
+<div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-full max-w-5xl h-64 flex items-end justify-center px-12 pb-8 pointer-events-none">
+<div class="flex gap-[-20px] pointer-events-auto">
+<!-- Card 1: Flattery -->
+<div class="w-44 h-64 bg-surface-container-highest border border-outline-variant group hover:-translate-y-12 hover:rotate-[-2deg] transition-all duration-300 cursor-pointer p-4 flex flex-col justify-between -mr-8">
+<div class="flex justify-between items-start">
+<span class="font-headline text-[10px] text-primary tracking-tighter">SKILL // CHARM</span>
+<span class="material-symbols-outlined text-primary text-xl" data-icon="auto_awesome">auto_awesome</span>
+</div>
+<div class="py-4">
+<div class="h-24 bg-surface-container-lowest border border-outline-variant overflow-hidden">
+<img class="w-full h-full object-cover opacity-50 grayscale" data-alt="close-up of a person smiling subtly in dramatic noir lighting with sharp contrast" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAiwK1ISY97tPJ0clBCYurMgv05QrMO_jBtFwY1BQno4tR8cVZgJOEhpQS9uqgT4GBHxN_X5xU63YmLqROAbGlFNhezp6YbkurfaT-zfosviXMuJTUWyMIPPiknqKg3T2KWt6HO9NmIlV_w0uf8ie1dVQkWIYKhVRw09dNygIyyUQVyB7jvtcDQplI_kSi6xcdTSVYLj2bP08haPwUadXZ7yfTlyv65u9PVenye9Voeq9gLMFdqecXydHPT2jZ8EK-zwzOND3cKnro"/>
+</div>
+</div>
+<div>
+<h4 class="font-headline text-sm font-bold uppercase text-on-surface tracking-wide">Flattery</h4>
+<p class="text-[9px] text-on-surface-variant mt-1 leading-none uppercase">Boost appraisal trust by 15%. Minor risk of discovery.</p>
+</div>
+</div>
+<!-- Card 2: Hard Bargain (Active/Selected look) -->
+<div class="w-44 h-72 bg-surface-container-lowest border-2 border-tertiary group hover:-translate-y-4 transition-all duration-300 cursor-pointer p-4 flex flex-col justify-between -mr-8 z-20 shadow-[0_-20px_50px_rgba(233,195,73,0.15)]">
+<div class="flex justify-between items-start">
+<span class="font-headline text-[10px] text-tertiary tracking-tighter">SKILL // WILL</span>
+<span class="material-symbols-outlined text-tertiary text-xl" data-icon="gavel">gavel</span>
+</div>
+<div class="py-4">
+<div class="h-28 bg-surface-container-high border border-tertiary/20 overflow-hidden">
+<img class="w-full h-full object-cover opacity-70 grayscale" data-alt="a pair of heavy iron chains locking a wooden chest tightly in a dark basement" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBDS6Bga83dHcLiFj2GIntnJpPq6yA_HrXmQToHRNABsuPw0ZgixBzETDz9wYNOkmNizHJGnFIgl5ftPiLWQ7VRBwzD8OxoSRn1HUtU65_AN4DZBjybS02CftC5ADJti6NYIJyuiFo2fTtCLjHYl1WdckSu57YrAtU9tFXo9Wjyei_s_4drYkJEaAIduvtdWfmhtbPFQC0S-MdA17MG2w81v-lM4OxSMwe91gwvJTUssxNeU-xvdCJF4buuQXAN9de_tQUN2h_boBo"/>
+</div>
+</div>
+<div>
+<h4 class="font-headline text-sm font-bold uppercase text-tertiary tracking-wide">Hard Bargain</h4>
+<p class="text-[9px] text-on-surface-variant mt-1 leading-none uppercase">Force the merchant to reveal the true cost. -10 Rep.</p>
+</div>
+<div class="absolute inset-x-0 bottom-0 h-1 bg-tertiary shadow-[0_0_10px_#e9c349]"></div>
+</div>
+<!-- Card 3: Appraise Flaw -->
+<div class="w-44 h-64 bg-surface-container-highest border border-outline-variant group hover:-translate-y-12 hover:rotate-[2deg] transition-all duration-300 cursor-pointer p-4 flex flex-col justify-between -mr-8">
+<div class="flex justify-between items-start">
+<span class="font-headline text-[10px] text-secondary tracking-tighter">SKILL // EYE</span>
+<span class="material-symbols-outlined text-secondary text-xl" data-icon="biotech">biotech</span>
+</div>
+<div class="py-4">
+<div class="h-24 bg-surface-container-lowest border border-outline-variant overflow-hidden">
+<img class="w-full h-full object-cover opacity-50 grayscale" data-alt="microscopic view of a crystalline structure with glowing cyan veins of energy" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCfZRWg67WOPsBoVCqSUa3YHvkCUovyLtJdTH0VZ4slyF132fIP1t02I91XBeMCyaXbzqmMdOQM7PEY_Ajf2g7KXAms-dIjWxttxKCsqc2q521CpHSVniN2UrXxeE8gzM0sndTOcRtvaAjzoc-vRCu-7KLcWmq9mKHTcB3tch67JKKwuBVhsd5JjyQgoMDu1fbQF3I6MCO73-s9To9R9vHpwgbklt8YF9rKrDfs5MrC_HnfcF_X1uguTY0xMOLRxZxtm3itM0A4WLU"/>
+</div>
+</div>
+<div>
+<h4 class="font-headline text-sm font-bold uppercase text-on-surface tracking-wide">Appraise Flaw</h4>
+<p class="text-[9px] text-on-surface-variant mt-1 leading-none uppercase">Expose a hidden crack. Lowers item value by 20%.</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Floating UI Overlays -->
+<div class="absolute top-24 left-8 pointer-events-none">
+<div class="bg-surface-container-lowest/80 backdrop-blur border-l-4 border-primary p-4 max-w-[200px]">
+<h3 class="font-headline text-xs text-primary mb-1 uppercase tracking-widest">Active Deal</h3>
+<p class="font-body text-[10px] text-on-surface-variant uppercase">Relic: Echo of the Void</p>
+<div class="mt-4 flex items-baseline gap-1">
+<span class="font-label text-[10px] text-tertiary">VALUE:</span>
+<span class="font-headline text-lg text-on-surface">1,450</span>
+<span class="font-label text-xs text-tertiary">AU</span>
+</div>
+</div>
+</div>
+<!-- SideNavBar Shell (Collapsed/Functional for the screen) -->
+<nav class="fixed left-0 top-0 h-full w-20 flex flex-col items-center py-24 bg-[#0e0e0f] border-r border-[#494454]/20 z-40 transition-all hover:w-64 group/nav overflow-hidden">
+<div class="flex flex-col gap-12 w-full px-4">
+<div class="flex items-center gap-4 cursor-pointer group hover:bg-[#2a2a2b] transition-all p-2 bg-[#2a2a2b] border-l-4 border-[#e9c349]">
+<span class="material-symbols-outlined text-[#e9c349]" data-icon="token">token</span>
+<span class="font-label text-sm font-bold uppercase text-[#e9c349] opacity-0 group-hover/nav:opacity-100 whitespace-nowrap">EXCHANGE</span>
+</div>
+<div class="flex items-center gap-4 cursor-pointer group hover:bg-[#201f20] transition-all p-2 text-[#cbc3d7] opacity-70 hover:opacity-100">
+<span class="material-symbols-outlined" data-icon="inventory_2">inventory_2</span>
+<span class="font-label text-sm font-bold uppercase opacity-0 group-hover/nav:opacity-100 whitespace-nowrap">STASH</span>
+</div>
+<div class="flex items-center gap-4 cursor-pointer group hover:bg-[#201f20] transition-all p-2 text-[#cbc3d7] opacity-70 hover:opacity-100">
+<span class="material-symbols-outlined" data-icon="stars">stars</span>
+<span class="font-label text-sm font-bold uppercase opacity-0 group-hover/nav:opacity-100 whitespace-nowrap">REPUTATION</span>
+</div>
+<div class="flex items-center gap-4 cursor-pointer group hover:bg-[#201f20] transition-all p-2 text-[#cbc3d7] opacity-70 hover:opacity-100">
+<span class="material-symbols-outlined" data-icon="menu_book">menu_book</span>
+<span class="font-label text-sm font-bold uppercase opacity-0 group-hover/nav:opacity-100 whitespace-nowrap">CHRONICLES</span>
+</div>
+</div>
+<div class="mt-auto w-full px-4 mb-8">
+<button class="w-full py-4 bg-tertiary text-on-tertiary font-headline font-bold text-[10px] uppercase tracking-widest hover:shadow-[2px_2px_0px_#4cd7f6] transition-all active:scale-95">
+                    CLOSE DEAL
+                </button>
+</div>
+</nav>
+</main>
+<!-- Overlay Grain/Texture -->
+<div class="fixed inset-0 pointer-events-none opacity-[0.03] mix-blend-overlay bg-repeat" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuC2Ua-JOhY_a25QTqtCTdusgvQEOMwuQK0NiZH2cbNvDiMQzXXKQIJhQiTqGTGvzSc9ukOiOzLS853xMqRE4fmaE03AkNkqFgN8pWFx-FgR3oohy76qBWmEDrP1pOl5zRrr5ITEPhCyvCWEx0mN52Dj7GjSWZA8aHW-3PMYVFePHn3V4R93jdZROtSAlPSKGXsDbpEwDsEDrR9_tjOnQomWt2v60r3cYEIrUeq07shQwyvMrCuXbHuh06JvDKAWMHpf40Edeqj-j3o');"></div>
+</body></html>
