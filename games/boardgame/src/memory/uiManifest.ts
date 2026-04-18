@@ -7,6 +7,13 @@ export const navItems: NavItem[] = [
   { label: "Settings", to: "/settings" },
 ];
 
+export const externalNavItems = [
+  {
+    label: "Games Folder",
+    href: "../",
+  },
+] as const;
+
 export const dashboardPanels: DashboardPanel[] = [
   {
     title: "Performance Snapshot",
@@ -28,5 +35,9 @@ export const playViewNotes = {
     controls: "Chess intentionally hides undo and uses a single primary New Game action.",
     readability:
       "Chess play surfaces must force explicit light-on-dark text colors even when the paper theme is active.",
+  },
+  navigation: {
+    external:
+      "Boardgame Vault should keep a direct exit link back to the parent /games/ folder in the top navigation.",
   },
 };

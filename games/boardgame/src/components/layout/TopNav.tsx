@@ -1,6 +1,6 @@
 import { NavLink } from "react-router-dom";
 import { gameManifest } from "../../memory/gameManifest";
-import { navItems } from "../../memory/uiManifest";
+import { externalNavItems, navItems } from "../../memory/uiManifest";
 
 export function TopNav() {
   return (
@@ -21,6 +21,11 @@ export function TopNav() {
           >
             {item.label}
           </NavLink>
+        ))}
+        {externalNavItems.map((item) => (
+          <a className="nav-link-button" href={item.href} key={item.href}>
+            {item.label}
+          </a>
         ))}
       </nav>
     </header>

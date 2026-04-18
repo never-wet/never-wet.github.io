@@ -168,11 +168,32 @@ button {
   color: var(--text-soft);
 }
 
+.nav-link-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  padding: 0 16px;
+  border-radius: 999px;
+  border: 1px solid var(--panel-border);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-main);
+  font-weight: 700;
+  text-decoration: none;
+  transition: transform 180ms ease, border-color 180ms ease, background 180ms ease;
+}
+
 .nav-link:hover,
 .nav-link.is-active {
   color: var(--text-main);
   border-color: var(--panel-border);
   background: rgba(255, 255, 255, 0.03);
+}
+
+.nav-link-button:hover {
+  transform: translateY(-1px);
+  border-color: rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .page-stack {

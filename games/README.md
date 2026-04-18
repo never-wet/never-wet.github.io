@@ -36,9 +36,12 @@ If you are testing locally, serve the repo as a static site and open the same pa
 - These games are static front-end projects.
 - Most progress is stored in the browser with `localStorage`.
 - Some folders are fully playable games, while others are design/prototype bundles.
+- Shared workflow memory for future game additions lives at `/memories/GAMES_WORKFLOW.md`.
 - When a game in this folder changes in a meaningful way, update that game's README in the same pass.
 - For `midnight-pawn/`, treat `games/midnight-pawn/README.md` as required change documentation for UI, gameplay, tuning, and flow changes.
 - The arcade landing page at `games/index.html` should keep one empty placeholder card for the next game.
+- When adding a new game card, do not remove that last empty slot without recreating it in the same edit.
 - Preserve the old placeholder style for that slot:
   `Coming Soon` tag, `Next Cabinet` title, the short `/games` copy, and a single `Open slot` pill.
 - Do not redesign that empty slot into a detailed feature card unless explicitly requested.
+- Give each game its own theme and UI direction based on genre instead of reusing one shared look for every project.
