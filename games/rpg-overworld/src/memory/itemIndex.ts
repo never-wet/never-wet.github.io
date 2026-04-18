@@ -1,0 +1,18 @@
+export const itemIndex = [
+  { id: "moonwater-tonic", type: "consumable", rarity: "common", behaviorRef: "heal" },
+  { id: "glowcap-draught", type: "consumable", rarity: "uncommon", behaviorRef: "restoreMp" },
+  { id: "emberleaf-poultice", type: "consumable", rarity: "common", behaviorRef: "heal" },
+  { id: "stormglass-vial", type: "consumable", rarity: "rare", behaviorRef: "restoreMp" },
+  { id: "lantern-oil", type: "material", rarity: "common", behaviorRef: "crafting" },
+  { id: "warden-blade", type: "weapon", rarity: "rare", behaviorRef: "equip-weapon" },
+  { id: "thornwake-buckler", type: "armor", rarity: "uncommon", behaviorRef: "equip-armor" },
+  { id: "mirewalker-boots", type: "accessory", rarity: "uncommon", behaviorRef: "equip-accessory" },
+  { id: "glassbreaker-charm", type: "accessory", rarity: "epic", behaviorRef: "equip-accessory" },
+  { id: "abbey-key", type: "quest", rarity: "rare", behaviorRef: "story" },
+  { id: "star-compass", type: "quest", rarity: "legendary", behaviorRef: "story" },
+  { id: "veil-shard", type: "quest", rarity: "legendary", behaviorRef: "story" },
+  { id: "pilgrim-mail", type: "armor", rarity: "rare", behaviorRef: "equip-armor" },
+  { id: "saint-thread-robe", type: "armor", rarity: "epic", behaviorRef: "equip-armor" },
+  { id: "memory-thread", type: "material", rarity: "rare", behaviorRef: "story" },
+  { id: "hush-bell", type: "quest", rarity: "epic", behaviorRef: "story" },
+] as const;

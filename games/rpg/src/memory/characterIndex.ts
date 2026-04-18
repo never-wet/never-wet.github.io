@@ -1,0 +1,27 @@
+export const characterIndex = {
+  playableCharacters: ["player-rowan", "mira-quill", "nessa-reed", "brother-caldus"],
+  npcIds: [
+    "sera-vale",
+    "orric-flint",
+    "ivo-pell",
+    "captain-elric-thorn",
+    "fen-hollow",
+    "isolde-vey",
+    "edda-thorn",
+    "sister-maelin",
+    "regent-vael",
+    "lyessa-vale",
+  ],
+  enemyIds: [
+    "briar-wolf",
+    "hollow-moth",
+    "mireling",
+    "glass-cantor",
+    "ruin-sentinel",
+    "lantern-leech",
+    "shade-archer",
+    "mossback-troll",
+    "mirror-warden",
+  ],
+  skillIds: ["moonlit-cut", "ember-thread", "veil-ward", "restoration-hymn", "glass-break"],
+} as const;
