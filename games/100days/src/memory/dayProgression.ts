@@ -19,15 +19,15 @@ const biomeForDay = (day: number): string => {
 
 const durationForDay = (day: number): number => {
   if (day >= 90) {
-    return 13;
+    return 114;
   }
   if (day >= 60) {
-    return 14;
+    return 118;
   }
   if (day >= 20) {
-    return 16;
+    return 122;
   }
-  return 18;
+  return 126;
 };
 
 const bossByDay: Record<number, string> = {

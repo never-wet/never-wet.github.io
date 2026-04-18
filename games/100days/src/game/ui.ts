@@ -73,6 +73,12 @@ export interface UiModel {
 type ActionHandler = (action: string, value?: string) => void;
 
 const percent = (value: number): string => `${Math.round(value * 100)}%`;
+const formatTime = (value: number): string => {
+  const totalSeconds = Math.max(0, Math.ceil(value));
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+};
 
 const button = (label: string, action: string, value?: string, extraClass = ""): string =>
   `<button class="ui-button ${extraClass}" data-action="${action}" ${value ? `data-value="${value}"` : ""}>${label}</button>`.trim();
@@ -134,7 +140,7 @@ export class GameUI {
       <section class="hud-cluster hud-main">
         <div class="hud-title">Day ${hud.day}</div>
         <div class="hud-biome">${hud.currentBiome}</div>
-        ${hud.modeLabel ? `<div class="hud-mode">${hud.modeLabel}${hud.characterName ? ` · ${hud.characterName}` : ""}</div>` : ""}
+        ${hud.modeLabel ? `<div class="hud-mode">${hud.modeLabel}${hud.characterName ? ` - ${hud.characterName}` : ""}</div>` : ""}
         <div class="bar-block">
           <span>Vital</span>
           <div class="bar-track"><div class="bar-fill bar-health" style="width:${(hud.hp / hud.maxHp) * 100}%"></div></div>
@@ -148,7 +154,7 @@ export class GameUI {
       </section>
 
       <section class="hud-cluster hud-right">
-        <div class="hud-time">${hud.timeLeft.toFixed(1)}s</div>
+        <div class="hud-time">${formatTime(hud.timeLeft)}</div>
         ${hud.objectiveText ? `<div class="objective-banner"><strong>${hud.objectiveText}</strong><small>${hud.objectiveProgress ?? ""}</small></div>` : ""}
         ${hud.bossName ? `<div class="boss-card"><strong>${hud.bossName}</strong><div class="bar-track"><div class="bar-fill bar-boss" style="width:${(hud.bossHpRatio ?? 0) * 100}%"></div></div></div>` : ""}
         ${hud.warningText ? `<div class="warning-banner">${hud.warningText}</div>` : ""}

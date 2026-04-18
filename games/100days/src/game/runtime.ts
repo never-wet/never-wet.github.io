@@ -40,6 +40,7 @@ import type {
   DayObjectiveState,
   DaySummary,
   DroneRuntime,
+  EnemyEffectId,
   EnemyDefinition,
   EnemyRuntime,
   EventState,
@@ -206,6 +207,51 @@ export class HundredDaysRuntime {
     return this.getActiveSynergies().some((synergy) => synergy.id === synergyId);
   }
 
+  private emitEnemyEffectParticle(enemy: EnemyRuntime, effect: EnemyEffectId, count = 1): void {
+    const color =
+      effect === "slow"
+        ? "#9dffb5"
+        : effect === "shock"
+          ? "#d5f8ff"
+          : effect === "rupture"
+            ? "#ffb07a"
+            : "#ffd37a";
+    const force = effect === "shock" ? 34 : effect === "rupture" ? 30 : 24;
+    const life = effect === "shock" ? 0.34 : 0.28;
+    this.particles.trail(enemy.position, color, count, enemy.radius * 0.55, force, life);
+  }
+
+  private markEnemyEffect(enemy: EnemyRuntime, effect: EnemyEffectId): void {
+    const fresh =
+      effect === "slow"
+        ? enemy.slowFx <= 0.05
+        : effect === "shock"
+          ? enemy.shockFx <= 0.05
+          : effect === "rupture"
+            ? enemy.ruptureFx <= 0.05
+            : enemy.searFx <= 0.05;
+
+    switch (effect) {
+      case "slow":
+        enemy.slowFx = Math.max(enemy.slowFx, 0.48);
+        break;
+      case "shock":
+        enemy.shockFx = Math.max(enemy.shockFx, 0.42);
+        break;
+      case "rupture":
+        enemy.ruptureFx = Math.max(enemy.ruptureFx, 0.5);
+        break;
+      case "sear":
+        enemy.searFx = Math.max(enemy.searFx, 0.4);
+        break;
+    }
+
+    if (fresh) {
+      this.emitEnemyEffectParticle(enemy, effect, effect === "shock" ? 2 : 1);
+    }
+    enemy.effectPulseTimer = Math.min(enemy.effectPulseTimer, 0.08);
+  }
+
   private refreshDerivedDiscoveries(showWarnings: boolean): void {
     if (!this.run) {
       return;
@@ -323,7 +369,7 @@ export class HundredDaysRuntime {
       source.summary = `Endless Day ${day}. The Day 100 threat level persists with additional pressure.`;
     }
     if (modeId === "boss-rush") {
-      source.duration = Math.max(10, source.duration - 3);
+      source.duration = Math.max(84, Math.round(source.duration * 0.78));
       source.spawnRate += 0.28;
       source.enemyCap = Math.min(source.enemyCap + 18, 250);
       source.eliteChance = Math.min(source.eliteChance + 0.05, 0.4);
@@ -892,11 +938,35 @@ export class HundredDaysRuntime {
       const definition = contentRegistry.enemies[enemy.definitionId];
       enemy.hitFlash = Math.max(0, enemy.hitFlash - dt * 5);
       enemy.slow = Math.max(0, enemy.slow - dt * 1.2);
+      enemy.slowFx = Math.max(0, enemy.slowFx - dt * 1.8);
+      enemy.shockFx = Math.max(0, enemy.shockFx - dt * 2);
+      enemy.ruptureFx = Math.max(0, enemy.ruptureFx - dt * 1.6);
+      enemy.searFx = Math.max(0, enemy.searFx - dt * 1.7);
       enemy.attackTimer -= dt;
       enemy.dashTimer = Math.max(0, enemy.dashTimer - dt);
       enemy.contactTimer -= dt;
       enemy.summonTimer -= dt;
+      enemy.effectPulseTimer -= dt;
       enemy.stateTimer += dt;
+
+      const activeEffects: EnemyEffectId[] = [];
+      if (enemy.slowFx > 0) {
+        activeEffects.push("slow");
+      }
+      if (enemy.shockFx > 0) {
+        activeEffects.push("shock");
+      }
+      if (enemy.ruptureFx > 0) {
+        activeEffects.push("rupture");
+      }
+      if (enemy.searFx > 0) {
+        activeEffects.push("sear");
+      }
+      if (activeEffects.length > 0 && enemy.effectPulseTimer <= 0) {
+        const effect = activeEffects[Math.floor(Math.random() * activeEffects.length)];
+        this.emitEnemyEffectParticle(enemy, effect);
+        enemy.effectPulseTimer = 0.16 + Math.random() * 0.18;
+      }
 
       const toPlayer = subtract(this.run.player.position, enemy.position);
       const distanceToPlayer = distance(enemy.position, this.run.player.position);
@@ -1112,6 +1182,9 @@ export class HundredDaysRuntime {
             continue;
           }
           this.damageEnemy(enemy, projectile.damage, projectile.position, projectile.critChance, projectile.knockback, projectile.color, true);
+          if (projectile.kind === "rail" && this.hasSynergy("searing-rake")) {
+            this.markEnemyEffect(enemy, "sear");
+          }
           projectile.pierce -= 1;
           const nudge = normalize(projectile.velocity);
           projectile.position.x += nudge.x * (enemy.radius + 4);
@@ -1133,6 +1206,7 @@ export class HundredDaysRuntime {
       for (const enemy of this.entities.enemies) {
         if (pointToSegmentDistance(enemy.position, beam.origin, beam.target) <= beam.width + enemy.radius) {
           this.damageEnemy(enemy, beam.damagePerSecond * dt, beam.target, 0.04, 24, beam.color, false);
+          this.markEnemyEffect(enemy, "shock");
         }
       }
     }
@@ -1370,6 +1444,7 @@ export class HundredDaysRuntime {
           color: "#d5f8ff",
         });
         this.damageEnemy(chained, stats.damage * this.run.player.stats.damageMultiplier * 0.5, target.position, this.run.player.stats.critChance, 40, "#d5f8ff", true);
+        this.markEnemyEffect(chained, "shock");
       }
     }
   }
@@ -1429,6 +1504,7 @@ export class HundredDaysRuntime {
         color: "#d5f8ff",
       });
       this.damageEnemy(enemy, stats.damage * this.run.player.stats.damageMultiplier, origin, this.run.player.stats.critChance, 90, "#d5f8ff", true);
+      this.markEnemyEffect(enemy, "shock");
       origin = enemy.position;
     }
   }
@@ -1442,6 +1518,7 @@ export class HundredDaysRuntime {
       if (distance(enemy.position, this.run.player.position) <= radius + enemy.radius) {
         enemy.slow = Math.max(enemy.slow, this.hasSynergy("halo-garden") ? 1 : 0.8);
         this.damageEnemy(enemy, stats.damage * this.run.player.stats.damageMultiplier, this.run.player.position, 0, 45, "#bbffb6", false);
+        this.markEnemyEffect(enemy, "slow");
       }
     }
   }
@@ -1457,6 +1534,7 @@ export class HundredDaysRuntime {
     for (const enemy of this.entities.enemies) {
       if (distance(enemy.position, position) <= radius + enemy.radius) {
         this.damageEnemy(enemy, damage, position, this.run?.player.stats.critChance ?? 0, 120, color, true);
+        this.markEnemyEffect(enemy, "rupture");
       }
     }
     this.particles.burst(position, color, 26, 260);
@@ -1664,11 +1742,16 @@ export class HundredDaysRuntime {
       maxHp: definition.maxHp * hpScale,
       hitFlash: 0,
       slow: 0,
+      slowFx: 0,
+      shockFx: 0,
+      ruptureFx: 0,
+      searFx: 0,
       attackTimer: randomRange(0.1, 0.8),
       stateTimer: randomRange(0, 10),
       dashTimer: 0,
       contactTimer: randomRange(0.1, 0.4),
       summonTimer: randomRange(3.5, 6.5),
+      effectPulseTimer: randomRange(0.08, 0.2),
       elite,
       boss,
       affix,

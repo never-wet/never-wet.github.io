@@ -23,6 +23,30 @@ export class ParticleManager {
     }
   }
 
+  trail(position: Vec2, color: string, count = 1, spread = 14, force = 30, life = 0.28): void {
+    for (let index = 0; index < count; index += 1) {
+      const offsetAngle = randomRange(0, Math.PI * 2);
+      const offsetRadius = randomRange(0, spread);
+      const angle = randomRange(0, Math.PI * 2);
+      const speed = randomRange(force * 0.4, force);
+      const particleLife = randomRange(life * 0.6, life);
+      const particle: ParticleRuntime = {
+        uid: this.getUid(),
+        position: {
+          x: position.x + Math.cos(offsetAngle) * offsetRadius,
+          y: position.y + Math.sin(offsetAngle) * offsetRadius,
+        },
+        velocity: { x: Math.cos(angle) * speed, y: Math.sin(angle) * speed - randomRange(6, 18) },
+        life: particleLife,
+        maxLife: particleLife,
+        radius: randomRange(1.4, 3),
+        color,
+        alpha: 1,
+      };
+      this.entities.particles.push(particle);
+    }
+  }
+
   text(position: Vec2, value: string, color: string, crit = false): void {
     const entry: DamageTextRuntime = {
       uid: this.getUid(),

@@ -18,6 +18,8 @@ export type EliteAffixId = "explosive" | "hasted" | "bulwark" | "splitter" | "si
 
 export type ObjectiveKind = "slayer" | "collector" | "shrine" | "boss";
 
+export type EnemyEffectId = "slow" | "shock" | "rupture" | "sear";
+
 export type Rarity = "common" | "rare" | "epic" | "legendary";
 
 export type WeaponArchetype =
@@ -443,6 +445,11 @@ export interface EnemyRuntime {
   dashTimer: number;
   contactTimer: number;
   summonTimer: number;
+  slowFx: number;
+  shockFx: number;
+  ruptureFx: number;
+  searFx: number;
+  effectPulseTimer: number;
   elite: boolean;
   boss: boolean;
   affix?: EliteAffixId;

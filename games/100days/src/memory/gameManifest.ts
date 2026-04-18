@@ -10,7 +10,7 @@ export const gameManifest: GameManifest = {
     "A fully original browser survival game where you kite swarms, auto-fire evolving weapons, and survive escalating day-by-day pressure all the way to Day 100.",
   dayCount: 100,
   startingDay: 1,
-  defaultDayDuration: 16,
+  defaultDayDuration: 122,
   modes: [
     {
       id: "standard",

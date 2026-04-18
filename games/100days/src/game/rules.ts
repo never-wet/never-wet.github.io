@@ -50,4 +50,4 @@ export const applyPassiveDefinition = (stats: PlayerStats, definition: PassiveDe
   }
 };
 
-export const nextXpThreshold = (current: number, level: number): number => Math.round(current * 1.14 + level * 8);
+export const nextXpThreshold = (current: number, level: number): number => Math.round(current * 1.2 + level * 10);

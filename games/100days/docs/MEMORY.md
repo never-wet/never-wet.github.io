@@ -512,6 +512,7 @@ Source:
 ### `standard`
 
 - original 100-day structure
+- day lengths now sit around `114` to `126` seconds depending on the day band
 - victory on Day 100
 
 ### `endless`
@@ -523,6 +524,7 @@ Source:
 ### `boss-rush`
 
 - shorter days
+- currently shortened to roughly `84` to `98` seconds after mode adjustment
 - stronger pressure
 - rotating bosses added every 5th day if no normal boss was scheduled
 
@@ -530,6 +532,7 @@ Source:
 
 - lower starting max HP
 - faster XP growth and slightly faster movement
+- still benefits from its XP multiplier, but the global XP thresholds are now steeper than before
 - higher pressure curve
 
 ## Current Survivors
@@ -641,6 +644,14 @@ Current gameplay effects:
   aura radius and slow strength increase
 - `Faultline Charge`
   mine explosions grow larger and stronger
+
+Enemy readability pass:
+
+- enemies affected by synergy/combat effects now emit colored particles
+- `slow`: mint-green wisps from aura slowdown
+- `shock`: pale-cyan sparks from beam and lightning effects
+- `rupture`: orange shards from mine and explosion damage
+- `sear`: warm gold sparks from `Searing Rake` rail hits
 
 Synergies are derived from the current loadout and also tracked in the codex once seen.
 
@@ -1147,6 +1158,10 @@ Major recent changes now in the project:
 - day-summary objective text separator was normalized to ASCII to avoid encoding glitches
 - fresh save creation now uses the shared version-2 constant instead of a stale hardcoded version-1 value
 - modal panel scrollbars are now visually hidden while preserving wheel/touch scrolling inside menus like settings and codex
+- standard day pacing was stretched to roughly two minutes per day, with boss-rush still running shorter
+- XP leveling is now harder: starting requirement increased and per-level threshold growth was raised
+- HUD day timer now renders as `m:ss` instead of decimal seconds
+- enemies now emit lightweight particles when affected by slow, shock, rupture, or sear combat effects
 - major feature expansion added:
   - 4 challenge modes
   - 3 selectable survivors

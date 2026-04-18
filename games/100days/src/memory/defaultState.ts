@@ -39,7 +39,7 @@ export const createDefaultPlayerStats = (): PlayerStats => ({
   hp: playerBaseStats.maxHp,
   level: 1,
   xp: 0,
-  xpToNext: 24,
+  xpToNext: 34,
 });
 
 export const createEmptySave = (): SaveData => ({
