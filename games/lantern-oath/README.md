@@ -15,6 +15,14 @@ npm run dev
 npm run build
 ```
 
+## Validate content
+
+```bash
+npm run qa
+```
+
+This validates map bounds, portals, spawns, NPC/enemy placements, dialogue links, quest references, job references, and the required main-story completion flags before you publish a build.
+
 ## What is included
 
 - Top-down 16-bit inspired open-world exploration

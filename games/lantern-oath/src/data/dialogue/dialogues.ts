@@ -1136,6 +1136,146 @@ export const dialogueProfiles: DialogueProfile[] = [
     ],
   },
   {
+    npcId: "elder_sen",
+    variants: [
+      {
+        id: "elder_default",
+        entryPageId: "elder_page",
+        pages: [
+          {
+            id: "elder_page",
+            speakerId: "elder_sen",
+            speakerName: "Elder Sen",
+            text: [
+              "That brazier has outlived storms, kings, and bad ferrymen. Keep it fed, and Emberwharf remembers who it is.",
+            ],
+            choices: [{ id: "close", label: "I'll remember that.", close: true }],
+          },
+        ],
+      },
+    ],
+  },
+  {
+    npcId: "jori_penn",
+    variants: [
+      {
+        id: "jori_default",
+        entryPageId: "jori_page",
+        pages: [
+          {
+            id: "jori_page",
+            speakerId: "jori_penn",
+            speakerName: "Jori Penn",
+            text: [
+              "Every courier swears their route trouble is unique. Funny thing is, the forms all end up looking the same.",
+            ],
+            choices: [{ id: "close", label: "Sounds about right.", close: true }],
+          },
+        ],
+      },
+    ],
+  },
+  {
+    npcId: "dessa_wren",
+    variants: [
+      {
+        id: "dessa_default",
+        entryPageId: "dessa_page",
+        pages: [
+          {
+            id: "dessa_page",
+            speakerId: "dessa_wren",
+            speakerName: "Dessa Wren",
+            text: [
+              "Mara says fast feet only matter if the letter gets there dry. I'm still working on the second part.",
+            ],
+            choices: [{ id: "close", label: "Keep running, then.", close: true }],
+          },
+        ],
+      },
+    ],
+  },
+  {
+    npcId: "nill_stone",
+    variants: [
+      {
+        id: "nill_default",
+        entryPageId: "nill_page",
+        pages: [
+          {
+            id: "nill_page",
+            speakerId: "nill_stone",
+            speakerName: "Nill Stone",
+            text: [
+              "If the mine groans, I listen. If Orsa groans, I move faster. Both habits keep me alive.",
+            ],
+            choices: [{ id: "close", label: "Good habits.", close: true }],
+          },
+        ],
+      },
+    ],
+  },
+  {
+    npcId: "hesta_lane",
+    variants: [
+      {
+        id: "hesta_default",
+        entryPageId: "hesta_page",
+        pages: [
+          {
+            id: "hesta_page",
+            speakerId: "hesta_lane",
+            speakerName: "Hesta Lane",
+            text: [
+              "If the room's still noisy, the soup's hot enough and nobody's started a chair-fight. That's a successful night.",
+            ],
+            choices: [{ id: "close", label: "I'll leave you to it.", close: true }],
+          },
+        ],
+      },
+    ],
+  },
+  {
+    npcId: "marlo_sheen",
+    variants: [
+      {
+        id: "marlo_default",
+        entryPageId: "marlo_page",
+        pages: [
+          {
+            id: "marlo_page",
+            speakerId: "marlo_sheen",
+            speakerName: "Marlo Sheen",
+            text: [
+              "Frontier songs only become worth hearing after the third verse, when everybody's brave enough to sing the sad part.",
+            ],
+            choices: [{ id: "close", label: "I'll listen for it.", close: true }],
+          },
+        ],
+      },
+    ],
+  },
+  {
+    npcId: "fara_glass",
+    variants: [
+      {
+        id: "fara_default",
+        entryPageId: "fara_page",
+        pages: [
+          {
+            id: "fara_page",
+            speakerId: "fara_glass",
+            speakerName: "Fara Glass",
+            text: [
+              "The ruin stones shift when the roots are restless. If you hear glass singing under your boots, don't wait around to learn the tune.",
+            ],
+            choices: [{ id: "close", label: "Good warning.", close: true }],
+          },
+        ],
+      },
+    ],
+  },
+  {
     npcId: "veil_hunter",
     variants: [
       {

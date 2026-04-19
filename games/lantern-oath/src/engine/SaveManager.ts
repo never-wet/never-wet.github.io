@@ -61,6 +61,7 @@ export class SaveManager {
         chapter: save.chapter,
         locationName: contentRegistry.maps[save.currentMapId]?.name ?? save.currentMapId,
         playtimeMs: save.playtimeMs,
+        completedMainStory: Boolean(save.flags["story.ending_complete"]),
       };
     });
   }

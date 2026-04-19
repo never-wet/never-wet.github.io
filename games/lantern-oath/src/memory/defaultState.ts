@@ -82,6 +82,7 @@ export function createDefaultState(slot = 1): SaveState {
       "story.glassroot_hint": false,
       "story.glassroot_open": false,
       "story.ending_complete": false,
+      "story.ending_seen": false,
       "cache.moonwell_opened": false,
     },
     settings: {

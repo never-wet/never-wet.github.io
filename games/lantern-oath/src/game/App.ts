@@ -50,6 +50,7 @@ export class App {
           <div class="lo-dialogue-layer"></div>
           <div class="lo-shop-layer"></div>
           <div class="lo-pause-layer"></div>
+          <div class="lo-ending-layer"></div>
           <div class="lo-gameover-layer"></div>
         </div>
       </div>
@@ -186,6 +187,17 @@ export class App {
         return;
       }
 
+      if (action === "ending-continue") {
+        this.session.dismissEnding();
+        return;
+      }
+
+      if (action === "ending-return-title") {
+        this.session.dismissEnding();
+        this.returnToTitle();
+        return;
+      }
+
       if (action === "open-pause") {
         this.session.pause((button.dataset.tab as PauseTab) ?? "status");
       }
@@ -229,6 +241,14 @@ export class App {
   private startSession(save: ReturnType<SaveManager["createFreshSave"]>): void {
     this.session = new GameSession(save, this.saveManager, this.audioManager);
     this.renderOverlays();
+  }
+
+  private returnToTitle(): void {
+    this.session = null;
+    this.renderTitle();
+    if (this.audioUnlocked) {
+      this.audioManager.playMusic("title_theme");
+    }
   }
 
   private loop = (timestamp: number): void => {
@@ -278,7 +298,10 @@ export class App {
                       <div>
                         <strong>Slot ${slot.slot}</strong>
                         <p>${slot.label}</p>
-                        <p>${slot.exists ? `${slot.locationName} · ${formatDuration(slot.playtimeMs)}` : "Fresh route"}</p>
+                        <div class="lo-slot-meta">
+                          <p>${slot.exists ? `${slot.locationName} · ${formatDuration(slot.playtimeMs)}` : "Fresh route"}</p>
+                          ${slot.completedMainStory ? "<span class='lo-badge'>Cleared</span>" : ""}
+                        </div>
                       </div>
                       <div class="lo-slot-actions">
                         <button data-action="new-slot" data-slot="${slot.slot}">New Game</button>
@@ -330,6 +353,7 @@ export class App {
     const dialogueLayer = this.root.querySelector(".lo-dialogue-layer") as HTMLElement;
     const shopLayer = this.root.querySelector(".lo-shop-layer") as HTMLElement;
     const pauseLayer = this.root.querySelector(".lo-pause-layer") as HTMLElement;
+    const endingLayer = this.root.querySelector(".lo-ending-layer") as HTMLElement;
     const gameoverLayer = this.root.querySelector(".lo-gameover-layer") as HTMLElement;
 
     this.setLayerHtml(titleLayer, "");
@@ -338,6 +362,7 @@ export class App {
     this.setLayerHtml(dialogueLayer, ui.conversation ? this.renderDialogue(ui) : "");
     this.setLayerHtml(shopLayer, ui.shop ? this.renderShop(ui) : "", (layer) => this.renderIcons(layer));
     this.setLayerHtml(pauseLayer, ui.mode === "paused" ? this.renderPause(ui) : "", (layer) => this.renderIcons(layer));
+    this.setLayerHtml(endingLayer, ui.ending ? this.renderEnding(ui) : "");
     this.setLayerHtml(gameoverLayer, ui.gameOver ? this.renderGameOver() : "");
   }
 
@@ -392,7 +417,9 @@ export class App {
                     .join(" · ")}</p>
                 </div>
               `
-              : "<p class='lo-muted'>No active quest. Speak with the roadwardens and townsfolk.</p>"
+              : ui.storyComplete
+                ? "<p class='lo-muted'>The last hearth burns again. Keep exploring jobs, side stories, and hidden corners of the Reach.</p>"
+                : "<p class='lo-muted'>No active quest. Speak with the roadwardens and townsfolk.</p>"
           }
         </div>
         ${
@@ -510,6 +537,7 @@ export class App {
             <p>${ui.playerName} is carrying the lantern oath through ${ui.regionName}.</p>
             <p>Current save: ${ui.saveLabel}</p>
             <p>Discovered regions: ${ui.discoveredRegions.join(", ")}</p>
+            <p>${ui.storyComplete ? "Main story complete. The Reach is relit, but your cleared route stays open for side stories and jobs." : "The last hearth is still ahead. Keep following the road notes and journal."}</p>
           </div>
           <div>
             <h3>Equipment</h3>
@@ -623,7 +651,10 @@ export class App {
                   <div>
                     <strong>Slot ${slot.slot}</strong>
                     <p>${slot.label}</p>
-                    <p>${slot.exists ? `${slot.locationName} · ${formatDuration(slot.playtimeMs)}` : "Empty slot"}</p>
+                    <div class="lo-slot-meta">
+                      <p>${slot.exists ? `${slot.locationName} · ${formatDuration(slot.playtimeMs)}` : "Empty slot"}</p>
+                      ${slot.completedMainStory ? "<span class='lo-badge'>Cleared</span>" : ""}
+                    </div>
                   </div>
                   <div class="lo-slot-actions">
                     <button data-action="save-slot" data-slot="${slot.slot}">Save</button>
@@ -662,6 +693,38 @@ export class App {
           <input type="checkbox" ${settings.muteSfx ? "checked" : ""} data-toggle-setting="muteSfx" />
           <span>Mute SFX</span>
         </label>
+      </div>
+    `;
+  }
+
+  private renderEnding(ui: UiState): string {
+    if (!ui.ending) {
+      return "";
+    }
+
+    return `
+      <div class="lo-modal">
+        <div class="lo-panel lo-ending-panel">
+          <p class="lo-kicker">Main Story Complete</p>
+          <h2>${ui.ending.title}</h2>
+          ${ui.ending.summary.map((line) => `<p>${line}</p>`).join("")}
+          <div class="lo-ending-grid">
+            ${ui.ending.stats
+              .map(
+                (entry) => `
+                  <div class="lo-ending-stat">
+                    <span class="lo-muted">${entry.label}</span>
+                    <strong>${entry.value}</strong>
+                  </div>`,
+              )
+              .join("")}
+          </div>
+          <p class="lo-muted">Press E, Enter, or use the buttons below to keep going.</p>
+          <div class="lo-actions-row">
+            <button data-action="ending-continue">Continue Exploring</button>
+            <button data-action="ending-return-title">Return to Title</button>
+          </div>
+        </div>
       </div>
     `;
   }

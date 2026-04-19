@@ -217,6 +217,12 @@ export interface UiState {
   discoveredRegions: string[];
   saveLabel: string;
   gameOver: boolean;
+  storyComplete: boolean;
+  ending?: {
+    title: string;
+    summary: string[];
+    stats: Array<{ label: string; value: string }>;
+  };
 }
 
 function clamp(value: number, min: number, max: number): number {
@@ -249,6 +255,13 @@ function formatTime(minutes: number): string {
   const hour12 = hours % 12 === 0 ? 12 : hours % 12;
   const suffix = hours >= 12 ? "PM" : "AM";
   return `${hour12}:${String(mins).padStart(2, "0")} ${suffix}`;
+}
+
+function formatDuration(milliseconds: number): string {
+  const totalSeconds = Math.floor(milliseconds / 1000);
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  return `${hours}h ${String(minutes).padStart(2, "0")}m`;
 }
 
 export class GameSession {
@@ -292,6 +305,9 @@ export class GameSession {
     this.loadMap(this.save.currentMapId, this.save.respawnSpawnId, true);
     const storedTime = Number(this.save.flags["time.minutes"] ?? 480);
     this.save.flags["time.minutes"] = Number.isFinite(storedTime) ? storedTime : 480;
+    if (this.isEndingPending()) {
+      this.mode = "ending";
+    }
     this.updateMusic();
   }
 
@@ -496,6 +512,8 @@ export class GameSession {
       discoveredRegions: this.save.discoveredRegionIds,
       saveLabel: this.save.label,
       gameOver: this.mode === "gameover",
+      storyComplete: this.hasClearedMainStory(),
+      ending: this.mode === "ending" ? this.getEndingState() : undefined,
     };
   }
 
@@ -505,6 +523,13 @@ export class GameSession {
     this.interactionHint = null;
     this.tickTimers(deltaMs);
     this.refreshCollectObjectives();
+
+    if (this.mode === "ending") {
+      if (input.wasPressed("e") || input.wasPressed("enter") || input.wasPressed("escape")) {
+        this.dismissEnding();
+      }
+      return;
+    }
 
     if (input.wasPressed("escape")) {
       if (this.mode === "dialogue") {
@@ -669,12 +694,21 @@ export class GameSession {
     this.updateMusic();
   }
 
-  manualSave(slot: number, auto = false): void {
+  manualSave(slot: number, auto = false, silent = false): void {
     this.save.slot = slot;
     this.save.currentMapId = this.currentMap.id;
     this.saveManager.saveSlot(this.save);
-    this.addToast(auto ? "Auto-saved." : `Saved to slot ${slot}.`);
-    this.audioManager.playSfx("save");
+    if (!silent) {
+      this.addToast(auto ? "Auto-saved." : `Saved to slot ${slot}.`);
+      this.audioManager.playSfx("save");
+    }
+  }
+
+  dismissEnding(): void {
+    this.save.flags["story.ending_seen"] = true;
+    this.mode = "playing";
+    this.manualSave(this.save.slot, true, true);
+    this.updateMusic();
   }
 
   equipItem(itemId: string): void {
@@ -1372,6 +1406,13 @@ export class GameSession {
     this.save.chapter = Math.max(this.save.chapter, Math.min(4, quest.chapter + 1));
     this.addToast(`Quest complete: ${quest.title}`);
     this.audioManager.playSfx("quest");
+
+    if (questId === "main_last_hearth") {
+      this.save.flags["story.ending_seen"] = false;
+      this.mode = "ending";
+      this.manualSave(this.save.slot, true, true);
+      this.updateMusic();
+    }
   }
 
   private handleJobBoard(jobId: string): void {
@@ -2157,7 +2198,7 @@ export class GameSession {
 
   private updateMusic(): void {
     const track =
-      this.mode === "paused" || this.mode === "shop"
+      this.mode === "paused" || this.mode === "shop" || this.mode === "ending"
         ? "menu_theme"
         : this.enemies.some((enemy) => enemy.enemyId === "the_hollow_stag" && enemy.state !== "dead")
           ? "boss_theme"
@@ -2195,6 +2236,34 @@ export class GameSession {
 
   private addToast(text: string): void {
     this.toasts = [...this.toasts.slice(-2), { id: nowId("toast"), text, ttlMs: 2800 }];
+  }
+
+  private hasClearedMainStory(): boolean {
+    return Boolean(this.save.flags["story.ending_complete"]);
+  }
+
+  private isEndingPending(): boolean {
+    return this.hasClearedMainStory() && !Boolean(this.save.flags["story.ending_seen"]);
+  }
+
+  private getEndingState(): UiState["ending"] {
+    const completedSideStories = this.save.completedQuestIds.filter((questId) => contentRegistry.quests[questId]?.category === "side").length;
+    const totalJobLoops = Object.values(this.save.jobProgress).reduce((sum, progress) => sum + progress.loopsCompleted, 0);
+    return {
+      title: "The Last Hearth Burns Again",
+      summary: [
+        "The Sun Shard is home, the brazier in Emberwharf burns clean, and the roads of the Cinder Reach have one more night of light ahead of them.",
+        "This cleared save stays playable, so you can keep working jobs, finish side stories, and keep exploring the Reach.",
+      ],
+      stats: [
+        { label: "Playtime", value: formatDuration(this.save.playtimeMs) },
+        { label: "Completed Quests", value: `${this.save.completedQuestIds.length}` },
+        { label: "Side Stories", value: `${completedSideStories}` },
+        { label: "Job Loops", value: `${totalJobLoops}` },
+        { label: "Regions Seen", value: `${this.save.discoveredRegionIds.length}` },
+        { label: "Save Slot", value: `Slot ${this.save.slot}` },
+      ],
+    };
   }
 
   private getNpcMarker(character?: CharacterDefinition): "quest" | "turnin" | "job" | "shop" | undefined {

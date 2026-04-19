@@ -97,6 +97,7 @@ button:disabled {
 .lo-dialogue-layer:not(:empty),
 .lo-shop-layer:not(:empty),
 .lo-pause-layer:not(:empty),
+.lo-ending-layer:not(:empty),
 .lo-gameover-layer:not(:empty) {
   pointer-events: auto;
 }
@@ -208,6 +209,29 @@ button:disabled {
   gap: 0.5rem;
 }
 
+.lo-slot-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.lo-slot-meta p {
+  margin: 0;
+}
+
+.lo-badge {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid #f3d26a;
+  background: rgba(243, 210, 106, 0.18);
+  color: #f3d26a;
+  padding: 0.15rem 0.45rem;
+  text-transform: uppercase;
+  font-size: 0.74rem;
+  letter-spacing: 0.06em;
+}
+
 .lo-modal {
   display: grid;
   place-items: center;
@@ -217,10 +241,26 @@ button:disabled {
 
 .lo-modal-panel,
 .lo-pause-panel,
+.lo-ending-panel,
 .lo-gameover-panel {
   width: min(92%, 920px);
   max-height: 90%;
   overflow: auto;
+}
+
+.lo-ending-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.75rem;
+  margin: 1rem 0;
+}
+
+.lo-ending-stat {
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.75rem;
+  border: 2px solid rgba(243, 210, 106, 0.35);
+  background: rgba(35, 49, 71, 0.65);
 }
 
 .lo-modal-header,

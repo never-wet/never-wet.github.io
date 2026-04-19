@@ -69,9 +69,9 @@ export const maps: MapDefinition[] = [
     spawnPoints: [
       { id: "start", x: 11.5, y: 11.5 },
       { id: "from_old_road", x: 12.5, y: 13.7 },
-      { id: "from_inn", x: 5.5, y: 6.2 },
+      { id: "from_inn", x: 5.5, y: 5.2 },
       { id: "from_forgehouse", x: 12.5, y: 11.2 },
-      { id: "from_guildhall", x: 18.5, y: 6.2 },
+      { id: "from_guildhall", x: 18.5, y: 5.2 },
       { id: "from_apothecary", x: 4.5, y: 11.2 },
     ],
     npcPlacements: [
@@ -508,7 +508,7 @@ export const maps: MapDefinition[] = [
     enemyPlacements: [
       { id: "wood_moss", enemyId: "mossling", x: 15.5, y: 6.5, respawnMs: 26000 },
       { id: "wood_moth_a", enemyId: "bog_moth", x: 19.5, y: 4.5, respawnMs: 26000 },
-      { id: "wood_moth_b", enemyId: "bog_moth", x: 8.5, y: 11.5, respawnMs: 26000 },
+      { id: "wood_moth_b", enemyId: "bog_moth", x: 6.5, y: 11.5, respawnMs: 26000 },
       { id: "wood_bandit", enemyId: "cinder_bandit", x: 14.5, y: 10.5, respawnMs: 30000 },
     ],
     resourceNodes: [
@@ -752,7 +752,7 @@ export const maps: MapDefinition[] = [
     ],
     npcPlacements: [
       { id: "fara", npcId: "fara_glass", x: 6.4, y: 7.5, facing: "right", wanderRadius: 1 },
-      { id: "veil", npcId: "veil_hunter", x: 18.5, y: 7.5, facing: "left", wanderRadius: 1 },
+      { id: "veil", npcId: "veil_hunter", x: 20.5, y: 7.5, facing: "left", wanderRadius: 1 },
     ],
     enemyPlacements: [
       { id: "wisp_ruin_a", enemyId: "shard_wisp", x: 10.5, y: 8.5, respawnMs: 32000 },
@@ -812,9 +812,9 @@ export const maps: MapDefinition[] = [
     spawnPoints: [{ id: "entry", x: 12.5, y: 13.7 }],
     npcPlacements: [],
     enemyPlacements: [
-      { id: "depth_wisp", enemyId: "shard_wisp", x: 6.5, y: 6.5, respawnMs: 36000 },
-      { id: "depth_beetle", enemyId: "glass_beetle", x: 18.5, y: 6.5, respawnMs: 36000 },
-      { id: "boss_stag", enemyId: "the_hollow_stag", x: 12.5, y: 6.5, respawnMs: 9999999 },
+      { id: "depth_wisp", enemyId: "shard_wisp", x: 6.5, y: 7.5, respawnMs: 36000 },
+      { id: "depth_beetle", enemyId: "glass_beetle", x: 18.5, y: 7.5, respawnMs: 36000 },
+      { id: "boss_stag", enemyId: "the_hollow_stag", x: 12.5, y: 8.5, respawnMs: 9999999 },
     ],
     resourceNodes: [
       {
@@ -861,7 +861,7 @@ export const maps: MapDefinition[] = [
         id: "hidden_chest",
         type: "chest",
         x: 9.5,
-        y: 12.5,
+        y: 11.5,
         label: "Hidden Cache",
         itemDrops: [
           { itemId: "field_tonic", quantity: 2 },

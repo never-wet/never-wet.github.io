@@ -32,6 +32,54 @@ This file is the quick memory handoff for future work on `Lantern Oath: The Last
 - procedural pixel-art sprites/icons/markers
 - procedural music and sound effects
 
+## Main Story Completion Route
+
+The current beatable main-story route is:
+
+1. Talk to `Sable Voss` in Emberwharf Guildhall to start `Embers at the Gate`.
+2. Defeat 3 `cinder_bandit` enemies on `old_road` and turn the quest in to Sable.
+3. Reach `sunglade_city`, speak with `Lyra Quill`, speak with `Captain Hale`, then return to Lyra for `Bells of Sunglade`.
+4. Complete `Open the Roots` by bringing Lyra:
+   - 1 `archive_rubbing` from `glassroot_ruins`
+   - 3 `glow_ore` from `ridgewatch_mine`
+5. Talk to `Mara Ashdown` to start `The Last Hearth`.
+6. Travel through `whisperwood` and `glassroot_ruins` into `glassroot_depths`.
+7. Defeat `the_hollow_stag`, collect the guaranteed `sun_shard`, and return it to Mara.
+8. `story.ending_complete` is the true main-story completion flag.
+
+## Finish-Pass Focus
+
+The current release-quality gap is not missing core systems anymore. The main remaining work is polish and confidence:
+
+- make the end of the main story feel explicit in the UI instead of relying on a hidden flag
+- surface cleared-save status in the menus
+- keep map, portal, spawn, and quest data validated so fragile content edits do not silently break traversal
+- keep the memory file updated whenever workflow or project status changes
+
+## QA Workflow
+
+The project now has a repeatable content validator:
+
+```bash
+npm run qa
+```
+
+It validates:
+
+- map bounds and layout widths
+- tile legend usage
+- portal targets and walkable approaches
+- spawn positions
+- NPC, enemy, and resource-node placement on walkable tiles
+- region/map reference integrity
+- quest, job, item, enemy, and dialogue references
+- required main-story completion flags in the default save
+
+Latest verification for this pass:
+
+- `npm run qa` passed 5 times in a row
+- `npm run build` passed after the validator and finish-state changes
+
 ## World Summary
 
 The setting is the Cinder Reach, a frontier held together by ember lanterns and road oaths.
@@ -179,6 +227,11 @@ Read in this order when resuming work:
 - Switched UI action buttons to `pointerdown` handling instead of waiting for `click`, because frequently refreshed HUD/title DOM could replace buttons mid-press and make field-menu interactions feel dead
 - Added explicit memory documentation so future edits do not rely on chat history
 - Confirmed the project builds after publishing static output
+- Added a real post-ending flow: finishing `main_last_hearth` now opens a main-story-complete panel instead of only setting a hidden flag
+- Added persistent cleared-save awareness through `story.ending_seen` and a `Cleared` badge on save slots in both the title screen and pause save menu
+- Added ambient dialogue profiles for previously silent placed NPCs: `elder_sen`, `jori_penn`, `dessa_wren`, `nill_stone`, `hesta_lane`, `marlo_sheen`, and `fara_glass`
+- Fixed data-placement issues uncovered by the validator, including bad Emberwharf doorway return spawns and several non-walkable enemy/NPC/chest placements in Whisperwood, Glassroot Ruins, Glassroot Depths, and Moonwell Glen
+- Added `npm run qa` using `src/tools/validateContent.ts` so future map/content edits can be checked before publishing
 
 ## Commands
 

@@ -1,5 +1,5 @@
 export type Direction = "up" | "down" | "left" | "right";
-export type SceneMode = "title" | "playing" | "paused" | "dialogue" | "shop" | "save" | "gameover";
+export type SceneMode = "title" | "playing" | "paused" | "dialogue" | "shop" | "save" | "gameover" | "ending";
 export type MapTheme =
   | "town"
   | "city"
@@ -454,6 +454,7 @@ export interface SaveSlotSummary {
   chapter?: number;
   locationName?: string;
   playtimeMs?: number;
+  completedMainStory?: boolean;
 }
 
 export interface ContentRegistry {
