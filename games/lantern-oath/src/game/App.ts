@@ -125,6 +125,11 @@ export class App {
         return;
       }
 
+      if (action === "go-games") {
+        window.location.href = "../";
+        return;
+      }
+
       if (!this.session) {
         return;
       }
@@ -151,6 +156,11 @@ export class App {
 
       if (action === "resume") {
         this.session.resume();
+        return;
+      }
+
+      if (action === "return-main-menu") {
+        this.returnToTitle();
         return;
       }
 
@@ -312,6 +322,7 @@ export class App {
                 .join("")}
             </div>
             <div class="lo-title-actions">
+              <button data-action="go-games">Games</button>
               <button data-action="continue-latest">Continue Latest</button>
               <button data-action="reset-saves">Reset Saves</button>
             </div>
@@ -535,7 +546,11 @@ export class App {
               <p class="lo-kicker">Paused</p>
               <h2>${ui.mapName}</h2>
             </div>
-            <button data-action="resume">Return</button>
+            <div class="lo-actions-row">
+              <button data-action="go-games">Games</button>
+              <button data-action="return-main-menu">Main Menu</button>
+              <button data-action="resume">Return</button>
+            </div>
           </div>
           <div class="lo-tab-row">
             ${["status", "inventory", "journal", "jobs", "map", "save", "settings"]

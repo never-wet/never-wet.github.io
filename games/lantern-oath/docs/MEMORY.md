@@ -236,6 +236,13 @@ Read in this order when resuming work:
 - Fixed pause/inventory overlay scrolling so the modal is viewport-fixed and the panel scrolls internally instead of making the whole page scroll
 - Pinned the tracked quest into the top HUD so the current quest stays visible on-screen even while the sidebar prompt changes based on nearby interactions
 - Fixed field-menu clickability by making the full-screen overlay container itself ignore pointer events and giving the HUD layer an explicit stacking context above the playfield
+- Fixed NPC/enemy wall-sticking in `GameSession`: wandering NPCs now detect when they are stalled against collision and reset to a safe walkable position near home, and enemies now correct back onto walkable tiles after knockback or bad collision states instead of getting embedded in walls
+- Current HUD behavior:
+  - top HUD permanently shows the tracked quest
+  - right sidebar is now primarily for nearby/interact prompts and toast-style notices
+  - field menu buttons (`Menu`, `Bag`, `Map`) should work through `pointerdown` without overlay interception
+- Pause menu now includes a `Main Menu` button that returns to the title screen from an active session
+- Title screen and pause menu now also include a `Games` button that navigates back to the parent arcade index at `/games/`
 
 ## Commands
 

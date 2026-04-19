@@ -59,6 +59,7 @@ interface RuntimeNpcEx extends RuntimeNpc {
   targetX: number;
   targetY: number;
   moveSpeed: number;
+  stuckTimerMs: number;
 }
 
 interface RuntimeEnemyEx extends RuntimeEnemy {
@@ -810,6 +811,7 @@ export class GameSession {
       targetX: npc.x * TILE_SIZE,
       targetY: npc.y * TILE_SIZE,
       moveSpeed: 18 + Math.random() * 10,
+      stuckTimerMs: 0,
     }));
 
     this.enemies = this.currentMap.enemyPlacements.map((enemy) => ({
@@ -869,6 +871,29 @@ export class GameSession {
     }
 
     return { x, y };
+  }
+
+  private restoreBodyToWalkable(
+    body: { x: number; y: number },
+    size: number,
+    fallbackX = body.x,
+    fallbackY = body.y,
+  ): boolean {
+    if (!this.collidesWithWalls(body.x, body.y, size)) {
+      return false;
+    }
+
+    const nearbySafe = this.resolveSafeSpawn(body.x, body.y, size);
+    if (!this.collidesWithWalls(nearbySafe.x, nearbySafe.y, size)) {
+      body.x = nearbySafe.x;
+      body.y = nearbySafe.y;
+      return true;
+    }
+
+    const fallbackSafe = this.resolveSafeSpawn(fallbackX, fallbackY, size);
+    body.x = fallbackSafe.x;
+    body.y = fallbackSafe.y;
+    return true;
   }
 
   private discoverMap(map: MapDefinition): void {
@@ -1589,10 +1614,19 @@ export class GameSession {
 
   private updateNpcs(deltaMs: number): void {
     this.npcs.forEach((npc) => {
+      if (this.restoreBodyToWalkable(npc, 10, npc.homeX, npc.homeY)) {
+        npc.targetX = npc.x;
+        npc.targetY = npc.y;
+        npc.stepTimer = 500;
+        npc.stuckTimerMs = 0;
+      }
+
       const toTarget = { x: npc.targetX - npc.x, y: npc.targetY - npc.y };
       const targetDistance = Math.hypot(toTarget.x, toTarget.y);
 
       if (targetDistance > 1.5) {
+        const startX = npc.x;
+        const startY = npc.y;
         const direction = { x: toTarget.x / targetDistance, y: toTarget.y / targetDistance };
         const travel = Math.min(targetDistance, (npc.moveSpeed * deltaMs) / 1000);
         const moveX = direction.x * npc.moveSpeed;
@@ -1606,14 +1640,32 @@ export class GameSession {
 
         this.moveBodyWithCollisions(npc, moveX, moveY, 10, deltaMs);
 
+        const movedDistance = distance(npc, { x: startX, y: startY });
+        if (movedDistance < 0.2) {
+          npc.stuckTimerMs += deltaMs;
+        } else {
+          npc.stuckTimerMs = 0;
+        }
+
+        if (npc.stuckTimerMs >= 450) {
+          this.restoreBodyToWalkable(npc, 10, npc.homeX, npc.homeY);
+          npc.targetX = npc.homeX;
+          npc.targetY = npc.homeY;
+          npc.stepTimer = 350;
+          npc.stuckTimerMs = 0;
+          return;
+        }
+
         if (travel >= targetDistance - 0.05 || distance(npc, { x: npc.targetX, y: npc.targetY }) <= 1.5) {
           npc.x = npc.targetX;
           npc.y = npc.targetY;
           npc.stepTimer = 500 + Math.random() * 1200;
+          npc.stuckTimerMs = 0;
         }
         return;
       }
 
+      npc.stuckTimerMs = 0;
       npc.stepTimer -= deltaMs;
       if (npc.stepTimer > 0) {
         return;
@@ -1654,6 +1706,7 @@ export class GameSession {
 
     this.enemies.forEach((enemy) => {
       const definition = contentRegistry.enemies[enemy.enemyId];
+      const enemySize = definition.elite ? 16 : 12;
       if (enemy.state === "dead") {
         enemy.respawnTimerMs -= deltaMs;
         if (enemy.respawnTimerMs <= 0) {
@@ -1665,6 +1718,15 @@ export class GameSession {
           enemy.vy = 0;
         }
         return;
+      }
+
+      if (this.restoreBodyToWalkable(enemy, enemySize, enemy.homeX, enemy.homeY)) {
+        enemy.vx = 0;
+        enemy.vy = 0;
+        if (enemy.state === "charging") {
+          enemy.state = "aggro";
+          enemy.chargeTimerMs = 0;
+        }
       }
 
       enemy.attackCooldown = Math.max(0, enemy.attackCooldown - deltaMs);
@@ -1684,7 +1746,7 @@ export class GameSession {
         const smoothing = Math.min(1, deltaMs / 120);
         enemy.vx += (returnDir.x * definition.moveSpeed - enemy.vx) * smoothing;
         enemy.vy += (returnDir.y * definition.moveSpeed - enemy.vy) * smoothing;
-        this.moveBodyWithCollisions(enemy, enemy.vx, enemy.vy, definition.elite ? 16 : 12, deltaMs);
+        this.moveBodyWithCollisions(enemy, enemy.vx, enemy.vy, enemySize, deltaMs);
         enemy.state = "idle";
         return;
       }
@@ -1693,7 +1755,7 @@ export class GameSession {
         enemy.chargeTimerMs -= deltaMs;
         const nextX = enemy.x + (enemy.vx * deltaMs) / 1000;
         const nextY = enemy.y + (enemy.vy * deltaMs) / 1000;
-        if (!this.collidesWithWalls(nextX, nextY, definition.elite ? 16 : 12)) {
+        if (!this.collidesWithWalls(nextX, nextY, enemySize)) {
           enemy.x = nextX;
           enemy.y = nextY;
         }
@@ -1803,7 +1865,7 @@ export class GameSession {
         enemy.vy *= 0.86;
       }
 
-      this.moveBodyWithCollisions(enemy, enemy.vx, enemy.vy, definition.elite ? 16 : 12, deltaMs);
+      this.moveBodyWithCollisions(enemy, enemy.vx, enemy.vy, enemySize, deltaMs);
     });
   }
 
@@ -1953,6 +2015,7 @@ export class GameSession {
     enemy.invulnerableMs = 180;
     enemy.x += knockbackX;
     enemy.y += knockbackY;
+    this.restoreBodyToWalkable(enemy, contentRegistry.enemies[enemy.enemyId].elite ? 16 : 12, enemy.homeX, enemy.homeY);
     this.addFloatingText(enemy.x, enemy.y - 12, `${damage}`, "#ffd9a1");
     this.audioManager.playSfx("hit");
 
