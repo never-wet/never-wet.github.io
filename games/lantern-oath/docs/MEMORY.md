@@ -256,6 +256,7 @@ Read in this order when resuming work:
 - Added a secret equipment reward in Moonwell Glen: the `Moonwell Band` trinket now appears in the hidden cache to strengthen optional exploration payoff
 - Added the missing `icon_charm` art plus distinct `job_marker` and `shop_marker` sprites so different NPC roles read more clearly at a glance
 - Added `@types/node` as a dev dependency so source-backed release checks compile cleanly with the rest of the project
+- Switched the project `tsconfig` files from `moduleResolution: "Node"` to `moduleResolution: "bundler"` so modern TypeScript/Vite tooling stops flagging the config schema and resolves imports the way Vite expects
 - Current HUD behavior:
   - top HUD permanently shows the tracked quest
   - right sidebar is now primarily for nearby/interact prompts and toast-style notices
