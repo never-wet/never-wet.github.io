@@ -366,10 +366,20 @@ export class App {
     this.setLayerHtml(gameoverLayer, ui.gameOver ? this.renderGameOver() : "");
   }
 
+  private getTrackedQuest(ui: UiState): UiState["activeQuests"][number] | undefined {
+    return (
+      ui.activeQuests.find((quest) => quest.category === "main" && quest.readyToTurnIn) ??
+      ui.activeQuests.find((quest) => quest.category === "main") ??
+      ui.activeQuests.find((quest) => quest.readyToTurnIn) ??
+      ui.activeQuests[0]
+    );
+  }
+
   private renderHud(ui: UiState): string {
     const hp = (ui.playerVitals.health / Math.max(ui.playerVitals.maxHealth, 1)) * 100;
     const stamina = (ui.playerVitals.stamina / Math.max(ui.playerVitals.maxStamina, 1)) * 100;
     const aether = (ui.playerVitals.aether / Math.max(ui.playerVitals.maxAether, 1)) * 100;
+    const trackedQuest = this.getTrackedQuest(ui);
     return `
       <div class="lo-hud-shell">
         <div class="lo-hud-card lo-hud-status-card">
@@ -387,6 +397,23 @@ export class App {
             <span>${ui.timeLabel}</span>
             <span>${ui.gold} gold</span>
           </div>
+          <div class="lo-hud-quest">
+            <p class="lo-kicker">Tracked Quest</p>
+            ${
+              trackedQuest
+                ? `
+                  <strong>${trackedQuest.title}</strong>
+                  <ul class="lo-plain-list lo-quest-objectives">
+                    ${trackedQuest.objectives
+                      .map((objective) => `<li>${objective.label} (${objective.current}/${objective.required})</li>`)
+                      .join("")}
+                  </ul>
+                `
+                : ui.storyComplete
+                  ? "<p class='lo-muted'>Main story complete. Your cleared route is still open for side stories, jobs, and secrets.</p>"
+                  : "<p class='lo-muted'>No tracked quest yet. Talk to the wardens or check your journal.</p>"
+            }
+          </div>
         </div>
         <div class="lo-hud-card lo-hud-shortcuts">
           <p class="lo-kicker">Field Menu</p>
@@ -401,11 +428,11 @@ export class App {
   }
 
   private renderSidebar(ui: UiState): string {
-    const trackedQuest = ui.activeQuests[0];
+    const trackedQuest = this.getTrackedQuest(ui);
     return `
       <div class="lo-sidebar">
         <div class="lo-hud-card lo-sidebar-card">
-          <p class="lo-kicker">Road Notes</p>
+          <p class="lo-kicker">Nearby</p>
           <p class="lo-prompt">${ui.prompt ?? "Explore the Reach and talk to the townsfolk."}</p>
           ${
             trackedQuest

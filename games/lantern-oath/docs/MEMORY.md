@@ -232,6 +232,10 @@ Read in this order when resuming work:
 - Added ambient dialogue profiles for previously silent placed NPCs: `elder_sen`, `jori_penn`, `dessa_wren`, `nill_stone`, `hesta_lane`, `marlo_sheen`, and `fara_glass`
 - Fixed data-placement issues uncovered by the validator, including bad Emberwharf doorway return spawns and several non-walkable enemy/NPC/chest placements in Whisperwood, Glassroot Ruins, Glassroot Depths, and Moonwell Glen
 - Added `npm run qa` using `src/tools/validateContent.ts` so future map/content edits can be checked before publishing
+- Gave projectile attacks more weapon identity: player bow shots now travel faster and slimmer, tome shots travel slower and heavier, and projectile rendering now draws distinct visuals for `arrow_amber`, `ember_orb`, `lantern_spark`, `moth_dust`, `salt_bolt`, `shard_shot`, and `stag_flare`
+- Fixed pause/inventory overlay scrolling so the modal is viewport-fixed and the panel scrolls internally instead of making the whole page scroll
+- Pinned the tracked quest into the top HUD so the current quest stays visible on-screen even while the sidebar prompt changes based on nearby interactions
+- Fixed field-menu clickability by making the full-screen overlay container itself ignore pointer events and giving the HUD layer an explicit stacking context above the playfield
 
 ## Commands
 

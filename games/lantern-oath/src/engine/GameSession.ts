@@ -1059,15 +1059,19 @@ export class GameSession {
 
     if (weapon.style === "bow" || weapon.style === "arcane") {
       const direction = this.directionVector(this.save.player.direction);
+      const projectileSpeed = weapon.style === "bow" ? 236 : 168;
+      const projectileRadius = weapon.style === "bow" ? 3 : 5;
+      const projectileTtl = weapon.style === "bow" ? 980 : 1120;
+      const spawnDistance = weapon.style === "bow" ? 12 : 9;
       this.spawnProjectile({
         owner: "player",
-        x: this.save.player.x + direction.x * 8,
-        y: this.save.player.y + direction.y * 8,
-        vx: direction.x * 180,
-        vy: direction.y * 180,
-        radius: 4,
+        x: this.save.player.x + direction.x * spawnDistance,
+        y: this.save.player.y + direction.y * spawnDistance,
+        vx: direction.x * projectileSpeed,
+        vy: direction.y * projectileSpeed,
+        radius: projectileRadius,
         damage: weapon.damage + this.getDerivedStat("attack"),
-        ttlMs: 900,
+        ttlMs: projectileTtl,
         spriteId: weapon.projectileId ?? "arrow_amber",
       });
       this.audioManager.playSfx("projectile");

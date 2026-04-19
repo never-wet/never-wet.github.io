@@ -232,11 +232,98 @@ export class Renderer {
 
   private drawProjectiles(state: RenderState): void {
     state.projectiles.forEach((projectile) => {
-      const x = projectile.x - state.cameraX;
-      const y = projectile.y - state.cameraY;
-      this.paint(x - projectile.radius, y - projectile.radius, projectile.radius * 2, projectile.radius * 2, projectile.owner === "player" ? "#fff0a8" : "#8fd0ff");
-      this.paint(x - projectile.radius + 1, y - projectile.radius + 1, Math.max(1, projectile.radius * 2 - 2), Math.max(1, projectile.radius * 2 - 2), projectile.owner === "player" ? "#f3c965" : "#d6f7ff");
+      const x = Math.round(projectile.x - state.cameraX);
+      const y = Math.round(projectile.y - state.cameraY);
+      this.drawProjectileTrail(x, y, projectile.vx, projectile.vy, projectile.spriteId);
+      this.drawProjectileSprite(x, y, projectile.spriteId, projectile.vx, projectile.vy, projectile.radius);
     });
+  }
+
+  private drawProjectileTrail(x: number, y: number, vx: number, vy: number, spriteId: string): void {
+    const stepX = vx === 0 ? 0 : Math.sign(vx);
+    const stepY = vy === 0 ? 0 : Math.sign(vy);
+    const colors: Record<string, [string, string]> = {
+      arrow_amber: ["rgba(243, 210, 106, 0.45)", "rgba(255, 243, 181, 0.75)"],
+      ember_orb: ["rgba(214, 83, 82, 0.4)", "rgba(255, 155, 115, 0.7)"],
+      lantern_spark: ["rgba(143, 208, 255, 0.45)", "rgba(217, 248, 255, 0.82)"],
+      moth_dust: ["rgba(195, 199, 160, 0.35)", "rgba(239, 245, 216, 0.68)"],
+      salt_bolt: ["rgba(143, 208, 255, 0.4)", "rgba(214, 247, 255, 0.75)"],
+      shard_shot: ["rgba(86, 174, 240, 0.4)", "rgba(196, 240, 255, 0.75)"],
+      stag_flare: ["rgba(245, 155, 115, 0.38)", "rgba(236, 246, 255, 0.8)"],
+    };
+    const [outer, inner] = colors[spriteId] ?? ["rgba(255, 240, 168, 0.35)", "rgba(243, 201, 101, 0.7)"];
+    this.paint(x - stepX * 5 - 1, y - stepY * 5 - 1, 2, 2, outer);
+    this.paint(x - stepX * 3, y - stepY * 3, 1, 1, inner);
+  }
+
+  private drawProjectileSprite(x: number, y: number, spriteId: string, vx: number, vy: number, radius: number): void {
+    const horizontal = Math.abs(vx) >= Math.abs(vy);
+    const forward = horizontal ? Math.sign(vx || 1) : Math.sign(vy || 1);
+
+    switch (spriteId) {
+      case "arrow_amber":
+        if (horizontal) {
+          const left = forward >= 0 ? x - 5 : x + 1;
+          this.paint(left, y - 1, 6, 2, "#8d603a");
+          this.paint(forward >= 0 ? x + 1 : x - 2, y - 2, 2, 4, "#f3d26a");
+          this.paint(forward >= 0 ? x - 6 : x + 4, y - 2, 2, 1, "#dfe7ea");
+          this.paint(forward >= 0 ? x - 6 : x + 4, y + 1, 2, 1, "#dfe7ea");
+        } else {
+          const top = forward >= 0 ? y - 5 : y + 1;
+          this.paint(x - 1, top, 2, 6, "#8d603a");
+          this.paint(x - 2, forward >= 0 ? y + 1 : y - 2, 4, 2, "#f3d26a");
+          this.paint(x - 2, forward >= 0 ? y - 6 : y + 4, 1, 2, "#dfe7ea");
+          this.paint(x + 1, forward >= 0 ? y - 6 : y + 4, 1, 2, "#dfe7ea");
+        }
+        break;
+      case "ember_orb":
+        this.paint(x - 4, y - 4, 8, 8, "#6e2f2a");
+        this.paint(x - 3, y - 3, 6, 6, "#d35252");
+        this.paint(x - 2, y - 2, 4, 4, "#ff9b73");
+        this.paint(x - 1, y - 1, 2, 2, "#fff0a8");
+        this.paint(x - 5, y - 1, 1, 1, "#f59b73");
+        this.paint(x + 4, y, 1, 1, "#f59b73");
+        break;
+      case "lantern_spark":
+        this.paint(x - 1, y - 5, 2, 10, "#8fd0ff");
+        this.paint(x - 5, y - 1, 10, 2, "#8fd0ff");
+        this.paint(x - 3, y - 3, 6, 6, "#d9f8ff");
+        this.paint(x - 1, y - 1, 2, 2, "#fff7dc");
+        break;
+      case "moth_dust":
+        this.paint(x - 3, y - 2, 2, 2, "#baa17b");
+        this.paint(x - 1, y - 3, 2, 2, "#d2bb97");
+        this.paint(x + 1, y - 1, 2, 2, "#baa17b");
+        this.paint(x - 2, y + 1, 2, 2, "#eff5d8");
+        this.paint(x + 2, y + 1, 1, 1, "#5b4a44");
+        break;
+      case "salt_bolt":
+        if (horizontal) {
+          this.paint(x - 5, y - 1, 10, 2, "#5f94b0");
+          this.paint(x - 2, y - 2, 4, 4, "#d7eef7");
+        } else {
+          this.paint(x - 1, y - 5, 2, 10, "#5f94b0");
+          this.paint(x - 2, y - 2, 4, 4, "#d7eef7");
+        }
+        this.paint(x - 1, y - 1, 2, 2, "#ffffff");
+        break;
+      case "shard_shot":
+        this.paint(x - 3, y - 5, 6, 10, "#56aef0");
+        this.paint(x - 2, y - 4, 4, 8, "#87d8ff");
+        this.paint(x - 1, y - 2, 2, 4, "#ffffff");
+        break;
+      case "stag_flare":
+        this.paint(x - 5, y - 5, 10, 10, "#4a687f");
+        this.paint(x - 4, y - 4, 8, 8, "#8fd0ff");
+        this.paint(x - 3, y - 3, 6, 6, "#f59b73");
+        this.paint(x - 2, y - 2, 4, 4, "#ecf6ff");
+        this.paint(x - 1, y - 1, 2, 2, "#ffffff");
+        break;
+      default:
+        this.paint(x - radius, y - radius, radius * 2, radius * 2, "#fff0a8");
+        this.paint(x - radius + 1, y - radius + 1, Math.max(1, radius * 2 - 2), Math.max(1, radius * 2 - 2), "#f3c965");
+        break;
+    }
   }
 
   private drawPlayer(state: RenderState): void {

@@ -13,6 +13,7 @@
 
 body {
   margin: 0;
+  overflow: hidden;
   min-height: 100vh;
   background:
     radial-gradient(circle at 20% 20%, rgba(134, 94, 57, 0.22), transparent 30%),
@@ -42,9 +43,11 @@ button:disabled {
 
 .lo-app {
   min-height: 100vh;
+  height: 100vh;
   display: grid;
   place-items: center;
   padding: 1.25rem;
+  overflow: hidden;
 }
 
 .lo-stage {
@@ -84,12 +87,18 @@ button:disabled {
 .lo-overlay {
   position: absolute;
   inset: 0;
+  pointer-events: none;
 }
 
 .lo-overlay > div {
   position: absolute;
   inset: 0;
   pointer-events: none;
+}
+
+.lo-hud-layer {
+  position: relative;
+  z-index: 1;
 }
 
 .lo-hud-layer:not(:empty),
@@ -100,6 +109,16 @@ button:disabled {
 .lo-ending-layer:not(:empty),
 .lo-gameover-layer:not(:empty) {
   pointer-events: auto;
+}
+
+.lo-dialogue-layer:not(:empty),
+.lo-shop-layer:not(:empty),
+.lo-pause-layer:not(:empty),
+.lo-ending-layer:not(:empty),
+.lo-gameover-layer:not(:empty) {
+  position: fixed;
+  inset: 0;
+  z-index: 18;
 }
 
 .lo-title-layer:not(:empty) {
@@ -235,7 +254,9 @@ button:disabled {
 .lo-modal {
   display: grid;
   place-items: center;
-  min-height: 100%;
+  min-height: 100vh;
+  padding: 1rem;
+  overflow: hidden;
   background: rgba(9, 12, 19, 0.6);
 }
 
@@ -244,8 +265,13 @@ button:disabled {
 .lo-ending-panel,
 .lo-gameover-panel {
   width: min(92%, 920px);
-  max-height: 90%;
+  max-height: calc(100vh - 2rem);
   overflow: auto;
+}
+
+.lo-pause-panel {
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr);
 }
 
 .lo-ending-grid {
@@ -299,6 +325,22 @@ button:disabled {
   display: grid;
   gap: 0.45rem;
   margin: 0.6rem 0;
+}
+
+.lo-hud-quest {
+  display: grid;
+  gap: 0.35rem;
+  margin-top: 0.8rem;
+  padding-top: 0.7rem;
+  border-top: 1px solid rgba(243, 210, 106, 0.35);
+}
+
+.lo-hud-quest strong {
+  display: block;
+}
+
+.lo-quest-objectives {
+  margin-top: 0.1rem;
 }
 
 .lo-bar-line {
@@ -363,6 +405,8 @@ button:disabled {
 .lo-tab-content {
   display: grid;
   gap: 1rem;
+  min-height: 0;
+  overflow: auto;
 }
 
 .lo-icon-chip {
