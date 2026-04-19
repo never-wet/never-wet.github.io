@@ -165,6 +165,7 @@ export interface QuestDefinition {
   chapter: number;
   giverId: string;
   summary: string;
+  routeHint: string;
   unlockConditions?: Condition[];
   objectives: QuestObjectiveDefinition[];
   rewards: RewardDefinition;
@@ -217,7 +218,14 @@ export interface WeaponDefinition {
   cooldownMs: number;
   staminaCost: number;
   projectileId?: string;
+  projectileSpeed?: number;
+  projectileRadius?: number;
+  projectileTtlMs?: number;
+  spawnDistance?: number;
   arc?: number;
+  swingWidth?: number;
+  swingHeight?: number;
+  effectColor?: string;
   knockback: number;
 }
 
@@ -228,6 +236,12 @@ export interface SkillDefinition {
   aetherCost: number;
   cooldownMs: number;
   projectileId?: string;
+  projectileSpeed?: number;
+  projectileRadius?: number;
+  projectileTtlMs?: number;
+  burstCount?: number;
+  spreadRadians?: number;
+  knockback?: number;
   damage: number;
 }
 
@@ -242,8 +256,12 @@ export interface EnemyDefinition {
   leashRange: number;
   attackRange: number;
   attackCooldownMs: number;
+  windupMs: number;
+  telegraphColor: string;
   behavior: "melee" | "ranged" | "charger" | "skirmisher" | "boss";
   projectileId?: string;
+  projectileSpeed?: number;
+  projectileRadius?: number;
   chargeSpeed?: number;
   lootTable: Array<{ itemId: string; chance: number; min: number; max: number }>;
   goldDrop: [number, number];

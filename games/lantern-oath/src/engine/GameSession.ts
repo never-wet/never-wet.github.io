@@ -25,6 +25,7 @@ import type {
   SceneMode,
   SettingsState,
   ShopDefinition,
+  WeaponDefinition,
 } from "../memory/types";
 import { AudioManager } from "./AudioManager";
 import { SaveManager } from "./SaveManager";
@@ -62,12 +63,21 @@ interface RuntimeNpcEx extends RuntimeNpc {
   stuckTimerMs: number;
 }
 
+type PendingEnemyAttack = "melee" | "projectile" | "charge" | "spread" | "nova";
+
 interface RuntimeEnemyEx extends RuntimeEnemy {
   homeX: number;
   homeY: number;
   chargeTimerMs: number;
   patternIndex: number;
   strafeDirection: number;
+  attackWindupMs: number;
+  attackWindupTotalMs: number;
+  pendingAttack: PendingEnemyAttack | null;
+  pendingAttackCooldownMs: number;
+  intentX: number;
+  intentY: number;
+  hurtFlashMs: number;
 }
 
 interface InteractionTarget {
@@ -102,7 +112,12 @@ export interface RenderState {
     facing: "up" | "down" | "left" | "right";
     animFrame: number;
     attacking: boolean;
+    attackStyle: "slash" | "thrust" | "bow" | "arcane";
+    attackProgress: number;
+    attackRange: number;
+    attackColor: string;
     dodging: boolean;
+    hurtMs: number;
     health: number;
     maxHealth: number;
     stamina: number;
@@ -129,6 +144,15 @@ export interface RenderState {
     health: number;
     maxHealth: number;
     elite: boolean;
+    hurtMs: number;
+    telegraph?: {
+      kind: PendingEnemyAttack;
+      progress: number;
+      color: string;
+      dirX: number;
+      dirY: number;
+      range: number;
+    };
   }>;
   nodes: Array<{
     id: string;
@@ -156,11 +180,15 @@ export interface RenderState {
 export interface UiState {
   mode: SceneMode;
   pauseTab: PauseTab;
+  mapId: string;
+  regionId: string;
   mapName: string;
   regionName: string;
+  regionSummary: string;
   chapter: number;
   gold: number;
   prompt?: string;
+  storyNote: string;
   toasts: ToastMessage[];
   playerName: string;
   playerVitals: {
@@ -176,6 +204,8 @@ export interface UiState {
     title: string;
     category: "main" | "side";
     summary: string;
+    journalSummary: string;
+    routeHint: string;
     objectives: Array<{ label: string; current: number; required: number }>;
     readyToTurnIn: boolean;
   }>;
@@ -294,6 +324,7 @@ export class GameSession {
   private quickItemId = "field_tonic";
   private playerDashVector = { x: 0, y: 0 };
   private playerKnockback = { x: 0, y: 0, timerMs: 0 };
+  private lastSafePlayerPosition = { x: 0, y: 0 };
   private lastMusicTrack: string | null = null;
   private interactionHint: InteractionTarget | null = null;
 
@@ -327,6 +358,7 @@ export class GameSession {
   getRenderState(): RenderState {
     const cameraX = clamp(this.save.player.x - CANVAS_WIDTH / 2, 0, Math.max(0, this.currentMap.width * TILE_SIZE - CANVAS_WIDTH));
     const cameraY = clamp(this.save.player.y - CANVAS_HEIGHT / 2, 0, Math.max(0, this.currentMap.height * TILE_SIZE - CANVAS_HEIGHT));
+    const currentWeapon = this.getEquippedWeapon();
 
     return {
       map: this.currentMap,
@@ -338,7 +370,12 @@ export class GameSession {
         facing: this.save.player.direction,
         animFrame: Math.floor(this.elapsedMs / 160) % 2,
         attacking: this.attackAnimMs > 0,
+        attackStyle: currentWeapon.style,
+        attackProgress: this.attackAnimMs > 0 ? 1 - this.attackAnimMs / 180 : 0,
+        attackRange: currentWeapon.range,
+        attackColor: currentWeapon.effectColor ?? "#f3d26a",
         dodging: this.dodgeTimerMs > 0,
+        hurtMs: this.invulnerabilityMs,
         health: this.save.player.stats.health,
         maxHealth: this.getDerivedStat("maxHealth"),
         stamina: this.save.player.stats.stamina,
@@ -372,6 +409,25 @@ export class GameSession {
             health: enemy.health,
             maxHealth: definition.maxHealth,
             elite: Boolean(definition.elite),
+            hurtMs: enemy.hurtFlashMs,
+            telegraph:
+              enemy.attackWindupMs > 0 && enemy.pendingAttack
+                ? {
+                    kind: enemy.pendingAttack,
+                    progress: 1 - enemy.attackWindupMs / Math.max(enemy.attackWindupTotalMs, 1),
+                    color: definition.telegraphColor,
+                    dirX: enemy.intentX,
+                    dirY: enemy.intentY,
+                    range:
+                      enemy.pendingAttack === "charge"
+                        ? Math.max(definition.attackRange + 18, Math.floor((definition.chargeSpeed ?? 110) * 0.55))
+                        : enemy.pendingAttack === "nova"
+                          ? 34
+                          : enemy.pendingAttack === "spread"
+                            ? 84
+                            : definition.attackRange,
+                  }
+                : undefined,
           };
         }),
       nodes: this.currentMap.resourceNodes.map((node) => ({
@@ -424,11 +480,15 @@ export class GameSession {
     return {
       mode: this.mode,
       pauseTab: this.pauseTab,
+      mapId: map.id,
+      regionId: map.regionId,
       mapName: map.name,
       regionName: region?.name ?? map.regionId,
+      regionSummary: region?.summary ?? "",
       chapter: this.save.chapter,
       gold: this.save.gold,
       prompt: this.prompt,
+      storyNote: this.getStoryNote(),
       toasts: this.toasts,
       playerName: this.save.player.name,
       playerVitals: {
@@ -447,6 +507,8 @@ export class GameSession {
           title: quest.title,
           category: quest.category,
           summary: quest.summary,
+          journalSummary: quest.journalSummary,
+          routeHint: progress.turnInReady ? this.getTurnInHint(quest) : quest.routeHint,
           objectives: quest.objectives.map((objective) => ({
             label: objective.label,
             current: progress.objectiveCounts[objective.id] ?? 0,
@@ -518,6 +580,46 @@ export class GameSession {
     };
   }
 
+  private getTurnInHint(quest: QuestDefinition): string {
+    const speaker = contentRegistry.characters[quest.giverId];
+    const region = speaker ? contentRegistry.regions[speaker.regionId] : null;
+    if (speaker && region) {
+      return `Return to ${speaker.name} in ${region.name} to turn in ${quest.title}.`;
+    }
+    if (speaker) {
+      return `Return to ${speaker.name} to turn in ${quest.title}.`;
+    }
+    return `Return to the quest giver to turn in ${quest.title}.`;
+  }
+
+  private getStoryNote(): string {
+    const trackedMainQuest = this.save.activeQuestIds
+      .map((questId) => contentRegistry.quests[questId])
+      .find((quest) => quest.category === "main");
+
+    if (trackedMainQuest) {
+      const progress = this.save.questProgress[trackedMainQuest.id];
+      return progress.turnInReady ? this.getTurnInHint(trackedMainQuest) : trackedMainQuest.routeHint;
+    }
+
+    if (!this.save.questProgress.main_embers_at_gate.accepted && !this.save.questProgress.main_embers_at_gate.completed) {
+      return "Begin in Emberwharf Guildhall by speaking with Warden Sable.";
+    }
+    if (this.save.questProgress.main_embers_at_gate.completed && !this.save.questProgress.main_bells_of_sunglade.completed) {
+      return "Travel east to Sunglade City and speak with Lyra Quill in Archive Hall.";
+    }
+    if (this.save.questProgress.main_bells_of_sunglade.completed && !this.save.questProgress.main_open_the_roots.completed) {
+      return "Gather the route materials for Lyra: a ruin rubbing and three glow ore.";
+    }
+    if (this.save.questProgress.main_open_the_roots.completed && !this.save.questProgress.main_last_hearth.completed) {
+      return "Talk to Mara Ashdown in Emberwharf to begin the last descent beneath Glassroot.";
+    }
+    if (this.hasClearedMainStory()) {
+      return "The last hearth burns again. Keep exploring side stories, jobs, and hidden corners of the Reach.";
+    }
+    return "Explore the Reach, talk to townsfolk, and check the journal for your next route.";
+  }
+
   update(deltaMs: number, input: { isDown(key: string): boolean; wasPressed(key: string): boolean; getMovementVector(): { x: number; y: number } }): void {
     this.elapsedMs += deltaMs;
     this.prompt = undefined;
@@ -583,6 +685,10 @@ export class GameSession {
     }
 
     this.updateMovement(deltaMs, input.getMovementVector());
+    if (this.restoreBodyToWalkable(this.save.player, 10, this.lastSafePlayerPosition.x, this.lastSafePlayerPosition.y)) {
+      this.playerKnockback = { x: 0, y: 0, timerMs: 0 };
+    }
+    this.rememberPlayerSafePosition();
     this.updateNpcs(deltaMs);
     this.updateInteractionState();
     if (input.wasPressed("e")) {
@@ -799,6 +905,7 @@ export class GameSession {
     const safeSpawn = this.resolveSafeSpawn(spawn.x * TILE_SIZE, spawn.y * TILE_SIZE, 10);
     this.save.player.x = safeSpawn.x;
     this.save.player.y = safeSpawn.y;
+    this.lastSafePlayerPosition = { x: safeSpawn.x, y: safeSpawn.y };
 
     this.npcs = this.currentMap.npcPlacements.map((npc) => ({
       ...npc,
@@ -831,6 +938,13 @@ export class GameSession {
       chargeTimerMs: 0,
       patternIndex: 0,
       strafeDirection: Math.random() > 0.5 ? 1 : -1,
+      attackWindupMs: 0,
+      attackWindupTotalMs: 0,
+      pendingAttack: null,
+      pendingAttackCooldownMs: 0,
+      intentX: 0,
+      intentY: 1,
+      hurtFlashMs: 0,
     }));
 
     this.projectiles = [];
@@ -896,6 +1010,30 @@ export class GameSession {
     return true;
   }
 
+  private rememberPlayerSafePosition(): void {
+    if (!this.collidesWithWalls(this.save.player.x, this.save.player.y, this.dodgeTimerMs > 0 ? 8 : 10)) {
+      this.lastSafePlayerPosition = {
+        x: this.save.player.x,
+        y: this.save.player.y,
+      };
+    }
+  }
+
+  private normalizeVector(vector: { x: number; y: number }): { x: number; y: number } {
+    const magnitude = Math.hypot(vector.x, vector.y);
+    if (magnitude <= 0) {
+      return { x: 0, y: 0 };
+    }
+    return { x: vector.x / magnitude, y: vector.y / magnitude };
+  }
+
+  private getEquippedWeapon(): WeaponDefinition {
+    return (
+      Object.values(contentRegistry.weapons).find((definition) => definition.itemId === this.save.equipment.weapon) ??
+      contentRegistry.weapons.weapon_rust_blade
+    );
+  }
+
   private discoverMap(map: MapDefinition): void {
     if (!this.save.discoveredMapIds.includes(map.id)) {
       this.save.discoveredMapIds.push(map.id);
@@ -931,12 +1069,13 @@ export class GameSession {
       velocityY += this.playerKnockback.y;
     }
 
+    const collisionSize = this.dodgeTimerMs > 0 ? 8 : 10;
     const nextX = this.save.player.x + (velocityX * deltaMs) / 1000;
-    if (!this.collidesWithWalls(nextX, this.save.player.y, 10)) {
+    if (!this.collidesWithWalls(nextX, this.save.player.y, collisionSize)) {
       this.save.player.x = nextX;
     }
     const nextY = this.save.player.y + (velocityY * deltaMs) / 1000;
-    if (!this.collidesWithWalls(this.save.player.x, nextY, 10)) {
+    if (!this.collidesWithWalls(this.save.player.x, nextY, collisionSize)) {
       this.save.player.y = nextY;
     }
 
@@ -1072,22 +1211,22 @@ export class GameSession {
   }
 
   private playerAttack(): void {
-    const weapon = Object.values(contentRegistry.weapons).find((definition) => definition.itemId === this.save.equipment.weapon) ?? contentRegistry.weapons.weapon_rust_blade;
+    const weapon = this.getEquippedWeapon();
     if (this.attackCooldownMs > 0 || this.save.player.stats.stamina < weapon.staminaCost) {
       return;
     }
 
     this.save.player.stats.stamina = Math.max(0, this.save.player.stats.stamina - weapon.staminaCost);
     this.attackCooldownMs = weapon.cooldownMs;
-    this.attackAnimMs = 180;
+    this.attackAnimMs = weapon.style === "bow" ? 140 : weapon.style === "arcane" ? 190 : weapon.style === "thrust" ? 160 : 180;
     this.audioManager.playSfx("swing");
 
     if (weapon.style === "bow" || weapon.style === "arcane") {
       const direction = this.directionVector(this.save.player.direction);
-      const projectileSpeed = weapon.style === "bow" ? 236 : 168;
-      const projectileRadius = weapon.style === "bow" ? 3 : 5;
-      const projectileTtl = weapon.style === "bow" ? 980 : 1120;
-      const spawnDistance = weapon.style === "bow" ? 12 : 9;
+      const projectileSpeed = weapon.projectileSpeed ?? (weapon.style === "bow" ? 236 : 168);
+      const projectileRadius = weapon.projectileRadius ?? (weapon.style === "bow" ? 3 : 5);
+      const projectileTtl = weapon.projectileTtlMs ?? (weapon.style === "bow" ? 980 : 1120);
+      const spawnDistance = weapon.spawnDistance ?? (weapon.style === "bow" ? 12 : 9);
       this.spawnProjectile({
         owner: "player",
         x: this.save.player.x + direction.x * spawnDistance,
@@ -1104,8 +1243,8 @@ export class GameSession {
     }
 
     const direction = this.directionVector(this.save.player.direction);
-    const width = weapon.style === "thrust" ? 12 : 18;
-    const height = weapon.style === "thrust" ? 24 : 18;
+    const width = weapon.swingWidth ?? (weapon.style === "thrust" ? 12 : 18);
+    const height = weapon.swingHeight ?? (weapon.style === "thrust" ? 24 : 18);
     const centerX = this.save.player.x + direction.x * weapon.range;
     const centerY = this.save.player.y + direction.y * weapon.range;
     this.hitboxes.push({
@@ -1129,6 +1268,7 @@ export class GameSession {
 
     this.skillCooldownMs = skill.cooldownMs;
     this.save.player.stats.aether -= skill.aetherCost;
+    this.attackAnimMs = Math.max(this.attackAnimMs, 190);
 
     if (skill.damage < 0) {
       this.save.player.stats.health = clamp(this.save.player.stats.health - skill.damage, 0, this.getDerivedStat("maxHealth"));
@@ -1138,17 +1278,32 @@ export class GameSession {
     }
 
     const direction = this.directionVector(this.save.player.direction);
-    this.spawnProjectile({
-      owner: "player",
-      x: this.save.player.x + direction.x * 10,
-      y: this.save.player.y + direction.y * 10,
-      vx: direction.x * 220,
-      vy: direction.y * 220,
-      radius: 4,
-      damage: skill.damage + Math.floor(this.getDerivedStat("attack") * 0.5),
-      ttlMs: 700,
-      spriteId: skill.projectileId ?? "lantern_spark",
-    });
+    const baseAngle = Math.atan2(direction.y, direction.x);
+    const burstCount = Math.max(1, skill.burstCount ?? 1);
+    const spread = skill.spreadRadians ?? 0;
+    const projectileSpeed = skill.projectileSpeed ?? 220;
+    const projectileRadius = skill.projectileRadius ?? 4;
+    const projectileTtl = skill.projectileTtlMs ?? 700;
+
+    for (let index = 0; index < burstCount; index += 1) {
+      const offset =
+        burstCount === 1
+          ? 0
+          : -spread / 2 + (spread * index) / Math.max(1, burstCount - 1);
+      const angle = baseAngle + offset;
+      const burstDirection = { x: Math.cos(angle), y: Math.sin(angle) };
+      this.spawnProjectile({
+        owner: "player",
+        x: this.save.player.x + burstDirection.x * 10,
+        y: this.save.player.y + burstDirection.y * 10,
+        vx: burstDirection.x * projectileSpeed,
+        vy: burstDirection.y * projectileSpeed,
+        radius: projectileRadius,
+        damage: skill.damage + Math.floor(this.getDerivedStat("attack") * 0.45),
+        ttlMs: projectileTtl,
+        spriteId: skill.projectileId ?? "lantern_spark",
+      });
+    }
     this.audioManager.playSfx("projectile");
   }
 
@@ -1159,10 +1314,10 @@ export class GameSession {
 
     const direction =
       inputVector.x !== 0 || inputVector.y !== 0 ? inputVector : this.directionVector(this.save.player.direction);
-    this.playerDashVector = direction;
-    this.dodgeCooldownMs = 520;
-    this.dodgeTimerMs = 180;
-    this.invulnerabilityMs = 240;
+    this.playerDashVector = this.normalizeVector(direction);
+    this.dodgeCooldownMs = 500;
+    this.dodgeTimerMs = 190;
+    this.invulnerabilityMs = 260;
     this.save.player.stats.stamina = Math.max(0, this.save.player.stats.stamina - 18);
     this.audioManager.playSfx("dodge");
   }
@@ -1716,6 +1871,11 @@ export class GameSession {
           enemy.y = enemy.homeY;
           enemy.vx = 0;
           enemy.vy = 0;
+          enemy.attackWindupMs = 0;
+          enemy.attackWindupTotalMs = 0;
+          enemy.pendingAttack = null;
+          enemy.pendingAttackCooldownMs = 0;
+          enemy.hurtFlashMs = 0;
         }
         return;
       }
@@ -1723,6 +1883,9 @@ export class GameSession {
       if (this.restoreBodyToWalkable(enemy, enemySize, enemy.homeX, enemy.homeY)) {
         enemy.vx = 0;
         enemy.vy = 0;
+        enemy.attackWindupMs = 0;
+        enemy.attackWindupTotalMs = 0;
+        enemy.pendingAttack = null;
         if (enemy.state === "charging") {
           enemy.state = "aggro";
           enemy.chargeTimerMs = 0;
@@ -1731,9 +1894,30 @@ export class GameSession {
 
       enemy.attackCooldown = Math.max(0, enemy.attackCooldown - deltaMs);
       enemy.invulnerableMs = Math.max(0, enemy.invulnerableMs - deltaMs);
+      enemy.hurtFlashMs = Math.max(0, enemy.hurtFlashMs - deltaMs);
       const toPlayer = { x: player.x - enemy.x, y: player.y - enemy.y };
       const dist = Math.hypot(toPlayer.x, toPlayer.y);
-      const dir = dist > 0 ? { x: toPlayer.x / dist, y: toPlayer.y / dist } : { x: 0, y: 0 };
+      const dir = this.normalizeVector(toPlayer);
+
+      if (enemy.attackWindupMs > 0 && enemy.pendingAttack) {
+        const telegraphDirection =
+          Math.abs(enemy.intentX) > 0 || Math.abs(enemy.intentY) > 0 ? { x: enemy.intentX, y: enemy.intentY } : dir;
+        if (Math.abs(telegraphDirection.x) > Math.abs(telegraphDirection.y)) {
+          enemy.facing = telegraphDirection.x > 0 ? "right" : "left";
+        } else {
+          enemy.facing = telegraphDirection.y > 0 ? "down" : "up";
+        }
+
+        enemy.attackWindupMs = Math.max(0, enemy.attackWindupMs - deltaMs);
+        enemy.vx *= 0.74;
+        enemy.vy *= 0.74;
+        this.moveBodyWithCollisions(enemy, enemy.vx, enemy.vy, enemySize, deltaMs);
+
+        if (enemy.attackWindupMs <= 0) {
+          this.resolveEnemyAttack(enemy, definition);
+        }
+        return;
+      }
 
       if (dist < definition.aggroRange || enemy.state === "aggro" || enemy.state === "charging") {
         if (enemy.state !== "charging") {
@@ -1783,8 +1967,7 @@ export class GameSession {
             moveX = dir.x;
             moveY = dir.y;
           } else if (enemy.attackCooldown <= 0) {
-            this.spawnEnemyHitbox(enemy, definition);
-            enemy.attackCooldown = definition.attackCooldownMs;
+            this.startEnemyWindup(enemy, definition, "melee", dir);
           }
           break;
         case "skirmisher":
@@ -1798,9 +1981,12 @@ export class GameSession {
             moveX = -dir.y * enemy.strafeDirection;
             moveY = dir.x * enemy.strafeDirection;
           }
-          if (dist < definition.attackRange + 10 && enemy.attackCooldown <= 0) {
-            this.spawnEnemyHitbox(enemy, definition);
-            enemy.attackCooldown = definition.attackCooldownMs;
+          if (enemy.attackCooldown <= 0) {
+            if (definition.projectileId && dist < definition.attackRange + 18) {
+              this.startEnemyWindup(enemy, definition, "projectile", dir, definition.windupMs);
+            } else if (dist < definition.attackRange + 10) {
+              this.startEnemyWindup(enemy, definition, "melee", dir, Math.max(180, definition.windupMs - 40));
+            }
           }
           break;
         case "ranged":
@@ -1812,8 +1998,7 @@ export class GameSession {
             moveY = -dir.y;
           }
           if (enemy.attackCooldown <= 0) {
-            this.spawnEnemyProjectile(enemy, definition, dir);
-            enemy.attackCooldown = definition.attackCooldownMs;
+            this.startEnemyWindup(enemy, definition, "projectile", dir);
           }
           break;
         case "charger":
@@ -1821,28 +2006,18 @@ export class GameSession {
             moveX = dir.x;
             moveY = dir.y;
           } else if (enemy.attackCooldown <= 0) {
-            enemy.state = "charging";
-            enemy.vx = dir.x * (definition.chargeSpeed ?? 120);
-            enemy.vy = dir.y * (definition.chargeSpeed ?? 120);
-            enemy.chargeTimerMs = 420;
-            enemy.attackCooldown = definition.attackCooldownMs;
+            this.startEnemyWindup(enemy, definition, "charge", dir, definition.windupMs + 80);
           }
           break;
         case "boss":
           if (enemy.attackCooldown <= 0) {
             const pattern = enemy.patternIndex % 3;
             if (pattern === 0) {
-              this.spawnEnemySpread(enemy, definition);
-              enemy.attackCooldown = 1500;
+              this.startEnemyWindup(enemy, definition, "spread", dir, definition.windupMs + 40, 1500);
             } else if (pattern === 1) {
-              enemy.state = "charging";
-              enemy.vx = dir.x * (definition.chargeSpeed ?? 140);
-              enemy.vy = dir.y * (definition.chargeSpeed ?? 140);
-              enemy.chargeTimerMs = 500;
-              enemy.attackCooldown = 1600;
+              this.startEnemyWindup(enemy, definition, "charge", dir, definition.windupMs, 1600);
             } else {
-              this.spawnEnemyNova(enemy, definition);
-              enemy.attackCooldown = 1700;
+              this.startEnemyWindup(enemy, definition, "nova", dir, definition.windupMs + 80, 1700);
             }
             enemy.patternIndex += 1;
           } else if (dist > 72) {
@@ -1869,8 +2044,65 @@ export class GameSession {
     });
   }
 
-  private spawnEnemyHitbox(enemy: RuntimeEnemyEx, definition: EnemyDefinition): void {
-    const direction = this.directionVector(enemy.facing);
+  private startEnemyWindup(
+    enemy: RuntimeEnemyEx,
+    definition: EnemyDefinition,
+    attack: PendingEnemyAttack,
+    direction: { x: number; y: number },
+    windupMs = definition.windupMs,
+    cooldownMs = definition.attackCooldownMs,
+  ): void {
+    const intent = this.normalizeVector(direction);
+    enemy.pendingAttack = attack;
+    enemy.attackWindupMs = windupMs;
+    enemy.attackWindupTotalMs = windupMs;
+    enemy.pendingAttackCooldownMs = cooldownMs;
+    enemy.intentX = intent.x;
+    enemy.intentY = intent.y;
+    enemy.vx *= 0.5;
+    enemy.vy *= 0.5;
+  }
+
+  private resolveEnemyAttack(enemy: RuntimeEnemyEx, definition: EnemyDefinition): void {
+    const direction =
+      Math.abs(enemy.intentX) > 0 || Math.abs(enemy.intentY) > 0
+        ? this.normalizeVector({ x: enemy.intentX, y: enemy.intentY })
+        : this.normalizeVector({ x: this.save.player.x - enemy.x, y: this.save.player.y - enemy.y });
+
+    switch (enemy.pendingAttack) {
+      case "melee":
+        this.spawnEnemyHitbox(enemy, definition, direction);
+        enemy.attackCooldown = enemy.pendingAttackCooldownMs;
+        break;
+      case "projectile":
+        this.spawnEnemyProjectile(enemy, definition, direction);
+        enemy.attackCooldown = enemy.pendingAttackCooldownMs;
+        break;
+      case "charge":
+        enemy.state = "charging";
+        enemy.vx = direction.x * (definition.chargeSpeed ?? 120);
+        enemy.vy = direction.y * (definition.chargeSpeed ?? 120);
+        enemy.chargeTimerMs = definition.elite ? 500 : 420;
+        enemy.attackCooldown = enemy.pendingAttackCooldownMs;
+        break;
+      case "spread":
+        this.spawnEnemySpread(enemy, definition, direction);
+        enemy.attackCooldown = enemy.pendingAttackCooldownMs;
+        break;
+      case "nova":
+        this.spawnEnemyNova(enemy, definition);
+        enemy.attackCooldown = enemy.pendingAttackCooldownMs;
+        break;
+    }
+
+    enemy.attackWindupMs = 0;
+    enemy.attackWindupTotalMs = 0;
+    enemy.pendingAttack = null;
+    enemy.pendingAttackCooldownMs = 0;
+  }
+
+  private spawnEnemyHitbox(enemy: RuntimeEnemyEx, definition: EnemyDefinition, directionOverride?: { x: number; y: number }): void {
+    const direction = directionOverride ?? this.directionVector(enemy.facing);
     this.hitboxes.push({
       id: nowId("enemy-hitbox"),
       owner: "enemy",
@@ -1890,9 +2122,9 @@ export class GameSession {
       owner: "enemy",
       x: enemy.x + direction.x * 10,
       y: enemy.y + direction.y * 10,
-      vx: direction.x * 120,
-      vy: direction.y * 120,
-      radius: 4,
+      vx: direction.x * (definition.projectileSpeed ?? 120),
+      vy: direction.y * (definition.projectileSpeed ?? 120),
+      radius: definition.projectileRadius ?? 4,
       damage: definition.damage,
       ttlMs: 1200,
       spriteId: definition.projectileId ?? "moth_dust",
@@ -1900,17 +2132,18 @@ export class GameSession {
     this.audioManager.playSfx("projectile");
   }
 
-  private spawnEnemySpread(enemy: RuntimeEnemyEx, definition: EnemyDefinition): void {
-    const baseAngle = Math.atan2(this.save.player.y - enemy.y, this.save.player.x - enemy.x);
+  private spawnEnemySpread(enemy: RuntimeEnemyEx, definition: EnemyDefinition, direction?: { x: number; y: number }): void {
+    const sourceDirection = direction ?? this.normalizeVector({ x: this.save.player.x - enemy.x, y: this.save.player.y - enemy.y });
+    const baseAngle = Math.atan2(sourceDirection.y, sourceDirection.x);
     [-0.35, -0.18, 0, 0.18, 0.35].forEach((offset) => {
       const angle = baseAngle + offset;
       this.spawnProjectile({
         owner: "enemy",
         x: enemy.x,
         y: enemy.y,
-        vx: Math.cos(angle) * 130,
-        vy: Math.sin(angle) * 130,
-        radius: 4,
+        vx: Math.cos(angle) * (definition.projectileSpeed ?? 130),
+        vy: Math.sin(angle) * (definition.projectileSpeed ?? 130),
+        radius: definition.projectileRadius ?? 4,
         damage: definition.damage,
         ttlMs: 1400,
         spriteId: definition.projectileId ?? "stag_flare",
@@ -1926,9 +2159,9 @@ export class GameSession {
         owner: "enemy",
         x: enemy.x,
         y: enemy.y,
-        vx: Math.cos(angle) * 100,
-        vy: Math.sin(angle) * 100,
-        radius: 4,
+        vx: Math.cos(angle) * Math.max(100, (definition.projectileSpeed ?? 100) - 20),
+        vy: Math.sin(angle) * Math.max(100, (definition.projectileSpeed ?? 100) - 20),
+        radius: definition.projectileRadius ?? 4,
         damage: definition.damage - 2,
         ttlMs: 1400,
         spriteId: definition.projectileId ?? "stag_flare",
@@ -2013,6 +2246,7 @@ export class GameSession {
 
     enemy.health -= damage;
     enemy.invulnerableMs = 180;
+    enemy.hurtFlashMs = 180;
     enemy.x += knockbackX;
     enemy.y += knockbackY;
     this.restoreBodyToWalkable(enemy, contentRegistry.enemies[enemy.enemyId].elite ? 16 : 12, enemy.homeX, enemy.homeY);

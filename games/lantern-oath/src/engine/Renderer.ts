@@ -21,6 +21,7 @@ export class Renderer {
     this.ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
     this.drawMap(state);
     this.drawPortalDecorations(state);
+    this.drawEnemyTelegraphs(state);
     this.drawNodes(state);
     this.drawPickups(state);
     this.drawNpcs(state);
@@ -28,6 +29,7 @@ export class Renderer {
     this.drawProjectiles(state);
     this.drawFloatingTexts(state);
     this.drawPlayer(state);
+    this.drawPlayerAttackEffect(state);
     this.drawBossBar(state);
     this.drawNightTint(state.timeMinutes);
     this.drawInteractionHint(state);
@@ -210,10 +212,133 @@ export class Renderer {
       this.pixels.drawSprite(this.ctx, npc.spriteId, screenX, screenY, 16, npc.frame, npc.facing === "left");
 
       if (npc.marker) {
-        const markerSprite = npc.marker === "turnin" ? "turnin_marker" : npc.marker === "quest" ? "quest_marker" : "ui_logo_emblem";
+        const markerSprite =
+          npc.marker === "turnin"
+            ? "turnin_marker"
+            : npc.marker === "quest"
+              ? "quest_marker"
+              : npc.marker === "job"
+                ? "job_marker"
+                : npc.marker === "shop"
+                  ? "shop_marker"
+                  : "ui_logo_emblem";
         this.pixels.drawSprite(this.ctx, markerSprite, screenX, screenY - 10, 12, 0);
       }
     });
+  }
+
+  private drawEnemyTelegraphs(state: RenderState): void {
+    state.enemies.forEach((enemy) => {
+      if (!enemy.telegraph) {
+        return;
+      }
+
+      const centerX = enemy.x - state.cameraX;
+      const centerY = enemy.y - state.cameraY;
+      const { kind, progress, color, dirX, dirY, range } = enemy.telegraph;
+      const directionLength = Math.hypot(dirX, dirY) || 1;
+      const forwardX = dirX / directionLength;
+      const forwardY = dirY / directionLength;
+      const alpha = 0.12 + progress * 0.2;
+      const strokeAlpha = 0.35 + progress * 0.35;
+
+      switch (kind) {
+        case "melee":
+          this.drawTelegraphLane(centerX, centerY, forwardX, forwardY, range + 8, enemy.elite ? 16 : 12, color, alpha, strokeAlpha);
+          break;
+        case "projectile":
+          this.drawTelegraphLane(centerX, centerY, forwardX, forwardY, Math.max(range, 72), 8, color, alpha * 0.8, strokeAlpha);
+          break;
+        case "charge":
+          this.drawTelegraphLane(centerX, centerY, forwardX, forwardY, range + 18, enemy.elite ? 18 : 14, color, alpha * 1.05, strokeAlpha);
+          break;
+        case "spread":
+          this.drawTelegraphFan(centerX, centerY, Math.atan2(forwardY, forwardX), range, color, alpha, strokeAlpha);
+          break;
+        case "nova":
+          this.drawTelegraphRing(centerX, centerY, 16 + progress * range, 3, color, alpha * 0.85, strokeAlpha);
+          break;
+      }
+    });
+  }
+
+  private drawTelegraphLane(
+    centerX: number,
+    centerY: number,
+    dirX: number,
+    dirY: number,
+    length: number,
+    width: number,
+    color: string,
+    fillAlpha: number,
+    strokeAlpha: number,
+  ): void {
+    const perpX = -dirY;
+    const perpY = dirX;
+    const startX = centerX + dirX * 6;
+    const startY = centerY + dirY * 6;
+    const endX = centerX + dirX * length;
+    const endY = centerY + dirY * length;
+    const halfWidth = width / 2;
+
+    this.ctx.save();
+    this.ctx.beginPath();
+    this.ctx.moveTo(startX + perpX * halfWidth, startY + perpY * halfWidth);
+    this.ctx.lineTo(startX - perpX * halfWidth, startY - perpY * halfWidth);
+    this.ctx.lineTo(endX - perpX * halfWidth, endY - perpY * halfWidth);
+    this.ctx.lineTo(endX + perpX * halfWidth, endY + perpY * halfWidth);
+    this.ctx.closePath();
+    this.ctx.fillStyle = this.toRgba(color, fillAlpha);
+    this.ctx.strokeStyle = this.toRgba(color, strokeAlpha);
+    this.ctx.lineWidth = 1.5;
+    this.ctx.fill();
+    this.ctx.stroke();
+    this.ctx.restore();
+  }
+
+  private drawTelegraphFan(
+    centerX: number,
+    centerY: number,
+    angle: number,
+    radius: number,
+    color: string,
+    fillAlpha: number,
+    strokeAlpha: number,
+  ): void {
+    this.ctx.save();
+    this.ctx.beginPath();
+    this.ctx.moveTo(centerX, centerY);
+    this.ctx.arc(centerX, centerY, radius, angle - 0.42, angle + 0.42);
+    this.ctx.closePath();
+    this.ctx.fillStyle = this.toRgba(color, fillAlpha);
+    this.ctx.strokeStyle = this.toRgba(color, strokeAlpha);
+    this.ctx.lineWidth = 1.5;
+    this.ctx.fill();
+    this.ctx.stroke();
+    this.ctx.restore();
+  }
+
+  private drawTelegraphRing(
+    centerX: number,
+    centerY: number,
+    radius: number,
+    thickness: number,
+    color: string,
+    fillAlpha: number,
+    strokeAlpha: number,
+  ): void {
+    this.ctx.save();
+    this.ctx.beginPath();
+    this.ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+    this.ctx.strokeStyle = this.toRgba(color, strokeAlpha);
+    this.ctx.lineWidth = thickness;
+    this.ctx.stroke();
+    this.ctx.beginPath();
+    this.ctx.arc(centerX, centerY, Math.max(1, radius - thickness * 1.2), 0, Math.PI * 2);
+    this.ctx.strokeStyle = this.toRgba(color, fillAlpha);
+    this.ctx.lineWidth = 1;
+    this.ctx.stroke();
+    this.ctx.restore();
   }
 
   private drawEnemies(state: RenderState): void {
@@ -222,6 +347,10 @@ export class Renderer {
       const screenY = enemy.y - state.cameraY - (enemy.elite ? 14 : 12);
       this.paint(screenX + 2, screenY + 13, enemy.elite ? 12 : 10, 3, "rgba(0,0,0,0.25)");
       this.pixels.drawSprite(this.ctx, enemy.spriteId, screenX, screenY, enemy.elite ? 20 : 16, enemy.frame, enemy.facing === "left");
+
+      if (enemy.hurtMs > 0 && Math.floor(enemy.hurtMs / 45) % 2 === 0) {
+        this.paint(screenX + 1, screenY + 1, enemy.elite ? 18 : 14, enemy.elite ? 18 : 14, "rgba(255,243,209,0.22)");
+      }
 
       const barWidth = enemy.elite ? 20 : 16;
       const healthRatio = enemy.health / Math.max(enemy.maxHealth, 1);
@@ -339,6 +468,79 @@ export class Renderer {
       state.player.animFrame,
       state.player.facing === "left",
     );
+
+    if (state.player.hurtMs > 0 && Math.floor(state.player.hurtMs / 70) % 2 === 0) {
+      this.paint(screenX + 1, screenY + 1, 14, 14, "rgba(255, 214, 214, 0.2)");
+    }
+  }
+
+  private drawPlayerAttackEffect(state: RenderState): void {
+    if (!state.player.attacking) {
+      return;
+    }
+
+    const centerX = state.player.x - state.cameraX;
+    const centerY = state.player.y - state.cameraY - 2;
+    const direction = this.directionVector(state.player.facing);
+    const range = state.player.attackRange;
+    const color = state.player.attackColor;
+    const progress = Math.max(0, Math.min(1, state.player.attackProgress));
+
+    this.ctx.save();
+    this.ctx.strokeStyle = this.toRgba(color, 0.35 + progress * 0.3);
+    this.ctx.fillStyle = this.toRgba(color, 0.12 + progress * 0.14);
+
+    switch (state.player.attackStyle) {
+      case "slash": {
+        const facingAngle = Math.atan2(direction.y, direction.x);
+        const sweep = 1.2;
+        const startAngle = facingAngle - 0.9 + progress * 0.22;
+        const endAngle = startAngle + sweep;
+        this.ctx.lineWidth = 5;
+        this.ctx.beginPath();
+        this.ctx.arc(centerX, centerY, range - 4, startAngle, endAngle);
+        this.ctx.stroke();
+        this.ctx.lineWidth = 2;
+        this.ctx.beginPath();
+        this.ctx.arc(centerX, centerY, range - 8, startAngle + 0.08, endAngle - 0.08);
+        this.ctx.stroke();
+        break;
+      }
+      case "thrust": {
+        const tipX = centerX + direction.x * (range + 8);
+        const tipY = centerY + direction.y * (range + 8);
+        this.ctx.lineWidth = 4;
+        this.ctx.beginPath();
+        this.ctx.moveTo(centerX + direction.x * 5, centerY + direction.y * 5);
+        this.ctx.lineTo(tipX, tipY);
+        this.ctx.stroke();
+        this.ctx.fillRect(tipX - 2, tipY - 2, 4, 4);
+        break;
+      }
+      case "bow": {
+        const flashX = centerX + direction.x * 14;
+        const flashY = centerY + direction.y * 14;
+        this.ctx.lineWidth = 2;
+        this.ctx.beginPath();
+        this.ctx.moveTo(centerX, centerY);
+        this.ctx.lineTo(flashX, flashY);
+        this.ctx.stroke();
+        this.ctx.fillRect(flashX - 2, flashY - 2, 4, 4);
+        break;
+      }
+      case "arcane": {
+        const orbX = centerX + direction.x * 12;
+        const orbY = centerY + direction.y * 12;
+        this.ctx.beginPath();
+        this.ctx.arc(orbX, orbY, 6 + progress * 2, 0, Math.PI * 2);
+        this.ctx.fill();
+        this.ctx.lineWidth = 2;
+        this.ctx.stroke();
+        break;
+      }
+    }
+
+    this.ctx.restore();
   }
 
   private drawFloatingTexts(state: RenderState): void {
@@ -630,6 +832,26 @@ export class Renderer {
       this.paint(x + 2, y + 2, pixelWidth - 4, 2, "#f3d26a");
       this.paint(x + 2, y + pixelHeight - 4, pixelWidth - 4, 2, "#f3d26a");
     }
+  }
+
+  private directionVector(direction: "up" | "down" | "left" | "right"): { x: number; y: number } {
+    if (direction === "up") return { x: 0, y: -1 };
+    if (direction === "down") return { x: 0, y: 1 };
+    if (direction === "left") return { x: -1, y: 0 };
+    return { x: 1, y: 0 };
+  }
+
+  private toRgba(hexColor: string, alpha: number): string {
+    const safeAlpha = Math.max(0, Math.min(1, alpha));
+    if (!hexColor.startsWith("#")) {
+      return hexColor;
+    }
+    const hex = hexColor.slice(1);
+    const normalized = hex.length === 3 ? hex.split("").map((part) => part + part).join("") : hex;
+    const r = Number.parseInt(normalized.slice(0, 2), 16);
+    const g = Number.parseInt(normalized.slice(2, 4), 16);
+    const b = Number.parseInt(normalized.slice(4, 6), 16);
+    return `rgba(${r}, ${g}, ${b}, ${safeAlpha})`;
   }
 
   private paint(x: number, y: number, w: number, h: number, color: string): void {

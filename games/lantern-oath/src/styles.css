@@ -291,11 +291,17 @@ button:disabled {
 
 .lo-modal-header,
 .lo-hud-row,
-.lo-stat-line,
-.lo-status-grid {
+.lo-stat-line {
   display: flex;
   justify-content: space-between;
   gap: 1rem;
+}
+
+.lo-status-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.9rem;
+  align-items: start;
 }
 
 .lo-hud-shell,
@@ -381,6 +387,10 @@ button:disabled {
   margin: 0.3rem 0 0;
 }
 
+.lo-quest-guidance {
+  margin: 0.25rem 0 0.45rem;
+}
+
 .lo-dialogue {
   display: grid;
   align-items: end;
@@ -407,6 +417,20 @@ button:disabled {
   gap: 1rem;
   min-height: 0;
   overflow: auto;
+}
+
+.lo-entry-stack {
+  grid-template-columns: 1fr;
+  align-items: start;
+}
+
+.lo-region-card-grid {
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.lo-region-card.is-current {
+  border-color: rgba(243, 210, 106, 0.75);
+  background: rgba(46, 63, 91, 0.72);
 }
 
 .lo-icon-chip {

@@ -237,6 +237,25 @@ Read in this order when resuming work:
 - Pinned the tracked quest into the top HUD so the current quest stays visible on-screen even while the sidebar prompt changes based on nearby interactions
 - Fixed field-menu clickability by making the full-screen overlay container itself ignore pointer events and giving the HUD layer an explicit stacking context above the playfield
 - Fixed NPC/enemy wall-sticking in `GameSession`: wandering NPCs now detect when they are stalled against collision and reset to a safe walkable position near home, and enemies now correct back onto walkable tiles after knockback or bad collision states instead of getting embedded in walls
+- Started a formal release pass: added `docs/RELEASE_CHECKLIST.md`, `src/tools/releaseChecks.ts`, and repeatable `release:must-have` / `release:must-have:5` / `release:final:10` commands so finish work can be done section-by-section with repeated verification
+- Added player wall-recovery using the last known safe position so bad collision states are less likely to softlock the player during the must-have finish section
+- Completed the first automated release loop for the must-have section: `npm run release:must-have:5` passed with `qa`, the new must-have release gate, and `build` all succeeding in five consecutive passes
+- Began the combat finish section by moving combat feel into data: weapons now carry projectile and melee-effect tuning, Lantern Spark is now a three-spark burst, enemies carry telegraph timing/color plus projectile tuning, and the release gate now supports `release:combat`, `release:combat:5`, and combined `release:final`
+- Completed the combat finish section automation loop: `npm run release:combat:5` passed with `qa`, the combat release gate, and `build` all succeeding in five consecutive passes
+- Combat feel pass details:
+  - player melee/ranged attacks now draw clearer attack effects based on weapon style
+  - Lantern Spark now fires a three-spark burst instead of a single generic shot
+  - enemies now use windup telegraphs before melee, projectile, charge, spread, and nova attacks
+  - dodge collision is slightly more forgiving during the dash so corners and walls snag less often
+  - player and enemy hurt flashes now make impacts and damage states easier to read
+- Completed the world finish section automation loop: `npm run release:world:5` passed with `qa`, the world release gate, and `build` all succeeding in five consecutive passes
+- Added story, content, visual, audio, and quality-of-life release gates plus repeatable `:5` commands so later sections can be verified with the same release workflow
+- Completed the story, content, visual, audio, and quality-of-life automation loops: each of `release:story:5`, `release:content:5`, `release:visual:5`, `release:audio:5`, and `release:qol:5` passed with `qa`, the matching gate, and `build` all succeeding in five consecutive passes
+- Completed the full automated release run: `npm run release:final:10` passed with `qa`, the combined final gate, and `build` all succeeding in ten consecutive passes
+- Added clearer inventory grouping by category, item stat/healing summaries, richer shop cards with ownership/equipped state, and more informative job cards with mentor, location, pay, and perk text
+- Added a secret equipment reward in Moonwell Glen: the `Moonwell Band` trinket now appears in the hidden cache to strengthen optional exploration payoff
+- Added the missing `icon_charm` art plus distinct `job_marker` and `shop_marker` sprites so different NPC roles read more clearly at a glance
+- Added `@types/node` as a dev dependency so source-backed release checks compile cleanly with the rest of the project
 - Current HUD behavior:
   - top HUD permanently shows the tracked quest
   - right sidebar is now primarily for nearby/interact prompts and toast-style notices

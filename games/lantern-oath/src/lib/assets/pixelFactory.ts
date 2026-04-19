@@ -262,6 +262,15 @@ function drawIcon(ctx: CanvasRenderingContext2D, iconId: string): void {
         { x: 5, y: 5, w: 4, h: 4, color: "#d6a743" },
       ]);
       break;
+    case "icon_charm":
+      drawCommands(ctx, [
+        { x: 7, y: 1, w: 2, h: 2, color: "#f7e7a2" },
+        { x: 5, y: 3, w: 6, h: 2, color: "#f3d26a" },
+        { x: 4, y: 5, w: 8, h: 6, color: "#a8d7f7" },
+        { x: 5, y: 6, w: 6, h: 4, color: "#dff4ff" },
+        { x: 6, y: 11, w: 4, h: 2, color: "#6f8aa4" },
+      ]);
+      break;
     default:
       drawCommands(ctx, [{ x: 4, y: 4, w: 8, h: 8, color: "#ffffff" }]);
       break;
@@ -331,6 +340,21 @@ function drawProp(ctx: CanvasRenderingContext2D, spriteId: string, frame = 0): v
       drawCommands(ctx, [
         { x: 4, y: 2, w: 8, h: 8, color: "#9df5a3" },
         { x: 6, y: 4, w: 4, h: 10, color: "#2a7032" },
+      ]);
+      break;
+    case "job_marker":
+      drawCommands(ctx, [
+        { x: 4, y: 3, w: 8, h: 8, color: "#7ac3ff" },
+        { x: 6, y: 1, w: 4, h: 4, color: "#dff4ff" },
+        { x: 6, y: 6, w: 4, h: 6, color: "#2f5d8f" },
+      ]);
+      break;
+    case "shop_marker":
+      drawCommands(ctx, [
+        { x: 3, y: 4, w: 10, h: 7, color: "#d18d48" },
+        { x: 4, y: 5, w: 8, h: 5, color: "#f3d26a" },
+        { x: 5, y: 2, w: 6, h: 3, color: "#9d5035" },
+        { x: 6, y: 6, w: 2, h: 2, color: "#6c4025" },
       ]);
       break;
     case "ui_logo_emblem":

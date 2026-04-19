@@ -3,6 +3,7 @@ import { GameSession, type PauseTab, type UiState } from "../engine/GameSession"
 import { InputManager } from "../engine/InputManager";
 import { Renderer } from "../engine/Renderer";
 import { SaveManager } from "../engine/SaveManager";
+import { contentRegistry } from "../memory/contentRegistry";
 import { gameManifest } from "../memory/gameManifest";
 import { PixelFactory } from "../lib/assets/pixelFactory";
 
@@ -414,6 +415,7 @@ export class App {
               trackedQuest
                 ? `
                   <strong>${trackedQuest.title}</strong>
+                  <p class="lo-muted lo-quest-guidance">${trackedQuest.routeHint}</p>
                   <ul class="lo-plain-list lo-quest-objectives">
                     ${trackedQuest.objectives
                       .map((objective) => `<li>${objective.label} (${objective.current}/${objective.required})</li>`)
@@ -422,7 +424,7 @@ export class App {
                 `
                 : ui.storyComplete
                   ? "<p class='lo-muted'>Main story complete. Your cleared route is still open for side stories, jobs, and secrets.</p>"
-                  : "<p class='lo-muted'>No tracked quest yet. Talk to the wardens or check your journal.</p>"
+                  : `<p class='lo-muted'>${ui.storyNote}</p>`
             }
           </div>
         </div>
@@ -443,13 +445,14 @@ export class App {
     return `
       <div class="lo-sidebar">
         <div class="lo-hud-card lo-sidebar-card">
-          <p class="lo-kicker">Nearby</p>
-          <p class="lo-prompt">${ui.prompt ?? "Explore the Reach and talk to the townsfolk."}</p>
+          <p class="lo-kicker">Road Notes</p>
+          <p class="lo-prompt">${ui.prompt ?? ui.storyNote}</p>
           ${
             trackedQuest
               ? `
                 <div class="lo-quest-snippet">
                   <strong>${trackedQuest.title}</strong>
+                  <p class="lo-muted lo-quest-guidance">${trackedQuest.routeHint}</p>
                   <p>${trackedQuest.objectives
                     .map((objective) => `${objective.label} (${objective.current}/${objective.required})`)
                     .join(" · ")}</p>
@@ -457,7 +460,7 @@ export class App {
               `
               : ui.storyComplete
                 ? "<p class='lo-muted'>The last hearth burns again. Keep exploring jobs, side stories, and hidden corners of the Reach.</p>"
-                : "<p class='lo-muted'>No active quest. Speak with the roadwardens and townsfolk.</p>"
+                : `<p class='lo-muted'>${ui.storyNote}</p>`
           }
         </div>
         ${
@@ -516,20 +519,25 @@ export class App {
           </div>
           <div class="lo-shop-grid">
             ${shop.stock
-              .map(
-                (stock) => `
+              .map((stock) => {
+                const ownedQuantity = ui.inventory.find((entry) => entry.itemId === stock.itemId)?.quantity ?? 0;
+                const equipped = Object.values(ui.equipment).some((entry) => entry?.id === stock.itemId);
+                return `
                   <div class="lo-shop-item">
                     <div class="lo-icon-chip" data-icon-id="${stock.item.iconId}"></div>
-                    <div>
+                    <div class="lo-entry-stack">
                       <strong>${stock.item.name}</strong>
+                      <p class="lo-kicker">${this.capitalize(stock.item.category)}</p>
                       <p>${stock.item.description}</p>
+                      <p class="lo-muted">${this.describeItem(stock.item)}</p>
+                      <p>Owned: ${ownedQuantity}${equipped ? " - Equipped now" : ""}</p>
                     </div>
                     <div class="lo-shop-buy">
                       <span>${stock.price}g</span>
                       <button data-action="buy-item" data-item-id="${stock.itemId}" ${stock.affordable ? "" : "disabled"}>Buy</button>
                     </div>
-                  </div>`,
-              )
+                  </div>`;
+              })
               .join("")}
           </div>
         </div>
@@ -574,70 +582,136 @@ export class App {
     if (ui.pauseTab === "status") {
       return `
         <div class="lo-status-grid">
-          <div>
+          <article class="lo-entry-card lo-entry-stack">
             <h3>Player</h3>
             <p>${ui.playerName} is carrying the lantern oath through ${ui.regionName}.</p>
+            <p>${ui.regionSummary}</p>
+            <p><strong>Current route:</strong> ${ui.storyNote}</p>
             <p>Current save: ${ui.saveLabel}</p>
-            <p>Discovered regions: ${ui.discoveredRegions.join(", ")}</p>
+            <p>Discovered regions: ${ui.discoveredRegions.length ? ui.discoveredRegions.join(", ") : "None yet"}</p>
             <p>${ui.storyComplete ? "Main story complete. The Reach is relit, but your cleared route stays open for side stories and jobs." : "The last hearth is still ahead. Keep following the road notes and journal."}</p>
-          </div>
-          <div>
+          </article>
+          <article class="lo-entry-card lo-entry-stack">
             <h3>Equipment</h3>
             <ul class="lo-plain-list">
               <li>Weapon: ${ui.equipment.weapon?.name ?? "None"}</li>
               <li>Armor: ${ui.equipment.armor?.name ?? "None"}</li>
               <li>Trinket: ${ui.equipment.trinket?.name ?? "None"}</li>
             </ul>
-          </div>
+          </article>
+          <article class="lo-entry-card lo-entry-stack">
+            <h3>Controls</h3>
+            <ul class="lo-plain-list">
+              <li>Move: WASD or arrow keys</li>
+              <li>Attack: J</li>
+              <li>Lantern Skill: K</li>
+              <li>Dodge: Space</li>
+              <li>Interact: E</li>
+              <li>Pause: Esc</li>
+            </ul>
+          </article>
         </div>
       `;
     }
 
     if (ui.pauseTab === "inventory") {
+      const categoryOrder = ["weapon", "armor", "trinket", "consumable", "material", "quest"] as const;
+      const categoryLabels: Record<(typeof categoryOrder)[number], string> = {
+        weapon: "Weapons",
+        armor: "Armor",
+        trinket: "Trinkets",
+        consumable: "Consumables",
+        material: "Materials",
+        quest: "Quest Items",
+      };
+
       return `
         <div class="lo-item-list">
-          ${ui.inventory
-            .map(
-              (entry) => `
-                <div class="lo-item-row">
-                  <div class="lo-icon-chip" data-icon-id="${entry.item.iconId}"></div>
-                  <div>
-                    <strong>${entry.item.name}${entry.equipped ? " (Equipped)" : ""}</strong>
-                    <p>${entry.item.description}</p>
-                    <p>Qty: ${entry.quantity}</p>
-                  </div>
-                  <div class="lo-item-actions">
-                    ${
-                      entry.item.equipmentSlot && !entry.equipped
-                        ? `<button data-action="equip-item" data-item-id="${entry.itemId}">Equip</button>`
-                        : ""
-                    }
-                    ${entry.item.healAmount ? `<button data-action="use-item" data-item-id="${entry.itemId}">Use</button>` : ""}
-                  </div>
-                </div>`,
-            )
+          ${categoryOrder
+            .map((category) => {
+              const entries = ui.inventory.filter((entry) => entry.item.category === category);
+              if (!entries.length) {
+                return "";
+              }
+
+              return `
+                <section class="lo-entry-stack">
+                  <h3>${categoryLabels[category]}</h3>
+                  ${entries
+                    .map(
+                      (entry) => `
+                        <div class="lo-item-row">
+                          <div class="lo-icon-chip" data-icon-id="${entry.item.iconId}"></div>
+                          <div class="lo-entry-stack">
+                            <strong>${entry.item.name}${entry.equipped ? " (Equipped)" : ""}</strong>
+                            <p>${entry.item.description}</p>
+                            <p class="lo-muted">${this.describeItem(entry.item)}</p>
+                            <p>Qty: ${entry.quantity}</p>
+                          </div>
+                          <div class="lo-item-actions">
+                            ${
+                              entry.item.equipmentSlot && !entry.equipped
+                                ? `<button data-action="equip-item" data-item-id="${entry.itemId}">Equip</button>`
+                                : ""
+                            }
+                            ${entry.item.healAmount ? `<button data-action="use-item" data-item-id="${entry.itemId}">Use</button>` : ""}
+                          </div>
+                        </div>`,
+                    )
+                    .join("")}
+                </section>
+              `;
+            })
             .join("")}
         </div>
       `;
     }
 
     if (ui.pauseTab === "journal") {
+      const mainQuests = ui.activeQuests.filter((quest) => quest.category === "main");
+      const sideQuests = ui.activeQuests.filter((quest) => quest.category === "side");
       return `
         <div class="lo-journal">
-          <h3>Active Quests</h3>
-          ${ui.activeQuests
-            .map(
-              (quest) => `
-                <article class="lo-entry-card">
-                  <p class="lo-kicker">${quest.category === "main" ? "Main Story" : "Side Story"}</p>
-                  <strong>${quest.title}</strong>
-                  <p>${quest.summary}</p>
-                  <ul class="lo-plain-list">
-                    ${quest.objectives.map((objective) => `<li>${objective.label} (${objective.current}/${objective.required})</li>`).join("")}
-                  </ul>
-                </article>`,
-            )
-            .join("")}
+          <h3>Main Story</h3>
+          ${
+            mainQuests.length
+              ? mainQuests
+                  .map(
+                    (quest) => `
+                      <article class="lo-entry-card lo-entry-stack">
+                        <p class="lo-kicker">Main Story</p>
+                        <strong>${quest.title}</strong>
+                        <p>${quest.summary}</p>
+                        <p class="lo-muted">${quest.journalSummary}</p>
+                        <p class="lo-quest-guidance">${quest.routeHint}</p>
+                        <ul class="lo-plain-list">
+                          ${quest.objectives.map((objective) => `<li>${objective.label} (${objective.current}/${objective.required})</li>`).join("")}
+                        </ul>
+                      </article>`,
+                  )
+                  .join("")
+              : "<p class='lo-muted'>No active main quest right now.</p>"
+          }
+          <h3>Side Stories</h3>
+          ${
+            sideQuests.length
+              ? sideQuests
+                  .map(
+                    (quest) => `
+                      <article class="lo-entry-card lo-entry-stack">
+                        <p class="lo-kicker">Side Story</p>
+                        <strong>${quest.title}</strong>
+                        <p>${quest.summary}</p>
+                        <p class="lo-muted">${quest.journalSummary}</p>
+                        <p class="lo-quest-guidance">${quest.routeHint}</p>
+                        <ul class="lo-plain-list">
+                          ${quest.objectives.map((objective) => `<li>${objective.label} (${objective.current}/${objective.required})</li>`).join("")}
+                        </ul>
+                      </article>`,
+                  )
+                  .join("")
+              : "<p class='lo-muted'>No active side stories right now.</p>"
+          }
           <p class="lo-muted">Completed quests: ${ui.completedQuestCount}</p>
         </div>
       `;
@@ -647,36 +721,67 @@ export class App {
       return `
         <div class="lo-job-grid">
           ${ui.jobs
-            .map(
-              (job) => `
+            .map((job) => {
+              const jobDef = contentRegistry.jobs[job.id];
+              const mentor = contentRegistry.characters[jobDef.mentorId];
+              const location = contentRegistry.maps[jobDef.locationId];
+              return `
                 <article class="lo-entry-card">
                   <p class="lo-kicker">${job.rankTitle}</p>
                   <strong>${job.name}</strong>
-                  <p>${job.label}</p>
+                  <p>${jobDef.description}</p>
+                  <p><strong>Shift:</strong> ${job.label}</p>
                   <p>Progress: ${job.current}/${job.required}</p>
                   <p>Loops completed: ${job.loopsCompleted}</p>
+                  <p><strong>Mentor:</strong> ${mentor?.name ?? "Unknown"}${location ? ` - ${location.name}` : ""}</p>
+                  <p><strong>Pay:</strong> ${jobDef.baseRewardGold + job.rank * 4} gold per turn-in</p>
+                  <p class="lo-muted">${jobDef.perkText}</p>
                   <p>${job.readyToTurnIn ? "Ready to turn in" : job.active ? "Shift active" : "Talk to the mentor to work."}</p>
-                </article>`,
-            )
+                </article>`;
+            })
             .join("")}
         </div>
       `;
     }
 
     if (ui.pauseTab === "map") {
+      const regionCards = Object.values(contentRegistry.regions)
+        .map((region) => {
+          const discovered = ui.discoveredRegions.includes(region.id);
+          const isCurrent = region.id === ui.regionId;
+          const mapNames = region.mapIds
+            .map((mapId) => contentRegistry.maps[mapId])
+            .filter(Boolean)
+            .map((map) => `${map.name}${map.id === ui.mapId ? " (Here)" : ""}`);
+          const connectionNames = region.connections
+            .map((regionId) => contentRegistry.regions[regionId]?.name)
+            .filter(Boolean)
+            .join(" · ");
+
+          return `
+            <article class="lo-entry-card lo-entry-stack lo-region-card ${isCurrent ? "is-current" : ""}">
+              <p class="lo-kicker">${discovered ? region.biome : "Undiscovered Region"}</p>
+              <strong>${region.name}${isCurrent ? " (Current Region)" : ""}</strong>
+              <p>${discovered ? region.summary : "You have not charted this route yet."}</p>
+              ${
+                discovered
+                  ? `
+                    <p><strong>Known maps:</strong> ${mapNames.join(" · ")}</p>
+                    <p><strong>Road links:</strong> ${connectionNames || "None listed"}</p>
+                  `
+                  : "<p class='lo-muted'>Travel farther, follow rumors, and keep taking road work to uncover this part of the Reach.</p>"
+              }
+            </article>
+          `;
+        })
+        .join("");
+
       return `
         <div class="lo-map-card">
           <h3>World Map</h3>
-          <p>The Cinder Reach opens by region as you travel and take work.</p>
-          <div class="lo-region-grid">
-            ${ui.discoveredRegions
-              .map(
-                (region) => `
-                  <div class="lo-region-pill">
-                    <strong>${region}</strong>
-                  </div>`,
-              )
-              .join("")}
+          <p>${ui.storyNote}</p>
+          <div class="lo-region-grid lo-region-card-grid">
+            ${regionCards}
           </div>
         </div>
       `;
@@ -710,6 +815,41 @@ export class App {
     }
 
     return this.renderSettings(ui.settings);
+  }
+
+  private describeItem(item: UiState["inventory"][number]["item"]): string {
+    if (item.healAmount) {
+      return `Restores ${item.healAmount} HP.`;
+    }
+
+    const bonuses = Object.entries(item.statBonuses ?? {})
+      .map(([key, value]) => `${this.formatStatLabel(key)} +${value}`)
+      .join(", ");
+    if (bonuses) {
+      return bonuses;
+    }
+
+    if (item.equipmentSlot) {
+      return `${this.capitalize(item.equipmentSlot)} gear.`;
+    }
+
+    return item.category === "quest" ? "Important story item." : `Worth ${item.value} gold.`;
+  }
+
+  private formatStatLabel(key: string): string {
+    const labels: Record<string, string> = {
+      attack: "Attack",
+      defense: "Defense",
+      maxHealth: "Max HP",
+      maxStamina: "Max ST",
+      maxAether: "Max AE",
+      moveSpeed: "Move",
+    };
+    return labels[key] ?? key;
+  }
+
+  private capitalize(value: string): string {
+    return value.charAt(0).toUpperCase() + value.slice(1);
   }
 
   private renderSettings(settings: UiState["settings"]): string {

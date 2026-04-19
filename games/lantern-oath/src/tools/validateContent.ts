@@ -290,6 +290,9 @@ function validateQuests(): void {
     if (!contentRegistry.characters[quest.giverId]) {
       fail(`quest "${quest.id}" references missing giver "${quest.giverId}"`);
     }
+    if (!quest.routeHint.trim()) {
+      fail(`quest "${quest.id}" is missing a routeHint`);
+    }
     quest.unlockConditions?.forEach((condition) => validateCondition(condition, `quest "${quest.id}"`));
     quest.objectives.forEach((objective) => validateObjective(objective, `quest "${quest.id}"`));
     quest.rewards.items?.forEach((item) => {

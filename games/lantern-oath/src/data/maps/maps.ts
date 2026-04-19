@@ -530,6 +530,14 @@ export const maps: MapDefinition[] = [
         itemDrops: [{ itemId: "reedmint", quantity: 1 }],
         respawnMs: 90000,
       },
+      {
+        id: "wood_marker",
+        type: "lore",
+        x: 12.5,
+        y: 8.5,
+        label: "Root-Worn Marker",
+        signText: ["Whisperwood bends around the old Greenway.", "East trail climbs to Ridgewatch. North road falls into Glassroot."],
+      },
     ],
   }),
   createMap({
@@ -588,6 +596,14 @@ export const maps: MapDefinition[] = [
         itemDrops: [{ itemId: "glow_ore", quantity: 1 }],
         respawnMs: 110000,
       },
+      {
+        id: "mine_notice",
+        type: "sign",
+        x: 3.5,
+        y: 8.5,
+        label: "Shift Notice",
+        signText: ["Ridgewatch crews:", "Brace the tunnels. Report broken lamps and beetle charges at once."],
+      },
     ],
   }),
   createMap({
@@ -641,6 +657,14 @@ export const maps: MapDefinition[] = [
         y: 8.5,
         label: "Archive Bell",
         signText: ["Its tone is thin and tired.", "Someone has swapped out better cores for weak glass stock."],
+      },
+      {
+        id: "market_board",
+        type: "sign",
+        x: 9.5,
+        y: 13.5,
+        label: "Market Board",
+        signText: ["North quarter: Archive Hall", "West gate: Old Road", "Bellglass Tavern serves the late watch."],
       },
     ],
   }),
@@ -780,6 +804,14 @@ export const maps: MapDefinition[] = [
         signText: ["A second copy of the seal verses survives in fragments here."],
         respawnMs: 180000,
       },
+      {
+        id: "ruin_waystone",
+        type: "lore",
+        x: 12.5,
+        y: 8.5,
+        label: "Waystone",
+        signText: ["Below the abbey, the last hearth waits.", "Only oath-bearers and fools walk farther north from here."],
+      },
     ],
   }),
   createMap({
@@ -864,6 +896,7 @@ export const maps: MapDefinition[] = [
         y: 11.5,
         label: "Hidden Cache",
         itemDrops: [
+          { itemId: "moonwell_band", quantity: 1 },
           { itemId: "field_tonic", quantity: 2 },
           { itemId: "coast_stew", quantity: 1 },
         ],

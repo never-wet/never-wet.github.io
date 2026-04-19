@@ -112,6 +112,17 @@ export const items: ItemDefinition[] = [
     statBonuses: { maxStamina: 10 },
   },
   {
+    id: "moonwell_band",
+    name: "Moonwell Band",
+    category: "trinket",
+    description: "A pale glass band cooled in moonwell water and tuned to hold breath and light together.",
+    value: 64,
+    stackable: false,
+    equipmentSlot: "trinket",
+    iconId: "icon_charm",
+    statBonuses: { defense: 1, maxStamina: 6, maxAether: 8 },
+  },
+  {
     id: "field_tonic",
     name: "Field Tonic",
     category: "consumable",
