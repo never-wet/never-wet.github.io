@@ -17,6 +17,21 @@ interface SearchOptions<State, Move, Player> {
   randomness?: number;
 }
 
+function orderMoves<State, Move, Player>(
+  adapter: SearchAdapter<State, Move, Player>,
+  state: State,
+  moves: Move[],
+  perspective: Player,
+): Move[] {
+  if (!adapter.scoreMove) {
+    return moves;
+  }
+
+  return [...moves].sort(
+    (left, right) => adapter.scoreMove!(state, right, perspective) - adapter.scoreMove!(state, left, perspective),
+  );
+}
+
 function alphabeta<State, Move, Player>(
   adapter: SearchAdapter<State, Move, Player>,
   state: State,
@@ -34,12 +49,7 @@ function alphabeta<State, Move, Player>(
     return adapter.evaluate(state, perspective);
   }
 
-  const orderedMoves = adapter.scoreMove
-    ? [...moves].sort(
-        (left, right) =>
-          adapter.scoreMove!(state, right, perspective) - adapter.scoreMove!(state, left, perspective),
-      )
-    : moves;
+  const orderedMoves = orderMoves(adapter, state, moves, perspective);
 
   const maximizing = adapter.getCurrentPlayer(state) === perspective;
 
@@ -88,7 +98,19 @@ export function findBestMove<State, Move, Player>({
     return null;
   }
 
-  const scored = moves.map((move) => ({
+  const orderedMoves = orderMoves(adapter, state, moves, perspective);
+  if (orderedMoves.length === 1) {
+    return orderedMoves[0];
+  }
+
+  for (const move of orderedMoves) {
+    const nextState = adapter.applyMove(state, move);
+    if (adapter.isTerminal(nextState) && adapter.evaluate(nextState, perspective) > 0) {
+      return move;
+    }
+  }
+
+  const scored = orderedMoves.map((move) => ({
     move,
     score: alphabeta(
       adapter,

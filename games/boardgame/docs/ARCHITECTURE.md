@@ -43,6 +43,7 @@ Boardgame Vault is organized around small source-of-truth files and pluggable ga
 
 - Small games use full or near-full search.
 - Larger games use alpha-beta with heuristics and candidate move pruning.
+- The shared search helper short-circuits immediate winning terminal moves so the AI does not waste time searching an already-available finish.
 - Difficulty adjusts:
   - depth
   - randomness
@@ -54,6 +55,7 @@ Boardgame Vault is organized around small source-of-truth files and pluggable ga
 - Home page highlights resume state, progress, and featured quick starts.
 - Hub page shows all games and rules summaries.
 - Game page runs one module at a time and provides difficulty, undo, history, status, and rules.
+- Live play locks board input as soon as the active state belongs to the AI so the user cannot accidentally place the computer's move during the think-delay window.
 - Dashboard aggregates wins, losses, draws, streak, per-game breakdown, and recent activity.
 
 ## UI memory

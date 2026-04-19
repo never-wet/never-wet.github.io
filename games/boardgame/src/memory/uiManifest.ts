@@ -30,6 +30,10 @@ export const dashboardPanels: DashboardPanel[] = [
 ];
 
 export const playViewNotes = {
+  shared: {
+    aiTurnLock:
+      "Live boards should lock player input immediately when state control passes to the AI so users cannot place the computer's move during the think-delay window.",
+  },
   chess: {
     layout: "Chess uses a denser dedicated play layout with a centered wide shell and a smaller board target for one-screen viewing.",
     controls: "Chess intentionally hides undo and uses a single primary New Game action.",

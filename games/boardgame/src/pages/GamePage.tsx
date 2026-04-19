@@ -49,6 +49,10 @@ export function GamePage() {
     () => (module && state ? module.getSidebarStats(state) : []),
     [module, state],
   );
+  const aiTurnActive = useMemo(
+    () => Boolean(module && state && status?.phase === "playing" && module.isAiTurn(state)),
+    [module, state, status],
+  );
 
   useEffect(() => {
     if (!gameId || !module || !state || !status) {
@@ -85,7 +89,7 @@ export function GamePage() {
   }, [difficulty, gameId, markGameFinished, module, state, status]);
 
   useEffect(() => {
-    if (!module || !state || !status || status.phase !== "playing" || !module.isAiTurn(state)) {
+    if (!module || !state || !aiTurnActive) {
       setThinking(false);
       return;
     }
@@ -104,13 +108,14 @@ export function GamePage() {
         return;
       }
 
+      completionRecordedRef.current = false;
       setUndoStack((current) => [...current, module.serializeState(state)].slice(-UNDO_LIMIT));
       setState(nextState);
       setThinking(false);
     }, aiIndex[difficulty].moveDelayMs);
 
     return () => window.clearTimeout(timeoutId);
-  }, [difficulty, module, state, status]);
+  }, [aiTurnActive, difficulty, module, state]);
 
   if (!gameId || !module || !game || !status) {
     return (
@@ -129,7 +134,7 @@ export function GamePage() {
   const existingSave = appState.saves[gameId];
 
   function commitMove(move: unknown) {
-    if (!module || !state || !status || thinking || status.phase !== "playing") {
+    if (!module || !state || !status || thinking || aiTurnActive || status.phase !== "playing") {
       return;
     }
 
@@ -229,7 +234,7 @@ export function GamePage() {
               {isChessGame ? null : (
                 <button
                   className="game-action-button is-secondary"
-                  disabled={!undoStack.length || thinking}
+                  disabled={!undoStack.length || thinking || aiTurnActive}
                   onClick={undoMove}
                   type="button"
                 >
@@ -242,7 +247,7 @@ export function GamePage() {
           <div className="board-wrap">
             <Board
               coordinateLabels={appState.settings.coordinateLabels}
-              disabled={thinking || status.phase !== "playing"}
+              disabled={thinking || aiTurnActive || status.phase !== "playing"}
               onMove={commitMove}
               state={state}
             />
