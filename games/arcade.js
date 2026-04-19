@@ -1,11 +1,14 @@
 const experience = document.querySelector("#arcadeExperience");
 const pixelField = document.querySelector("#pixelGridField");
 const cabinets = [...document.querySelectorAll(".cabinet")];
+const cabinetGrid = document.querySelector(".cabinet-grid");
 const statusTitle = document.querySelector("[data-status-title]");
 const statusCopy = document.querySelector("[data-status-copy]");
 const statusTag = document.querySelector("[data-status-tag]");
 const statusLink = document.querySelector("[data-status-link]");
 const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+const defaultCabinet = document.querySelector(".cabinet--hero") ?? cabinets[0] ?? null;
+let statusLinkPressed = false;
 
 const pixelGrid = {
   cellSize: 14,
@@ -43,6 +46,55 @@ function clamp(value, min, max) {
   return Math.max(min, Math.min(max, value));
 }
 
+function isStatusLinkEnabled() {
+  return Boolean(statusLink && !statusLink.classList.contains("is-disabled"));
+}
+
+function getStatusLinkHref() {
+  if (!statusLink) {
+    return "";
+  }
+
+  const href = statusLink.getAttribute("href") ?? "";
+  return href === "#" ? "" : href;
+}
+
+function isPointInsideStatusLink(clientX, clientY) {
+  if (!statusLink) {
+    return false;
+  }
+
+  const rect = statusLink.getBoundingClientRect();
+
+  return (
+    clientX >= rect.left &&
+    clientX <= rect.right &&
+    clientY >= rect.top &&
+    clientY <= rect.bottom
+  );
+}
+
+function activateStatusLink(event) {
+  if (!isStatusLinkEnabled()) {
+    event?.preventDefault();
+    return;
+  }
+
+  const href = getStatusLinkHref();
+
+  if (!href) {
+    event?.preventDefault();
+    return;
+  }
+
+  event?.preventDefault();
+  window.location.assign(href);
+}
+
+function setStatusLinkCursorState(isHot) {
+  document.body.classList.toggle("status-cta-hot", isHot);
+}
+
 function setStatus(cabinet) {
   cabinets.forEach((entry) => entry.classList.toggle("is-selected", entry === cabinet));
 
@@ -67,6 +119,10 @@ function setStatus(cabinet) {
     statusLink.classList.add("is-disabled");
     statusLink.setAttribute("aria-disabled", "true");
   }
+}
+
+function clearCabinetSelection() {
+  cabinets.forEach((entry) => entry.classList.remove("is-selected"));
 }
 
 function resetCabinet(cabinet) {
@@ -294,6 +350,43 @@ if (experience) {
   experience.addEventListener("pointerleave", () => {
     experience.style.setProperty("--look-x", "0");
     experience.style.setProperty("--look-y", "0");
+    setStatusLinkCursorState(false);
+  });
+}
+
+if (statusLink) {
+  statusLink.addEventListener("pointerdown", activateStatusLink);
+  statusLink.addEventListener("click", activateStatusLink);
+
+  document.addEventListener("pointerdown", (event) => {
+    statusLinkPressed = isStatusLinkEnabled() && isPointInsideStatusLink(event.clientX, event.clientY);
+  }, true);
+
+  document.addEventListener("pointermove", (event) => {
+    setStatusLinkCursorState(isStatusLinkEnabled() && isPointInsideStatusLink(event.clientX, event.clientY));
+  }, true);
+
+  document.addEventListener("pointerup", (event) => {
+    if (!statusLinkPressed) {
+      return;
+    }
+
+    const shouldLaunch = isPointInsideStatusLink(event.clientX, event.clientY);
+    statusLinkPressed = false;
+
+    if (shouldLaunch) {
+      activateStatusLink(event);
+    }
+  }, true);
+
+  document.addEventListener("pointercancel", () => {
+    statusLinkPressed = false;
+    setStatusLinkCursorState(false);
+  }, true);
+
+  window.addEventListener("blur", () => {
+    statusLinkPressed = false;
+    setStatusLinkCursorState(false);
   });
 }
 
@@ -315,7 +408,18 @@ cabinets.forEach((cabinet) => {
   });
 
   cabinet.addEventListener("pointerleave", () => resetCabinet(cabinet));
-  cabinet.addEventListener("focusout", () => resetCabinet(cabinet));
+  cabinet.addEventListener("focusout", (event) => {
+    resetCabinet(cabinet);
+
+    if (!cabinetGrid?.contains(event.relatedTarget)) {
+      clearCabinetSelection();
+    }
+  });
 });
 
-setStatus(document.querySelector(".cabinet--hero") ?? cabinets[0]);
+cabinetGrid?.addEventListener("pointerleave", () => {
+  clearCabinetSelection();
+});
+
+setStatus(defaultCabinet);
+clearCabinetSelection();

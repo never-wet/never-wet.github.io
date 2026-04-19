@@ -49,6 +49,11 @@ body::-webkit-scrollbar {
   height: 0;
 }
 
+body.status-cta-hot,
+body.status-cta-hot * {
+  cursor: pointer !important;
+}
+
 body::before {
   content: "";
   position: fixed;
@@ -405,18 +410,19 @@ code {
   z-index: 2;
 }
 
-.marquee-stack,
-.cabinet-bay {
-  position: relative;
-  z-index: 1;
-}
-
 .marquee-stack {
+  position: relative;
+  z-index: 4;
   display: grid;
   grid-template-columns: minmax(0, 1.4fr) minmax(280px, 0.78fr);
   gap: 28px;
   align-items: start;
   transform-style: preserve-3d;
+}
+
+.cabinet-bay {
+  position: relative;
+  z-index: 1;
 }
 
 .marquee-panel,
@@ -431,16 +437,35 @@ code {
     var(--panel);
   box-shadow: var(--shadow-deep);
   backdrop-filter: blur(14px);
+  isolation: isolate;
 }
 
-.marquee-panel,
-.status-panel {
-  transform-style: preserve-3d;
+.marquee-panel {
+  transform-origin: center center;
   transform:
-    rotateX(calc(var(--look-y) * -2deg))
-    rotateY(calc(var(--look-x) * 4deg))
-    translateZ(40px);
+    rotateX(calc(var(--look-y) * 4.5deg))
+    rotateY(calc(var(--look-x) * 4deg));
   transition: transform 220ms ease;
+}
+
+.status-panel {
+  transform-origin: center center;
+  transform:
+    rotateX(calc(var(--look-y) * 4.5deg))
+    rotateY(calc(var(--look-x) * 4deg));
+  transition: transform 220ms ease;
+  padding: 0;
+  z-index: 3;
+  pointer-events: auto;
+  cursor: default;
+}
+
+.status-panel__surface {
+  padding: 32px 28px 28px;
+}
+
+.status-panel__body {
+  pointer-events: none;
 }
 
 .marquee-panel::before,
@@ -454,16 +479,13 @@ code {
   height: 16px;
   border-radius: 14px 14px 6px 6px;
   background: linear-gradient(90deg, rgba(142, 244, 194, 0.85), rgba(243, 204, 118, 0.92));
-  transform: translateZ(22px);
   box-shadow: 0 12px 28px rgba(142, 244, 194, 0.25);
+  pointer-events: none;
 }
 
 .marquee-panel {
   padding: 40px 42px 34px;
-}
-
-.status-panel {
-  padding: 32px 28px 28px;
+  pointer-events: none;
 }
 
 .eyebrow,
@@ -548,16 +570,28 @@ code {
   background: linear-gradient(135deg, var(--accent-a), #dfff88 78%);
   box-shadow: 0 16px 34px rgba(142, 244, 194, 0.22);
   transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+  position: relative;
+  z-index: 4;
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: pointer;
 }
 
 .status-link {
   margin-top: 14px;
+  align-self: flex-start;
+  pointer-events: auto;
+  cursor: pointer;
 }
 
 .status-link:hover,
 .cabinet__link:hover {
   transform: translateY(-2px);
   box-shadow: 0 20px 38px rgba(142, 244, 194, 0.32);
+}
+
+.status-panel:has(.status-link:hover) {
+  cursor: pointer;
 }
 
 .status-link.is-disabled,
@@ -646,6 +680,7 @@ code {
   border: 1px solid rgba(255, 255, 255, 0.08);
   transform-origin: left center;
   transform: rotateY(72deg);
+  pointer-events: none;
 }
 
 .cabinet:hover,
@@ -856,5 +891,9 @@ code {
     animation: none;
     transition: none;
     transform: none !important;
+  }
+
+  .status-panel__body {
+    transition: none;
   }
 }
