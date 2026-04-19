@@ -364,7 +364,11 @@ function GomokuBoard({
                 {coordinateLabels && (
                   <span className="cell-corner">{coordsToLabel(rowIndex, colIndex, SIZE)}</span>
                 )}
-                {cell ? <span className={`stone is-${cell === "B" ? "black" : "white"}`} /> : null}
+                {cell ? (
+                  <span
+                    className={`stone is-${cell === "B" ? "black" : "white"}${isLast ? " piece-motion is-pop" : ""}`}
+                  />
+                ) : null}
               </button>
             );
           }),

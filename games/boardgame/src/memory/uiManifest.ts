@@ -33,6 +33,8 @@ export const playViewNotes = {
   shared: {
     aiTurnLock:
       "Live boards should lock player input immediately when state control passes to the AI so users cannot place the computer's move during the think-delay window.",
+    pieceMotion:
+      "Board animations should match the game: chess/checkers travel across squares, Connect 4 drops vertically, placement games pop in, and Reversi flips converted discs.",
   },
   chess: {
     layout: "Chess uses a denser dedicated play layout with a centered wide shell and a smaller board target for one-screen viewing.",

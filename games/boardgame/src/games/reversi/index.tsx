@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { findBestMove } from "../../ai/search";
 import { aiIndex } from "../../memory/aiIndex";
 import type { GameBoardProps, GameModule } from "../../memory/types";
@@ -320,11 +320,33 @@ function ReversiBoard({
   coordinateLabels,
   onMove,
 }: GameBoardProps<ReversiState, ReversiMove>) {
+  const previousBoardRef = useRef<Cell[][] | null>(null);
   const legalMoves = useMemo(() => getLegalMovesFor(state.board, state.turn), [state]);
   const legalKeySet = useMemo(
     () => new Set(legalMoves.map((move) => `${move.row}-${move.col}`)),
     [legalMoves],
   );
+  const changedKeySet = useMemo(() => {
+    const previous = previousBoardRef.current;
+    if (!previous) {
+      return new Set<string>();
+    }
+
+    const changed = new Set<string>();
+    for (let row = 0; row < SIZE; row += 1) {
+      for (let col = 0; col < SIZE; col += 1) {
+        if (previous[row][col] !== state.board[row][col] && state.board[row][col] !== null) {
+          changed.add(`${row}-${col}`);
+        }
+      }
+    }
+
+    return changed;
+  }, [state.board]);
+
+  useEffect(() => {
+    previousBoardRef.current = state.board.map((row) => [...row]);
+  }, [state.board]);
 
   return (
     <div className="board-shell">
@@ -335,6 +357,13 @@ function ReversiBoard({
             const playable = legalKeySet.has(key);
             const isLast =
               state.lastMove?.row === rowIndex && state.lastMove?.col === colIndex;
+            const motionClass = cell
+              ? isLast
+                ? " piece-motion is-pop"
+                : changedKeySet.has(key)
+                  ? " piece-motion is-flip"
+                  : ""
+              : "";
 
             return (
               <button
@@ -348,7 +377,7 @@ function ReversiBoard({
                   <span className="cell-corner">{coordsToLabel(rowIndex, colIndex, SIZE)}</span>
                 )}
                 {playable && !cell ? <span className="move-dot" /> : null}
-                {cell ? <span className={`stone is-${cell === "B" ? "black" : "white"}`} /> : null}
+                {cell ? <span className={`stone is-${cell === "B" ? "black" : "white"}${motionClass}`} /> : null}
               </button>
             );
           }),

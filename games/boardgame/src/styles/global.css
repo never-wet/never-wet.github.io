@@ -835,6 +835,7 @@ button {
   color: var(--text-main);
   font-size: clamp(2.8rem, 8vw, 4rem);
   font-family: var(--font-display);
+  overflow: visible;
 }
 
 .ttt-cell.is-playable:hover,
@@ -888,6 +889,7 @@ button {
   border-radius: 18px;
   border: 0;
   background: rgba(10, 17, 31, 0.58);
+  overflow: visible;
 }
 
 .connect4-cell.is-last {
@@ -936,6 +938,7 @@ button {
   aspect-ratio: 1;
   border: 1px solid rgba(255, 255, 255, 0.04);
   background: rgba(255, 255, 255, 0.03);
+  overflow: visible;
 }
 
 .reversi-cell {
@@ -1076,6 +1079,114 @@ button {
   text-shadow:
     0 1px 0 rgba(255, 255, 255, 0.08),
     0 8px 18px rgba(0, 0, 0, 0.22);
+}
+
+.ttt-mark,
+.connect4-disc,
+.stone,
+.checker-piece,
+.chess-piece {
+  position: relative;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.ttt-mark {
+  display: block;
+  line-height: 1;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .piece-motion {
+    will-change: transform, opacity, filter;
+    backface-visibility: hidden;
+    transform-origin: center;
+  }
+
+  .piece-motion.is-travel {
+    animation: piece-travel 220ms cubic-bezier(0.2, 0.82, 0.22, 1);
+  }
+
+  .piece-motion.is-drop {
+    animation: piece-drop 260ms cubic-bezier(0.18, 0.8, 0.24, 1);
+  }
+
+  .piece-motion.is-pop {
+    animation: piece-pop 190ms cubic-bezier(0.21, 0.86, 0.24, 1);
+  }
+
+  .piece-motion.is-flip {
+    animation: piece-flip 260ms cubic-bezier(0.2, 0.82, 0.22, 1);
+  }
+}
+
+@keyframes piece-travel {
+  from {
+    transform: translate(
+      calc(var(--travel-x, 0) * 100%),
+      calc(var(--travel-y, 0) * 100%)
+    );
+  }
+
+  65% {
+    transform: translate(
+      calc(var(--travel-x, 0) * 14%),
+      calc(var(--travel-y, 0) * 14%)
+    );
+  }
+
+  to {
+    transform: translate(0, 0);
+  }
+}
+
+@keyframes piece-drop {
+  from {
+    transform: translateY(calc(var(--drop-cells, 1) * -105%)) scale(0.94);
+  }
+
+  72% {
+    transform: translateY(6%) scale(1.02);
+  }
+
+  to {
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes piece-pop {
+  from {
+    transform: scale(0.34);
+    opacity: 0;
+  }
+
+  70% {
+    transform: scale(1.08);
+    opacity: 1;
+  }
+
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes piece-flip {
+  0% {
+    transform: rotateY(0deg) scale(1);
+  }
+
+  49% {
+    transform: rotateY(90deg) scale(0.88);
+  }
+
+  50% {
+    transform: rotateY(-90deg) scale(0.88);
+  }
+
+  100% {
+    transform: rotateY(0deg) scale(1);
+  }
 }
 
 .promotion-strip {

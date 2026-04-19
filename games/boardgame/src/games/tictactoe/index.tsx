@@ -11,6 +11,7 @@ interface TicTacToeState {
   turn: "X" | "O";
   winner: "X" | "O" | "draw" | null;
   moveHistory: string[];
+  lastMove: number | null;
 }
 
 function createInitialState(): TicTacToeState {
@@ -19,6 +20,7 @@ function createInitialState(): TicTacToeState {
     turn: "X",
     winner: null,
     moveHistory: [],
+    lastMove: null,
   };
 }
 
@@ -69,6 +71,7 @@ function applyMove(state: TicTacToeState, move: number): TicTacToeState {
     turn: winner ? state.turn : state.turn === "X" ? "O" : "X",
     winner,
     moveHistory: [...state.moveHistory, `${state.turn} to ${cellLabel(move)}`],
+    lastMove: move,
   };
 }
 
@@ -129,6 +132,7 @@ function parseState(value: unknown): TicTacToeState {
     moveHistory: Array.isArray(candidate.moveHistory)
       ? candidate.moveHistory.filter((entry): entry is string => typeof entry === "string")
       : [],
+    lastMove: typeof candidate.lastMove === "number" ? candidate.lastMove : null,
   };
 }
 
@@ -223,7 +227,9 @@ function TicTacToeBoard({
             type="button"
           >
             {coordinateLabels && <span className="cell-corner">{cellLabel(index)}</span>}
-            <span>{cell ?? ""}</span>
+            <span className={`${cell ? "ttt-mark" : ""}${cell && state.lastMove === index ? " piece-motion is-pop" : ""}`}>
+              {cell ?? ""}
+            </span>
           </button>
         ))}
       </div>

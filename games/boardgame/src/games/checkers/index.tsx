@@ -24,6 +24,7 @@ interface CheckersState {
   winner: "r" | "b" | "draw" | null;
   moveHistory: string[];
   forcedFrom: Position | null;
+  lastMove: CheckersMove | null;
   quietMoves: number;
 }
 
@@ -56,6 +57,7 @@ function createInitialState(): CheckersState {
     winner: null,
     moveHistory: [],
     forcedFrom: null,
+    lastMove: null,
     quietMoves: 0,
   };
 }
@@ -93,6 +95,29 @@ function parseState(value: unknown): CheckersState {
       typeof candidate.forcedFrom.row === "number" &&
       typeof candidate.forcedFrom.col === "number"
         ? candidate.forcedFrom
+        : null,
+    lastMove:
+      candidate.lastMove &&
+      typeof candidate.lastMove === "object" &&
+      candidate.lastMove.from &&
+      typeof candidate.lastMove.from === "object" &&
+      typeof candidate.lastMove.from.row === "number" &&
+      typeof candidate.lastMove.from.col === "number" &&
+      candidate.lastMove.to &&
+      typeof candidate.lastMove.to === "object" &&
+      typeof candidate.lastMove.to.row === "number" &&
+      typeof candidate.lastMove.to.col === "number"
+        ? {
+            from: candidate.lastMove.from,
+            to: candidate.lastMove.to,
+            capture:
+              candidate.lastMove.capture &&
+              typeof candidate.lastMove.capture === "object" &&
+              typeof candidate.lastMove.capture.row === "number" &&
+              typeof candidate.lastMove.capture.col === "number"
+                ? candidate.lastMove.capture
+                : null,
+          }
         : null,
     quietMoves: typeof candidate.quietMoves === "number" ? candidate.quietMoves : 0,
   };
@@ -299,6 +324,7 @@ function applyMove(state: CheckersState, move: CheckersMove): CheckersState {
         winner: null,
         moveHistory: history,
         forcedFrom: { row: move.to.row, col: move.to.col },
+        lastMove: move,
         quietMoves,
       };
     }
@@ -311,6 +337,7 @@ function applyMove(state: CheckersState, move: CheckersMove): CheckersState {
       winner: "draw",
       moveHistory: history,
       forcedFrom: null,
+      lastMove: move,
       quietMoves,
     };
   }
@@ -324,6 +351,7 @@ function applyMove(state: CheckersState, move: CheckersMove): CheckersState {
       winner: pieceCounts.red ? "r" : "b",
       moveHistory: history,
       forcedFrom: null,
+      lastMove: move,
       quietMoves,
     };
   }
@@ -334,6 +362,7 @@ function applyMove(state: CheckersState, move: CheckersMove): CheckersState {
     winner: null,
     moveHistory: history,
     forcedFrom: null,
+    lastMove: move,
     quietMoves,
   };
 
@@ -520,6 +549,13 @@ function CheckersBoard({
             const isSelected = selectedKey === key;
             const targetMove = moveTargets.get(key);
             const isForced = forcedKey === key;
+            const travelStyle =
+              cell && state.lastMove?.to.row === rowIndex && state.lastMove?.to.col === colIndex
+                ? {
+                    ["--travel-x" as any]: String(state.lastMove.from.col - colIndex),
+                    ["--travel-y" as any]: String(state.lastMove.from.row - rowIndex),
+                  }
+                : undefined;
 
             return (
               <button
@@ -547,7 +583,10 @@ function CheckersBoard({
                 ) : null}
                 {targetMove ? <span className="move-dot" /> : null}
                 {cell ? (
-                  <span className={`checker-piece is-${pieceColor(cell) === "r" ? "red" : "black"}`}>
+                  <span
+                    className={`checker-piece is-${pieceColor(cell) === "r" ? "red" : "black"}${travelStyle ? " piece-motion is-travel" : ""}`}
+                    style={travelStyle}
+                  >
                     {pieceGlyph(cell)}
                   </span>
                 ) : null}

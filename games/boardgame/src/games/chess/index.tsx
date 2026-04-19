@@ -89,6 +89,12 @@ function getGame(state: ChessState): Chess {
   return new Chess(state.fen);
 }
 
+function squareToPosition(square: Square): { row: number; col: number } {
+  const col = files.indexOf(square[0] as (typeof files)[number]);
+  const row = 8 - Number(square[1]);
+  return { row, col };
+}
+
 function legalMoves(state: ChessState): ChessMoveInput[] {
   return getGame(state)
     .moves({ verbose: true })
@@ -332,6 +338,13 @@ function ChessBoard({
               state.lastMove?.from === square || state.lastMove?.to === square;
             const isCheck = checkSquare === square;
             const isOwnPiece = piece?.color === "w";
+            const travelStyle =
+              piece && state.lastMove?.to === square
+                ? {
+                    ["--travel-x" as any]: String(squareToPosition(state.lastMove.from).col - colIndex),
+                    ["--travel-y" as any]: String(squareToPosition(state.lastMove.from).row - rowIndex),
+                  }
+                : undefined;
 
             return (
               <button
@@ -370,7 +383,10 @@ function ChessBoard({
                 {coordinateLabels ? <span className="cell-corner">{square}</span> : null}
                 {isTarget && !piece ? <span className="move-dot" /> : null}
                 {piece ? (
-                  <span className={`chess-piece is-${piece.color === "w" ? "white" : "black"}`}>
+                  <span
+                    className={`chess-piece is-${piece.color === "w" ? "white" : "black"}${travelStyle ? " piece-motion is-travel" : ""}`}
+                    style={travelStyle}
+                  >
                     {unicodePieces[`${piece.color}-${piece.type}`]}
                   </span>
                 ) : null}

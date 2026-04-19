@@ -61,6 +61,7 @@ Boardgame Vault is organized around small source-of-truth files and pluggable ga
 - Hub page shows all games and rules summaries.
 - Game page runs one module at a time and provides difficulty, undo, history, status, and rules.
 - Live play locks board input as soon as the active state belongs to the AI so the user cannot accidentally place the computer's move during the think-delay window.
+- Piece motion is game-specific: travel for chess/checkers, gravity drop for Connect 4, pop-in for placement boards, and flip animation for Reversi conversions.
 - Dashboard aggregates wins, losses, draws, streak, per-game breakdown, and recent activity.
 
 ## UI memory

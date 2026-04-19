@@ -366,7 +366,10 @@ function Connect4Board({
                 {coordinateLabels && (
                   <span className="cell-corner">{coordsToLabel(rowIndex, colIndex, ROWS)}</span>
                 )}
-                <span className={`connect4-disc ${cell === "R" ? "is-red" : cell === "Y" ? "is-yellow" : ""}`} />
+                <span
+                  className={`connect4-disc ${cell === "R" ? "is-red" : cell === "Y" ? "is-yellow" : ""}${cell && isLast ? " piece-motion is-drop" : ""}`}
+                  style={cell && isLast ? { ["--drop-cells" as any]: String(rowIndex + 1) } : undefined}
+                />
               </button>
             );
           }),
