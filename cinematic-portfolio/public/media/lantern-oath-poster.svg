@@ -1,0 +1,23 @@
+<svg width="1280" height="800" viewBox="0 0 1280 800" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="640" y1="0" x2="640" y2="800" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#131C2E"/>
+      <stop offset="1" stop-color="#06090F"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(640 270) rotate(90) scale(260 300)">
+      <stop stop-color="#F4AE65" stop-opacity="0.58"/>
+      <stop offset="1" stop-color="#F4AE65" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1280" height="800" fill="url(#bg)"/>
+  <rect width="1280" height="800" fill="url(#glow)"/>
+  <circle cx="640" cy="286" r="112" stroke="#F8C58D" stroke-opacity="0.86" stroke-width="12"/>
+  <circle cx="640" cy="286" r="76" stroke="#F8E1BE" stroke-opacity="0.72" stroke-width="4"/>
+  <path d="M640 160L688 256V392L640 454L592 392V256L640 160Z" fill="#17120D" stroke="#F6C07B" stroke-width="14"/>
+  <path d="M640 210L662 262V362L640 388L618 362V262L640 210Z" fill="#F4AE65" fill-opacity="0.3" stroke="#FFF3D9" stroke-width="4"/>
+  <path d="M640 470V612" stroke="#F8C58D" stroke-width="10" stroke-linecap="round"/>
+  <path d="M548 612H732" stroke="#F8C58D" stroke-width="10" stroke-linecap="round"/>
+  <circle cx="640" cy="286" r="16" fill="#FFF4DF"/>
+  <text x="640" y="690" fill="#F2F5FF" font-family="Sora, Arial, sans-serif" font-size="62" font-weight="700" letter-spacing="-2" text-anchor="middle">LANTERN OATH</text>
+  <text x="640" y="735" fill="#AFC0E0" font-family="IBM Plex Mono, monospace" font-size="22" letter-spacing="6" text-anchor="middle">THE LAST HEARTH</text>
+</svg>

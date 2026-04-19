@@ -1,0 +1,40 @@
+import type { ObjectDefinition } from "@/memory/types";
+
+export const objectManifest: ObjectDefinition[] = [
+  {
+    id: "lantern-monolith-anchor",
+    projectId: "lantern-oath",
+    type: "lantern-monolith",
+    portalType: "halo",
+    position: [-4.8, 1.15, 0.15],
+    rotation: [0, -0.55, 0],
+    scale: 0.84,
+    lightColor: "#f4ae65",
+    islandRadius: 2.7,
+    interactionHint: "Enter the warm chamber",
+  },
+  {
+    id: "midnight-vault-anchor",
+    projectId: "midnight-pawn",
+    type: "vault-relic",
+    portalType: "vault",
+    position: [4.1, 1.1, -7.4],
+    rotation: [0, 0.42, 0],
+    scale: 0.82,
+    lightColor: "#d5a96b",
+    islandRadius: 2.5,
+    interactionHint: "Unseal the broker vault",
+  },
+  {
+    id: "reel-orbit-anchor",
+    projectId: "reelspull",
+    type: "orbital-reel",
+    portalType: "prism",
+    position: [0.25, 1.55, -17.35],
+    rotation: [0, 0.1, 0],
+    scale: 0.74,
+    lightColor: "#7cc8ff",
+    islandRadius: 2.9,
+    interactionHint: "Trigger the orbital reel",
+  },
+];
