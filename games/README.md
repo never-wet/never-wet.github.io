@@ -14,6 +14,8 @@ This folder holds the web game section for `never-wet.github.io`.
   A neon pawn-shop resale sim with night shifts, seller negotiation, item prep, listings, upgrades, and browser save data.
 - `puzzle/`
   A React + TypeScript + Vite puzzle platform with logic puzzles, ciphers, hotspot scenes, local progress tracking, and multi-room escape mode.
+- `lantern-oath/`
+  A TypeScript + Vite open-world retro action RPG with real-time combat, jobs, dialogue, local saves, and generated pixel art/audio.
 - `soccer-idle/`
   A playable soccer idle game with upgrades, passive income, multiple screens, and browser save data.
 - `stitch_soccer_clicker_tycoon/`
@@ -27,6 +29,7 @@ From the site:
 - `/games/reelspull/`
 - `/games/midnight-pawn/`
 - `/games/puzzle/`
+- `/games/lantern-oath/`
 - `/games/soccer-idle/`
 
 If you are testing locally, serve the repo as a static site and open the same paths in your browser.

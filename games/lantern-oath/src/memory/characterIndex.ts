@@ -1,0 +1,30 @@
+export const characterIndex = {
+  player: {
+    id: "player_wayfarer",
+    name: "Riven",
+    role: "Courier turned oath-bearer",
+    summary: "A fast-footed route runner who inherits a lantern oath and learns to fight in motion.",
+  },
+  majorNpcs: [
+    "mara_ashdown",
+    "sable_voss",
+    "brann_tul",
+    "nessa_reed",
+    "captain_hale",
+    "lyra_quill",
+    "pell_barrow",
+    "orsa_vek",
+    "toma_fenn",
+    "elder_sen",
+    "veil_hunter",
+  ],
+  enemyFamilies: [
+    "mossling",
+    "cinder_bandit",
+    "bog_moth",
+    "glass_beetle",
+    "reef_raider",
+    "shard_wisp",
+  ],
+  bosses: ["the_hollow_stag"],
+};

@@ -1,0 +1,374 @@
+:root {
+  color-scheme: dark;
+  font-family: "Courier New", monospace;
+  background:
+    radial-gradient(circle at top, rgba(243, 210, 106, 0.15), transparent 35%),
+    linear-gradient(180deg, #1b2131 0%, #0f1420 100%);
+  color: #f6f2dd;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(134, 94, 57, 0.22), transparent 30%),
+    radial-gradient(circle at 80% 0%, rgba(87, 125, 68, 0.18), transparent 25%),
+    linear-gradient(180deg, #171d2c 0%, #0d1220 100%);
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+  border: 2px solid #f3d26a;
+  background: linear-gradient(180deg, #31476e 0%, #253553 100%);
+  color: #f6f2dd;
+  padding: 0.45rem 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.lo-app {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 1.25rem;
+}
+
+.lo-stage {
+  position: relative;
+  width: min(100%, 1360px);
+}
+
+.lo-game-shell {
+  display: grid;
+  gap: 1rem;
+}
+
+.lo-play-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 1rem;
+  align-items: start;
+}
+
+.lo-canvas-frame {
+  width: 100%;
+  border: 4px solid #f3d26a;
+  box-shadow:
+    0 0 0 4px #5b3b2c,
+    0 24px 40px rgba(0, 0, 0, 0.38);
+  background: #090c13;
+}
+
+.lo-canvas {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  image-rendering: pixelated;
+  background: #0e1420;
+}
+
+.lo-overlay {
+  position: absolute;
+  inset: 0;
+}
+
+.lo-overlay > div {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.lo-hud-layer:not(:empty),
+.lo-title-layer:not(:empty),
+.lo-dialogue-layer:not(:empty),
+.lo-shop-layer:not(:empty),
+.lo-pause-layer:not(:empty),
+.lo-gameover-layer:not(:empty) {
+  pointer-events: auto;
+}
+
+.lo-title-layer:not(:empty) {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  overflow: auto;
+  background: rgba(7, 10, 16, 0.5);
+}
+
+.lo-title-screen {
+  display: grid;
+  gap: 1rem;
+  padding: 1rem;
+  width: min(100%, 1220px);
+  min-height: 0;
+  border: 4px solid #f3d26a;
+  box-shadow:
+    0 0 0 4px #5b3b2c,
+    0 24px 40px rgba(0, 0, 0, 0.38);
+  background: linear-gradient(180deg, rgba(10, 12, 18, 0.88), rgba(16, 20, 31, 0.93));
+}
+
+.lo-title-header {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 1rem;
+  align-items: center;
+}
+
+.lo-title-emblem {
+  width: 64px;
+  height: 64px;
+  border: 2px solid #f3d26a;
+  display: grid;
+  place-items: center;
+  background: rgba(36, 54, 81, 0.85);
+}
+
+.lo-title-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr 0.9fr;
+  gap: 1rem;
+}
+
+.lo-panel {
+  border: 3px solid #f3d26a;
+  box-shadow: inset 0 0 0 3px #5b3b2c;
+  background: rgba(18, 27, 42, 0.94);
+  padding: 1rem;
+}
+
+.lo-kicker {
+  margin: 0 0 0.35rem;
+  color: #f3d26a;
+  text-transform: uppercase;
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+}
+
+.lo-subtitle,
+.lo-muted {
+  color: #c8c0a6;
+}
+
+.lo-plain-list {
+  margin: 0;
+  padding-left: 1rem;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.lo-slot-list,
+.lo-shop-grid,
+.lo-item-list,
+.lo-job-grid,
+.lo-region-grid {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.lo-slot-card,
+.lo-shop-item,
+.lo-item-row,
+.lo-entry-card {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.8rem;
+  align-items: center;
+  padding: 0.75rem;
+  border: 2px solid rgba(243, 210, 106, 0.35);
+  background: rgba(35, 49, 71, 0.65);
+}
+
+.lo-slot-actions,
+.lo-item-actions,
+.lo-actions-row,
+.lo-choice-list,
+.lo-tab-row,
+.lo-title-actions,
+.lo-shop-buy {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.lo-modal {
+  display: grid;
+  place-items: center;
+  min-height: 100%;
+  background: rgba(9, 12, 19, 0.6);
+}
+
+.lo-modal-panel,
+.lo-pause-panel,
+.lo-gameover-panel {
+  width: min(92%, 920px);
+  max-height: 90%;
+  overflow: auto;
+}
+
+.lo-modal-header,
+.lo-hud-row,
+.lo-stat-line,
+.lo-status-grid {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.lo-hud-shell,
+.lo-sidebar,
+.lo-toast-stack {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.lo-hud-card {
+  border: 3px solid #f3d26a;
+  box-shadow: inset 0 0 0 3px #5b3b2c;
+  background: rgba(12, 18, 30, 0.88);
+  padding: 0.75rem;
+}
+
+.lo-hud-shell {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+}
+
+.lo-hud-shortcuts {
+  min-width: 210px;
+}
+
+.lo-bars {
+  display: grid;
+  gap: 0.45rem;
+  margin: 0.6rem 0;
+}
+
+.lo-bar-line {
+  display: grid;
+  grid-template-columns: 32px 1fr;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.lo-bar {
+  height: 10px;
+  border: 2px solid #f3d26a;
+  background: rgba(8, 10, 15, 0.75);
+}
+
+.lo-bar span {
+  display: block;
+  height: 100%;
+}
+
+.lo-bar-health span {
+  background: linear-gradient(90deg, #d35252, #ff9b73);
+}
+
+.lo-bar-stamina span {
+  background: linear-gradient(90deg, #5ca86f, #9af5b5);
+}
+
+.lo-bar-aether span {
+  background: linear-gradient(90deg, #4f77a8, #8fd0ff);
+}
+
+.lo-prompt {
+  margin: 0 0 0.45rem;
+}
+
+.lo-quest-snippet p {
+  margin: 0.3rem 0 0;
+}
+
+.lo-dialogue {
+  display: grid;
+  align-items: end;
+  min-height: 100%;
+  padding: 1rem;
+}
+
+.lo-dialogue-panel {
+  width: min(100%, 880px);
+  margin-inline: auto;
+}
+
+.lo-tab-row {
+  margin: 1rem 0;
+}
+
+.lo-tab-row .is-active {
+  background: linear-gradient(180deg, #f3d26a 0%, #c9a64c 100%);
+  color: #1a1f2c;
+}
+
+.lo-tab-content {
+  display: grid;
+  gap: 1rem;
+}
+
+.lo-icon-chip {
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(243, 210, 106, 0.55);
+  background: rgba(14, 21, 31, 0.9);
+}
+
+.lo-settings-grid {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.lo-settings-grid label {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.lo-check {
+  display: flex !important;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.lo-toast {
+  border: 2px solid #f3d26a;
+  background: rgba(15, 20, 32, 0.92);
+  padding: 0.45rem 0.75rem;
+  color: #f6f2dd;
+}
+
+@media (max-width: 1100px) {
+  .lo-play-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 980px) {
+  .lo-title-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .lo-hud-shell {
+    grid-template-columns: 1fr;
+  }
+}
