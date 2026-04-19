@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { findBestMove } from "../../ai/search";
 import { aiIndex } from "../../memory/aiIndex";
 import type { GameBoardProps, GameModule } from "../../memory/types";
-import { coordsToLabel } from "../shared";
+import { coordsToLabel, gridToKey } from "../shared";
 
 type Cell = "R" | "Y" | null;
 
@@ -310,6 +310,9 @@ function getAiMove(state: Connect4State, difficulty: "easy" | "medium" | "hard")
       isTerminal(current) {
         return current.winner !== null;
       },
+      keyOf(current) {
+        return `${current.turn}|${current.winner ?? "-"}|${gridToKey(current.board)}`;
+      },
       scoreMove(current, move) {
         const next = applyMove(current, move);
         return evaluateBoard(next, "Y");
@@ -317,6 +320,7 @@ function getAiMove(state: Connect4State, difficulty: "easy" | "medium" | "hard")
     },
     state,
     depth: profile.searchDepth.connect4 ?? 4,
+    maxNodes: profile.nodeBudget.connect4,
     perspective: "Y",
     randomness: profile.randomness,
   });

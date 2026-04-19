@@ -14,6 +14,14 @@ export const aiIndex: Record<"easy" | "medium" | "hard", DifficultyProfile> = {
       reversi: 2,
       gomoku: 1,
     },
+    nodeBudget: {
+      chess: 3000,
+      connect4: 4000,
+      checkers: 4500,
+      tictactoe: 2500,
+      reversi: 5000,
+      gomoku: 2500,
+    },
   },
   medium: {
     label: "Medium",
@@ -28,6 +36,14 @@ export const aiIndex: Record<"easy" | "medium" | "hard", DifficultyProfile> = {
       reversi: 3,
       gomoku: 2,
     },
+    nodeBudget: {
+      chess: 9000,
+      connect4: 11000,
+      checkers: 14000,
+      tictactoe: 4500,
+      reversi: 14000,
+      gomoku: 5000,
+    },
   },
   hard: {
     label: "Hard",
@@ -41,6 +57,14 @@ export const aiIndex: Record<"easy" | "medium" | "hard", DifficultyProfile> = {
       tictactoe: 10,
       reversi: 4,
       gomoku: 2,
+    },
+    nodeBudget: {
+      chess: 28000,
+      connect4: 30000,
+      checkers: 32000,
+      tictactoe: 7000,
+      reversi: 30000,
+      gomoku: 7000,
     },
   },
 };

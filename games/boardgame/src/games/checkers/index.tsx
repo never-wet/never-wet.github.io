@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { findBestMove } from "../../ai/search";
 import { aiIndex } from "../../memory/aiIndex";
 import type { GameBoardProps, GameModule } from "../../memory/types";
-import { cloneGrid, coordsToLabel, inBounds } from "../shared";
+import { cloneGrid, coordsToLabel, gridToKey, inBounds } from "../shared";
 
 type Piece = "r" | "R" | "b" | "B";
 type Cell = Piece | null;
@@ -437,6 +437,11 @@ function getAiMove(state: CheckersState, difficulty: "easy" | "medium" | "hard")
       isTerminal(current) {
         return current.winner !== null;
       },
+      keyOf(current) {
+        return `${current.turn}|${current.winner ?? "-"}|${current.quietMoves}|${
+          current.forcedFrom ? `${current.forcedFrom.row}-${current.forcedFrom.col}` : "free"
+        }|${gridToKey(current.board)}`;
+      },
       scoreMove(current, move) {
         const next = applyMove(current, move);
         return evaluateBoard(next, "b") + (move.capture ? 80 : 0);
@@ -444,6 +449,7 @@ function getAiMove(state: CheckersState, difficulty: "easy" | "medium" | "hard")
     },
     state,
     depth: profile.searchDepth.checkers ?? 5,
+    maxNodes: profile.nodeBudget.checkers,
     perspective: "b",
     randomness: profile.randomness,
   });

@@ -23,7 +23,7 @@ Boardgame Vault is organized around small source-of-truth files and pluggable ga
 
 - `gameManifest.ts`: app metadata, feature flags, supported games, and routes.
 - `gameIndex.ts`: per-game descriptions, tags, hero copy, and overview metadata.
-- `aiIndex.ts`: difficulty presets, search depth, and AI move timing.
+- `aiIndex.ts`: difficulty presets, search depth, AI move timing, and per-game node budgets.
 - `storageKeys.ts`: all `localStorage` keys in one place.
 - `defaultState.ts`: default persisted app state.
 - `types.ts`: shared types and game-module contracts.
@@ -43,9 +43,14 @@ Boardgame Vault is organized around small source-of-truth files and pluggable ga
 
 - Small games use full or near-full search.
 - Larger games use alpha-beta with heuristics and candidate move pruning.
-- The shared search helper short-circuits immediate winning terminal moves so the AI does not waste time searching an already-available finish.
+- The shared search helper now does four things before and during search:
+  - short-circuits immediate winning terminal moves
+  - filters out root moves that allow an immediate losing reply when safer moves exist
+  - respects per-game node budgets from `aiIndex.ts` so browser turns stay responsive
+  - reuses hashed positions where possible through compact game-state keys
 - Difficulty adjusts:
   - depth
+  - node budget
   - randomness
   - move delay
   - heuristic sharpness

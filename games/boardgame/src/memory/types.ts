@@ -82,6 +82,7 @@ export interface DifficultyProfile {
   moveDelayMs: number;
   randomness: number;
   searchDepth: Partial<Record<GameId, number>>;
+  nodeBudget: Partial<Record<GameId, number>>;
 }
 
 export interface GameCardMeta {

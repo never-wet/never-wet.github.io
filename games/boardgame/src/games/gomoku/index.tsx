@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { findBestMove } from "../../ai/search";
 import { aiIndex } from "../../memory/aiIndex";
 import type { GameBoardProps, GameModule } from "../../memory/types";
-import { boardHasEmptyCells, cloneGrid, coordsToLabel, inBounds } from "../shared";
+import { boardHasEmptyCells, cloneGrid, coordsToLabel, gridToKey, inBounds } from "../shared";
 
 type Cell = "B" | "W" | null;
 
@@ -291,12 +291,16 @@ function getAiMove(state: GomokuState, difficulty: "easy" | "medium" | "hard"): 
       isTerminal(current) {
         return current.winner !== null;
       },
+      keyOf(current) {
+        return `${current.turn}|${current.winner ?? "-"}|${gridToKey(current.board)}`;
+      },
       scoreMove(current, move) {
         return evaluateBoard(applyMove(current, move), current.turn);
       },
     },
     state,
     depth: profile.searchDepth.gomoku ?? 2,
+    maxNodes: profile.nodeBudget.gomoku,
     perspective: "W",
     randomness: profile.randomness,
   });

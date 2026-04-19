@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { aiIndex } from "../../memory/aiIndex";
 import type { GameBoardProps, GameModule } from "../../memory/types";
 import { findBestMove } from "../../ai/search";
+import { listToKey } from "../shared";
 
 type Cell = "X" | "O" | null;
 
@@ -176,6 +177,9 @@ function getAiMove(state: TicTacToeState, difficulty: "easy" | "medium" | "hard"
       isTerminal(current) {
         return current.winner !== null;
       },
+      keyOf(current) {
+        return `${current.turn}|${current.winner ?? "-"}|${listToKey(current.board)}`;
+      },
       scoreMove(current, move) {
         if (move === 4) {
           return 10;
@@ -186,6 +190,7 @@ function getAiMove(state: TicTacToeState, difficulty: "easy" | "medium" | "hard"
     },
     state,
     depth: profile.searchDepth.tictactoe ?? 9,
+    maxNodes: profile.nodeBudget.tictactoe,
     perspective: "O",
     randomness: profile.randomness,
   });

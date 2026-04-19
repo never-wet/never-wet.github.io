@@ -278,12 +278,16 @@ function getAiMove(state: ChessState, difficulty: "easy" | "medium" | "hard"): C
       isTerminal(current) {
         return getGame(current).isGameOver();
       },
+      keyOf(current) {
+        return current.fen;
+      },
       scoreMove(_current, move) {
         return moveWeight(move);
       },
     },
     state,
     depth: profile.searchDepth.chess ?? 2,
+    maxNodes: profile.nodeBudget.chess,
     perspective: "b",
     randomness: profile.randomness,
   });

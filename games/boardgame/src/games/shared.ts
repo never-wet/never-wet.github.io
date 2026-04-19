@@ -33,3 +33,17 @@ export function coordsToLabel(row: number, col: number, boardSize: number): stri
 export function boardHasEmptyCells<T>(grid: (T | null)[][]): boolean {
   return grid.some((row) => row.some((cell) => cell === null));
 }
+
+export function listToKey<T extends string | number | boolean | null | undefined>(
+  list: readonly (T | null | undefined)[],
+  emptyMarker = ".",
+): string {
+  return list.map((cell) => (cell ?? emptyMarker)).join("");
+}
+
+export function gridToKey<T extends string | number | boolean | null | undefined>(
+  grid: readonly (readonly (T | null | undefined)[])[],
+  emptyMarker = ".",
+): string {
+  return grid.map((row) => listToKey(row, emptyMarker)).join("/");
+}

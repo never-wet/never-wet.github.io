@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { findBestMove } from "../../ai/search";
 import { aiIndex } from "../../memory/aiIndex";
 import type { GameBoardProps, GameModule } from "../../memory/types";
-import { allDirections, cloneGrid, coordsToLabel, inBounds } from "../shared";
+import { allDirections, cloneGrid, coordsToLabel, gridToKey, inBounds } from "../shared";
 
 type Cell = "B" | "W" | null;
 
@@ -297,6 +297,9 @@ function getAiMove(state: ReversiState, difficulty: "easy" | "medium" | "hard"):
       isTerminal(current) {
         return current.winner !== null;
       },
+      keyOf(current) {
+        return `${current.turn}|${current.winner ?? "-"}|${gridToKey(current.board)}`;
+      },
       scoreMove(current, move) {
         const flips = getFlips(current.board, move.row, move.col, current.turn).length;
         const cornerBoost = corners.some((corner) => corner.row === move.row && corner.col === move.col) ? 80 : 0;
@@ -305,6 +308,7 @@ function getAiMove(state: ReversiState, difficulty: "easy" | "medium" | "hard"):
     },
     state,
     depth: profile.searchDepth.reversi ?? 3,
+    maxNodes: profile.nodeBudget.reversi,
     perspective: "W",
     randomness: profile.randomness,
   });
