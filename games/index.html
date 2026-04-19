@@ -3,235 +3,347 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Games Arcade</title>
+    <title>Never Wet Arcade</title>
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
-    <main class="arcade-shell">
-      <section class="arcade-hero">
-        <p class="eyebrow">Never Wet Games</p>
-        <h1>Arcade of weird little web games.</h1>
-        <p class="hero-copy">
-          This is the arcade wing for weird little site experiments. Run a
-          soccer club, spin for cursed GIF pulls, or haggle through a neon pawn
-          shop at midnight.
-        </p>
+    <div class="scene-noise" aria-hidden="true"></div>
+    <canvas class="pixel-grid-field" id="pixelGridField" aria-hidden="true"></canvas>
+
+    <main class="arcade-experience" id="arcadeExperience">
+      <section class="marquee-stack">
+        <article class="marquee-panel">
+          <p class="eyebrow">Never Wet Games</p>
+          <h1>Step into the arcade, not just a page of links.</h1>
+          <p class="hero-copy">
+            A browser-built cabinet hall packed with strange experiments,
+            long-form RPGs, survival runs, strategy vaults, and the kind of
+            ideas that feel more fun when they glow a little too brightly in
+            the dark.
+          </p>
+          <div class="hero-chips" aria-label="Arcade highlights">
+            <span>10 live cabinets</span>
+            <span>Local saves</span>
+            <span>No install</span>
+          </div>
+        </article>
+
+        <aside class="status-panel" aria-live="polite">
+          <p class="eyebrow">Now Highlighted</p>
+          <h2 data-status-title>Lantern Oath</h2>
+          <p class="status-copy" data-status-copy>
+            Explore the Cinder Reach in a top-down action RPG with towns, jobs,
+            ruins, dodge timing, real-time combat, and a huge authored world.
+          </p>
+          <div class="status-meta">
+            <span class="status-pill" data-status-tag>Action RPG</span>
+            <span class="status-pill">Browser save</span>
+            <span class="status-pill">Instant launch</span>
+          </div>
+          <a class="status-link" data-status-link href="./lantern-oath/">
+            Enter Lantern Oath
+          </a>
+        </aside>
       </section>
 
-      <section class="game-grid" aria-label="Games list">
-        <article class="game-card featured">
-          <div class="card-top">
-            <p class="card-tag">Idle Game</p>
-            <h2>Soccer Idle</h2>
-            <p>
-              Run your own tiny pitch empire. Score goals, stack upgrades, and
-              let the club earn money while you sit back.
-            </p>
+      <section class="cabinet-bay" aria-label="Arcade floor">
+        <div class="bay-head">
+          <div>
+            <p class="eyebrow">Cabinet Floor</p>
+            <h2>Pick a machine and walk in.</h2>
           </div>
-          <div class="card-bottom">
-            <ul class="card-points">
-              <li>Animated soccer field</li>
-              <li>Upgrade buttons and passive income</li>
-              <li>Progress saved in your browser</li>
-            </ul>
-            <a class="play-link" href="./soccer-idle/">Play Soccer Idle</a>
-          </div>
-        </article>
+          <p class="bay-copy">
+            Hover a cabinet to bring it forward. Click the front panel to jump
+            straight into the game.
+          </p>
+        </div>
 
-        <article class="game-card">
-          <div class="card-top">
-            <p class="card-tag">Gacha Reel</p>
-            <h2>Reels Pull</h2>
-            <p>
-              Spin the phone reel, chase rare GIF pulls, and build out your
-              collection with synced cards, pity, sounds, and rare hit popups.
-            </p>
-          </div>
-          <div class="card-bottom">
-            <ul class="card-points">
-              <li>Single pull and 10-pull spins</li>
-              <li>Rarity effects, history, and collection tracking</li>
-              <li>Progress saved in your browser</li>
-            </ul>
-            <a class="play-link" href="./reelspull/">Play Reels Pull</a>
-          </div>
-        </article>
-
-        <article class="game-card">
-          <div class="card-top">
-            <p class="card-tag">Resale Sim</p>
-            <h2>Midnight Pawn</h2>
-            <p>
-              Work the late shift at a sketchy pawn shop. Inspect weird items,
-              squeeze sellers, flip inventory, and keep a curio shelf full of
-              elite and cursed trophies.
-            </p>
-          </div>
-          <div class="card-bottom">
-            <ul class="card-points">
-              <li>Buy, haggle, prep, and list eight sellers per night</li>
-              <li>Vault elite and cursed finds for passive bonuses</li>
-              <li>Progress saved in your browser</li>
-            </ul>
-            <a class="play-link" href="./midnight-pawn/">Play Midnight Pawn</a>
-          </div>
-        </article>
-
-        <article class="game-card">
-          <div class="card-top">
-            <p class="card-tag">Puzzle Platform</p>
-            <h2>Puzzle Escape Lab</h2>
-            <p>
-              Crack logic tests, scene clues, ciphers, passcodes, and full
-              multi-room escape chains inside a premium detective puzzle lab.
-            </p>
-          </div>
-          <div class="card-bottom">
-            <ul class="card-points">
-              <li>45 built-in puzzles across many puzzle types</li>
-              <li>3 escape rooms with hotspots, inventory, and local saves</li>
-              <li>View Mode dashboard, hints, stats, and puzzle progression</li>
-            </ul>
-            <a class="play-link" href="./puzzle/">Open Puzzle Escape Lab</a>
-          </div>
-        </article>
-
-        <article class="game-card featured">
-          <div class="card-top">
-            <p class="card-tag">Story RPG</p>
-            <h2>Hollowmere Classic</h2>
-            <p>
-              Explore a rain-soaked fantasy frontier, chase a betrayal into
-              the woods and flooded abbey, and decide the fate of a star that
-              can rewrite memory itself through a polished page-navigation RPG
-              flow.
-            </p>
-          </div>
-          <div class="card-bottom">
-            <ul class="card-points">
-              <li>Landing page, dialogue scenes, quests, and local saves</li>
-              <li>Panel-based exploration, inventory, journal lore, and combat</li>
-              <li>Procedural music, sound effects, and generated SVG art</li>
-            </ul>
-            <a class="play-link" href="./rpg/">Play Hollowmere Classic</a>
-          </div>
-        </article>
-
-        <article class="game-card">
-          <div class="card-top">
-            <p class="card-tag">Overworld RPG</p>
-            <h2>Hollowmere Overworld</h2>
-            <p>
-              A separate top-down map version of Hollowmere with a visible
-              controllable character, live hotspot interaction, and route-style
-              field encounters from the first screen.
-            </p>
-          </div>
-          <div class="card-bottom">
-            <ul class="card-points">
-              <li>Starts directly on a live town map</li>
-              <li>Move with WASD or arrow keys</li>
-              <li>Interact with NPCs, exits, shops, and field events</li>
-              <li>Random wild encounters layered onto the story RPG</li>
-            </ul>
-            <a class="play-link" href="./rpg-overworld/">Play Hollowmere Overworld</a>
-          </div>
-        </article>
-
-        <article class="game-card">
-          <div class="card-top">
-            <p class="card-tag">Saved Snapshot</p>
-            <h2>Hollowmere Overworld Snapshot</h2>
-            <p>
-              Preserved copy of the current map-first Hollowmere build, saved
-              separately so future experiments do not overwrite the version you
-              liked.
-            </p>
-          </div>
-          <div class="card-bottom">
-            <ul class="card-points">
-              <li>Separate folder and separate browser save keys</li>
-              <li>Live Thornwake map, movement, hotspots, and encounters</li>
-              <li>Kept as a stable saved build for future reference</li>
-            </ul>
-            <a class="play-link" href="./rpg-overworld-snapshot/">Play Hollowmere Overworld Snapshot</a>
-          </div>
-        </article>
-
-        <article class="game-card featured">
-          <div class="card-top">
-            <p class="card-tag">Survival Action</p>
-            <h2>Hundred Days of Ashfall</h2>
-            <p>
-              An original top-down horde survival game where you only control
-              movement, auto-build weapons and passives, and fight to survive a
-              full 100-day escalation with bosses, upgrades, and local saves.
-            </p>
-          </div>
-          <div class="card-bottom">
-            <ul class="card-points">
-              <li>WASD survival combat with automatic weapons</li>
-              <li>100-day progression, milestone elites, and major bosses</li>
-              <li>Procedural visuals, generated audio, and browser saves</li>
-            </ul>
-            <a class="play-link" href="./100days/">Play Hundred Days of Ashfall</a>
-          </div>
-        </article>
-
-        <article class="game-card featured">
-          <div class="card-top">
-            <p class="card-tag">Strategy Hub</p>
-            <h2>Boardgame Vault</h2>
-            <p>
-              A polished multi-game strategy platform with chess, connect 4,
-              checkers, tic-tac-toe, reversi, and gomoku, each playable against
-              a local AI with saves and stats.
-            </p>
-          </div>
-          <div class="card-bottom">
-            <ul class="card-points">
-              <li>6 playable classic board and abstract strategy games</li>
-              <li>AI difficulties, autosave resume, undo, and move history</li>
-              <li>Dashboard stats, recent matches, rules, and local settings</li>
-            </ul>
-            <a class="play-link" href="./boardgame/">Open Boardgame Vault</a>
-          </div>
-        </article>
-
-        <article class="game-card featured">
-          <div class="card-top">
-            <p class="card-tag">Action RPG</p>
+        <section class="cabinet-grid" aria-label="Games list">
+          <article
+            class="cabinet cabinet--hero cabinet--emerald"
+            data-title="Lantern Oath"
+            data-tag="Action RPG"
+            data-copy="Explore the Cinder Reach in a top-down 16-bit inspired action RPG with towns, jobs, ruins, real-time combat, dodge timing, and a big authored world full of stories."
+            data-href="./lantern-oath/"
+            data-cta="Enter Lantern Oath"
+          >
+            <div class="cabinet__marquee">
+              <span>Action RPG</span>
+              <span>Featured</span>
+            </div>
             <h2>Lantern Oath</h2>
             <p>
               Explore the Cinder Reach in a top-down 16-bit inspired action RPG
               with towns, jobs, ruins, real-time combat, dodge timing, local
               saves, and a big authored world full of stories.
             </p>
-          </div>
-          <div class="card-bottom">
-            <ul class="card-points">
+            <ul class="cabinet__features">
               <li>Real-time melee, dodge, projectiles, and enemy patterns</li>
               <li>Starter town, city, coast, farms, mine, ruins, and dungeon</li>
               <li>Jobs, quests, dialogue, shops, save slots, and generated art/audio</li>
             </ul>
-            <a class="play-link" href="./lantern-oath/">Play Lantern Oath</a>
-          </div>
-        </article>
+            <a class="cabinet__link" href="./lantern-oath/">Enter Lantern Oath</a>
+          </article>
 
-        <article class="game-card muted">
-          <div class="card-top">
-            <p class="card-tag">Coming Soon</p>
+          <article
+            class="cabinet cabinet--amber"
+            data-title="Hundred Days of Ashfall"
+            data-tag="Survival Action"
+            data-copy="Fight through a full 100-day escalation with movement-only control, auto-built weapons, bosses, upgrades, and browser saves."
+            data-href="./100days/"
+            data-cta="Play Hundred Days of Ashfall"
+          >
+            <div class="cabinet__marquee">
+              <span>Survival Action</span>
+              <span>Hot Run</span>
+            </div>
+            <h2>Hundred Days of Ashfall</h2>
+            <p>
+              An original top-down horde survival game where you only control
+              movement, auto-build weapons and passives, and fight to survive a
+              full 100-day escalation with bosses, upgrades, and local saves.
+            </p>
+            <ul class="cabinet__features">
+              <li>WASD survival combat with automatic weapons</li>
+              <li>100-day progression, milestone elites, and major bosses</li>
+              <li>Procedural visuals, generated audio, and browser saves</li>
+            </ul>
+            <a class="cabinet__link" href="./100days/">Play Hundred Days of Ashfall</a>
+          </article>
+
+          <article
+            class="cabinet cabinet--steel"
+            data-title="Boardgame Vault"
+            data-tag="Strategy Hub"
+            data-copy="A polished strategy platform with chess, connect 4, checkers, tic-tac-toe, reversi, and gomoku against local AI."
+            data-href="./boardgame/"
+            data-cta="Open Boardgame Vault"
+          >
+            <div class="cabinet__marquee">
+              <span>Strategy Hub</span>
+              <span>Vault</span>
+            </div>
+            <h2>Boardgame Vault</h2>
+            <p>
+              A polished multi-game strategy platform with chess, connect 4,
+              checkers, tic-tac-toe, reversi, and gomoku, each playable against
+              a local AI with saves and stats.
+            </p>
+            <ul class="cabinet__features">
+              <li>6 playable classic board and abstract strategy games</li>
+              <li>AI difficulties, autosave resume, undo, and move history</li>
+              <li>Dashboard stats, recent matches, rules, and local settings</li>
+            </ul>
+            <a class="cabinet__link" href="./boardgame/">Open Boardgame Vault</a>
+          </article>
+
+          <article
+            class="cabinet cabinet--gold"
+            data-title="Soccer Idle"
+            data-tag="Idle Game"
+            data-copy="Run your own tiny pitch empire, stack upgrades, and let the club earn while you are away."
+            data-href="./soccer-idle/"
+            data-cta="Play Soccer Idle"
+          >
+            <div class="cabinet__marquee">
+              <span>Idle Game</span>
+              <span>Club Sim</span>
+            </div>
+            <h2>Soccer Idle</h2>
+            <p>
+              Run your own tiny pitch empire. Score goals, stack upgrades, and
+              let the club earn money while you sit back.
+            </p>
+            <ul class="cabinet__features">
+              <li>Animated soccer field</li>
+              <li>Upgrade buttons and passive income</li>
+              <li>Progress saved in your browser</li>
+            </ul>
+            <a class="cabinet__link" href="./soccer-idle/">Play Soccer Idle</a>
+          </article>
+
+          <article
+            class="cabinet cabinet--coral"
+            data-title="Midnight Pawn"
+            data-tag="Resale Sim"
+            data-copy="Inspect weird items, haggle with sellers, flip inventory, and build a curio shelf full of elite and cursed finds."
+            data-href="./midnight-pawn/"
+            data-cta="Play Midnight Pawn"
+          >
+            <div class="cabinet__marquee">
+              <span>Resale Sim</span>
+              <span>Night Shift</span>
+            </div>
+            <h2>Midnight Pawn</h2>
+            <p>
+              Work the late shift at a sketchy pawn shop. Inspect weird items,
+              squeeze sellers, flip inventory, and keep a curio shelf full of
+              elite and cursed trophies.
+            </p>
+            <ul class="cabinet__features">
+              <li>Buy, haggle, prep, and list eight sellers per night</li>
+              <li>Vault elite and cursed finds for passive bonuses</li>
+              <li>Progress saved in your browser</li>
+            </ul>
+            <a class="cabinet__link" href="./midnight-pawn/">Play Midnight Pawn</a>
+          </article>
+
+          <article
+            class="cabinet cabinet--teal"
+            data-title="Puzzle Escape Lab"
+            data-tag="Puzzle Platform"
+            data-copy="Crack logic tests, passcodes, ciphers, and multi-room escape chains inside a premium detective puzzle lab."
+            data-href="./puzzle/"
+            data-cta="Open Puzzle Escape Lab"
+          >
+            <div class="cabinet__marquee">
+              <span>Puzzle Platform</span>
+              <span>Escape Chain</span>
+            </div>
+            <h2>Puzzle Escape Lab</h2>
+            <p>
+              Crack logic tests, scene clues, ciphers, passcodes, and full
+              multi-room escape chains inside a premium detective puzzle lab.
+            </p>
+            <ul class="cabinet__features">
+              <li>45 built-in puzzles across many puzzle types</li>
+              <li>3 escape rooms with hotspots, inventory, and local saves</li>
+              <li>Hints, stats, and puzzle progression</li>
+            </ul>
+            <a class="cabinet__link" href="./puzzle/">Open Puzzle Escape Lab</a>
+          </article>
+
+          <article
+            class="cabinet cabinet--mist"
+            data-title="Hollowmere Classic"
+            data-tag="Story RPG"
+            data-copy="Chase betrayal into the woods and abbey through a polished page-navigation RPG full of dialogue, quests, and memory-bending lore."
+            data-href="./rpg/"
+            data-cta="Play Hollowmere Classic"
+          >
+            <div class="cabinet__marquee">
+              <span>Story RPG</span>
+              <span>Classic</span>
+            </div>
+            <h2>Hollowmere Classic</h2>
+            <p>
+              Explore a rain-soaked fantasy frontier, chase a betrayal into the
+              woods and flooded abbey, and decide the fate of a star that can
+              rewrite memory itself through a polished page-navigation RPG flow.
+            </p>
+            <ul class="cabinet__features">
+              <li>Landing page, dialogue scenes, quests, and local saves</li>
+              <li>Panel-based exploration, inventory, journal lore, and combat</li>
+              <li>Procedural music, sound effects, and generated SVG art</li>
+            </ul>
+            <a class="cabinet__link" href="./rpg/">Play Hollowmere Classic</a>
+          </article>
+
+          <article
+            class="cabinet cabinet--sky"
+            data-title="Hollowmere Overworld"
+            data-tag="Overworld RPG"
+            data-copy="A separate top-down map version with live movement, hotspot interaction, and route-style field encounters from the first screen."
+            data-href="./rpg-overworld/"
+            data-cta="Play Hollowmere Overworld"
+          >
+            <div class="cabinet__marquee">
+              <span>Overworld RPG</span>
+              <span>Live Map</span>
+            </div>
+            <h2>Hollowmere Overworld</h2>
+            <p>
+              A separate top-down map version of Hollowmere with a visible
+              controllable character, live hotspot interaction, and route-style
+              field encounters from the first screen.
+            </p>
+            <ul class="cabinet__features">
+              <li>Starts directly on a live town map</li>
+              <li>Move with WASD or arrow keys</li>
+              <li>Interact with NPCs, exits, shops, and field events</li>
+            </ul>
+            <a class="cabinet__link" href="./rpg-overworld/">Play Hollowmere Overworld</a>
+          </article>
+
+          <article
+            class="cabinet cabinet--bronze"
+            data-title="Hollowmere Overworld Snapshot"
+            data-tag="Saved Snapshot"
+            data-copy="A preserved copy of the current map-first build, kept separate so future experiments cannot overwrite the version you liked."
+            data-href="./rpg-overworld-snapshot/"
+            data-cta="Play Hollowmere Overworld Snapshot"
+          >
+            <div class="cabinet__marquee">
+              <span>Saved Snapshot</span>
+              <span>Archive</span>
+            </div>
+            <h2>Hollowmere Overworld Snapshot</h2>
+            <p>
+              Preserved copy of the current map-first Hollowmere build, saved
+              separately so future experiments do not overwrite the version you
+              liked.
+            </p>
+            <ul class="cabinet__features">
+              <li>Separate folder and separate browser save keys</li>
+              <li>Live Thornwake map, movement, hotspots, and encounters</li>
+              <li>Kept as a stable saved build for future reference</li>
+            </ul>
+            <a class="cabinet__link" href="./rpg-overworld-snapshot/">Play Hollowmere Overworld Snapshot</a>
+          </article>
+
+          <article
+            class="cabinet cabinet--rose"
+            data-title="Reels Pull"
+            data-tag="Gacha Reel"
+            data-copy="Spin the phone reel, chase rare GIF pulls, and build a synced collection with pity, sounds, and rare hit popups."
+            data-href="./reelspull/"
+            data-cta="Play Reels Pull"
+          >
+            <div class="cabinet__marquee">
+              <span>Gacha Reel</span>
+              <span>Collection Rush</span>
+            </div>
+            <h2>Reels Pull</h2>
+            <p>
+              Spin the phone reel, chase rare GIF pulls, and build out your
+              collection with synced cards, pity, sounds, and rare hit popups.
+            </p>
+            <ul class="cabinet__features">
+              <li>Single pull and 10-pull spins</li>
+              <li>Rarity effects, history, and collection tracking</li>
+              <li>Progress saved in your browser</li>
+            </ul>
+            <a class="cabinet__link" href="./reelspull/">Play Reels Pull</a>
+          </article>
+
+          <article
+            class="cabinet cabinet--coming"
+            data-title="Next Cabinet"
+            data-tag="Coming Soon"
+            data-copy="An open slot for the next weird idea. This arcade can keep extending as new folders appear under games."
+            data-href=""
+            data-cta="Cabinet Reserved"
+          >
+            <div class="cabinet__marquee">
+              <span>Coming Soon</span>
+              <span>Open Slot</span>
+            </div>
             <h2>Next Cabinet</h2>
             <p>
               Leave space here for the next idea. This layout can keep growing
               as you add more folders under <code>/games</code>.
             </p>
-          </div>
-          <div class="card-bottom">
-            <span class="placeholder-pill">Open slot</span>
-          </div>
-        </article>
+            <ul class="cabinet__features">
+              <li>Reserved cabinet bay</li>
+              <li>Ready for the next experiment</li>
+              <li>Expandable arcade floor</li>
+            </ul>
+            <span class="cabinet__link cabinet__link--placeholder">Cabinet Reserved</span>
+          </article>
+        </section>
       </section>
     </main>
+
+    <script type="module" src="./arcade.js"></script>
   </body>
 </html>
