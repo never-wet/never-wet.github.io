@@ -1,0 +1,1 @@
+var e=e=>typeof e==`number`&&Number.isFinite(e)?e.toFixed(3):`—`,t=e=>typeof e==`number`&&Number.isFinite(e)?`${(e*100).toFixed(1)}%`:`—`,n=e=>e?new Date(e).toLocaleString([],{month:`short`,day:`numeric`,hour:`numeric`,minute:`2-digit`}):`Not saved yet`;export{t as n,n as r,e as t};

@@ -1,0 +1,75 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
+
+:root {
+  color-scheme: dark;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  --bg: #020611;
+  --bg-panel: rgba(7, 15, 25, 0.9);
+  --bg-panel-strong: rgba(4, 11, 20, 0.96);
+  --bg-elevated: rgba(11, 24, 38, 0.92);
+  --border: rgba(120, 170, 205, 0.18);
+  --border-strong: rgba(144, 194, 230, 0.28);
+  --text: #ecf7ff;
+  --text-soft: #97b4c7;
+  --text-muted: #6e8799;
+  --accent: #86d8ff;
+  --accent-warm: #ffbc73;
+  --accent-mint: #74e2b6;
+  --accent-violet: #bf9dff;
+  --danger: #ff9587;
+  --shadow: 0 24px 60px rgba(0, 0, 0, 0.38);
+  --radius: 22px;
+  --radius-sm: 14px;
+  --sans: 'IBM Plex Sans', 'Segoe UI', sans-serif;
+  --mono: 'IBM Plex Mono', Consolas, monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  color: var(--text);
+  font-family: var(--sans);
+  background:
+    radial-gradient(circle at top left, rgba(60, 113, 158, 0.22), transparent 26%),
+    radial-gradient(circle at top right, rgba(73, 176, 173, 0.18), transparent 22%),
+    linear-gradient(180deg, #050a14 0%, #020611 56%, #040912 100%);
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button {
+  color: inherit;
+}
+
+a {
+  color: inherit;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+
+code {
+  font-family: var(--mono);
+}
