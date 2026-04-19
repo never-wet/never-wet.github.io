@@ -42,6 +42,7 @@ body {
   font-family: "ChakraPetchLocal", "Trebuchet MS", sans-serif;
   -ms-overflow-style: none;
   scrollbar-width: none;
+  transition: background 260ms ease;
 }
 
 body::-webkit-scrollbar {
@@ -65,6 +66,20 @@ body::before {
   background-size: 100% 4px, 4px 100%;
   mix-blend-mode: soft-light;
   opacity: 0.18;
+  transition: opacity 260ms ease;
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 50% 18%, rgba(150, 255, 219, 0.1), transparent 24%),
+    linear-gradient(180deg, rgba(5, 10, 19, 0), rgba(5, 10, 19, 0.82));
+  opacity: 0;
+  transition: opacity 260ms ease;
+  z-index: 10;
 }
 
 code {
@@ -408,6 +423,11 @@ code {
   padding: 48px 0 88px;
   perspective: 2200px;
   z-index: 2;
+  opacity: 1;
+  transform: translateY(0);
+  transition:
+    opacity 260ms ease,
+    transform 260ms ease;
 }
 
 .marquee-stack {
@@ -609,6 +629,26 @@ code {
 .cabinet-bay {
   margin-top: 34px;
   transform-style: preserve-3d;
+}
+
+body:not(.page-ready) .arcade-experience {
+  opacity: 0;
+  transform: translateY(26px);
+}
+
+body.page-transition-out .arcade-experience {
+  opacity: 0;
+  transform: translateY(30px);
+}
+
+body.page-transition-out .pixel-grid-field,
+body.page-transition-out .scene-noise,
+body.page-transition-out::before {
+  opacity: 0;
+}
+
+body.page-transition-out::after {
+  opacity: 1;
 }
 
 .bay-head {
@@ -895,5 +935,12 @@ code {
 
   .status-panel__body {
     transition: none;
+  }
+
+  body,
+  body::before,
+  body::after,
+  .arcade-experience {
+    transition: none !important;
   }
 }

@@ -8,7 +8,9 @@ const statusTag = document.querySelector("[data-status-tag]");
 const statusLink = document.querySelector("[data-status-link]");
 const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 const defaultCabinet = document.querySelector(".cabinet--hero") ?? cabinets[0] ?? null;
+const transitionDurationMs = 260;
 let statusLinkPressed = false;
+let isNavigating = false;
 
 const pixelGrid = {
   cellSize: 14,
@@ -87,12 +89,32 @@ function activateStatusLink(event) {
     return;
   }
 
-  event?.preventDefault();
-  window.location.assign(href);
+  navigateWithTransition(href, event);
 }
 
 function setStatusLinkCursorState(isHot) {
   document.body.classList.toggle("status-cta-hot", isHot);
+}
+
+function navigateWithTransition(href, event) {
+  if (!href || href === "#" || isNavigating) {
+    event?.preventDefault();
+    return;
+  }
+
+  if (reduceMotion.matches) {
+    event?.preventDefault();
+    window.location.assign(href);
+    return;
+  }
+
+  isNavigating = true;
+  event?.preventDefault();
+  document.body.classList.add("page-transition-out");
+
+  window.setTimeout(() => {
+    window.location.assign(href);
+  }, transitionDurationMs);
 }
 
 function setStatus(cabinet) {
@@ -332,6 +354,13 @@ if (pixelGrid.canvas && pixelGrid.ctx) {
   });
 }
 
+window.addEventListener("pageshow", () => {
+  document.body.classList.remove("page-transition-out");
+  window.requestAnimationFrame(() => {
+    document.body.classList.add("page-ready");
+  });
+});
+
 if (experience) {
   const updateScene = (event) => {
     if (reduceMotion.matches) {
@@ -389,6 +418,56 @@ if (statusLink) {
     setStatusLinkCursorState(false);
   });
 }
+
+document.addEventListener("click", (event) => {
+  const link = event.target instanceof Element
+    ? event.target.closest("a[href]")
+    : null;
+
+  if (!(link instanceof HTMLAnchorElement)) {
+    return;
+  }
+
+  if (link === statusLink) {
+    return;
+  }
+
+  if (
+    event.defaultPrevented ||
+    event.button !== 0 ||
+    event.metaKey ||
+    event.ctrlKey ||
+    event.shiftKey ||
+    event.altKey ||
+    link.target === "_blank" ||
+    link.hasAttribute("download")
+  ) {
+    return;
+  }
+
+  const href = link.getAttribute("href") ?? "";
+
+  if (
+    !href ||
+    href.startsWith("#") ||
+    href.startsWith("mailto:") ||
+    href.startsWith("tel:")
+  ) {
+    return;
+  }
+
+  const destination = new URL(link.href, window.location.href);
+
+  if (destination.origin !== window.location.origin) {
+    return;
+  }
+
+  navigateWithTransition(destination.href, event);
+});
+
+window.requestAnimationFrame(() => {
+  document.body.classList.add("page-ready");
+});
 
 cabinets.forEach((cabinet) => {
   cabinet.addEventListener("pointerenter", () => setStatus(cabinet));
