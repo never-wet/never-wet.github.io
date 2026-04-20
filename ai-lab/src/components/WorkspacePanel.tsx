@@ -8,6 +8,7 @@ import { TagPill } from './TagPill'
 interface WorkspacePanelProps {
   onExport: () => void
   onImport: () => void
+  onImportFolder: () => void
   onReset: () => void
   onLoadSample: (presetId: 'xor-lab' | 'spiral-lab' | 'sine-lab') => void
 }
@@ -15,6 +16,7 @@ interface WorkspacePanelProps {
 export const WorkspacePanel = ({
   onExport,
   onImport,
+  onImportFolder,
   onReset,
   onLoadSample,
 }: WorkspacePanelProps) => (
@@ -85,6 +87,10 @@ export const WorkspacePanel = ({
           <button type="button" className="secondary-button" onClick={onImport}>
             <FileUp size={16} />
             Import JSON
+          </button>
+          <button type="button" className="secondary-button" onClick={onImportFolder}>
+            <FolderSync size={16} />
+            Import folder
           </button>
           <button type="button" className="secondary-button secondary-button--danger" onClick={onReset}>
             <RefreshCcw size={16} />

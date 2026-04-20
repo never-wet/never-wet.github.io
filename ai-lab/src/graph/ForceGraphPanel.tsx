@@ -184,6 +184,7 @@ export const ForceGraphPanel = () => {
   const dragNodeIdRef = useRef<string | undefined>(undefined)
   const dragPlaneRef = useRef(new THREE.Plane())
   const pointerRef = useRef(new THREE.Vector2())
+  const pointerDownRef = useRef<{ nodeId?: string; x: number; y: number } | null>(null)
   const raycasterRef = useRef(new THREE.Raycaster())
   const {
     width,
@@ -196,6 +197,7 @@ export const ForceGraphPanel = () => {
     links,
     ui,
     selectNode,
+    toggleFolderNode,
     updateGraphNodePosition,
   } = useLabStore(
     useShallow((state) => ({
@@ -203,6 +205,7 @@ export const ForceGraphPanel = () => {
       links: state.links,
       ui: state.ui,
       selectNode: state.selectNode,
+      toggleFolderNode: state.toggleFolderNode,
       updateGraphNodePosition: state.updateGraphNodePosition,
     })),
   )
@@ -340,6 +343,7 @@ export const ForceGraphPanel = () => {
       const hitNodeId = intersections[0]?.object.userData.nodeId as string | undefined
 
       if (!hitNodeId) {
+        pointerDownRef.current = null
         selectNode(undefined)
         return
       }
@@ -350,6 +354,11 @@ export const ForceGraphPanel = () => {
       }
 
       selectNode(hitNodeId)
+      pointerDownRef.current = {
+        nodeId: hitNodeId,
+        x: event.clientX,
+        y: event.clientY,
+      }
       dragNodeIdRef.current = hitNodeId
       controls.enabled = false
 
@@ -361,9 +370,11 @@ export const ForceGraphPanel = () => {
       )
     }
 
-    const handlePointerUp = () => {
+    const handlePointerUp = (event: PointerEvent) => {
       const draggedNodeId = dragNodeIdRef.current
+      const pointerDown = pointerDownRef.current
       dragNodeIdRef.current = undefined
+      pointerDownRef.current = null
       controls.enabled = true
 
       if (!draggedNodeId) {
@@ -380,6 +391,18 @@ export const ForceGraphPanel = () => {
         y: Number(runtime.position.y.toFixed(2)),
         z: Number(runtime.position.z.toFixed(2)),
       })
+
+      const clickDistance = pointerDown
+        ? Math.hypot(event.clientX - pointerDown.x, event.clientY - pointerDown.y)
+        : Number.POSITIVE_INFINITY
+
+      if (
+        pointerDown?.nodeId === draggedNodeId &&
+        clickDistance < 6 &&
+        runtime.data.category === 'folder'
+      ) {
+        toggleFolderNode(draggedNodeId)
+      }
     }
 
     renderer.domElement.addEventListener('pointermove', handlePointerMove)
@@ -494,7 +517,7 @@ export const ForceGraphPanel = () => {
       nodeRuntimes.clear()
       linkRuntimes.clear()
     }
-  }, [selectNode, updateGraphNodePosition])
+  }, [selectNode, toggleFolderNode, updateGraphNodePosition])
 
   useEffect(() => {
     const renderer = rendererRef.current
@@ -705,6 +728,7 @@ export const ForceGraphPanel = () => {
           <p className="graph-overlay__eyebrow">3D workspace</p>
           <strong>Floating knowledge graph</strong>
           <p>Rotate, zoom, and drag nodes to reorganize the AI lab spatially.</p>
+          <p>Click imported folder orbs to expand or collapse nested files.</p>
           <p>{filtered.nodes.length} visible nodes</p>
           {ui.selectedNodeId ? (
             <p>
@@ -714,7 +738,7 @@ export const ForceGraphPanel = () => {
           ) : null}
         </div>
         <div className="graph-overlay__legend">
-          {(['experiment', 'dataset', 'note', 'model'] as const).map((category) => (
+          {(['experiment', 'dataset', 'note', 'model', 'folder', 'file'] as const).map((category) => (
             <span key={category}>
               <i style={{ background: nodeCategoryVisuals[category].color }} />
               {nodeCategoryVisuals[category].label}

@@ -34,6 +34,13 @@ export const graphClusters: Record<string, GraphClusterDefinition> = {
     color: '#c89aff',
     origin: { x: -8, y: -86, z: -56 },
   },
+  'import-bay': {
+    id: 'import-bay',
+    label: 'Import Bay',
+    hint: 'Imported folders and file trees dock here so they can expand into the graph.',
+    color: '#8ab8ff',
+    origin: { x: 156, y: 18, z: 112 },
+  },
   'results-shell': {
     id: 'results-shell',
     label: 'Results Shell',
@@ -94,6 +101,26 @@ export const nodeCategoryVisuals: Record<NodeCategory, GraphCategoryVisual> = {
     size: 7.8,
     glow: 0.62,
   },
+  folder: {
+    label: 'Folder',
+    description: 'Imported folders that can expand and reveal nested contents in the graph.',
+    group: 'workflow',
+    cluster: 'import-bay',
+    color: '#7fb2ff',
+    accent: '#eef6ff',
+    size: 7.2,
+    glow: 0.52,
+  },
+  file: {
+    label: 'File',
+    description: 'Imported files discovered from a local folder import.',
+    group: 'data',
+    cluster: 'import-bay',
+    color: '#9ad8ff',
+    accent: '#f2fbff',
+    size: 5.6,
+    glow: 0.34,
+  },
   idea: {
     label: 'Idea',
     description: 'Loose concepts and future directions for the lab.',
@@ -152,6 +179,7 @@ export const graphRelations = [
   'depends on',
   'versions',
   'evaluates',
+  'contains',
   'inspires',
   'tracks',
 ] as const

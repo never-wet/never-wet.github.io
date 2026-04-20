@@ -682,6 +682,8 @@ export const createDefaultWorkspaceState = (): WorkspaceStateData => ({
       dataset: true,
       experiment: true,
       model: true,
+      folder: true,
+      file: true,
       idea: true,
       task: true,
       layerGroup: true,

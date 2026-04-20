@@ -14,6 +14,7 @@ import type {
   CanvasState,
   ConfusionMatrix,
   DatasetRecord,
+  GraphLinkRecord,
   GraphNodeRecord,
   LabMode,
   NodeCategory,
@@ -36,6 +37,12 @@ export interface TrainingCommitPayload {
   modelStorageKey?: string
 }
 
+interface FolderImportPayload {
+  nodes: GraphNodeRecord[]
+  links: GraphLinkRecord[]
+  rootNodeId: string
+}
+
 interface LabActions {
   setMode: (mode: LabMode) => void
   setSearchQuery: (query: string) => void
@@ -47,6 +54,7 @@ interface LabActions {
   toggleCategoryFilter: (category: NodeCategory) => void
   setShowLabels: (enabled: boolean) => void
   setShowOnlyConnected: (enabled: boolean) => void
+  toggleFolderNode: (nodeId: string) => void
   updateGraphNodePosition: (
     nodeId: string,
     position: Partial<Pick<GraphNodeRecord, 'x' | 'y' | 'z'>>,
@@ -58,6 +66,7 @@ interface LabActions {
   selectTrainingPreset: (presetId: string) => void
   setActiveDataset: (datasetId: string) => void
   importDataset: (dataset: DatasetRecord) => void
+  importFolderTree: (payload: FolderImportPayload) => void
   loadPresetArchitecture: (presetId: string) => void
   updateTrainingConfig: (patch: Partial<TrainingConfig>) => void
   setTrainingStatus: (status: TrainingStatus, message: string) => void
@@ -301,6 +310,8 @@ export const useLabStore = create<LabStore>()(
                   node.category === 'experiment' ||
                   node.category === 'model'
                 ? 'training'
+                : node.category === 'folder' || node.category === 'file'
+                  ? 'workspace'
                 : node.category === 'layerGroup' || node.category === 'neural'
                   ? 'builder'
                   : state.ui.activeBottomTab
@@ -378,6 +389,34 @@ export const useLabStore = create<LabStore>()(
                 }),
               },
         ),
+
+      toggleFolderNode: (nodeId) =>
+        set((state) => {
+          const node = state.nodes.find((entry) => entry.id === nodeId)
+
+          if (!node || node.category !== 'folder') {
+            return state
+          }
+
+          const nextCollapsed = !node.isCollapsed
+
+          return {
+            ...stamp({
+              nodes: state.nodes.map((entry) =>
+                entry.id === nodeId
+                  ? {
+                      ...entry,
+                      isCollapsed: nextCollapsed,
+                      summary: entry.summary.replace(
+                        /Click to (expand|collapse)\./,
+                        `Click to ${nextCollapsed ? 'expand' : 'collapse'}.`,
+                      ),
+                    }
+                  : entry,
+              ),
+            }),
+          }
+        }),
 
       updateGraphNodePosition: (nodeId, position) =>
         set((state) => {
@@ -704,6 +743,25 @@ export const useLabStore = create<LabStore>()(
                 selectedNodeId: datasetNode.id,
                 focusedNodeId: datasetNode.id,
                 activeBottomTab: 'training',
+              },
+            }),
+          }
+        }),
+
+      importFolderTree: (payload) =>
+        set((state) => {
+          const nextNodes = [...payload.nodes, ...state.nodes]
+          const nextLinks = [...payload.links, ...state.links]
+
+          return {
+            ...stamp({
+              nodes: nextNodes,
+              links: nextLinks,
+              ui: {
+                ...state.ui,
+                selectedNodeId: payload.rootNodeId,
+                focusedNodeId: payload.rootNodeId,
+                activeBottomTab: 'workspace',
               },
             }),
           }

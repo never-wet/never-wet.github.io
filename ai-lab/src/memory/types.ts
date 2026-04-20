@@ -10,6 +10,8 @@ export type NodeCategory =
   | 'dataset'
   | 'experiment'
   | 'model'
+  | 'folder'
+  | 'file'
   | 'idea'
   | 'task'
   | 'layerGroup'
@@ -27,6 +29,8 @@ export type EntityKind =
   | 'dataset'
   | 'experiment'
   | 'model'
+  | 'folder'
+  | 'file'
   | 'result'
   | 'idea'
   | 'task'
@@ -37,6 +41,7 @@ export type GraphClusterId =
   | 'dataset-dock'
   | 'experiment-bay'
   | 'model-orbit'
+  | 'import-bay'
   | 'results-shell'
 
 export type BuilderBlockKind =
@@ -155,6 +160,13 @@ export interface GraphNodeRecord {
   entityKind: EntityKind
   entityId?: string
   emphasis: number
+  parentNodeId?: string
+  importPath?: string
+  contentPreview?: string
+  mimeType?: string
+  fileExtension?: string
+  fileSize?: number
+  isCollapsed?: boolean
   x?: number
   y?: number
   z?: number

@@ -41,6 +41,7 @@ export const InspectorPanel = () => {
     setInspectorTab,
     createLinkedNote,
     loadModelIntoBuilder,
+    toggleFolderNode,
   } = useLabStore(
     useShallow((state) => ({
       nodes: state.nodes,
@@ -55,6 +56,7 @@ export const InspectorPanel = () => {
       setInspectorTab: state.setInspectorTab,
       createLinkedNote: state.createLinkedNote,
       loadModelIntoBuilder: state.loadModelIntoBuilder,
+      toggleFolderNode: state.toggleFolderNode,
     })),
   )
 
@@ -72,6 +74,9 @@ export const InspectorPanel = () => {
   const experiment = experiments.find((entry) => entry.id === selectedNode?.entityId)
   const model = models.find((entry) => entry.id === selectedNode?.entityId)
   const result = results.find((entry) => entry.id === selectedNode?.entityId)
+  const importedChildren = selectedNode
+    ? nodes.filter((entry) => entry.parentNodeId === selectedNode.id)
+    : []
 
   return (
     <aside className={`inspector-panel${ui.rightPanelCollapsed ? ' is-collapsed' : ''}`}>
@@ -135,6 +140,41 @@ export const InspectorPanel = () => {
                   <div className="inspector-entity">
                     <h3>Experiment</h3>
                     <p>{experiment.description}</p>
+                  </div>
+                ) : null}
+                {selectedNode?.category === 'folder' ? (
+                  <div className="inspector-entity">
+                    <h3>Imported folder</h3>
+                    <p>{selectedNode.importPath}</p>
+                    <div className="tag-row">
+                      <TagPill
+                        label={`${importedChildren.length} direct item${importedChildren.length === 1 ? '' : 's'}`}
+                        muted
+                      />
+                      <TagPill label={selectedNode.isCollapsed ? 'Collapsed' : 'Expanded'} muted />
+                    </div>
+                    <button
+                      type="button"
+                      className="secondary-button"
+                      onClick={() => toggleFolderNode(selectedNode.id)}
+                    >
+                      {selectedNode.isCollapsed ? 'Expand folder' : 'Collapse folder'}
+                    </button>
+                  </div>
+                ) : null}
+                {selectedNode?.category === 'file' ? (
+                  <div className="inspector-entity">
+                    <h3>Imported file</h3>
+                    <p>{selectedNode.importPath}</p>
+                    <div className="tag-row">
+                      {selectedNode.fileExtension ? <TagPill label={selectedNode.fileExtension} muted /> : null}
+                      {selectedNode.fileSize ? <TagPill label={`${selectedNode.fileSize} bytes`} muted /> : null}
+                    </div>
+                    {selectedNode.contentPreview ? (
+                      <pre className="runtime-fallback__message">{selectedNode.contentPreview}</pre>
+                    ) : (
+                      <p className="muted-copy">No inline preview for this file type.</p>
+                    )}
                   </div>
                 ) : null}
                 {model ? (

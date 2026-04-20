@@ -41,6 +41,22 @@ export const nodeTypeIndex: Record<NodeCategory, NodeTypeManifest> = {
     quickActionLabel: 'Review metrics',
     relationHint: 'Model nodes capture browser-side training results and stored weights.',
   },
+  folder: {
+    category: 'folder',
+    detailTitle: 'Imported folder',
+    description: 'A local folder imported into the graph, with click-to-expand children.',
+    defaultBottomTab: 'workspace',
+    quickActionLabel: 'Review import',
+    relationHint: 'Folder nodes expand or collapse nested contents and expose file structure in 3D.',
+  },
+  file: {
+    category: 'file',
+    detailTitle: 'Imported file',
+    description: 'A file discovered from a local folder import, including extension and preview metadata when available.',
+    defaultBottomTab: 'workspace',
+    quickActionLabel: 'Inspect file',
+    relationHint: 'File nodes stay attached to their parent folders and can preview text content in the inspector.',
+  },
   idea: {
     category: 'idea',
     detailTitle: 'Idea',

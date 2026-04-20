@@ -44,11 +44,22 @@ export const filterGraph = ({
   showOnlyConnected: boolean
 }) => {
   const adjacency = buildAdjacencyMap(links)
+  const nodeById = new Map(nodes.map((node) => [node.id, node]))
   const directNeighbors = selectedNodeId
     ? adjacency.get(selectedNodeId) ?? new Set<string>()
     : new Set<string>()
   const visible = new Set<string>()
   const matching = new Set<string>()
+  const searchProtected = new Set<string>()
+
+  const includeAncestors = (nodeId: string) => {
+    let cursor = nodeById.get(nodeId)
+
+    while (cursor?.parentNodeId) {
+      searchProtected.add(cursor.parentNodeId)
+      cursor = nodeById.get(cursor.parentNodeId)
+    }
+  }
 
   for (const node of nodes) {
     if (!categoryFilters[node.category]) {
@@ -58,6 +69,11 @@ export const filterGraph = ({
     if (matchesSearch(node, search)) {
       visible.add(node.id)
       matching.add(node.id)
+
+      if (search) {
+        searchProtected.add(node.id)
+        includeAncestors(node.id)
+      }
     }
   }
 
@@ -83,6 +99,36 @@ export const filterGraph = ({
       if (!connectedScope.has(id)) {
         visible.delete(id)
       }
+    }
+  }
+
+  const hasCollapsedAncestor = (node: GraphNodeRecord) => {
+    let currentParentId = node.parentNodeId
+
+    while (currentParentId) {
+      const parent = nodeById.get(currentParentId)
+
+      if (parent?.category === 'folder' && parent.isCollapsed) {
+        return true
+      }
+
+      currentParentId = parent?.parentNodeId
+    }
+
+    return false
+  }
+
+  for (const node of nodes) {
+    if (!visible.has(node.id)) {
+      continue
+    }
+
+    if (searchProtected.has(node.id)) {
+      continue
+    }
+
+    if (hasCollapsedAncestor(node)) {
+      visible.delete(node.id)
     }
   }
 
@@ -112,6 +158,8 @@ export const groupNodesByCategory = (nodes: GraphNodeRecord[]) =>
       dataset: [],
       experiment: [],
       model: [],
+      folder: [],
+      file: [],
       idea: [],
       task: [],
       layerGroup: [],

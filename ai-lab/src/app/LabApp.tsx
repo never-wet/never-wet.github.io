@@ -13,6 +13,7 @@ import { normalizeImportedWorkspace } from '../memory/saveSchema'
 import { storageKeys } from '../memory/storageKeys'
 import { tutorialManifest } from '../memory/tutorialManifest'
 import { useLabStore } from '../state/useLabStore'
+import { createImportedFolderGraph } from '../utils/folderImport'
 import { downloadWorkspace, readWorkspaceFile, saveWorkspaceSnapshot } from '../utils/persistence'
 import { ForceGraphPanel } from '../graph/ForceGraphPanel'
 
@@ -24,6 +25,7 @@ const WorkspacePanel = lazy(async () => import('../components/WorkspacePanel').t
 
 export const LabApp = () => {
   const fileInputRef = useRef<HTMLInputElement | null>(null)
+  const folderInputRef = useRef<HTMLInputElement | null>(null)
   const [tutorialOpen, setTutorialOpen] = useState(() => {
     if (typeof window === 'undefined') {
       return false
@@ -55,6 +57,7 @@ export const LabApp = () => {
     setMode,
     setSearchQuery,
     setBottomTab,
+    importFolderTree,
     selectTrainingPreset,
     loadPresetArchitecture,
     setShowLabels,
@@ -81,12 +84,23 @@ export const LabApp = () => {
       setMode: state.setMode,
       setSearchQuery: state.setSearchQuery,
       setBottomTab: state.setBottomTab,
+      importFolderTree: state.importFolderTree,
       selectTrainingPreset: state.selectTrainingPreset,
       loadPresetArchitecture: state.loadPresetArchitecture,
       setShowLabels: state.setShowLabels,
       setShowOnlyConnected: state.setShowOnlyConnected,
     })),
   )
+
+  useEffect(() => {
+    const input = folderInputRef.current
+    if (!input) {
+      return
+    }
+
+    input.setAttribute('webkitdirectory', '')
+    input.setAttribute('directory', '')
+  }, [])
 
   const workspaceForAutosave = useMemo(
     () => ({
@@ -201,6 +215,7 @@ export const LabApp = () => {
         <WorkspacePanel
           onExport={() => downloadWorkspace(getWorkspaceData())}
           onImport={() => fileInputRef.current?.click()}
+          onImportFolder={() => folderInputRef.current?.click()}
           onReset={resetWorkspace}
           onLoadSample={(presetId) => {
             selectTrainingPreset(presetId)
@@ -237,6 +252,29 @@ export const LabApp = () => {
         }}
       />
 
+      <input
+        ref={folderInputRef}
+        type="file"
+        hidden
+        multiple
+        onChange={async (event) => {
+          const files = event.target.files
+          if (!files || files.length === 0) {
+            return
+          }
+
+          try {
+            const folderGraph = await createImportedFolderGraph(files)
+            importFolderTree(folderGraph)
+          } catch (error) {
+            const message =
+              error instanceof Error ? error.message : 'Folder import failed.'
+            window.alert(message)
+          }
+          event.currentTarget.value = ''
+        }}
+      />
+
       <TopToolbar
         mode={mode}
         searchQuery={ui.searchQuery}
@@ -247,6 +285,7 @@ export const LabApp = () => {
         onSearchChange={setSearchQuery}
         onExport={() => downloadWorkspace(getWorkspaceData())}
         onImport={() => fileInputRef.current?.click()}
+        onImportFolder={() => folderInputRef.current?.click()}
         onReset={resetWorkspace}
         onOpenIdeas={() => setIdeasOpen(true)}
         onOpenTutorial={() => openTutorial(0)}
