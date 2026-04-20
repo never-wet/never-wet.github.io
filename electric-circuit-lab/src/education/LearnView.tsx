@@ -1,10 +1,12 @@
 import { lessonIndex } from '../memory/lessonIndex'
-import { componentRegistry } from '../memory/contentRegistry'
+import { componentRegistry, quizRegistry } from '../memory/contentRegistry'
 import { useCircuitLab } from '../state/CircuitLabContext'
 
 export const LearnView = () => {
-  const { state, setActiveLesson, markLessonComplete, loadSample, setActiveSection } = useCircuitLab()
+  const { state, setActiveLesson, markLessonComplete, loadSample, setActiveSection, setActiveQuiz } = useCircuitLab()
   const lesson = lessonIndex.find((entry) => entry.id === state.learning.activeLessonId) ?? lessonIndex[0]
+  const challengeQuiz = lesson.relatedQuizId ? quizRegistry[lesson.relatedQuizId] : undefined
+  const nextLesson = lessonIndex[lessonIndex.findIndex((entry) => entry.id === lesson.id) + 1]
 
   return (
     <section className="page-stack">
@@ -67,6 +69,11 @@ export const LearnView = () => {
                   Load Sample Circuit
                 </button>
               )}
+              {challengeQuiz && (
+                <button className="ghost-button" onClick={() => setActiveQuiz(challengeQuiz.id)} type="button">
+                  Open Challenge
+                </button>
+              )}
               <button className="primary-button" onClick={() => markLessonComplete(lesson.id)} type="button">
                 Mark Complete
               </button>
@@ -105,6 +112,25 @@ export const LearnView = () => {
             </ol>
           </div>
 
+          <div className="detail-grid">
+            <div className="detail-card">
+              <h4>Checkpoints</h4>
+              <ul className="clean-list">
+                {lesson.checkpoints.map((checkpoint) => (
+                  <li key={checkpoint}>{checkpoint}</li>
+                ))}
+              </ul>
+            </div>
+            <div className="detail-card">
+              <h4>Common Mistakes</h4>
+              <ul className="clean-list">
+                {lesson.commonMistakes.map((mistake) => (
+                  <li key={mistake}>{mistake}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+
           <div className="detail-card">
             <h4>Component Links</h4>
             <div className="tag-row">
@@ -124,7 +150,27 @@ export const LearnView = () => {
           <div className="detail-card callout-card">
             <h4>Challenge Prompt</h4>
             <p>{lesson.challengePrompt}</p>
+            {challengeQuiz && (
+              <div className="inline-actions">
+                <button className="ghost-button" onClick={() => setActiveQuiz(challengeQuiz.id)} type="button">
+                  Try {challengeQuiz.title}
+                </button>
+              </div>
+            )}
           </div>
+
+          {nextLesson && (
+            <div className="detail-card">
+              <h4>Next Up</h4>
+              <p>{nextLesson.title}</p>
+              <p>{nextLesson.summary}</p>
+              <div className="inline-actions">
+                <button className="ghost-button" onClick={() => setActiveLesson(nextLesson.id)} type="button">
+                  Preview Next Lesson
+                </button>
+              </div>
+            </div>
+          )}
         </article>
       </div>
     </section>

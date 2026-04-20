@@ -154,7 +154,10 @@ export interface LessonDefinition {
   goals: string[]
   concepts: string[]
   steps: string[]
+  checkpoints: string[]
+  commonMistakes: string[]
   challengePrompt: string
+  relatedQuizId?: string
   sampleCircuitId?: string
   exampleComponentIds: string[]
 }
@@ -173,8 +176,12 @@ export interface QuizChoice {
 
 export interface BuildRequirement {
   requiredTypes: string[]
+  requiredTypeCounts?: Record<string, number>
   minimumWires: number
   mustBeClosedLoop?: boolean
+  minimumBranches?: number
+  requiredPoweredTypes?: string[]
+  forbiddenTypes?: string[]
   notes: string[]
 }
 
@@ -242,6 +249,16 @@ export interface ComponentSimulationState {
   notes: string[]
 }
 
+export interface SimulationBranchState {
+  id: string
+  sourceId: string
+  label: string
+  estimatedCurrent: number
+  estimatedResistance: number
+  componentIds: string[]
+  notes: string[]
+}
+
 export interface SimulationResult {
   ranAt: string
   supported: boolean
@@ -250,6 +267,7 @@ export interface SimulationResult {
   estimatedCurrent: number
   warnings: SimulationWarning[]
   activePathComponentIds: string[]
+  branchStates: SimulationBranchState[]
   nodeStates: SimulationNodeState[]
   componentStates: Record<string, ComponentSimulationState>
   log: string[]
@@ -272,6 +290,11 @@ export interface SelectionState {
   wireIds: string[]
 }
 
+export interface CircuitHistoryState {
+  past: CircuitDocument[]
+  future: CircuitDocument[]
+}
+
 export interface WireDraft {
   start: WireEndpoint
   pointer: Point | null
@@ -290,6 +313,7 @@ export interface PersistedCircuitLabState {
 }
 
 export interface CircuitLabState extends PersistedCircuitLabState {
+  history: CircuitHistoryState
   selection: SelectionState
   draftWire: WireDraft | null
   simulationResult: SimulationResult | null

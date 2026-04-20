@@ -115,6 +115,16 @@ export const InspectorPanel = () => {
               </div>
 
               <div className="detail-card">
+                <h4>Keyboard shortcuts</h4>
+                <ul className="clean-list">
+                  <li>`Ctrl/Cmd+Z` undo, `Ctrl/Cmd+Shift+Z` redo</li>
+                  <li>`Ctrl/Cmd+A` select all, `Ctrl/Cmd+D` duplicate selection</li>
+                  <li>Arrow keys nudge selected components, `Shift+Arrow` moves faster</li>
+                  <li>`Delete` removes the current selection</li>
+                </ul>
+              </div>
+
+              <div className="detail-card">
                 <h4>Starter boards</h4>
                 <div className="list-stack">
                   {sampleCircuitIndex.slice(0, 3).map((sample) => (
@@ -203,6 +213,30 @@ export const InspectorPanel = () => {
               </div>
 
               <div className="detail-card">
+                <h4>Branch summaries</h4>
+                {state.simulationResult.branchStates.length > 0 ? (
+                  <div className="list-stack">
+                    {state.simulationResult.branchStates.map((branch) => (
+                      <div className="list-row static-row" key={branch.id}>
+                        <div>
+                          <strong>{branch.label}</strong>
+                          <p>
+                            {formatNumber(branch.estimatedCurrent, 3)} A across about{' '}
+                            {formatNumber(branch.estimatedResistance, 2)} ohm
+                          </p>
+                        </div>
+                        <span className="tag">
+                          {branch.componentIds.length} part{branch.componentIds.length === 1 ? '' : 's'}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p>No active branch summaries yet. Build a closed loop or a multi-branch circuit and run again.</p>
+                )}
+              </div>
+
+              <div className="detail-card">
                 <h4>Component states</h4>
                 <div className="list-stack">
                   {state.currentCircuit.components.map((component) => {
@@ -281,6 +315,15 @@ export const InspectorPanel = () => {
                 <li key={step}>{step}</li>
               ))}
             </ol>
+          </div>
+
+          <div className="detail-card">
+            <h4>Common mistakes</h4>
+            <ul className="clean-list">
+              {activeLesson.commonMistakes.map((mistake) => (
+                <li key={mistake}>{mistake}</li>
+              ))}
+            </ul>
           </div>
         </div>
       )}

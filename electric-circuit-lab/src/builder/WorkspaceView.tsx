@@ -25,13 +25,23 @@ const quickAddComponentIds = [
 export const WorkspaceView = () => {
   const {
     state,
+    canUndo,
+    canRedo,
     setWorkspace,
     setPlacementMode,
     toggleGrid,
     addComponent,
+    clearSelection,
+    selectAllCircuitItems,
+    duplicateSelection,
+    nudgeSelection,
+    cancelWire,
+    undoCircuit,
+    redoCircuit,
     runSimulation,
     clearSimulation,
     saveCurrentCircuit,
+    renameCurrentCircuit,
     duplicateCurrentCircuit,
     resetCurrentCircuit,
     openBlankSandbox,
@@ -48,6 +58,74 @@ export const WorkspaceView = () => {
         return
       }
 
+      const hasModifier = event.metaKey || event.ctrlKey
+      if (hasModifier && event.key.toLowerCase() === 'a') {
+        event.preventDefault()
+        selectAllCircuitItems()
+        return
+      }
+
+      if (hasModifier && event.key.toLowerCase() === 'z') {
+        event.preventDefault()
+
+        if (event.shiftKey) {
+          if (canRedo) {
+            redoCircuit()
+          }
+          return
+        }
+
+        if (canUndo) {
+          undoCircuit()
+        }
+        return
+      }
+
+      if (hasModifier && event.key.toLowerCase() === 'y') {
+        event.preventDefault()
+        if (canRedo) {
+          redoCircuit()
+        }
+        return
+      }
+
+      if (hasModifier && event.key.toLowerCase() === 'd') {
+        event.preventDefault()
+        duplicateSelection()
+        return
+      }
+
+      if (event.key === 'Escape') {
+        event.preventDefault()
+        if (state.draftWire) {
+          cancelWire()
+        } else if (state.selection.componentIds.length || state.selection.wireIds.length) {
+          clearSelection()
+        }
+        return
+      }
+
+      if (state.selection.componentIds.length > 0 && ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.key)) {
+        event.preventDefault()
+        const distance = event.shiftKey
+          ? state.currentCircuit.board.placementMode === 'grid'
+            ? 48
+            : 24
+          : state.currentCircuit.board.placementMode === 'grid'
+            ? 24
+            : 12
+        const delta =
+          event.key === 'ArrowUp'
+            ? { x: 0, y: -distance }
+            : event.key === 'ArrowDown'
+              ? { x: 0, y: distance }
+              : event.key === 'ArrowLeft'
+                ? { x: -distance, y: 0 }
+                : { x: distance, y: 0 }
+        nudgeSelection(delta)
+        return
+      }
+
       if ((event.key === 'Delete' || event.key === 'Backspace') && (state.selection.componentIds.length || state.selection.wireIds.length)) {
         event.preventDefault()
         deleteSelection()
@@ -56,7 +134,22 @@ export const WorkspaceView = () => {
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [deleteSelection, state.selection.componentIds.length, state.selection.wireIds.length])
+  }, [
+    canRedo,
+    canUndo,
+    cancelWire,
+    deleteSelection,
+    duplicateSelection,
+    nudgeSelection,
+    redoCircuit,
+    selectAllCircuitItems,
+    clearSelection,
+    state.selection.componentIds.length,
+    state.selection.wireIds.length,
+    state.draftWire,
+    state.currentCircuit.board.placementMode,
+    undoCircuit,
+  ])
 
   const handleSave = () => {
     const name = window.prompt('Save this circuit as', state.currentCircuit.name)
@@ -69,6 +162,13 @@ export const WorkspaceView = () => {
     const name = window.prompt('Duplicate circuit as', `${state.currentCircuit.name} Copy`)
     if (name !== null) {
       duplicateCurrentCircuit(name)
+    }
+  }
+
+  const handleRename = () => {
+    const name = window.prompt('Rename this circuit', state.currentCircuit.name)
+    if (name !== null) {
+      renameCurrentCircuit(name)
     }
   }
 
@@ -112,6 +212,12 @@ export const WorkspaceView = () => {
             </div>
 
             <div className="stage-panel-actions">
+              <button className="ghost-button" onClick={handleRename} type="button">
+                Rename
+              </button>
+              <button className="ghost-button" onClick={handleSave} type="button">
+                Save
+              </button>
               <button className="ghost-button" onClick={handleDuplicate} type="button">
                 Save a copy
               </button>
@@ -129,6 +235,7 @@ export const WorkspaceView = () => {
               {uiManifest.workspaceModes.map((mode) => (
                 <button
                   key={mode.id}
+                  aria-pressed={state.ui.activeWorkspace === mode.id}
                   className={state.ui.activeWorkspace === mode.id ? 'nav-pill is-active' : 'nav-pill'}
                   onClick={() => setWorkspace(mode.id)}
                   type="button"
@@ -136,6 +243,27 @@ export const WorkspaceView = () => {
                   {mode.label}
                 </button>
               ))}
+            </div>
+
+            <div className="stage-toolbar-group">
+              <button
+                className="ghost-button"
+                disabled={!canUndo}
+                onClick={undoCircuit}
+                title="Undo (Ctrl/Cmd+Z)"
+                type="button"
+              >
+                Undo
+              </button>
+              <button
+                className="ghost-button"
+                disabled={!canRedo}
+                onClick={redoCircuit}
+                title="Redo (Ctrl/Cmd+Shift+Z or Ctrl/Cmd+Y)"
+                type="button"
+              >
+                Redo
+              </button>
             </div>
 
             <div className="stage-toolbar-group stage-toolbar-group-tools">
@@ -149,7 +277,25 @@ export const WorkspaceView = () => {
 
             <div className="stage-toolbar-group">
               <button
+                className="ghost-button"
+                onClick={selectAllCircuitItems}
+                title="Select all (Ctrl/Cmd+A)"
+                type="button"
+              >
+                Select all
+              </button>
+              <button
+                className="ghost-button"
+                disabled={state.selection.componentIds.length === 0}
+                onClick={duplicateSelection}
+                title="Duplicate selection (Ctrl/Cmd+D)"
+                type="button"
+              >
+                Duplicate
+              </button>
+              <button
                 className={state.currentCircuit.board.placementMode === 'grid' ? 'nav-pill is-active' : 'nav-pill'}
+                aria-pressed={state.currentCircuit.board.placementMode === 'grid'}
                 onClick={() => setPlacementMode('grid')}
                 type="button"
               >
@@ -157,18 +303,29 @@ export const WorkspaceView = () => {
               </button>
               <button
                 className={state.currentCircuit.board.placementMode === 'freeform' ? 'nav-pill is-active' : 'nav-pill'}
+                aria-pressed={state.currentCircuit.board.placementMode === 'freeform'}
                 onClick={() => setPlacementMode('freeform')}
                 type="button"
               >
                 Freeform
               </button>
-              <button className="ghost-button" onClick={toggleGrid} type="button">
+              <button aria-pressed={state.currentCircuit.board.showGrid} className="ghost-button" onClick={toggleGrid} type="button">
                 {state.currentCircuit.board.showGrid ? 'Hide grid' : 'Show grid'}
               </button>
-              <button className="ghost-button" onClick={() => toggleSimulationPreference('autoRun')} type="button">
+              <button
+                aria-pressed={state.simulationPreferences.autoRun}
+                className="ghost-button"
+                onClick={() => toggleSimulationPreference('autoRun')}
+                type="button"
+              >
                 Auto run {state.simulationPreferences.autoRun ? 'on' : 'off'}
               </button>
-              <button className="ghost-button" onClick={() => toggleSimulationPreference('highlightCurrent')} type="button">
+              <button
+                aria-pressed={state.simulationPreferences.highlightCurrent}
+                className="ghost-button"
+                onClick={() => toggleSimulationPreference('highlightCurrent')}
+                type="button"
+              >
                 Atom motion {state.simulationPreferences.highlightCurrent ? 'on' : 'off'}
               </button>
             </div>

@@ -84,6 +84,7 @@ export const ComponentPalette = ({ onAddAtCenter }: ComponentPaletteProps) => {
               .filter((component) => featuredComponentIds.includes(component.id))
               .map((component) => (
                 <button
+                  aria-label={`Add ${component.name} to the circuit board`}
                   className="component-icon-button"
                   draggable
                   key={component.id}
@@ -115,6 +116,7 @@ export const ComponentPalette = ({ onAddAtCenter }: ComponentPaletteProps) => {
               <div className="component-icon-grid">
                 {components.map((component) => (
                   <button
+                    aria-label={`Add ${component.name} to the circuit board`}
                     className="component-icon-button"
                     draggable
                     key={component.id}

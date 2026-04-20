@@ -6,7 +6,7 @@ import { useCircuitLab } from '../state/CircuitLabContext'
 import { formatDateTime } from '../utils/format'
 
 export const HomeView = () => {
-  const { state, setActiveSection, loadSample, loadSavedCircuit } = useCircuitLab()
+  const { state, setActiveSection, loadSample, loadSavedCircuit, setActiveLesson, setActiveQuiz } = useCircuitLab()
 
   const recentSaved = state.savedCircuits[0]
   const resumeCurrent = () => {
@@ -102,7 +102,7 @@ export const HomeView = () => {
               <button
                 key={lesson.id}
                 className="list-row"
-                onClick={() => setActiveSection('learn')}
+                onClick={() => setActiveLesson(lesson.id)}
                 type="button"
               >
                 <div>
@@ -129,13 +129,13 @@ export const HomeView = () => {
           </div>
           <div className="list-stack">
             {quizIndex.slice(0, 4).map((quiz) => (
-              <div className="list-row static-row" key={quiz.id}>
+              <button className="list-row" key={quiz.id} onClick={() => setActiveQuiz(quiz.id)} type="button">
                 <div>
                   <strong>{quiz.title}</strong>
                   <p>{quiz.prompt}</p>
                 </div>
                 <span className="tag">{quiz.kind}</span>
-              </div>
+              </button>
             ))}
           </div>
         </article>

@@ -3,6 +3,7 @@ export const performanceConfig = {
   minZoom: 0.45,
   maxZoom: 1.9,
   zoomStep: 0.12,
+  maxUndoDepth: 80,
   autosaveDebounceMs: 350,
   maxPathDepth: 18,
   defaultBoardZoom: 0.95,

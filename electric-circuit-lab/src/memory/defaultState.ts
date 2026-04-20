@@ -7,14 +7,24 @@ export const defaultState: CircuitLabState = {
   schemaVersion: 1,
   currentCircuit: starterCircuit,
   savedCircuits: [],
+  history: {
+    past: [],
+    future: [],
+  },
   learning: {
     activeLessonId: 'current-voltage-basics',
     completedLessonIds: [],
-    unlockedLessonIds: ['current-voltage-basics', 'ohms-law', 'switches-leds'],
+    unlockedLessonIds: ['current-voltage-basics', 'ohms-law', 'series-parallel'],
   },
   practice: {
     activeQuizId: 'identify-resistor',
-    unlockedQuizIds: ['identify-resistor', 'predict-led', 'series-current', 'build-led-loop'],
+    unlockedQuizIds: [
+      'identify-resistor',
+      'predict-led',
+      'series-current',
+      'parallel-troubleshoot',
+      'build-led-loop',
+    ],
     results: {},
   },
   dashboard: {

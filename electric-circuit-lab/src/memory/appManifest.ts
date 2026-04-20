@@ -54,6 +54,8 @@ export const appManifest = {
     localPersistence: true,
     guidedLessons: true,
     buildChallenges: true,
+    branchReporting: true,
+    keyboardBuilderShortcuts: true,
     importExport: true,
   },
 }

@@ -29,6 +29,8 @@ export const CircuitBoard = () => {
     clearSelection,
     selectComponent,
     selectWire,
+    beginUndoGroup,
+    endUndoGroup,
     moveComponents,
     startWire,
     finishWire,
@@ -134,6 +136,9 @@ export const CircuitBoard = () => {
     }
 
     const handlePointerUp = () => {
+      if (interaction?.kind === 'drag') {
+        endUndoGroup()
+      }
       setInteraction(null)
     }
 
@@ -146,6 +151,7 @@ export const CircuitBoard = () => {
     }
   }, [
     interaction,
+    endUndoGroup,
     moveComponents,
     setBoardViewport,
     state.currentCircuit.board.pan,
@@ -179,6 +185,7 @@ export const CircuitBoard = () => {
       selectComponent(componentId, false)
     }
 
+    beginUndoGroup()
     setInteraction({
       kind: 'drag',
       startScreen: local,
@@ -243,6 +250,7 @@ export const CircuitBoard = () => {
 
   return (
     <div
+      aria-label="Interactive circuit board"
       className="board-surface"
       onDragOver={(event) => event.preventDefault()}
       onDrop={(event) => {
@@ -252,6 +260,7 @@ export const CircuitBoard = () => {
         }
       }}
       ref={containerRef}
+      tabIndex={0}
       style={{
         backgroundImage: state.currentCircuit.board.showGrid
           ? [

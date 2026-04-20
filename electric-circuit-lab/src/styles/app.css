@@ -19,6 +19,24 @@
   padding: 14px 14px 24px;
 }
 
+.app-status-banner {
+  padding: 8px 14px;
+  border-bottom: 1px solid rgba(81, 92, 109, 0.34);
+  font-size: 0.9rem;
+  color: #edf4ff;
+  background: rgba(30, 35, 43, 0.98);
+}
+
+.app-status-banner.is-success {
+  background: rgba(24, 55, 44, 0.96);
+  color: #d8fff1;
+}
+
+.app-status-banner.is-warning {
+  background: rgba(77, 54, 31, 0.96);
+  color: #ffedcb;
+}
+
 .app-main.is-studio {
   padding: 0;
   overflow: hidden;
@@ -261,6 +279,16 @@
   transform: translateY(-1px);
 }
 
+.icon-nav-button:disabled,
+.nav-pill:disabled,
+.ghost-button:disabled,
+.primary-button:disabled,
+.quick-tool:disabled {
+  opacity: 0.46;
+  cursor: not-allowed;
+  transform: none;
+}
+
 .topbar h1,
 .hero-copy h2,
 .section-hero h2,
@@ -484,6 +512,29 @@
 
 .list-row.static-row {
   cursor: default;
+}
+
+.saved-row {
+  align-items: stretch;
+  gap: 10px;
+}
+
+.saved-row-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+}
+
+.saved-row-main:hover {
+  transform: none;
 }
 
 .lesson-pill {
@@ -1053,6 +1104,10 @@
   border-radius: 16px;
   background: rgba(21, 26, 33, 0.92);
   border: 1px solid rgba(86, 99, 117, 0.24);
+}
+
+.checklist-row {
+  align-items: center;
 }
 
 .inline-code code {

@@ -1,10 +1,19 @@
 import { lessonIndex } from '../memory/lessonIndex'
 import { quizIndex } from '../memory/quizIndex'
+import { sampleCircuitIndex } from '../memory/contentRegistry'
 import { useCircuitLab } from '../state/CircuitLabContext'
 import { formatDateTime } from '../utils/format'
 
 export const ProgressView = () => {
-  const { state, loadSavedCircuit, setActiveLesson, setActiveQuiz } = useCircuitLab()
+  const {
+    state,
+    loadSavedCircuit,
+    setActiveLesson,
+    setActiveQuiz,
+    loadSample,
+    renameSavedCircuit,
+    deleteSavedCircuit,
+  } = useCircuitLab()
 
   const completedLessons = lessonIndex.filter((lesson) => state.learning.completedLessonIds.includes(lesson.id))
   const passedQuizzes = quizIndex.filter((quiz) => state.practice.results[quiz.id]?.lastCorrect)
@@ -56,20 +65,42 @@ export const ProgressView = () => {
           {state.savedCircuits.length > 0 ? (
             <div className="list-stack">
               {state.savedCircuits.map((circuit) => (
-                <button
-                  className="list-row"
-                  key={circuit.id}
-                  onClick={() => loadSavedCircuit(circuit.id)}
-                  type="button"
-                >
-                      <div>
-                        <strong>{circuit.name}</strong>
-                        <p>
-                          {circuit.components.length} components - {circuit.wires.length} wires
-                        </p>
-                      </div>
-                  <span className="tag">{formatDateTime(circuit.updatedAt)}</span>
-                </button>
+                <div className="list-row static-row saved-row" key={circuit.id}>
+                  <button className="saved-row-main" onClick={() => loadSavedCircuit(circuit.id)} type="button">
+                    <div>
+                      <strong>{circuit.name}</strong>
+                      <p>
+                        {circuit.components.length} components - {circuit.wires.length} wires
+                      </p>
+                    </div>
+                    <span className="tag">{formatDateTime(circuit.updatedAt)}</span>
+                  </button>
+                  <div className="inline-actions">
+                    <button
+                      className="ghost-button"
+                      onClick={() => {
+                        const name = window.prompt('Rename saved circuit', circuit.name)
+                        if (name !== null) {
+                          renameSavedCircuit(circuit.id, name)
+                        }
+                      }}
+                      type="button"
+                    >
+                      Rename
+                    </button>
+                    <button
+                      className="ghost-button danger"
+                      onClick={() => {
+                        if (window.confirm(`Delete "${circuit.name}" from local saved circuits?`)) {
+                          deleteSavedCircuit(circuit.id)
+                        }
+                      }}
+                      type="button"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
               ))}
             </div>
           ) : (
@@ -109,6 +140,26 @@ export const ProgressView = () => {
       </div>
 
       <div className="dashboard-grid">
+        <article className="surface-card">
+          <div className="section-heading">
+            <div>
+              <span className="eyebrow">Starter Boards</span>
+              <h3>Sample Workflow Launches</h3>
+            </div>
+          </div>
+          <div className="list-stack">
+            {sampleCircuitIndex.map((sample) => (
+              <button className="list-row" key={sample.id} onClick={() => loadSample(sample.id)} type="button">
+                <div>
+                  <strong>{sample.title}</strong>
+                  <p>{sample.summary}</p>
+                </div>
+                <span className="tag">{sample.learningFocus[0]}</span>
+              </button>
+            ))}
+          </div>
+        </article>
+
         <article className="surface-card">
           <div className="section-heading">
             <div>

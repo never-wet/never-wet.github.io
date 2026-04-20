@@ -28,6 +28,13 @@ import { snapPoint } from '../builder/geometry'
 import { simulateCircuit } from '../simulation/engine'
 import { loadPersistedState, pickPersistedState, savePersistedState } from './persistence'
 import {
+  circuitsMatchForHistory,
+  createEmptyHistoryState,
+  pushCircuitHistory,
+  redoCircuitHistory,
+  undoCircuitHistory,
+} from './history'
+import {
   cloneCircuit,
   createBlankCircuit,
   createComponentInstance,
@@ -42,6 +49,9 @@ import { createId } from '../utils/ids'
 
 interface CircuitLabContextValue {
   state: CircuitLabState
+  canUndo: boolean
+  canRedo: boolean
+  statusNotice: StatusNotice | null
   setActiveSection: (section: AppSection) => void
   setWorkspace: (workspace: WorkspaceType) => void
   setInspectorTab: (tab: InspectorTab) => void
@@ -51,10 +61,13 @@ interface CircuitLabContextValue {
   setPlacementMode: (mode: CircuitDocument['board']['placementMode']) => void
   addComponent: (typeId: string, position: Point) => void
   setSelection: (selection: SelectionState) => void
+  selectAllCircuitItems: () => void
   selectComponent: (componentId: string, additive?: boolean) => void
   selectWire: (wireId: string, additive?: boolean) => void
   clearSelection: () => void
   moveComponents: (updates: Array<{ id: string; position: Point }>) => void
+  nudgeSelection: (delta: Point) => void
+  duplicateSelection: () => void
   rotateSelected: () => void
   flipSelected: () => void
   deleteSelection: () => void
@@ -64,11 +77,18 @@ interface CircuitLabContextValue {
   updateDraftPointer: (point: Point | null) => void
   finishWire: (endpoint: WireEndpoint) => void
   cancelWire: () => void
+  beginUndoGroup: () => void
+  endUndoGroup: () => void
+  undoCircuit: () => void
+  redoCircuit: () => void
   runSimulation: () => void
   clearSimulation: () => void
   loadSample: (sampleId: string) => void
   loadSavedCircuit: (circuitId: string) => void
   saveCurrentCircuit: (name?: string) => void
+  renameCurrentCircuit: (name: string) => void
+  renameSavedCircuit: (circuitId: string, name: string) => void
+  deleteSavedCircuit: (circuitId: string) => void
   duplicateCurrentCircuit: (name?: string) => void
   resetCurrentCircuit: () => void
   openBlankSandbox: () => void
@@ -81,6 +101,17 @@ interface CircuitLabContextValue {
 }
 
 const CircuitLabContext = createContext<CircuitLabContextValue | null>(null)
+
+interface CircuitStateUpdateOptions {
+  recordHistory?: boolean
+  groupedHistory?: boolean
+  resetHistory?: boolean
+}
+
+interface StatusNotice {
+  message: string
+  tone: 'info' | 'success' | 'warning'
+}
 
 const createInitialState = (): CircuitLabState => {
   const persisted = loadPersistedState()
@@ -95,6 +126,7 @@ const createInitialState = (): CircuitLabState => {
     dashboard: structuredClone(persisted.dashboard),
     ui: structuredClone(persisted.ui),
     simulationPreferences: structuredClone(persisted.simulationPreferences),
+    history: createEmptyHistoryState(),
     selection: { componentIds: [], wireIds: [] },
     draftWire: null,
     simulationResult: null,
@@ -115,7 +147,18 @@ const deriveWorkspace = (section: AppSection): WorkspaceType => {
 
 export const CircuitLabProvider = ({ children }: PropsWithChildren) => {
   const [state, setState] = useState<CircuitLabState>(createInitialState)
+  const [statusNotice, setStatusNotice] = useState<StatusNotice | null>(null)
   const mountedRef = useRef(false)
+  const groupedUndoSnapshotRef = useRef<CircuitDocument | null>(null)
+
+  useEffect(() => {
+    if (!statusNotice) {
+      return
+    }
+
+    const timeout = window.setTimeout(() => setStatusNotice(null), 2800)
+    return () => window.clearTimeout(timeout)
+  }, [statusNotice])
 
   useEffect(() => {
     if (!mountedRef.current) {
@@ -162,6 +205,55 @@ export const CircuitLabProvider = ({ children }: PropsWithChildren) => {
     }))
   }
 
+  const applyCircuitState = (
+    updater: (prev: CircuitLabState) => CircuitLabState,
+    options: CircuitStateUpdateOptions = {},
+  ) => {
+    if (options.resetHistory) {
+      groupedUndoSnapshotRef.current = null
+    }
+
+    setState((prev) => {
+      const next = updater(prev)
+      if (next === prev) {
+        return prev
+      }
+
+      if (options.resetHistory) {
+        return {
+          ...next,
+          history: createEmptyHistoryState(),
+        }
+      }
+
+      if (!options.recordHistory) {
+        return next
+      }
+
+      if (circuitsMatchForHistory(prev.currentCircuit, next.currentCircuit)) {
+        return next
+      }
+
+      const groupedSnapshot = options.groupedHistory ? groupedUndoSnapshotRef.current : null
+      if (
+        groupedSnapshot &&
+        prev.history.past.length > 0 &&
+        circuitsMatchForHistory(prev.history.past[prev.history.past.length - 1], groupedSnapshot)
+      ) {
+        return next
+      }
+
+      return {
+        ...next,
+        history: pushCircuitHistory(prev.history, groupedSnapshot ?? prev.currentCircuit),
+      }
+    })
+  }
+
+  const pushStatus = (message: string, tone: StatusNotice['tone'] = 'info') => {
+    setStatusNotice({ message, tone })
+  }
+
   const setWorkspace = (workspace: WorkspaceType) => {
     const section = workspace === 'simulation' ? 'simulation' : workspace === 'sandbox' ? 'sandbox' : 'builder'
     setState((prev) => ({
@@ -189,7 +281,7 @@ export const CircuitLabProvider = ({ children }: PropsWithChildren) => {
   }
 
   const setBoardViewport = (pan: Point, zoom: number) => {
-    setState((prev) => ({
+    applyCircuitState((prev) => ({
       ...prev,
       currentCircuit: stampCircuit({
         ...prev.currentCircuit,
@@ -203,7 +295,7 @@ export const CircuitLabProvider = ({ children }: PropsWithChildren) => {
   }
 
   const toggleGrid = () => {
-    setState((prev) => ({
+    applyCircuitState((prev) => ({
       ...prev,
       currentCircuit: stampCircuit({
         ...prev.currentCircuit,
@@ -212,11 +304,11 @@ export const CircuitLabProvider = ({ children }: PropsWithChildren) => {
           showGrid: !prev.currentCircuit.board.showGrid,
         },
       }),
-    }))
+    }), { recordHistory: true })
   }
 
   const setPlacementMode = (mode: CircuitDocument['board']['placementMode']) => {
-    setState((prev) => ({
+    applyCircuitState((prev) => ({
       ...prev,
       currentCircuit: stampCircuit({
         ...prev.currentCircuit,
@@ -225,11 +317,11 @@ export const CircuitLabProvider = ({ children }: PropsWithChildren) => {
           placementMode: mode,
         },
       }),
-    }))
+    }), { recordHistory: true })
   }
 
   const addComponent = (typeId: string, position: Point) => {
-    setState((prev) => {
+    applyCircuitState((prev) => {
       const snapped = snapPoint(position, prev.currentCircuit.board.placementMode === 'grid')
       const instance = createComponentInstance(typeId, snapped)
 
@@ -250,11 +342,25 @@ export const CircuitLabProvider = ({ children }: PropsWithChildren) => {
           inspectorTab: 'inspector',
         },
       }
-    })
+    }, { recordHistory: true })
   }
 
   const setSelection = (selection: SelectionState) => {
     setState((prev) => ({ ...prev, selection }))
+  }
+
+  const selectAllCircuitItems = () => {
+    setState((prev) => ({
+      ...prev,
+      selection: {
+        componentIds: prev.currentCircuit.components.map((component) => component.id),
+        wireIds: prev.currentCircuit.wires.map((wire) => wire.id),
+      },
+      ui: {
+        ...prev.ui,
+        inspectorTab: 'inspector',
+      },
+    }))
   }
 
   const selectComponent = (componentId: string, additive = false) => {
@@ -306,7 +412,7 @@ export const CircuitLabProvider = ({ children }: PropsWithChildren) => {
   const moveComponents = (updates: Array<{ id: string; position: Point }>) => {
     const updateMap = new Map(updates.map((entry) => [entry.id, entry.position]))
 
-    setState((prev) => ({
+    applyCircuitState((prev) => ({
       ...prev,
       currentCircuit: stampCircuit({
         ...prev.currentCircuit,
@@ -326,11 +432,104 @@ export const CircuitLabProvider = ({ children }: PropsWithChildren) => {
           }
         }),
       }),
-    }))
+    }), { recordHistory: true, groupedHistory: true })
+  }
+
+  const nudgeSelection = (delta: Point) => {
+    applyCircuitState((prev) => {
+      if (prev.selection.componentIds.length === 0) {
+        return prev
+      }
+
+      return {
+        ...prev,
+        currentCircuit: stampCircuit({
+          ...prev.currentCircuit,
+          components: prev.currentCircuit.components.map((component) =>
+            prev.selection.componentIds.includes(component.id)
+              ? {
+                  ...component,
+                  position: snapPoint(
+                    {
+                      x: component.position.x + delta.x,
+                      y: component.position.y + delta.y,
+                    },
+                    prev.currentCircuit.board.placementMode === 'grid',
+                  ),
+                }
+              : component,
+          ),
+        }),
+      }
+    }, { recordHistory: true })
+  }
+
+  const duplicateSelection = () => {
+    applyCircuitState((prev) => {
+      if (prev.selection.componentIds.length === 0) {
+        return prev
+      }
+
+      const selectedIds = new Set(prev.selection.componentIds)
+      const cloneMap = new Map<string, string>()
+      const offset = prev.currentCircuit.board.placementMode === 'grid' ? performanceConfig.gridSize * 2 : 36
+      const duplicatedComponents = prev.currentCircuit.components
+        .filter((component) => selectedIds.has(component.id))
+        .map((component) => {
+          const nextId = createId(component.typeId)
+          cloneMap.set(component.id, nextId)
+          return {
+            ...structuredClone(component),
+            id: nextId,
+            position: {
+              x: component.position.x + offset,
+              y: component.position.y + offset,
+            },
+          }
+        })
+
+      if (duplicatedComponents.length === 0) {
+        return prev
+      }
+
+      const duplicatedWires = prev.currentCircuit.wires
+        .filter(
+          (wire) =>
+            selectedIds.has(wire.from.componentId) &&
+            selectedIds.has(wire.to.componentId),
+        )
+        .map((wire) => ({
+          ...structuredClone(wire),
+          id: createId('wire'),
+          from: {
+            componentId: cloneMap.get(wire.from.componentId)!,
+            terminalId: wire.from.terminalId,
+          },
+          to: {
+            componentId: cloneMap.get(wire.to.componentId)!,
+            terminalId: wire.to.terminalId,
+          },
+        }))
+
+      return {
+        ...prev,
+        currentCircuit: stampCircuit({
+          ...prev.currentCircuit,
+          components: [...prev.currentCircuit.components, ...duplicatedComponents],
+          wires: [...prev.currentCircuit.wires, ...duplicatedWires],
+        }),
+        selection: {
+          componentIds: duplicatedComponents.map((component) => component.id),
+          wireIds: duplicatedWires.map((wire) => wire.id),
+        },
+      }
+    }, { recordHistory: true })
+
+    pushStatus('Duplicated the current selection.', 'success')
   }
 
   const rotateSelected = () => {
-    setState((prev) => ({
+    applyCircuitState((prev) => ({
       ...prev,
       currentCircuit: stampCircuit({
         ...prev.currentCircuit,
@@ -343,11 +542,11 @@ export const CircuitLabProvider = ({ children }: PropsWithChildren) => {
             : component,
         ),
       }),
-    }))
+    }), { recordHistory: true })
   }
 
   const flipSelected = () => {
-    setState((prev) => ({
+    applyCircuitState((prev) => ({
       ...prev,
       currentCircuit: stampCircuit({
         ...prev.currentCircuit,
@@ -357,20 +556,20 @@ export const CircuitLabProvider = ({ children }: PropsWithChildren) => {
             : component,
         ),
       }),
-    }))
+    }), { recordHistory: true })
   }
 
   const deleteSelection = () => {
-    setState((prev) => ({
+    applyCircuitState((prev) => ({
       ...prev,
       currentCircuit: removeComponentsFromCircuit(prev.currentCircuit, prev.selection),
       selection: { componentIds: [], wireIds: [] },
       draftWire: null,
-    }))
+    }), { recordHistory: true })
   }
 
   const removeWire = (wireId: string) => {
-    setState((prev) => ({
+    applyCircuitState((prev) => ({
       ...prev,
       currentCircuit: stampCircuit({
         ...prev.currentCircuit,
@@ -380,11 +579,11 @@ export const CircuitLabProvider = ({ children }: PropsWithChildren) => {
         componentIds: prev.selection.componentIds,
         wireIds: prev.selection.wireIds.filter((id) => id !== wireId),
       },
-    }))
+    }), { recordHistory: true })
   }
 
   const updateComponentParams = (componentId: string, patch: Record<string, PrimitiveValue>) => {
-    setState((prev) => ({
+    applyCircuitState((prev) => ({
       ...prev,
       currentCircuit: stampCircuit({
         ...prev.currentCircuit,
@@ -394,7 +593,7 @@ export const CircuitLabProvider = ({ children }: PropsWithChildren) => {
             : component,
         ),
       }),
-    }))
+    }), { recordHistory: true })
   }
 
   const startWire = (endpoint: WireEndpoint) => {
@@ -419,7 +618,7 @@ export const CircuitLabProvider = ({ children }: PropsWithChildren) => {
   }
 
   const finishWire = (endpoint: WireEndpoint) => {
-    setState((prev) => {
+    applyCircuitState((prev) => {
       if (!prev.draftWire) {
         return prev
       }
@@ -458,7 +657,7 @@ export const CircuitLabProvider = ({ children }: PropsWithChildren) => {
         }),
         draftWire: null,
       }
-    })
+    }, { recordHistory: true })
   }
 
   const cancelWire = () => {
@@ -466,6 +665,54 @@ export const CircuitLabProvider = ({ children }: PropsWithChildren) => {
       ...prev,
       draftWire: null,
     }))
+  }
+
+  const beginUndoGroup = () => {
+    if (!groupedUndoSnapshotRef.current) {
+      groupedUndoSnapshotRef.current = cloneCircuit(state.currentCircuit)
+    }
+  }
+
+  const endUndoGroup = () => {
+    groupedUndoSnapshotRef.current = null
+  }
+
+  const undoCircuit = () => {
+    groupedUndoSnapshotRef.current = null
+    setState((prev) => {
+      const restored = undoCircuitHistory(prev.history, prev.currentCircuit)
+      if (!restored) {
+        return prev
+      }
+
+      return {
+        ...prev,
+        currentCircuit: restored.currentCircuit,
+        history: restored.history,
+        selection: { componentIds: [], wireIds: [] },
+        draftWire: null,
+      }
+    })
+    pushStatus('Undid the last circuit edit.', 'info')
+  }
+
+  const redoCircuit = () => {
+    groupedUndoSnapshotRef.current = null
+    setState((prev) => {
+      const restored = redoCircuitHistory(prev.history, prev.currentCircuit)
+      if (!restored) {
+        return prev
+      }
+
+      return {
+        ...prev,
+        currentCircuit: restored.currentCircuit,
+        history: restored.history,
+        selection: { componentIds: [], wireIds: [] },
+        draftWire: null,
+      }
+    })
+    pushStatus('Restored the next circuit edit.', 'info')
   }
 
   const runSimulation = () => {
@@ -495,7 +742,7 @@ export const CircuitLabProvider = ({ children }: PropsWithChildren) => {
       return
     }
 
-    setState((prev) => ({
+    applyCircuitState((prev) => ({
       ...prev,
       currentCircuit: cloneCircuit(sample.circuit),
       selection: { componentIds: [], wireIds: [] },
@@ -514,11 +761,13 @@ export const CircuitLabProvider = ({ children }: PropsWithChildren) => {
         activeSection: sample.circuit.mode === 'sandbox' ? 'sandbox' : 'builder',
         activeWorkspace: sample.circuit.mode === 'sandbox' ? 'sandbox' : 'builder',
       },
-    }))
+    }), { resetHistory: true })
+    pushStatus(`Loaded sample board "${sample.title}".`, 'success')
   }
 
   const loadSavedCircuit = (circuitId: string) => {
-    setState((prev) => {
+    const savedCircuitName = state.savedCircuits.find((entry) => entry.id === circuitId)?.name
+    applyCircuitState((prev) => {
       const saved = prev.savedCircuits.find((entry) => entry.id === circuitId)
       if (!saved) {
         return prev
@@ -541,7 +790,11 @@ export const CircuitLabProvider = ({ children }: PropsWithChildren) => {
           activeWorkspace: saved.mode === 'sandbox' ? 'sandbox' : 'builder',
         },
       }
-    })
+    }, { resetHistory: true })
+
+    if (savedCircuitName) {
+      pushStatus(`Loaded saved circuit "${savedCircuitName}".`, 'success')
+    }
   }
 
   const saveCurrentCircuit = (name?: string) => {
@@ -571,10 +824,80 @@ export const CircuitLabProvider = ({ children }: PropsWithChildren) => {
         lastOpenedWorkspaceId: namedCircuit.id,
       }
     })
+    pushStatus(`Saved "${name?.trim() || state.currentCircuit.name}" locally.`, 'success')
+  }
+
+  const renameCurrentCircuit = (name: string) => {
+    const nextName = name.trim()
+    if (!nextName) {
+      return
+    }
+
+    setState((prev) => {
+      const renamedCircuit = stampCircuit({
+        ...prev.currentCircuit,
+        name: nextName,
+      })
+
+      return {
+        ...prev,
+        currentCircuit: renamedCircuit,
+        savedCircuits: prev.savedCircuits.map((entry) =>
+          entry.id === renamedCircuit.id ? renamedCircuit : entry,
+        ),
+      }
+    })
+
+    pushStatus(`Renamed the current circuit to "${nextName}".`, 'success')
+  }
+
+  const renameSavedCircuit = (circuitId: string, name: string) => {
+    const nextName = name.trim()
+    if (!nextName) {
+      return
+    }
+
+    setState((prev) => {
+      const saved = prev.savedCircuits.find((entry) => entry.id === circuitId)
+      if (!saved) {
+        return prev
+      }
+
+      const renamed = stampCircuit({
+        ...saved,
+        name: nextName,
+      })
+
+      return {
+        ...prev,
+        currentCircuit:
+          prev.currentCircuit.id === circuitId ? renamed : prev.currentCircuit,
+        savedCircuits: prev.savedCircuits.map((entry) =>
+          entry.id === circuitId ? renamed : entry,
+        ),
+      }
+    })
+
+    pushStatus(`Renamed a saved circuit to "${nextName}".`, 'success')
+  }
+
+  const deleteSavedCircuit = (circuitId: string) => {
+    setState((prev) => ({
+      ...prev,
+      savedCircuits: prev.savedCircuits.filter((entry) => entry.id !== circuitId),
+      dashboard: {
+        ...prev.dashboard,
+        recentCircuitIds: prev.dashboard.recentCircuitIds.filter((id) => id !== circuitId),
+      },
+      lastOpenedWorkspaceId:
+        prev.lastOpenedWorkspaceId === circuitId ? prev.currentCircuit.id : prev.lastOpenedWorkspaceId,
+    }))
+
+    pushStatus('Deleted the saved circuit from local storage.', 'warning')
   }
 
   const duplicateCurrentCircuit = (name?: string) => {
-    setState((prev) => {
+    applyCircuitState((prev) => {
       const copied = stampCircuit(
         {
           ...cloneCircuit(prev.currentCircuit),
@@ -596,11 +919,12 @@ export const CircuitLabProvider = ({ children }: PropsWithChildren) => {
         lastOpenedWorkspaceId: copied.id,
         selection: { componentIds: [], wireIds: [] },
       }
-    })
+    }, { resetHistory: true })
+    pushStatus(`Created "${name?.trim() || `${state.currentCircuit.name} Copy`}".`, 'success')
   }
 
   const resetCurrentCircuit = () => {
-    setState((prev) => {
+    applyCircuitState((prev) => {
       const matchingSample = sampleCircuitIndex.find(
         (sample) =>
           sample.circuit.id === prev.currentCircuit.id ||
@@ -618,12 +942,13 @@ export const CircuitLabProvider = ({ children }: PropsWithChildren) => {
         draftWire: null,
         simulationResult: null,
       }
-    })
+    }, { resetHistory: true })
+    pushStatus('Reset the workspace to its starter state.', 'warning')
   }
 
   const openBlankSandbox = () => {
     const blank = createBlankCircuit()
-    setState((prev) => ({
+    applyCircuitState((prev) => ({
       ...prev,
       currentCircuit: blank,
       selection: { componentIds: [], wireIds: [] },
@@ -635,7 +960,8 @@ export const CircuitLabProvider = ({ children }: PropsWithChildren) => {
         activeWorkspace: 'sandbox',
       },
       lastOpenedWorkspaceId: blank.id,
-    }))
+    }), { resetHistory: true })
+    pushStatus('Opened a blank sandbox board.', 'success')
   }
 
   const importCircuit = (circuit: CircuitDocument) => {
@@ -645,7 +971,7 @@ export const CircuitLabProvider = ({ children }: PropsWithChildren) => {
       name: circuit.name || 'Imported Circuit',
     })
 
-    setState((prev) => ({
+    applyCircuitState((prev) => ({
       ...prev,
       currentCircuit: imported,
       selection: { componentIds: [], wireIds: [] },
@@ -662,7 +988,8 @@ export const CircuitLabProvider = ({ children }: PropsWithChildren) => {
         activeSection: imported.mode === 'sandbox' ? 'sandbox' : 'builder',
         activeWorkspace: imported.mode === 'sandbox' ? 'sandbox' : 'builder',
       },
-    }))
+    }), { resetHistory: true })
+    pushStatus(`Imported "${imported.name}" from JSON.`, 'success')
   }
 
   const markLessonComplete = (lessonId: string) => {
@@ -770,6 +1097,9 @@ export const CircuitLabProvider = ({ children }: PropsWithChildren) => {
     <CircuitLabContext.Provider
       value={{
         state,
+        canUndo: state.history.past.length > 0,
+        canRedo: state.history.future.length > 0,
+        statusNotice,
         setActiveSection,
         setWorkspace,
         setInspectorTab,
@@ -779,10 +1109,13 @@ export const CircuitLabProvider = ({ children }: PropsWithChildren) => {
         setPlacementMode,
         addComponent,
         setSelection,
+        selectAllCircuitItems,
         selectComponent,
         selectWire,
         clearSelection,
         moveComponents,
+        nudgeSelection,
+        duplicateSelection,
         rotateSelected,
         flipSelected,
         deleteSelection,
@@ -792,11 +1125,18 @@ export const CircuitLabProvider = ({ children }: PropsWithChildren) => {
         updateDraftPointer,
         finishWire,
         cancelWire,
+        beginUndoGroup,
+        endUndoGroup,
+        undoCircuit,
+        redoCircuit,
         runSimulation,
         clearSimulation,
         loadSample,
         loadSavedCircuit,
         saveCurrentCircuit,
+        renameCurrentCircuit,
+        renameSavedCircuit,
+        deleteSavedCircuit,
         duplicateCurrentCircuit,
         resetCurrentCircuit,
         openBlankSandbox,

@@ -12,7 +12,7 @@ import { LibraryView } from './library/LibraryView'
 import { PracticeView } from './quiz/PracticeView'
 
 const AppContent = () => {
-  const { state } = useCircuitLab()
+  const { state, statusNotice } = useCircuitLab()
   const isStudioSection =
     state.ui.activeSection === 'builder' ||
     state.ui.activeSection === 'simulation' ||
@@ -21,6 +21,15 @@ const AppContent = () => {
   return (
     <div className={isStudioSection ? 'app-shell is-studio-shell' : 'app-shell'}>
       <AppHeader />
+      {statusNotice && (
+        <div
+          aria-live="polite"
+          className={`app-status-banner is-${statusNotice.tone}`}
+          role="status"
+        >
+          {statusNotice.message}
+        </div>
+      )}
       <main className={isStudioSection ? 'app-main is-studio' : 'app-main'}>
         {state.ui.activeSection === 'home' && <HomeView />}
         {state.ui.activeSection === 'learn' && <LearnView />}

@@ -30,11 +30,14 @@ export const uiManifest = {
   ],
   toolbarActions: [
     'Run simulation',
+    'Undo and redo circuit edits',
+    'Select all, duplicate, and nudge selections',
     'Reset workspace',
     'Toggle grid snapping',
     'Rotate selection',
     'Flip selection',
     'Save current circuit',
+    'Rename or manage local saves',
     'Export JSON',
   ],
   panels: [

@@ -8,6 +8,11 @@ export const PracticeView = () => {
   const quiz = quizIndex.find((entry) => entry.id === state.practice.activeQuizId) ?? quizIndex[0]
   const [selectedChoice, setSelectedChoice] = useState<string | null>(null)
   const [feedback, setFeedback] = useState<{ correct: boolean; message: string } | null>(null)
+  const buildSimulation = quiz.kind === 'build-check' ? simulateCircuit(state.currentCircuit) : null
+  const currentTypeCounts = state.currentCircuit.components.reduce<Record<string, number>>((accumulator, component) => {
+    accumulator[component.typeId] = (accumulator[component.typeId] ?? 0) + 1
+    return accumulator
+  }, {})
 
   useEffect(() => {
     setSelectedChoice(null)
@@ -22,17 +27,36 @@ export const PracticeView = () => {
     }
 
     const hasRequiredTypes = requirement.requiredTypes.every((typeId) => currentTypes.has(typeId))
+    const hasRequiredTypeCounts = Object.entries(requirement.requiredTypeCounts ?? {}).every(
+      ([typeId, count]) => (currentTypeCounts[typeId] ?? 0) >= count,
+    )
     const hasWireCount = state.currentCircuit.wires.length >= requirement.minimumWires
-    const simulation = simulateCircuit(state.currentCircuit)
+    const simulation = buildSimulation ?? simulateCircuit(state.currentCircuit)
     const passesLoop = requirement.mustBeClosedLoop ? simulation.isClosedCircuit : true
-    const correct = hasRequiredTypes && hasWireCount && passesLoop
+    const passesBranches = requirement.minimumBranches ? simulation.branchStates.length >= requirement.minimumBranches : true
+    const passesPoweredTypes = (requirement.requiredPoweredTypes ?? []).every((typeId) =>
+      state.currentCircuit.components.some(
+        (component) =>
+          component.typeId === typeId &&
+          simulation.componentStates[component.id]?.status === 'powered',
+      ),
+    )
+    const avoidsForbiddenTypes = !(requirement.forbiddenTypes ?? []).some((typeId) => currentTypes.has(typeId))
+    const correct =
+      hasRequiredTypes &&
+      hasRequiredTypeCounts &&
+      hasWireCount &&
+      passesLoop &&
+      passesBranches &&
+      passesPoweredTypes &&
+      avoidsForbiddenTypes
 
     submitQuizAnswer(quiz.id, correct)
     setFeedback({
       correct,
       message: correct
         ? quiz.explanation
-        : `${quiz.hint} Make sure the board includes ${requirement.requiredTypes.join(', ')} and enough wiring.`,
+        : `${quiz.hint} Make sure the board includes ${requirement.requiredTypes.join(', ')}, enough wiring, and the right powered result.`,
     })
   }
 
@@ -49,6 +73,52 @@ export const PracticeView = () => {
       message: correct ? quiz.explanation : quiz.hint,
     })
   }
+
+  const buildChecks =
+    quiz.kind === 'build-check' && quiz.expectedBuild && buildSimulation
+      ? [
+          {
+            label: 'Required types',
+            passed: quiz.expectedBuild.requiredTypes.every((typeId) => currentTypeCounts[typeId] > 0),
+            detail: quiz.expectedBuild.requiredTypes.join(', '),
+          },
+          ...Object.entries(quiz.expectedBuild.requiredTypeCounts ?? {}).map(([typeId, count]) => ({
+            label: `${typeId} count`,
+            passed: (currentTypeCounts[typeId] ?? 0) >= count,
+            detail: `${currentTypeCounts[typeId] ?? 0}/${count}`,
+          })),
+          {
+            label: 'Minimum wires',
+            passed: state.currentCircuit.wires.length >= quiz.expectedBuild.minimumWires,
+            detail: `${state.currentCircuit.wires.length}/${quiz.expectedBuild.minimumWires}`,
+          },
+          {
+            label: 'Closed loop',
+            passed: quiz.expectedBuild.mustBeClosedLoop ? buildSimulation.isClosedCircuit : true,
+            detail: quiz.expectedBuild.mustBeClosedLoop ? (buildSimulation.isClosedCircuit ? 'closed' : 'open') : 'optional',
+          },
+          {
+            label: 'Branch count',
+            passed: quiz.expectedBuild.minimumBranches ? buildSimulation.branchStates.length >= quiz.expectedBuild.minimumBranches : true,
+            detail: quiz.expectedBuild.minimumBranches ? `${buildSimulation.branchStates.length}/${quiz.expectedBuild.minimumBranches}` : 'optional',
+          },
+          {
+            label: 'Powered outputs',
+            passed: (quiz.expectedBuild.requiredPoweredTypes ?? []).every((typeId) =>
+              state.currentCircuit.components.some(
+                (component) =>
+                  component.typeId === typeId &&
+                  buildSimulation.componentStates[component.id]?.status === 'powered',
+              ),
+            ),
+            detail:
+              quiz.expectedBuild.requiredPoweredTypes && quiz.expectedBuild.requiredPoweredTypes.length > 0
+                ? quiz.expectedBuild.requiredPoweredTypes.join(', ')
+                : 'optional',
+          },
+        ]
+      : []
+  const result = state.practice.results[quiz.id]
 
   return (
     <section className="page-stack">
@@ -121,19 +191,46 @@ export const PracticeView = () => {
 
           <div className="challenge-panel">
             <p className="lead-paragraph">{quiz.prompt}</p>
+            <div className="simulation-chip-row">
+              <span className="tag">{quiz.kind}</span>
+              <span className={result?.lastCorrect ? 'tag success' : 'tag'}>
+                {result ? `${result.attempts} attempt${result.attempts === 1 ? '' : 's'}` : 'new'}
+              </span>
+            </div>
 
             {quiz.kind === 'build-check' && quiz.expectedBuild ? (
-              <div className="detail-card">
-                <h4>Build Requirements</h4>
-                <ul className="clean-list">
-                  {quiz.expectedBuild.notes.map((note) => (
-                    <li key={note}>{note}</li>
-                  ))}
-                </ul>
-                <button className="primary-button" onClick={checkBuildChallenge} type="button">
-                  Check Current Workspace
-                </button>
-              </div>
+              <>
+                <div className="detail-grid">
+                  <div className="detail-card">
+                    <h4>Build Requirements</h4>
+                    <ul className="clean-list">
+                      {quiz.expectedBuild.notes.map((note) => (
+                        <li key={note}>{note}</li>
+                      ))}
+                    </ul>
+                    <button className="primary-button" onClick={checkBuildChallenge} type="button">
+                      Check Current Workspace
+                    </button>
+                  </div>
+
+                  <div className="detail-card">
+                    <h4>Live Build Checklist</h4>
+                    <div className="list-stack">
+                      {buildChecks.map((check) => (
+                        <div className="list-row static-row checklist-row" key={check.label}>
+                          <div>
+                            <strong>{check.label}</strong>
+                            <p>{check.detail}</p>
+                          </div>
+                          <span className={check.passed ? 'tag success' : 'tag'}>
+                            {check.passed ? 'pass' : 'pending'}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </>
             ) : (
               <div className="choice-grid">
                 {quiz.choices?.map((choice) => {

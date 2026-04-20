@@ -15,6 +15,7 @@ export const AppHeader = () => {
           {primarySections.map((section) => (
             <button
               key={section.id}
+              aria-pressed={state.ui.activeSection === section.id}
               className={state.ui.activeSection === section.id ? 'icon-nav-button is-active' : 'icon-nav-button'}
               onClick={() => setActiveSection(section.id)}
               type="button"
@@ -35,12 +36,12 @@ export const AppHeader = () => {
           New circuit
         </button>
         <button className="ghost-button" onClick={() => setActiveSection('library')} type="button">
-          Search
+          Library
         </button>
         <button className="ghost-button" onClick={() => setWorkspace('sandbox')} type="button">
           Sandbox
         </button>
-        <button className="primary-button" onClick={runSimulation} type="button">
+        <button aria-keyshortcuts="Enter" className="primary-button" onClick={runSimulation} type="button">
           Run
         </button>
       </div>
