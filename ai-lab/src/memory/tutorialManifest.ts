@@ -60,24 +60,24 @@ export const tutorialManifest: TutorialStep[] = [
     bullets: [
       'Drag blocks into the builder and connect them to form a valid network flow.',
       'Select a block to edit its parameters in the inspector.',
-      'This area controls what the browser training system will try to train.',
+      'Saved model runs can now be loaded back into the builder so you can continue iterating from previous versions.',
     ],
     targetBottomTab: 'builder',
     areaLabel: 'Bottom tab: Network Builder',
   },
   {
     id: 'training',
-    eyebrow: 'Training Console',
-    title: 'Use training to run the model in the browser',
+    eyebrow: 'Model Trainer',
+    title: 'Train, compare, and test models in the browser',
     summary:
-      'Training runs the current architecture against a small local task and shows metrics, predictions, and saved model state.',
+      'Model Trainer runs the current architecture against built-in or imported tabular datasets, saves completed runs, and lets you test saved models with custom inputs.',
     bullets: [
-      'Choose a preset task like XOR, then train the current builder flow locally with TensorFlow.js.',
-      'Watch the loss and accuracy charts to see whether learning is improving.',
-      'After training, inspect predictions and saved model records in the workspace.',
+      'Choose a preset recipe like XOR, or import your own CSV or JSON dataset and set its target field.',
+      'Watch the loss and accuracy charts, then compare saved runs side by side like an experiment tracker.',
+      'After training, use the interactive sandbox to test the saved browser model with your own inputs or load that run back into the builder.',
     ],
     targetBottomTab: 'training',
-    areaLabel: 'Bottom tab: Training Console',
+    areaLabel: 'Bottom tab: Model Trainer',
   },
   {
     id: 'notes',
@@ -96,15 +96,16 @@ export const tutorialManifest: TutorialStep[] = [
   {
     id: 'workspace',
     eyebrow: 'Saving',
-    title: 'Everything stays local unless you export it',
+    title: 'Use storage tools for backup, reset, and sample starts',
     summary:
-      'The lab autosaves locally in your browser, and you can also export the whole workspace or a canvas file.',
+      'The lab autosaves locally in your browser, and the storage panel is where you export backups, import workspaces, reset safely, or launch sample setups.',
     bullets: [
       'The main workspace data is autosaved locally for quick reloads.',
       'Use Export when you want a shareable or backup file.',
-      'Use Workspace when you want to inspect persistence, import data, or reset the demo.',
+      'Use the sample launch buttons when you want to jump straight into XOR, spiral, or sine workflows.',
+      'Use Storage & Export when you want to inspect persistence, import data, or reset the demo.',
     ],
     targetBottomTab: 'workspace',
-    areaLabel: 'Bottom tab: Workspace',
+    areaLabel: 'Bottom tab: Storage & Export',
   },
 ]

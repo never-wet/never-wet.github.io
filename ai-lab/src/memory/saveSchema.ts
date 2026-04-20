@@ -1,6 +1,6 @@
 import type { ExportEnvelope, WorkspaceStateData } from './types'
 
-export const SAVE_SCHEMA_VERSION = 1
+export const SAVE_SCHEMA_VERSION = 2
 
 const isObject = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null
@@ -17,6 +17,21 @@ export const normalizeImportedWorkspace = (
     'workspace' in payload && isObject(payload.workspace)
       ? (payload.workspace as unknown as WorkspaceStateData)
       : (payload as unknown as WorkspaceStateData)
+
+  const normalizedDatasets = Array.isArray(workspace.datasets)
+    ? workspace.datasets.map((dataset) => {
+        const fallbackDataset = fallback.datasets.find((entry) => entry.id === dataset.id)
+        return {
+          ...fallbackDataset,
+          ...dataset,
+          source: dataset.source ?? fallbackDataset?.source ?? 'preset',
+          taskType:
+            dataset.taskType ??
+            fallbackDataset?.taskType ??
+            (dataset.presetId === 'sine-lab' ? 'regression' : 'binary-classification'),
+        }
+      })
+    : fallback.datasets
 
   return {
     ...fallback,
@@ -35,7 +50,7 @@ export const normalizeImportedWorkspace = (
     nodes: Array.isArray(workspace.nodes) ? workspace.nodes : fallback.nodes,
     links: Array.isArray(workspace.links) ? workspace.links : fallback.links,
     notes: Array.isArray(workspace.notes) ? workspace.notes : fallback.notes,
-    datasets: Array.isArray(workspace.datasets) ? workspace.datasets : fallback.datasets,
+    datasets: normalizedDatasets,
     experiments: Array.isArray(workspace.experiments)
       ? workspace.experiments
       : fallback.experiments,

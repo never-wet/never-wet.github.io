@@ -9,19 +9,44 @@ interface WorkspacePanelProps {
   onExport: () => void
   onImport: () => void
   onReset: () => void
+  onLoadSample: (presetId: 'xor-lab' | 'spiral-lab' | 'sine-lab') => void
 }
 
 export const WorkspacePanel = ({
   onExport,
   onImport,
   onReset,
+  onLoadSample,
 }: WorkspacePanelProps) => (
   <PanelFrame
-    eyebrow="Workspace"
-    title="Local persistence and source-of-truth files"
-    subtitle="Everything in this lab stays local-first, with lightweight memory files that future assistants can read quickly."
+    eyebrow="Storage"
+    title="Persistence, export, and sample launches"
+    subtitle="The lab stays local-first, and this panel is the recovery and setup surface for imports, backups, resets, and starter recipes."
   >
     <div className="workspace-panel">
+      <div className="chart-card">
+        <div className="chart-card__header">
+          <div>
+            <p className="section-kicker">Quick start</p>
+            <h3>Load a guided sample flow</h3>
+          </div>
+        </div>
+        <p className="muted-copy">
+          Sample launches swap the trainer recipe and builder flow together so new users can start from a known-good setup quickly.
+        </p>
+        <div className="workspace-actions">
+          <button type="button" className="secondary-button" onClick={() => onLoadSample('xor-lab')}>
+            XOR starter
+          </button>
+          <button type="button" className="secondary-button" onClick={() => onLoadSample('spiral-lab')}>
+            Spiral starter
+          </button>
+          <button type="button" className="secondary-button" onClick={() => onLoadSample('sine-lab')}>
+            Sine starter
+          </button>
+        </div>
+      </div>
+
       <div className="chart-card">
         <div className="chart-card__header">
           <div>
@@ -66,6 +91,9 @@ export const WorkspacePanel = ({
             Reset demo
           </button>
         </div>
+        <p className="muted-copy">
+          Exports capture the full workspace JSON, while completed browser models stay stored locally in IndexedDB until you reset or clear browser storage.
+        </p>
       </div>
 
       <div className="chart-card">

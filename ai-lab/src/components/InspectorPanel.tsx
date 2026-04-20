@@ -40,6 +40,7 @@ export const InspectorPanel = () => {
     setBottomTab,
     setInspectorTab,
     createLinkedNote,
+    loadModelIntoBuilder,
   } = useLabStore(
     useShallow((state) => ({
       nodes: state.nodes,
@@ -53,6 +54,7 @@ export const InspectorPanel = () => {
       setBottomTab: state.setBottomTab,
       setInspectorTab: state.setInspectorTab,
       createLinkedNote: state.createLinkedNote,
+      loadModelIntoBuilder: state.loadModelIntoBuilder,
     })),
   )
 
@@ -134,6 +136,15 @@ export const InspectorPanel = () => {
                     <h3>Experiment</h3>
                     <p>{experiment.description}</p>
                   </div>
+                ) : null}
+                {model ? (
+                  <button
+                    type="button"
+                    className="secondary-button"
+                    onClick={() => loadModelIntoBuilder(model.id)}
+                  >
+                    Load model into builder
+                  </button>
                 ) : null}
                 <button
                   type="button"

@@ -7,11 +7,51 @@ Cortex Lab is a browser-based AI workspace built with React, TypeScript, and Vit
 - A real 3D floating graph using `react-force-graph-3d` and Three.js
 - Node dragging, orbit controls, zoom, hover, click focus, highlighting, and category filters
 - A flowchart-style neural network builder using `@xyflow/react`
-- Browser-side model training and testing using TensorFlow.js
+- Browser-side model training, saved-run comparison, and local inference using TensorFlow.js
+- CSV / JSON tabular dataset import with browser-side validation and target-field selection
 - Notes, backlinks, tags, datasets, experiments, models, and result snapshots
 - Local-first persistence with `localStorage`, IndexedDB snapshots, and IndexedDB model saves
 - Import/export of workspace JSON
 - Compact memory files under `src/memory/` so future assistants can orient quickly
+
+## What people can make with it
+
+- Visual neural network architectures
+- Small in-browser AI experiments and model sandboxes
+- Obsidian-style AI research notebooks
+- 2D canvas boards linking notes, datasets, models, and results
+- 3D knowledge graphs of experiments and ideas
+- Versioned local model runs with comparisons
+- Interactive portfolio or classroom ML demos
+
+## What people can do in it
+
+- Build a neural network with drag-and-drop blocks
+- Import a small CSV or JSON dataset
+- Train a model directly in the browser
+- Test a saved model with custom inputs
+- Compare one training run against another
+- Link notes to datasets, models, experiments, and results
+- Explore everything in graph view and canvas view
+- Save, export, import, reset, and relaunch sample setups locally
+
+## Good use cases
+
+- Learning how neural networks work
+- Teaching ML concepts visually
+- Prototyping small tabular ML experiments
+- Keeping an AI research notebook
+- Organizing datasets, architectures, results, and notes in one place
+- Building an interactive ML portfolio project
+
+## Project ideas
+
+- An XOR learning walkthrough that explains hidden layers
+- A browser-based binary classifier trained from a small CSV
+- A regression playground for comparing hyperparameters
+- A visual research notebook for datasets, experiments, and saved runs
+- A model comparison board for class projects
+- An architecture concept map for teaching AI workflows
 
 ## Tech stack
 
@@ -44,6 +84,7 @@ docs/
   ARCHITECTURE.md
   GRAPH_SYSTEM.md
   ADDING_NODE_TYPES.md
+  FINISHING_CHECKLIST.md
 ```
 
 ## Getting started
@@ -90,14 +131,44 @@ The builder uses a sequential validation pass to ensure the trainable path has e
 
 ### Training
 
-Training presets generate lightweight demo datasets such as XOR, spiral classification, and sine regression. Completed runs save model weights into IndexedDB and create linked model/result nodes in the workspace graph.
+Training presets generate lightweight demo datasets such as XOR, spiral classification, and sine regression. You can also import small CSV or JSON tabular datasets, choose a target field, and train those locally in the browser. Completed runs save model weights into IndexedDB, create linked model/result nodes in the workspace graph, power an interactive local inference sandbox, support side-by-side run comparison, and can be loaded back into the builder for continued iteration.
+
+### Research-inspired systems
+
+The training workflow borrows proven interaction ideas from well-known browser AI tools:
+
+- TensorFlow Playground for direct train-and-observe iteration
+- Teachable Machine for simple local model testing after training
+- Weights & Biases run comparer for side-by-side experiment comparison
+
+### Product completion polish
+
+- `Model Trainer` now closes the build -> train -> test -> compare loop in one place.
+- `Storage & Export` includes backup/reset controls plus sample launches for XOR, spiral, and sine workflows.
+- Notes now include reusable experiment, training, and result templates.
+- The top toolbar includes an `Ideas` button so users can see practical things to build with the app.
 
 ### Persistence
 
 Zustand persists the main workspace state to `localStorage`. A debounced IndexedDB snapshot mirrors the workspace payload, and completed TensorFlow.js models are saved with the `indexeddb://` backend.
+
+## Best at
+
+- Local, lightweight AI experimentation
+- Visual learning and explanation
+- Connected notes plus experiment tracking
+- Small datasets and quick model iteration
+
+## Not best at
+
+- Large production datasets
+- Heavy long-running training jobs
+- Multi-user collaboration
+- Shipping large real-world models to end users
 
 ## Documentation
 
 - [Architecture](./docs/ARCHITECTURE.md)
 - [Graph system](./docs/GRAPH_SYSTEM.md)
 - [Adding node types](./docs/ADDING_NODE_TYPES.md)
+- [Finishing checklist](./docs/FINISHING_CHECKLIST.md)

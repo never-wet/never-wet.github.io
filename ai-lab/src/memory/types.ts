@@ -206,9 +206,13 @@ export interface DatasetRecord {
   title: string
   description: string
   tags: string[]
+  source: 'preset' | 'imported'
+  taskType: TrainingTaskType
   schema: string[]
   targetField: string
   sampleRows: Array<Record<string, number | string>>
+  rows?: Array<Record<string, number | string>>
+  classLabels?: string[]
   presetId: string
 }
 
@@ -231,6 +235,12 @@ export interface ModelRecord {
   description: string
   experimentId: string
   version: number
+  presetId?: string
+  datasetId?: string
+  builderTitle?: string
+  builderSignature?: string
+  configSnapshot?: TrainingConfig
+  builderSnapshot?: BuilderFlowState
   storageKey?: string
   parameterEstimate?: number
   metrics?: MetricSummary

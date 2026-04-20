@@ -864,6 +864,13 @@
   box-shadow: 0 28px 80px rgba(0, 0, 0, 0.42);
 }
 
+.ideas-card {
+  width: min(1100px, 100%);
+  max-height: calc(100vh - 56px);
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
 .tutorial-card__header,
 .tutorial-card__footer {
   display: flex;
@@ -919,6 +926,23 @@
   padding: 24px;
 }
 
+.ideas-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 24px;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.ideas-card__body::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
 .tutorial-card__main {
   display: flex;
   flex-direction: column;
@@ -962,6 +986,45 @@
   background: rgba(8, 17, 28, 0.78);
   color: var(--text-soft);
   line-height: 1.6;
+}
+
+.ideas-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.ideas-card__item {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  background: rgba(8, 17, 28, 0.78);
+}
+
+.ideas-card__item h3 {
+  font-size: 1rem;
+}
+
+.ideas-card__item p,
+.ideas-card__detail span {
+  color: var(--text-soft);
+  line-height: 1.6;
+}
+
+.ideas-card__meta {
+  display: inline-flex;
+}
+
+.ideas-card__detail {
+  display: grid;
+  gap: 6px;
+}
+
+.ideas-card__detail strong {
+  color: var(--text);
+  font-size: 0.84rem;
 }
 
 .tutorial-card__steps {
@@ -1574,6 +1637,46 @@
   border: 1px solid var(--border);
 }
 
+.training-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.training-summary-item,
+.comparison-table__row,
+.comparison-table__header,
+.inference-result__raw {
+  min-width: 0;
+}
+
+.training-summary-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  background: rgba(8, 17, 28, 0.78);
+}
+
+.training-summary-item strong {
+  color: var(--text-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.72rem;
+}
+
+.training-summary-item span {
+  font-size: 1rem;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.training-summary-item small {
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
 .chart-card {
   padding: 16px;
   border-radius: 0;
@@ -1608,6 +1711,109 @@
   font-size: 0.84rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
+}
+
+.sample-table__header span,
+.sample-table__row span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.inference-workbench {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.inference-workbench__fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.inference-workbench__examples {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.inference-workbench__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.inference-result {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.inference-result__raw {
+  display: grid;
+  gap: 6px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  background: rgba(8, 17, 28, 0.78);
+  color: var(--text-soft);
+}
+
+.inference-result__raw span {
+  overflow-wrap: anywhere;
+}
+
+.comparison-toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto auto;
+  gap: 12px;
+  align-items: end;
+}
+
+.comparison-toolbar__toggle {
+  white-space: nowrap;
+}
+
+.training-import-card {
+  padding: 14px;
+}
+
+.comparison-table {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border);
+  background: rgba(8, 17, 28, 0.78);
+}
+
+.comparison-table__header,
+.comparison-table__row {
+  display: grid;
+  grid-template-columns: minmax(120px, 0.9fr) minmax(0, 1fr) minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+  padding: 12px 14px;
+}
+
+.comparison-table__header {
+  border-bottom: 1px solid var(--border);
+  color: var(--text-soft);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.comparison-table__row + .comparison-table__row {
+  border-top: 1px solid rgba(28, 46, 60, 0.72);
+}
+
+.comparison-table__row strong,
+.comparison-table__row span {
+  overflow-wrap: anywhere;
+}
+
+.comparison-table__row.is-different {
+  background:
+    linear-gradient(90deg, rgba(122, 212, 255, 0.08), transparent 18%),
+    rgba(11, 22, 33, 0.84);
 }
 
 .confusion-grid {
@@ -1874,6 +2080,17 @@
     grid-template-columns: 1fr;
   }
 
+  .training-summary-grid,
+  .comparison-toolbar,
+  .comparison-table__header,
+  .comparison-table__row {
+    grid-template-columns: 1fr;
+  }
+
+  .comparison-table__header {
+    gap: 4px;
+  }
+
   .canvas-workbench {
     min-height: 0;
     display: grid;
@@ -1899,6 +2116,10 @@
   }
 
   .tutorial-card__body {
+    grid-template-columns: 1fr;
+  }
+
+  .ideas-grid {
     grid-template-columns: 1fr;
   }
 

@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
 
 import { createDefaultWorkspaceState } from '../memory/defaultState'
+import { noteTemplates } from '../memory/noteTemplates'
 import { SAVE_SCHEMA_VERSION, normalizeImportedWorkspace } from '../memory/saveSchema'
 import { storageKeys } from '../memory/storageKeys'
 import { trainingManifest } from '../memory/trainingManifest'
@@ -12,6 +13,7 @@ import type {
   BuilderFlowState,
   CanvasState,
   ConfusionMatrix,
+  DatasetRecord,
   GraphNodeRecord,
   LabMode,
   NodeCategory,
@@ -21,7 +23,8 @@ import type {
   TrainingStatus,
   WorkspaceStateData,
 } from '../memory/types'
-import { createPresetFlow, validateBuilderFlow } from '../utils/builder'
+import { createPresetFlow, summarizeLayerPlan, validateBuilderFlow } from '../utils/builder'
+import { getDefaultPresetIdForTaskType } from '../utils/datasets'
 
 export interface TrainingCommitPayload {
   status: Extract<TrainingStatus, 'completed' | 'paused' | 'error'>
@@ -51,13 +54,17 @@ interface LabActions {
   updateNote: (noteId: string, patch: Partial<Pick<WorkspaceStateData['notes'][number], 'title' | 'markdown' | 'tags'>>) => void
   createLinkedNote: (sourceNodeId?: string) => void
   linkNoteToNode: (noteId: string, nodeId: string) => void
+  applyNoteTemplate: (noteId: string, templateId: string, contextNodeId?: string) => void
   selectTrainingPreset: (presetId: string) => void
+  setActiveDataset: (datasetId: string) => void
+  importDataset: (dataset: DatasetRecord) => void
   loadPresetArchitecture: (presetId: string) => void
   updateTrainingConfig: (patch: Partial<TrainingConfig>) => void
   setTrainingStatus: (status: TrainingStatus, message: string) => void
   pushTrainingMetric: (metric: TrainingMetricPoint, parameterEstimate: number) => void
   commitTrainingRun: (payload: TrainingCommitPayload) => void
   resetTrainingRun: () => void
+  loadModelIntoBuilder: (modelId: string) => void
   setBuilderSelection: (nodeId?: string) => void
   setBuilderFlow: (flow: BuilderFlowState) => void
   updateBuilderNodeConfig: (
@@ -144,6 +151,70 @@ const createLinkedNoteNode = (noteId: string, title: string, sourceNode?: GraphN
   y: (sourceNode?.y ?? 18) + 14,
   z: (sourceNode?.z ?? 32) + 16,
 })
+
+const cloneBuilderFlow = (flow: BuilderFlowState): BuilderFlowState => ({
+  ...flow,
+  nodes: flow.nodes.map((node) => ({
+    ...node,
+    position: { ...node.position },
+    config: { ...node.config },
+  })),
+  edges: flow.edges.map((edge) => ({ ...edge })),
+})
+
+const createDatasetGraphNode = (dataset: DatasetRecord): GraphNodeRecord => ({
+  id: `node-${dataset.id}`,
+  title: dataset.title,
+  category: 'dataset',
+  summary:
+    dataset.source === 'imported'
+      ? `Imported ${dataset.taskType.replace(/-/g, ' ')} dataset with ${dataset.rows?.length ?? dataset.sampleRows.length} rows.`
+      : dataset.description,
+  cluster: 'dataset-dock',
+  group: 'data',
+  tags: dataset.tags,
+  entityKind: 'dataset',
+  entityId: dataset.id,
+  emphasis: dataset.source === 'imported' ? 0.82 : 0.76,
+  x: 118,
+  y: -38,
+  z: 12,
+})
+
+const syncExperimentDatasetLink = (
+  state: WorkspaceStateData,
+  datasetId: string,
+) => {
+  const experiment = state.experiments[0]
+  if (!experiment) {
+    return state.links
+  }
+
+  const experimentNode = state.nodes.find(
+    (node) => node.entityId === experiment.id && node.category === 'experiment',
+  )
+  const datasetNode = state.nodes.find(
+    (node) => node.entityId === datasetId && node.category === 'dataset',
+  )
+
+  if (!experimentNode || !datasetNode) {
+    return state.links
+  }
+
+  const nextLinks = state.links.filter(
+    (link) => !(link.source === experimentNode.id && link.relation === 'trains'),
+  )
+
+  nextLinks.unshift({
+    id: `link-${experimentNode.id}-${datasetNode.id}`,
+    source: experimentNode.id,
+    target: datasetNode.id,
+    relation: 'trains',
+    strength: 0.96,
+  })
+
+  return nextLinks
+}
 
 const initialState = createDefaultWorkspaceState()
 
@@ -433,14 +504,48 @@ export const useLabStore = create<LabStore>()(
           }
         }),
 
+      applyNoteTemplate: (noteId, templateId, contextNodeId) =>
+        set((state) => {
+          const template = noteTemplates.find((entry) => entry.id === templateId)
+          const contextTitle = state.nodes.find((node) => node.id === contextNodeId)?.title
+
+          if (!template) {
+            return state
+          }
+
+          return {
+            ...stamp({
+              notes: state.notes.map((note) =>
+                note.id === noteId
+                  ? {
+                      ...note,
+                      title: template.buildTitle(contextTitle),
+                      markdown: template.buildMarkdown(contextTitle),
+                      tags: Array.from(new Set([...template.tags, ...note.tags])),
+                      updatedAt: new Date().toISOString(),
+                    }
+                  : note,
+              ),
+            }),
+          }
+        }),
+
       selectTrainingPreset: (presetId) =>
         set((state) => {
           const preset = trainingManifest.presets.find((entry) => entry.id === presetId)
-          const dataset = state.datasets.find((entry) => entry.presetId === presetId)
 
           if (!preset) {
             return state
           }
+
+          const currentDataset = state.datasets.find(
+            (entry) => entry.id === state.experiments[0]?.datasetId,
+          )
+          const fallbackDataset = state.datasets.find((entry) => entry.presetId === presetId)
+          const nextDatasetId =
+            currentDataset && currentDataset.taskType === preset.taskType
+              ? currentDataset.id
+              : (fallbackDataset?.id ?? state.experiments[0]?.datasetId)
 
           return {
             ...stamp({
@@ -460,10 +565,146 @@ export const useLabStore = create<LabStore>()(
                   ? {
                       ...experiment,
                       presetId,
-                      datasetId: dataset?.id ?? experiment.datasetId,
+                      datasetId: nextDatasetId ?? experiment.datasetId,
                     }
                   : experiment,
               ),
+              links: syncExperimentDatasetLink(
+                {
+                  ...state,
+                  experiments: state.experiments.map((experiment, index) =>
+                    index === 0
+                      ? {
+                          ...experiment,
+                          presetId,
+                          datasetId: nextDatasetId ?? experiment.datasetId,
+                        }
+                      : experiment,
+                  ),
+                },
+                nextDatasetId ?? state.experiments[0]?.datasetId ?? fallbackDataset?.id ?? '',
+              ),
+            }),
+          }
+        }),
+
+      setActiveDataset: (datasetId) =>
+        set((state) => {
+          const dataset = state.datasets.find((entry) => entry.id === datasetId)
+          const currentPreset = trainingManifest.presets.find(
+            (entry) => entry.id === state.training.presetId,
+          )
+
+          if (!dataset) {
+            return state
+          }
+
+          const nextPresetId =
+            currentPreset?.taskType === dataset.taskType
+              ? currentPreset.id
+              : getDefaultPresetIdForTaskType(dataset.taskType)
+          const nextPreset = trainingManifest.presets.find((entry) => entry.id === nextPresetId)
+          const nextExperiments = state.experiments.map((experiment, index) =>
+            index === 0
+              ? {
+                  ...experiment,
+                  datasetId,
+                  presetId: nextPresetId,
+                }
+              : experiment,
+          )
+          const nextState = {
+            ...state,
+            experiments: nextExperiments,
+          }
+
+          return {
+            ...stamp({
+              experiments: nextExperiments,
+              links: syncExperimentDatasetLink(nextState, datasetId),
+              training: {
+                ...state.training,
+                presetId: nextPresetId,
+                config:
+                  currentPreset?.taskType === dataset.taskType
+                    ? state.training.config
+                    : (nextPreset?.defaultConfig ?? state.training.config),
+                message:
+                  dataset.source === 'imported'
+                    ? `Imported dataset "${dataset.title}" is active for training.`
+                    : `Using ${dataset.title} as the active training dataset.`,
+              },
+            }),
+          }
+        }),
+
+      importDataset: (dataset) =>
+        set((state) => {
+          const nextDatasets = [dataset, ...state.datasets]
+          const existingDatasetNode = state.nodes.find(
+            (node) => node.entityId === dataset.id && node.category === 'dataset',
+          )
+          const datasetNode = existingDatasetNode ?? createDatasetGraphNode(dataset)
+          const nextNodes = existingDatasetNode ? state.nodes : [datasetNode, ...state.nodes]
+          const nextCanvasNodes = state.canvas.nodes.some(
+            (node) => node.entityId === dataset.id && node.type === 'file',
+          )
+            ? state.canvas.nodes
+            : [
+                {
+                  id: `canvas-${dataset.id}`,
+                  type: 'file' as const,
+                  x: 610,
+                  y: 220,
+                  width: 280,
+                  height: 170,
+                  color: '#111b24' as `#${string}`,
+                  file: `datasets/${dataset.title.replace(/\s+/g, '-')}.json`,
+                  entityKind: 'dataset' as const,
+                  entityId: dataset.id,
+                },
+                ...state.canvas.nodes,
+              ]
+          const nextExperiments = state.experiments.map((experiment, index) =>
+            index === 0
+              ? {
+                  ...experiment,
+                  datasetId: dataset.id,
+                  presetId: dataset.presetId,
+                }
+              : experiment,
+          )
+          const nextState = {
+            ...state,
+            nodes: nextNodes,
+            experiments: nextExperiments,
+          }
+          const nextPreset = trainingManifest.presets.find(
+            (entry) => entry.id === dataset.presetId,
+          )
+
+          return {
+            ...stamp({
+              datasets: nextDatasets,
+              nodes: nextNodes,
+              canvas: {
+                ...state.canvas,
+                nodes: nextCanvasNodes,
+              },
+              experiments: nextExperiments,
+              links: syncExperimentDatasetLink(nextState, dataset.id),
+              training: {
+                ...state.training,
+                presetId: dataset.presetId,
+                config: nextPreset?.defaultConfig ?? state.training.config,
+                message: `Imported ${dataset.title} and set it as the active dataset.`,
+              },
+              ui: {
+                ...state.ui,
+                selectedNodeId: datasetNode.id,
+                focusedNodeId: datasetNode.id,
+                activeBottomTab: 'training',
+              },
             }),
           }
         }),
@@ -536,6 +777,7 @@ export const useLabStore = create<LabStore>()(
       commitTrainingRun: (payload) =>
         set((state) => {
           const experiment = state.experiments[0]
+          const validation = validateBuilderFlow(state.builder)
           const nextVersion =
             state.models
               .filter((model) => model.experimentId === experiment?.id)
@@ -550,6 +792,12 @@ export const useLabStore = create<LabStore>()(
                 description: payload.message,
                 experimentId: experiment.id,
                 version: nextVersion,
+                presetId: state.training.presetId,
+                datasetId: experiment.datasetId,
+                builderTitle: state.builder.title,
+                builderSignature: summarizeLayerPlan(validation.layerPlan),
+                configSnapshot: { ...state.training.config },
+                builderSnapshot: cloneBuilderFlow(state.builder),
                 storageKey: payload.modelStorageKey,
                 parameterEstimate: payload.parameterEstimate,
                 metrics: finalMetric,
@@ -680,6 +928,63 @@ export const useLabStore = create<LabStore>()(
             },
           }),
         })),
+
+      loadModelIntoBuilder: (modelId) =>
+        set((state) => {
+          const model = state.models.find((entry) => entry.id === modelId)
+
+          if (!model) {
+            return state
+          }
+
+          const builder =
+            model.builderSnapshot
+              ? cloneBuilderFlow(model.builderSnapshot)
+              : createPresetFlow(model.presetId ?? state.training.presetId)
+
+          if (model.builderTitle) {
+            builder.title = model.builderTitle
+          }
+
+          const nextExperiments = model.datasetId
+            ? state.experiments.map((experiment, index) =>
+                index === 0
+                  ? {
+                      ...experiment,
+                      datasetId: model.datasetId ?? experiment.datasetId,
+                      presetId: model.presetId ?? experiment.presetId,
+                    }
+                  : experiment,
+              )
+            : state.experiments
+          const nextState = {
+            ...state,
+            builder,
+            experiments: nextExperiments,
+          }
+
+          return {
+            ...stamp({
+              builder,
+              experiments: nextExperiments,
+              links:
+                model.datasetId
+                  ? syncExperimentDatasetLink(nextState, model.datasetId)
+                  : state.links,
+              training: {
+                ...state.training,
+                presetId: model.presetId ?? state.training.presetId,
+                config: model.configSnapshot ?? state.training.config,
+                message: `Loaded ${model.title} into the builder.`,
+              },
+              ui: {
+                ...state.ui,
+                activeBottomTab: 'builder',
+              },
+              ...updateArchitectureNode(nextState),
+            }),
+          }
+        }),
 
       setBuilderSelection: (nodeId) =>
         set((state) =>

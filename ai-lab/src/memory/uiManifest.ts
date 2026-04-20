@@ -14,8 +14,8 @@ export const uiManifest = {
     },
     {
       id: 'training',
-      label: 'Training Console',
-      description: 'Run TensorFlow.js training, inspect metrics, and review predictions.',
+      label: 'Model Trainer',
+      description: 'Train in the browser, compare saved runs, and test local model predictions.',
     },
     {
       id: 'notes',
@@ -24,8 +24,8 @@ export const uiManifest = {
     },
     {
       id: 'workspace',
-      label: 'Workspace',
-      description: 'Export, import, reset, and inspect persistence state.',
+      label: 'Storage & Export',
+      description: 'Import, export, load sample setups, and inspect local persistence.',
     },
   ],
   toolbarControls: ['mode', 'search', 'filters', 'autosave', 'export', 'import', 'reset'],

@@ -1,5 +1,5 @@
 import { trainingManifest } from '../memory/trainingManifest'
-import type { TrainingPresetDefinition, TrainingTaskType } from '../memory/types'
+import type { DatasetRecord, TrainingPresetDefinition, TrainingTaskType } from '../memory/types'
 
 export interface GeneratedDatasetBundle {
   preset: TrainingPresetDefinition
@@ -127,4 +127,56 @@ export const generatePresetDataset = (presetId: string): GeneratedDatasetBundle 
   }
 
   return createSineBundle()
+}
+
+export const generateDatasetBundle = (
+  presetId: string,
+  dataset?: DatasetRecord,
+): GeneratedDatasetBundle => {
+  if (!dataset || dataset.source !== 'imported' || !dataset.rows?.length) {
+    return generatePresetDataset(presetId)
+  }
+
+  const preset =
+    trainingManifest.presets.find((entry) => entry.id === presetId) ??
+    trainingManifest.presets.find((entry) => entry.taskType === dataset.taskType) ??
+    trainingManifest.presets[0]
+
+  const featureFields = dataset.schema.filter((field) => field !== dataset.targetField)
+  const xTrain = dataset.rows.map((row) =>
+    featureFields.map((field) => Number(row[field])),
+  )
+
+  if (dataset.taskType === 'regression') {
+    const yTrain = dataset.rows.map((row) => [Number(row[dataset.targetField])])
+    return {
+      preset,
+      taskType: dataset.taskType,
+      xTrain,
+      yTrain,
+      previewInputs: xTrain.slice(0, 8),
+      previewExpected: yTrain.slice(0, 8),
+      labels: [dataset.targetField],
+      inputUnits: featureFields.length,
+      outputUnits: 1,
+    }
+  }
+
+  const labels = dataset.classLabels ?? ['Class 0', 'Class 1']
+  const labelToIndex = new Map(labels.map((label, index) => [label, index]))
+  const yTrain = dataset.rows.map((row) => [
+    labelToIndex.get(String(row[dataset.targetField])) ?? 0,
+  ])
+
+  return {
+    preset,
+    taskType: dataset.taskType,
+    xTrain,
+    yTrain,
+    previewInputs: xTrain.slice(0, 8),
+    previewExpected: yTrain.slice(0, 8),
+    labels,
+    inputUnits: featureFields.length,
+    outputUnits: 1,
+  }
 }

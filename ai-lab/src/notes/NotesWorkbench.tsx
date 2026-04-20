@@ -4,6 +4,7 @@ import { Link2, NotebookPen, Plus } from 'lucide-react'
 import { useShallow } from 'zustand/react/shallow'
 
 import { PanelFrame } from '../components/PanelFrame'
+import { noteTemplates } from '../memory/noteTemplates'
 import { TagPill } from '../components/TagPill'
 import { useLabStore } from '../state/useLabStore'
 import { formatTimestamp } from '../utils/format'
@@ -17,6 +18,7 @@ export const NotesWorkbench = () => {
     updateNote,
     createLinkedNote,
     linkNoteToNode,
+    applyNoteTemplate,
   } = useLabStore(
     useShallow((state) => ({
       nodes: state.nodes,
@@ -26,6 +28,7 @@ export const NotesWorkbench = () => {
       updateNote: state.updateNote,
       createLinkedNote: state.createLinkedNote,
       linkNoteToNode: state.linkNoteToNode,
+      applyNoteTemplate: state.applyNoteTemplate,
     })),
   )
 
@@ -89,6 +92,33 @@ export const NotesWorkbench = () => {
         </aside>
 
         <section className="notes-editor">
+          <div className="chart-card">
+            <div className="chart-card__header">
+              <div>
+                <p className="section-kicker">Templates</p>
+                <h3>Research note starters</h3>
+              </div>
+            </div>
+            <div className="tag-row">
+              {noteTemplates.map((template) => (
+                <button
+                  key={template.id}
+                  type="button"
+                  className="secondary-button"
+                  onClick={() =>
+                    applyNoteTemplate(selectedNote.id, template.id, selectedGraphNode?.id)
+                  }
+                >
+                  {template.label}
+                </button>
+              ))}
+            </div>
+            <p className="muted-copy">
+              Templates use the current graph selection as context, so you can turn a model,
+              result, or experiment into a structured research note quickly.
+            </p>
+          </div>
+
           <label className="field-group">
             <span>Title</span>
             <input

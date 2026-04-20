@@ -1,12 +1,14 @@
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import { useShallow } from 'zustand/react/shallow'
 import { InspectorPanel } from '../components/InspectorPanel'
+import { IdeasOverlay } from '../components/IdeasOverlay'
 import { SectionErrorBoundary } from '../components/SectionErrorBoundary'
 import { TopToolbar } from '../components/TopToolbar'
 import { TutorialOverlay } from '../components/TutorialOverlay'
 import { WorkspaceSidebar } from '../components/WorkspaceSidebar'
 import { uiManifest } from '../memory/uiManifest'
 import { createDefaultWorkspaceState } from '../memory/defaultState'
+import { ideaManifest } from '../memory/ideaManifest'
 import { normalizeImportedWorkspace } from '../memory/saveSchema'
 import { storageKeys } from '../memory/storageKeys'
 import { tutorialManifest } from '../memory/tutorialManifest'
@@ -29,6 +31,7 @@ export const LabApp = () => {
 
     return window.localStorage.getItem(storageKeys.tutorialDismissed) !== 'true'
   })
+  const [ideasOpen, setIdeasOpen] = useState(false)
   const [tutorialStepIndex, setTutorialStepIndex] = useState(0)
 
   const {
@@ -52,6 +55,8 @@ export const LabApp = () => {
     setMode,
     setSearchQuery,
     setBottomTab,
+    selectTrainingPreset,
+    loadPresetArchitecture,
     setShowLabels,
     setShowOnlyConnected,
   } = useLabStore(
@@ -76,6 +81,8 @@ export const LabApp = () => {
       setMode: state.setMode,
       setSearchQuery: state.setSearchQuery,
       setBottomTab: state.setBottomTab,
+      selectTrainingPreset: state.selectTrainingPreset,
+      loadPresetArchitecture: state.loadPresetArchitecture,
       setShowLabels: state.setShowLabels,
       setShowOnlyConnected: state.setShowOnlyConnected,
     })),
@@ -195,6 +202,11 @@ export const LabApp = () => {
           onExport={() => downloadWorkspace(getWorkspaceData())}
           onImport={() => fileInputRef.current?.click()}
           onReset={resetWorkspace}
+          onLoadSample={(presetId) => {
+            selectTrainingPreset(presetId)
+            loadPresetArchitecture(presetId)
+            setBottomTab('training')
+          }}
         />
       )
     }
@@ -236,6 +248,7 @@ export const LabApp = () => {
         onExport={() => downloadWorkspace(getWorkspaceData())}
         onImport={() => fileInputRef.current?.click()}
         onReset={resetWorkspace}
+        onOpenIdeas={() => setIdeasOpen(true)}
         onOpenTutorial={() => openTutorial(0)}
         onToggleConnected={setShowOnlyConnected}
         onToggleLabels={setShowLabels}
@@ -291,6 +304,12 @@ export const LabApp = () => {
         onPrevious={previousTutorialStep}
         onNext={nextTutorialStep}
         onRestart={openTutorial}
+      />
+
+      <IdeasOverlay
+        visible={ideasOpen}
+        ideas={ideaManifest}
+        onClose={() => setIdeasOpen(false)}
       />
     </div>
   )

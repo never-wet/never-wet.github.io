@@ -4,13 +4,15 @@ import { storageKeys } from '../memory/storageKeys'
 import type {
   BuilderFlowState,
   ConfusionMatrix,
+  DatasetRecord,
   PredictionPreview,
   TrainingConfig,
   TrainingMetricPoint,
+  TrainingTaskType,
   TrainingStatus,
 } from '../memory/types'
 import { validateBuilderFlow } from '../utils/builder'
-import { generatePresetDataset } from './sampleDatasets'
+import { generateDatasetBundle } from './sampleDatasets'
 
 export interface BrowserTrainingResult {
   status: Extract<TrainingStatus, 'completed' | 'paused'>
@@ -22,8 +24,18 @@ export interface BrowserTrainingResult {
   modelStorageKey?: string
 }
 
+export interface BrowserInferenceResult {
+  taskType: TrainingTaskType
+  raw: number[]
+  predictedLabel?: string
+  confidence?: number
+  probability?: number
+  value?: number
+}
+
 interface TrainInBrowserParams {
   presetId: string
+  dataset?: DatasetRecord
   flow: BuilderFlowState
   config: TrainingConfig
   shouldStop: () => boolean
@@ -50,14 +62,19 @@ const getMetric = (logs: tf.Logs | undefined, keys: string[]) => {
   return undefined
 }
 
-const buildModel = (flow: BuilderFlowState, config: TrainingConfig, presetId: string) => {
+const buildModel = (
+  flow: BuilderFlowState,
+  config: TrainingConfig,
+  presetId: string,
+  dataset?: DatasetRecord,
+) => {
   const validation = validateBuilderFlow(flow)
 
   if (!validation.valid) {
     throw new Error(validation.issues[0] ?? 'The builder flow is not trainable yet.')
   }
 
-  const presetDataset = generatePresetDataset(presetId)
+  const presetDataset = generateDatasetBundle(presetId, dataset)
   const model = tf.sequential()
   let firstTrainable = true
 
@@ -142,11 +159,12 @@ const buildModel = (flow: BuilderFlowState, config: TrainingConfig, presetId: st
 const createPredictions = async (
   model: tf.Sequential,
   presetId: string,
+  dataset?: DatasetRecord,
 ): Promise<{
   predictions: PredictionPreview[]
   confusionMatrix?: ConfusionMatrix
 }> => {
-  const bundle = generatePresetDataset(presetId)
+  const bundle = generateDatasetBundle(presetId, dataset)
   const previewTensor = tf.tensor2d(bundle.previewInputs)
   const previewOutput = model.predict(previewTensor) as tf.Tensor
   const previewValues = (await previewOutput.array()) as number[][]
@@ -206,8 +224,55 @@ const createPredictions = async (
   }
 }
 
+export const runStoredModelInference = async ({
+  storageKey,
+  presetId,
+  dataset,
+  inputs,
+}: {
+  storageKey: string
+  presetId: string
+  dataset?: DatasetRecord
+  inputs: number[]
+}): Promise<BrowserInferenceResult> => {
+  await tf.ready()
+
+  const model = await tf.loadLayersModel(storageKey)
+  const bundle = generateDatasetBundle(presetId, dataset)
+  const inputTensor = tf.tensor2d([inputs])
+  const outputTensor = model.predict(inputTensor) as tf.Tensor
+
+  try {
+    const output = (await outputTensor.array()) as number[][]
+    const row = output[0] ?? []
+
+    if (bundle.taskType === 'regression') {
+      return {
+        taskType: bundle.taskType,
+        raw: row,
+        value: row[0],
+      }
+    }
+
+    const probability = row[0] ?? 0
+
+    return {
+      taskType: bundle.taskType,
+      raw: row,
+      predictedLabel: probability >= 0.5 ? bundle.labels[1] : bundle.labels[0],
+      confidence: probability >= 0.5 ? probability : 1 - probability,
+      probability,
+    }
+  } finally {
+    inputTensor.dispose()
+    outputTensor.dispose()
+    model.dispose()
+  }
+}
+
 export const trainInBrowser = async ({
   presetId,
+  dataset,
   flow,
   config,
   shouldStop,
@@ -215,7 +280,7 @@ export const trainInBrowser = async ({
 }: TrainInBrowserParams): Promise<BrowserTrainingResult> => {
   await tf.ready()
 
-  const { model, validation, presetDataset } = buildModel(flow, config, presetId)
+  const { model, validation, presetDataset } = buildModel(flow, config, presetId, dataset)
   const xs = tf.tensor2d(presetDataset.xTrain)
   const ys = tf.tensor2d(presetDataset.yTrain)
   const metrics: TrainingMetricPoint[] = []
@@ -256,7 +321,7 @@ export const trainInBrowser = async ({
       await model.save(storageKey)
     }
 
-    const predictionSummary = await createPredictions(model, presetId)
+    const predictionSummary = await createPredictions(model, presetId, dataset)
 
     return {
       status: stoppedEarly ? 'paused' : 'completed',

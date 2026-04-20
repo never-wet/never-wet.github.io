@@ -293,6 +293,38 @@ export const validateBuilderFlow = (flow: BuilderFlowState): BuilderValidationRe
   }
 }
 
+export const summarizeLayerPlan = (layerPlan: BuilderLayerPlan[]) =>
+  layerPlan
+    .map((layer) => {
+      if (layer.kind === 'input') {
+        return `Input(${layer.inputUnits ?? 0})`
+      }
+
+      if (layer.kind === 'dense' || layer.kind === 'output') {
+        const activation = layer.activation ? `, ${layer.activation}` : ''
+        return `${layer.label}(${layer.units ?? 0}${activation})`
+      }
+
+      if (layer.kind === 'dropout') {
+        return `${layer.label}(dropout)`
+      }
+
+      if (layer.kind === 'normalization') {
+        return `${layer.label}(norm)`
+      }
+
+      if (layer.kind === 'activation') {
+        return `${layer.label}(${layer.activation ?? 'activation'})`
+      }
+
+      if (layer.kind === 'reshape') {
+        return `${layer.label}(${layer.units ?? layer.inputUnits ?? 0})`
+      }
+
+      return layer.label
+    })
+    .join(' -> ')
+
 export const createPresetFlow = (presetId: string): BuilderFlowState => {
   const preset = trainingManifest.presets.find((entry) => entry.id === presetId)
 
