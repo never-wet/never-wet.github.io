@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Layers3, NotebookPen, Orbit, TestTubeDiagonal } from 'lucide-react'
 import { useShallow } from 'zustand/react/shallow'
 
@@ -16,7 +17,11 @@ const findNodeForEntity = (
 ) =>
   nodes.find((node) => node.entityId === entityId && (category ? node.category === category : true))
 
+type CollectionTab = 'notes' | 'datasets' | 'experiments'
+
 export const WorkspaceSidebar = () => {
+  const [activeCollection, setActiveCollection] = useState<CollectionTab>('notes')
+
   const {
     nodes,
     notes,
@@ -42,6 +47,29 @@ export const WorkspaceSidebar = () => {
   )
 
   const grouped = groupNodesByCategory(nodes)
+  const collectionTabs = [
+    {
+      id: 'notes' as const,
+      label: 'Notes',
+      icon: Layers3,
+      count: notes.length,
+    },
+    {
+      id: 'datasets' as const,
+      label: 'Datasets',
+      icon: Orbit,
+      count: datasets.length,
+    },
+    {
+      id: 'experiments' as const,
+      label: 'Experiments',
+      icon: TestTubeDiagonal,
+      count: experiments.length,
+    },
+  ]
+  const activeCollectionMeta =
+    collectionTabs.find((entry) => entry.id === activeCollection) ?? collectionTabs[0]
+  const ActiveCollectionIcon = activeCollectionMeta.icon
 
   return (
     <aside className={`workspace-sidebar${ui.leftPanelCollapsed ? ' is-collapsed' : ''}`}>
@@ -96,67 +124,96 @@ export const WorkspaceSidebar = () => {
         title="Linked workspace items"
         subtitle="Every list item is a graph node you can jump to."
       >
-        <div className="collection-block">
-          <div className="collection-block__heading">
-            <Layers3 size={15} />
-            Notes
-          </div>
-          {notes.map((note) => {
-            const node = findNodeForEntity(nodes, note.id, 'note')
-            return (
-              <button
-                key={note.id}
-                type="button"
-                className="collection-item"
-                onClick={() => selectNode(node?.id)}
-              >
-                <span>{note.title}</span>
-                <small>{note.tags.join(' · ')}</small>
-              </button>
-            )
-          })}
+        <div className="collection-switcher" role="tablist" aria-label="Linked workspace collections">
+          {collectionTabs.map((entry) => (
+            <button
+              key={entry.id}
+              type="button"
+              role="tab"
+              aria-selected={activeCollection === entry.id}
+              className={activeCollection === entry.id ? 'is-active' : ''}
+              onClick={() => setActiveCollection(entry.id)}
+            >
+              <span>{entry.label}</span>
+              <small>{entry.count}</small>
+            </button>
+          ))}
         </div>
 
-        <div className="collection-block">
-          <div className="collection-block__heading">
-            <Orbit size={15} />
-            Datasets
+        <div className="collection-scroll">
+          <div className="collection-scroll__header">
+            <div className="collection-block__heading">
+              <ActiveCollectionIcon size={15} />
+              {activeCollectionMeta.label}
+            </div>
+            <TagPill label={String(activeCollectionMeta.count)} muted />
           </div>
-          {datasets.map((dataset) => {
-            const node = findNodeForEntity(nodes, dataset.id, 'dataset')
-            return (
-              <button
-                key={dataset.id}
-                type="button"
-                className="collection-item"
-                onClick={() => selectNode(node?.id)}
-              >
-                <span>{dataset.title}</span>
-                <small>{dataset.targetField} target</small>
-              </button>
-            )
-          })}
-        </div>
 
-        <div className="collection-block">
-          <div className="collection-block__heading">
-            <TestTubeDiagonal size={15} />
-            Experiments
-          </div>
-          {experiments.map((experiment) => {
-            const node = findNodeForEntity(nodes, experiment.id, 'experiment')
-            return (
-              <button
-                key={experiment.id}
-                type="button"
-                className="collection-item"
-                onClick={() => selectNode(node?.id)}
-              >
-                <span>{experiment.title}</span>
-                <small>{experiment.status}</small>
-              </button>
+          {activeCollection === 'notes' ? (
+            notes.length > 0 ? (
+              notes.map((note) => {
+                const node = findNodeForEntity(nodes, note.id, 'note')
+                return (
+                  <button
+                    key={note.id}
+                    type="button"
+                    className="collection-item"
+                    title={note.title}
+                    onClick={() => selectNode(node?.id)}
+                  >
+                    <span>{note.title}</span>
+                    <small>{note.tags.join(' / ')}</small>
+                  </button>
+                )
+              })
+            ) : (
+              <p className="collection-empty">No notes yet.</p>
             )
-          })}
+          ) : null}
+
+          {activeCollection === 'datasets' ? (
+            datasets.length > 0 ? (
+              datasets.map((dataset) => {
+                const node = findNodeForEntity(nodes, dataset.id, 'dataset')
+                return (
+                  <button
+                    key={dataset.id}
+                    type="button"
+                    className="collection-item"
+                    title={dataset.title}
+                    onClick={() => selectNode(node?.id)}
+                  >
+                    <span>{dataset.title}</span>
+                    <small>{dataset.targetField} target</small>
+                  </button>
+                )
+              })
+            ) : (
+              <p className="collection-empty">No datasets yet.</p>
+            )
+          ) : null}
+
+          {activeCollection === 'experiments' ? (
+            experiments.length > 0 ? (
+              experiments.map((experiment) => {
+                const node = findNodeForEntity(nodes, experiment.id, 'experiment')
+                return (
+                  <button
+                    key={experiment.id}
+                    type="button"
+                    className="collection-item"
+                    title={experiment.title}
+                    onClick={() => selectNode(node?.id)}
+                  >
+                    <span>{experiment.title}</span>
+                    <small>{experiment.status}</small>
+                  </button>
+                )
+              })
+            ) : (
+              <p className="collection-empty">No experiments yet.</p>
+            )
+          ) : null}
         </div>
       </PanelFrame>
     </aside>

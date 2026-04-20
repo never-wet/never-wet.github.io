@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect, useMemo, useRef } from 'react'
 import { useShallow } from 'zustand/react/shallow'
 import { InspectorPanel } from '../components/InspectorPanel'
+import { SectionErrorBoundary } from '../components/SectionErrorBoundary'
 import { TopToolbar } from '../components/TopToolbar'
 import { WorkspaceSidebar } from '../components/WorkspaceSidebar'
 import { uiManifest } from '../memory/uiManifest'
@@ -189,7 +190,14 @@ export const LabApp = () => {
 
       <main className="lab-main">
         <WorkspaceSidebar />
-        <ForceGraphPanel />
+        <SectionErrorBoundary
+          title="Graph workspace failed to render"
+          message="The 3D stage hit a local runtime issue. Reloading the graph should restore the workspace without dropping the rest of the app."
+          resetLabel="Reload graph"
+          onReset={() => window.location.reload()}
+        >
+          <ForceGraphPanel />
+        </SectionErrorBoundary>
         <InspectorPanel />
       </main>
 
@@ -208,9 +216,16 @@ export const LabApp = () => {
           ))}
         </div>
         <div className="workbench__content">
-          <Suspense fallback={<div className="loading-panel">Loading workspace tool...</div>}>
-            {activeWorkbench()}
-          </Suspense>
+          <SectionErrorBoundary
+            title="Workbench tool crashed"
+            message="The current tool panel failed, but the graph and workspace are still live. Switch back to the workspace tab to recover."
+            resetLabel="Open workspace tab"
+            onReset={() => setBottomTab('workspace')}
+          >
+            <Suspense fallback={<div className="loading-panel">Loading workspace tool...</div>}>
+              {activeWorkbench()}
+            </Suspense>
+          </SectionErrorBoundary>
         </div>
       </section>
     </div>

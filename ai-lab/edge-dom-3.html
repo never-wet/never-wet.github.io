@@ -1,0 +1,1136 @@
+﻿<!DOCTYPE html>
+<html lang="en"><head>
+    <script type="module">import { injectIntoGlobalHook } from "/@react-refresh";
+injectIntoGlobalHook(window);
+window.$RefreshReg$ = () => {};
+window.$RefreshSig$ = () => (type) => type;</script>
+
+    <script type="module" src="/@vite/client"></script>
+
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Cortex Lab is a browser-based AI workspace with a 3D knowledge graph, visual neural network builder, linked notes, and in-browser TensorFlow.js training.">
+    <meta name="theme-color" content="#050a14">
+    <meta property="og:title" content="Cortex Lab">
+    <meta property="og:description" content="An Obsidian-inspired AI lab for notes, graphs, neural architectures, experiments, and browser training.">
+    <meta property="og:type" content="website">
+    <title>Cortex Lab | Browser AI Workspace</title>
+  <style type="text/css" data-vite-dev-id="C:/Users/junha_au6a0kj/Documents/GitHub/never-wet.github.io/ai-lab/src/index.css">@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
+
+:root {
+  color-scheme: dark;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  --bg: #020611;
+  --bg-panel: rgba(7, 15, 25, 0.9);
+  --bg-panel-strong: rgba(4, 11, 20, 0.96);
+  --bg-elevated: rgba(11, 24, 38, 0.92);
+  --border: rgba(120, 170, 205, 0.18);
+  --border-strong: rgba(144, 194, 230, 0.28);
+  --text: #ecf7ff;
+  --text-soft: #97b4c7;
+  --text-muted: #6e8799;
+  --accent: #86d8ff;
+  --accent-warm: #ffbc73;
+  --accent-mint: #74e2b6;
+  --accent-violet: #bf9dff;
+  --danger: #ff9587;
+  --shadow: 0 24px 60px rgba(0, 0, 0, 0.38);
+  --radius: 22px;
+  --radius-sm: 14px;
+  --sans: 'IBM Plex Sans', 'Segoe UI', sans-serif;
+  --mono: 'IBM Plex Mono', Consolas, monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  color: var(--text);
+  font-family: var(--sans);
+  background:
+    radial-gradient(circle at top left, rgba(60, 113, 158, 0.22), transparent 26%),
+    radial-gradient(circle at top right, rgba(73, 176, 173, 0.18), transparent 22%),
+    linear-gradient(180deg, #050a14 0%, #020611 56%, #040912 100%);
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button {
+  color: inherit;
+}
+
+a {
+  color: inherit;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+
+code {
+  font-family: var(--mono);
+}
+</style><style type="text/css" data-vite-dev-id="C:/Users/junha_au6a0kj/Documents/GitHub/never-wet.github.io/ai-lab/src/styles/app.css">.lab-shell {
+  min-height: 100vh;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: 18px;
+  padding: 20px;
+}
+
+.top-toolbar,
+.panel-frame,
+.graph-panel,
+.workbench {
+  border: 1px solid var(--border);
+  background: var(--bg-panel);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(18px);
+}
+
+.top-toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.6fr);
+  gap: 18px;
+  align-items: center;
+  padding: 22px 24px;
+  border-radius: 28px;
+  position: relative;
+  overflow: hidden;
+}
+
+.top-toolbar::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(135deg, rgba(102, 197, 255, 0.12), transparent 34%),
+    linear-gradient(315deg, rgba(255, 188, 115, 0.08), transparent 38%);
+  pointer-events: none;
+}
+
+.top-toolbar__brand,
+.top-toolbar__controls,
+.top-toolbar__status {
+  position: relative;
+  z-index: 1;
+}
+
+.top-toolbar__brand {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.brand-mark {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  color: #08141f;
+  background: linear-gradient(135deg, var(--accent), #c8fbff);
+  box-shadow: 0 16px 30px rgba(102, 197, 255, 0.24);
+}
+
+.top-toolbar__kicker,
+.section-kicker,
+.panel-frame__eyebrow,
+.graph-overlay__eyebrow {
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.top-toolbar h1 {
+  font-size: clamp(1.7rem, 3vw, 2.5rem);
+  font-weight: 700;
+  line-height: 1.02;
+  margin-top: 4px;
+}
+
+.top-toolbar__subtitle {
+  margin-top: 8px;
+  color: var(--text-soft);
+  max-width: 58ch;
+}
+
+.top-toolbar__controls {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.toolbar-chip,
+.toolbar-button,
+.toolbar-toggle,
+.status-pill,
+.toolbar-segment,
+.filter-chip,
+.collection-item,
+.preset-card,
+.builder-palette__item,
+.notes-list__item,
+.primary-button,
+.secondary-button {
+  border: 1px solid var(--border);
+  background: rgba(12, 25, 37, 0.86);
+  border-radius: 14px;
+}
+
+.toolbar-chip--search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: min(360px, 100%);
+  padding: 0 14px;
+}
+
+.toolbar-chip--search input {
+  width: 100%;
+  padding: 12px 0;
+  background: transparent;
+  border: 0;
+  outline: none;
+  color: var(--text);
+}
+
+.toolbar-chip--search input::placeholder,
+.muted-copy,
+.collection-item small,
+.preset-card small,
+.field-group small,
+.graph-overlay p,
+.stat-card__label,
+.status-note {
+  color: var(--text-muted);
+}
+
+.toolbar-segment {
+  display: flex;
+  padding: 4px;
+}
+
+.toolbar-segment button,
+.inspector-tabbar button,
+.workbench__tabs button {
+  border: 0;
+  background: transparent;
+  padding: 10px 14px;
+  border-radius: 10px;
+  color: var(--text-soft);
+  cursor: pointer;
+}
+
+.toolbar-segment button.is-active,
+.inspector-tabbar button.is-active,
+.workbench__tabs button.is-active {
+  color: var(--text);
+  background: linear-gradient(135deg, rgba(124, 199, 255, 0.18), rgba(124, 199, 255, 0.08));
+}
+
+.toolbar-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  cursor: pointer;
+  min-height: 44px;
+}
+
+.toolbar-button,
+.primary-button,
+.secondary-button,
+.graph-overlay button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 14px;
+  cursor: pointer;
+  transition:
+    transform 180ms ease,
+    border-color 180ms ease,
+    background 180ms ease;
+}
+
+.toolbar-button:hover,
+.primary-button:hover,
+.secondary-button:hover,
+.graph-overlay button:hover,
+.filter-chip:hover,
+.collection-item:hover,
+.preset-card:hover,
+.builder-palette__item:hover,
+.notes-list__item:hover {
+  transform: translateY(-1px);
+  border-color: var(--border-strong);
+}
+
+.toolbar-button--warn,
+.secondary-button--danger {
+  border-color: rgba(255, 149, 135, 0.34);
+  color: #ffd7d1;
+}
+
+.primary-button {
+  background: linear-gradient(135deg, rgba(122, 212, 255, 0.22), rgba(77, 167, 224, 0.16));
+  border-color: rgba(129, 207, 255, 0.34);
+}
+
+.secondary-button {
+  background: rgba(11, 22, 33, 0.94);
+}
+
+.top-toolbar__status {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  color: var(--accent);
+}
+
+.lab-main {
+  min-height: 54vh;
+  display: grid;
+  grid-template-columns: 300px minmax(0, 1fr) 300px;
+  gap: 18px;
+}
+
+.workspace-sidebar,
+.inspector-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.panel-frame {
+  border-radius: 24px;
+  padding: 18px;
+}
+
+.panel-frame__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.panel-frame__title {
+  font-size: 1.18rem;
+  font-weight: 600;
+  margin-top: 4px;
+}
+
+.panel-frame__subtitle {
+  margin-top: 8px;
+  color: var(--text-soft);
+  max-width: 56ch;
+}
+
+.panel-frame__body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 12px;
+}
+
+.stat-card {
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: rgba(9, 18, 29, 0.88);
+}
+
+.stat-card__label {
+  display: block;
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.stat-card__value {
+  display: block;
+  margin-top: 8px;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.filter-list,
+.workspace-memory-grid,
+.tag-row,
+.graph-overlay__legend,
+.builder-validation {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  cursor: pointer;
+}
+
+.filter-chip.is-active {
+  border-color: var(--border-strong);
+}
+
+.filter-chip__dot,
+.builder-palette__swatch,
+.graph-overlay__legend i {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  flex: 0 0 auto;
+}
+
+.collection-block {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.collection-block__heading,
+.metric-group__header,
+.connection-header {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-soft);
+  font-size: 0.92rem;
+}
+
+.collection-item,
+.preset-card,
+.notes-list__item {
+  padding: 12px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.collection-item span,
+.preset-card strong,
+.notes-list__item strong,
+.builder-node strong {
+  display: block;
+  font-weight: 600;
+}
+
+.graph-panel {
+  position: relative;
+  overflow: hidden;
+  border-radius: 30px;
+  height: clamp(560px, 62vh, 760px);
+  min-height: 560px;
+  background:
+    radial-gradient(circle at 20% 15%, rgba(98, 169, 240, 0.12), transparent 22%),
+    radial-gradient(circle at 85% 10%, rgba(255, 190, 114, 0.08), transparent 18%),
+    linear-gradient(180deg, rgba(4, 10, 19, 0.98), rgba(5, 11, 20, 0.96));
+}
+
+.graph-stage {
+  position: absolute;
+  inset: 0;
+  height: 100%;
+}
+
+.graph-stage > div,
+.graph-stage .scene-container,
+.graph-stage canvas {
+  width: 100%;
+  height: 100%;
+}
+
+.graph-overlay {
+  position: absolute;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(137, 188, 221, 0.14);
+  background: rgba(5, 11, 20, 0.66);
+  backdrop-filter: blur(12px);
+}
+
+.graph-overlay strong {
+  font-weight: 600;
+}
+
+.graph-overlay--left {
+  top: 18px;
+  left: 18px;
+  max-width: 300px;
+}
+
+.graph-overlay--right {
+  top: 18px;
+  right: 18px;
+  align-items: stretch;
+}
+
+.graph-overlay__legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-soft);
+}
+
+.inspector-tabbar {
+  display: flex;
+  gap: 8px;
+  padding: 4px;
+  border-radius: 14px;
+  background: rgba(11, 22, 35, 0.8);
+}
+
+.inspector-section,
+.builder-section,
+.workspace-panel,
+.workspace-persistence,
+.workspace-actions,
+.builder-fields,
+.notes-preview,
+.notes-editor,
+.notes-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.metric-list,
+.connection-list,
+.prediction-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.metric-row,
+.connection-item,
+.prediction-row,
+.workspace-persistence__item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 12px;
+  border-radius: 16px;
+  background: rgba(8, 17, 28, 0.86);
+  border: 1px solid var(--border);
+}
+
+.connection-item,
+.prediction-row,
+.workspace-persistence__item {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.workspace-persistence__item {
+  grid-template-columns: auto minmax(0, 1fr);
+}
+
+.tag-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(122, 212, 255, 0.26);
+  background: rgba(10, 21, 32, 0.86);
+  color: var(--accent);
+  font-size: 0.84rem;
+}
+
+.tag-pill--muted {
+  color: var(--text-soft);
+  border-color: var(--border);
+}
+
+.workbench {
+  border-radius: 30px;
+  padding: 18px;
+}
+
+.workbench__tabs {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding-bottom: 14px;
+}
+
+.workbench__tabs button {
+  min-width: 200px;
+  padding: 14px 16px;
+  text-align: left;
+  background: rgba(8, 17, 28, 0.8);
+  border: 1px solid var(--border);
+}
+
+.workbench__tabs button small {
+  display: block;
+  margin-top: 6px;
+  color: var(--text-muted);
+}
+
+.workbench__content {
+  min-height: 360px;
+}
+
+.loading-panel {
+  min-height: 280px;
+  display: grid;
+  place-items: center;
+  border-radius: 22px;
+  border: 1px dashed var(--border-strong);
+  color: var(--text-soft);
+}
+
+.section-fallback {
+  min-height: 280px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  justify-content: center;
+  padding: 22px;
+  border-radius: 24px;
+  border: 1px solid rgba(255, 164, 130, 0.2);
+  background: rgba(8, 16, 27, 0.9);
+}
+
+.section-fallback h3 {
+  font-size: 1.18rem;
+}
+
+.section-fallback p {
+  color: var(--text-soft);
+  line-height: 1.6;
+}
+
+.runtime-fallback {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.runtime-fallback__card {
+  width: min(720px, 100%);
+  padding: 28px;
+  border-radius: 28px;
+  border: 1px solid rgba(255, 164, 130, 0.22);
+  background: rgba(8, 16, 27, 0.94);
+  box-shadow: var(--shadow);
+}
+
+.runtime-fallback__card h1 {
+  margin: 10px 0 12px;
+  font-size: clamp(1.7rem, 4vw, 2.8rem);
+}
+
+.runtime-fallback__card p {
+  color: var(--text-soft);
+  line-height: 1.6;
+}
+
+.runtime-fallback__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.runtime-fallback__message {
+  margin-top: 18px;
+  padding: 14px 16px;
+  overflow: auto;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  background: rgba(4, 10, 18, 0.92);
+  color: #ffd0c4;
+}
+
+.builder-panel .panel-frame__body,
+.training-panel .panel-frame__body,
+.notes-panel .panel-frame__body {
+  gap: 0;
+}
+
+.builder-workbench,
+.training-layout,
+.notes-layout {
+  display: grid;
+  gap: 16px;
+}
+
+.builder-workbench {
+  grid-template-columns: 260px minmax(0, 1fr) 290px;
+}
+
+.builder-sidebar,
+.builder-inspector,
+.training-sidebar,
+.notes-list,
+.notes-preview {
+  padding: 16px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: rgba(7, 15, 25, 0.86);
+}
+
+.builder-palette,
+.preset-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.builder-palette__item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+  padding: 12px;
+  text-align: left;
+  cursor: grab;
+}
+
+.builder-palette__item:active {
+  cursor: grabbing;
+}
+
+.builder-canvas-shell {
+  min-height: 520px;
+  border-radius: 22px;
+  border: 1px solid var(--border);
+  background: rgba(6, 13, 23, 0.92);
+  overflow: hidden;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+}
+
+.builder-canvas-header,
+.builder-footer,
+.training-actions,
+.chart-card__header,
+.notes-preview__actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.builder-canvas-header,
+.builder-footer {
+  padding: 16px 18px;
+}
+
+.builder-footer {
+  border-top: 1px solid var(--border);
+}
+
+.warning-copy {
+  color: #ffbf7a;
+}
+
+.builder-node {
+  width: 210px;
+  padding: 14px;
+  border-radius: 18px;
+  border: 1px solid rgba(122, 212, 255, 0.2);
+  background: radial-gradient(circle at top left, rgba(18, 46, 67, 0.72), rgba(8, 17, 28, 0.96));
+  box-shadow: 0 20px 38px rgba(0, 0, 0, 0.25);
+}
+
+.builder-node.is-selected {
+  border-color: rgba(122, 212, 255, 0.56);
+}
+
+.builder-node__kind {
+  margin-bottom: 8px;
+  color: var(--builder-node-accent);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 0.72rem;
+}
+
+.builder-node span {
+  display: block;
+  margin-top: 8px;
+  color: var(--text-soft);
+  font-size: 0.88rem;
+}
+
+.builder-fields,
+.field-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.field-group span {
+  color: var(--text-soft);
+  font-size: 0.92rem;
+}
+
+.field-group input,
+.field-group select,
+.field-group textarea {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: rgba(8, 17, 28, 0.86);
+  color: var(--text);
+  outline: none;
+  resize: vertical;
+}
+
+.field-group input:focus,
+.field-group select:focus,
+.field-group textarea:focus {
+  border-color: rgba(122, 212, 255, 0.42);
+}
+
+.training-layout {
+  grid-template-columns: 320px minmax(0, 1fr);
+}
+
+.training-main,
+.workspace-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.training-actions__buttons,
+.workspace-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.training-callout {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: rgba(10, 22, 33, 0.9);
+  border: 1px solid var(--border);
+}
+
+.chart-card {
+  padding: 16px;
+  border-radius: 22px;
+  border: 1px solid var(--border);
+  background: rgba(7, 15, 25, 0.88);
+}
+
+.training-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.sample-table {
+  display: grid;
+  gap: 8px;
+}
+
+.sample-table__header,
+.sample-table__row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: rgba(8, 17, 28, 0.72);
+  border: 1px solid var(--border);
+}
+
+.sample-table__header {
+  color: var(--text-soft);
+  font-size: 0.84rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.confusion-grid {
+  display: grid;
+  gap: 10px;
+}
+
+.confusion-grid__row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.confusion-grid__header,
+.confusion-grid__cell {
+  padding: 12px;
+  border-radius: 14px;
+  text-align: center;
+  border: 1px solid var(--border);
+  background: rgba(8, 17, 28, 0.8);
+}
+
+.notes-layout {
+  grid-template-columns: 240px minmax(0, 1fr) 360px;
+}
+
+.notes-list__item.is-active,
+.preset-card.is-active {
+  border-color: rgba(122, 212, 255, 0.42);
+  background: linear-gradient(135deg, rgba(61, 131, 174, 0.24), rgba(9, 20, 32, 0.92));
+}
+
+.markdown-surface {
+  color: var(--text-soft);
+  line-height: 1.6;
+}
+
+.markdown-surface h1,
+.markdown-surface h2,
+.markdown-surface h3 {
+  color: var(--text);
+  margin-bottom: 10px;
+}
+
+.markdown-surface ul {
+  padding-left: 18px;
+}
+
+.workspace-memory-grid {
+  margin-bottom: 8px;
+}
+
+.workspace-persistence__item small {
+  display: block;
+  margin-top: 4px;
+}
+
+.react-flow {
+  background:
+    radial-gradient(circle at 15% 10%, rgba(74, 166, 219, 0.08), transparent 18%),
+    linear-gradient(180deg, rgba(4, 11, 19, 0.98), rgba(6, 13, 24, 0.98));
+}
+
+.react-flow__controls-button,
+.react-flow__minimap {
+  background: rgba(8, 17, 28, 0.92);
+  border-color: var(--border);
+}
+
+.react-flow__attribution {
+  display: none;
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 1380px) {
+  .lab-main {
+    grid-template-columns: 260px minmax(0, 1fr);
+  }
+
+  .inspector-panel {
+    grid-column: span 2;
+  }
+
+  .builder-workbench,
+  .notes-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .training-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 1080px) {
+  .lab-shell {
+    padding: 14px;
+  }
+
+  .top-toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .top-toolbar__controls,
+  .top-toolbar__status {
+    justify-content: flex-start;
+  }
+
+  .lab-main {
+    grid-template-columns: 1fr;
+  }
+
+  .graph-panel {
+    height: 480px;
+    min-height: 480px;
+  }
+
+  .training-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 780px) {
+  .graph-overlay--left,
+  .graph-overlay--right {
+    position: static;
+    margin: 12px;
+  }
+
+  .graph-panel {
+    height: auto;
+    min-height: 0;
+    display: grid;
+    grid-template-rows: auto auto minmax(0, 1fr);
+  }
+
+  .graph-stage {
+    position: relative;
+    inset: auto;
+    min-height: 320px;
+    height: 320px;
+  }
+
+  .top-toolbar__controls {
+    justify-content: stretch;
+  }
+
+  .toolbar-chip--search {
+    min-width: 100%;
+  }
+
+  .workbench__tabs button {
+    min-width: 160px;
+  }
+}
+</style><style type="text/css">.float-tooltip-kap {
+  position: absolute;
+  width: max-content; /* prevent shrinking near right edge */
+  max-width: max(50%, 150px);
+  padding: 3px 5px;
+  border-radius: 3px;
+  font: 12px sans-serif;
+  color: #eee;
+  background: rgba(0,0,0,0.6);
+  pointer-events: none;
+}
+</style><style type="text/css">.scene-nav-info {
+  position: absolute;
+  bottom: 5px;
+  width: 100%;
+  text-align: center;
+  color: slategrey;
+  opacity: 0.7;
+  font-size: 10px;
+  font-family: sans-serif;
+  pointer-events: none;
+  user-select: none;
+}
+
+.scene-container canvas:focus {
+  outline: none;
+}</style><style type="text/css">.graph-info-msg {
+  top: 50%;
+  width: 100%;
+  text-align: center;
+  color: lavender;
+  opacity: 0.7;
+  font-size: 22px;
+  position: absolute;
+  font-family: Sans-serif;
+}
+
+.scene-container .clickable {
+  cursor: pointer;
+}
+
+.scene-container .grabbable {
+  cursor: move;
+  cursor: grab;
+  cursor: -moz-grab;
+  cursor: -webkit-grab;
+}
+
+.scene-container .grabbable:active {
+  cursor: grabbing;
+  cursor: -moz-grabbing;
+  cursor: -webkit-grabbing;
+}</style></head>
+  <body>
+    <div id="root"><div class="lab-shell"><input accept="application/json" hidden="" type="file"><header class="top-toolbar"><div class="top-toolbar__brand"><div class="brand-mark"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-sparkles" aria-hidden="true"><path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z"></path><path d="M20 2v4"></path><path d="M22 4h-4"></path><circle cx="4" cy="20" r="2"></circle></svg></div><div><p class="top-toolbar__kicker">Browser AI Lab</p><h1>Cortex Lab</h1><p class="top-toolbar__subtitle">An Obsidian-inspired AI workspace for notes, graphs, models, and experiments.</p></div></div><div class="top-toolbar__controls"><div class="toolbar-chip toolbar-chip--search"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-search" aria-hidden="true"><path d="m21 21-4.34-4.34"></path><circle cx="11" cy="11" r="8"></circle></svg><input aria-label="Search graph" placeholder="Search notes, datasets, models, tags..." value=""></div><div class="toolbar-segment"><button type="button" class="is-active">Beginner</button><button type="button" class="">Advanced</button></div><label class="toolbar-toggle"><input type="checkbox">Focus neighbors</label><label class="toolbar-toggle"><input type="checkbox" checked="">Labels</label><button type="button" class="toolbar-button"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-download" aria-hidden="true"><path d="M12 15V3"></path><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><path d="m7 10 5 5 5-5"></path></svg>Export</button><button type="button" class="toolbar-button"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-up" aria-hidden="true"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"></path><path d="M14 2v5a1 1 0 0 0 1 1h5"></path><path d="M12 12v6"></path><path d="m15 15-3-3-3 3"></path></svg>Import</button><button type="button" class="toolbar-button toolbar-button--warn"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-rotate-ccw" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>Reset Demo</button></div><div class="top-toolbar__status"><span class="status-pill"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-workflow" aria-hidden="true"><rect width="8" height="8" x="3" y="3" rx="2"></rect><path d="M7 11v4a2 2 0 0 0 2 2h4"></path><rect width="8" height="8" x="13" y="13" rx="2"></rect></svg>Autosave active</span><span class="status-note">Last sync Apr 19, 7:15 PM</span></div></header><main class="lab-main"><aside class="workspace-sidebar"><section class="panel-frame"><header class="panel-frame__header"><div><p class="panel-frame__eyebrow">Workspace Lens</p><h2 class="panel-frame__title">Live graph overview</h2><p class="panel-frame__subtitle">Collections, filters, and quick note capture all stay tied to the 3D workspace.</p></div></header><div class="panel-frame__body"><div class="stat-grid"><div class="stat-card" style="border-color: rgb(121, 216, 255);"><span class="stat-card__label">Nodes</span><strong class="stat-card__value">10</strong></div><div class="stat-card" style="border-color: rgb(159, 233, 255);"><span class="stat-card__label">Notes</span><strong class="stat-card__value">2</strong></div><div class="stat-card" style="border-color: rgb(255, 178, 107);"><span class="stat-card__label">Experiments</span><strong class="stat-card__value">1</strong></div><div class="stat-card" style="border-color: rgb(195, 158, 255);"><span class="stat-card__label">Models</span><strong class="stat-card__value">1</strong></div></div><button type="button" class="primary-button"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-notebook-pen" aria-hidden="true"><path d="M13.4 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7.4"></path><path d="M2 6h4"></path><path d="M2 10h4"></path><path d="M2 14h4"></path><path d="M2 18h4"></path><path d="M21.378 5.626a1 1 0 1 0-3.004-3.004l-5.01 5.012a2 2 0 0 0-.506.854l-.837 2.87a.5.5 0 0 0 .62.62l2.87-.837a2 2 0 0 0 .854-.506z"></path></svg>Quick note from focus</button></div></section><section class="panel-frame"><header class="panel-frame__header"><div><p class="panel-frame__eyebrow">Filters</p><h2 class="panel-frame__title">Graph categories</h2><p class="panel-frame__subtitle">Toggle clusters on and off without losing the relationship map.</p></div></header><div class="panel-frame__body"><div class="filter-list"><button type="button" class="filter-chip is-active"><span class="filter-chip__dot" style="background: rgb(100, 184, 255);"></span><span>Neural Block</span><span class="tag-pill tag-pill--muted">0</span></button><button type="button" class="filter-chip is-active"><span class="filter-chip__dot" style="background: rgb(127, 227, 255);"></span><span>Research Note</span><span class="tag-pill tag-pill--muted">2</span></button><button type="button" class="filter-chip is-active"><span class="filter-chip__dot" style="background: rgb(102, 240, 194);"></span><span>Dataset</span><span class="tag-pill tag-pill--muted">2</span></button><button type="button" class="filter-chip is-active"><span class="filter-chip__dot" style="background: rgb(255, 165, 108);"></span><span>Experiment</span><span class="tag-pill tag-pill--muted">1</span></button><button type="button" class="filter-chip is-active"><span class="filter-chip__dot" style="background: rgb(184, 140, 255);"></span><span>Model Version</span><span class="tag-pill tag-pill--muted">1</span></button><button type="button" class="filter-chip is-active"><span class="filter-chip__dot" style="background: rgb(158, 168, 255);"></span><span>Idea</span><span class="tag-pill tag-pill--muted">1</span></button><button type="button" class="filter-chip is-active"><span class="filter-chip__dot" style="background: rgb(255, 211, 110);"></span><span>Task</span><span class="tag-pill tag-pill--muted">1</span></button><button type="button" class="filter-chip is-active"><span class="filter-chip__dot" style="background: rgb(77, 208, 255);"></span><span>Layer Group</span><span class="tag-pill tag-pill--muted">1</span></button><button type="button" class="filter-chip is-active"><span class="filter-chip__dot" style="background: rgb(255, 215, 108);"></span><span>Result</span><span class="tag-pill tag-pill--muted">1</span></button></div></div></section><section class="panel-frame"><header class="panel-frame__header"><div><p class="panel-frame__eyebrow">Collections</p><h2 class="panel-frame__title">Linked workspace items</h2><p class="panel-frame__subtitle">Every list item is a graph node you can jump to.</p></div></header><div class="panel-frame__body"><div class="collection-block"><div class="collection-block__heading"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-layers" aria-hidden="true"><path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83z"></path><path d="M2 12a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 12"></path><path d="M2 17a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 17"></path></svg>Notes</div><button type="button" class="collection-item"><span>Lab Charter</span><small>overview · workflow</small></button><button type="button" class="collection-item"><span>Spiral Observation</span><small>spiral · regularization</small></button></div><div class="collection-block"><div class="collection-block__heading"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-orbit" aria-hidden="true"><path d="M20.341 6.484A10 10 0 0 1 10.266 21.85"></path><path d="M3.659 17.516A10 10 0 0 1 13.74 2.152"></path><circle cx="12" cy="12" r="3"></circle><circle cx="19" cy="5" r="2"></circle><circle cx="5" cy="19" r="2"></circle></svg>Datasets</div><button type="button" class="collection-item"><span>XOR Table</span><small>target target</small></button><button type="button" class="collection-item"><span>Two Spiral</span><small>class target</small></button><button type="button" class="collection-item"><span>Sine Curve</span><small>y target</small></button></div><div class="collection-block"><div class="collection-block__heading"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-test-tube-diagonal" aria-hidden="true"><path d="M21 7 6.82 21.18a2.83 2.83 0 0 1-3.99-.01a2.83 2.83 0 0 1 0-4L17 3"></path><path d="m16 2 6 6"></path><path d="M12 16H4"></path></svg>Experiments</div><button type="button" class="collection-item"><span>Core Browser Lab</span><small>draft</small></button></div></div></section></aside><section class="graph-panel"><div class="graph-overlay graph-overlay--left"><div><p class="graph-overlay__eyebrow">3D workspace</p><strong>Floating knowledge graph</strong><p>Rotate, zoom, and drag nodes to reorganize the AI lab spatially.</p><p>10 visible nodes</p></div><div class="graph-overlay__legend"><span><i style="background: rgb(255, 165, 108);"></i>Experiment</span><span><i style="background: rgb(102, 240, 194);"></i>Dataset</span><span><i style="background: rgb(127, 227, 255);"></i>Research Note</span><span><i style="background: rgb(184, 140, 255);"></i>Model Version</span></div></div><div class="graph-overlay graph-overlay--right"><button type="button">Zoom to fit</button><button type="button">Focus selected</button></div><div class="graph-stage"><div><div style="position: relative;"><div><div class="scene-container" style="position: relative; width: 487px; height: 2138px;"><div class="scene-nav-info" style="display: none;">Left-click: rotate, Mouse-wheel/middle-click: zoom, Right-click: pan</div><div class="float-tooltip-kap" style="left: -10000px; display: none;"></div><canvas data-engine="three.js r184" width="487" height="2138" style="display: block; width: 487px; height: 2138px; touch-action: none;"></canvas></div></div><div class="graph-info-msg"></div></div></div></div></section><aside class="inspector-panel"><section class="panel-frame"><header class="panel-frame__header"><div><p class="panel-frame__eyebrow">Inspector</p><h2 class="panel-frame__title">Core Browser Lab</h2><p class="panel-frame__subtitle">Trainable workflows that bind datasets, architectures, and outputs together.</p></div><div class="panel-frame__actions"><button type="button" class="toolbar-button">Inspect run<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right" aria-hidden="true"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></button></div></header><div class="panel-frame__body"><div class="inspector-tabbar"><button type="button" class="is-active">overview</button><button type="button" class="">connections</button><button type="button" class="">metrics</button></div><div class="inspector-section"><p>The active experiment tying notes, model versions, and datasets together.</p><div class="tag-row"><span class="tag-pill">active</span><span class="tag-pill">browser</span></div><div class="inspector-entity"><h3>Experiment</h3><p>Primary experiment wiring together the active builder flow, the selected dataset preset, and training outputs.</p></div><button type="button" class="secondary-button"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-notebook-pen" aria-hidden="true"><path d="M13.4 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7.4"></path><path d="M2 6h4"></path><path d="M2 10h4"></path><path d="M2 14h4"></path><path d="M2 18h4"></path><path d="M21.378 5.626a1 1 0 1 0-3.004-3.004l-5.01 5.012a2 2 0 0 0-.506.854l-.837 2.87a.5.5 0 0 0 .62.62l2.87-.837a2 2 0 0 0 .854-.506z"></path></svg>Create linked note</button></div></div></section></aside></main><section class="workbench"><div class="workbench__tabs"><button type="button" class=""><span>Network Builder</span><small>Drag blocks, wire layers, and validate the current architecture.</small></button><button type="button" class="is-active"><span>Training Console</span><small>Run TensorFlow.js training, inspect metrics, and review predictions.</small></button><button type="button" class=""><span>Research Notes</span><small>Keep markdown notes, backlinks, and linked insights next to the graph.</small></button><button type="button" class=""><span>Workspace</span><small>Export, import, reset, and inspect persistence state.</small></button></div><div class="workbench__content"><section class="panel-frame training-panel"><header class="panel-frame__header"><div><p class="panel-frame__eyebrow">Training</p><h2 class="panel-frame__title">In-browser model training</h2><p class="panel-frame__subtitle">TensorFlow.js runs the current builder flow locally, then persists completed models into IndexedDB.</p></div></header><div class="panel-frame__body"><div class="training-layout"><section class="training-sidebar"><div class="builder-section"><p class="section-kicker">Preset</p><h3>Choose a browser task</h3><div class="preset-stack"><button type="button" class="preset-card is-active"><strong>XOR Classifier</strong><small>Best for learning how hidden layers unlock separability.</small><div class="tag-row"><span class="tag-pill tag-pill--muted">binary classification</span></div></button><button type="button" class="preset-card"><strong>Spiral Separation</strong><small>Helpful for seeing capacity, dropout, and normalization tradeoffs.</small><div class="tag-row"><span class="tag-pill tag-pill--muted">binary classification</span></div></button><button type="button" class="preset-card"><strong>Sine Regression</strong><small>Useful when you want to inspect error curves and parameter counts.</small><div class="tag-row"><span class="tag-pill tag-pill--muted">regression</span></div></button></div><button type="button" class="secondary-button">Load recommended flow</button></div><div class="builder-section"><p class="section-kicker">Hyperparameters</p><h3>Training config</h3><div class="field-grid"><label class="field-group"><span>Epochs</span><input min="1" max="400" type="number" value="120"></label><label class="field-group"><span>Batch size</span><input min="1" max="64" type="number" value="4"></label><label class="field-group"><span>Learning rate</span><input step="0.001" min="0.0001" max="0.5" type="number" value="0.08"></label><label class="field-group"><span>Validation split</span><input step="0.05" min="0.1" max="0.5" type="number" value="0.25"></label></div></div><div class="builder-section"><p class="section-kicker">Dataset preview</p><h3>XOR Table</h3><p>Binary logic dataset with two features and a non-linear target.</p><div class="sample-table"><div class="sample-table__header"><span>x1</span><span>x2</span><span>target</span></div><div class="sample-table__row"><span>0</span><span>0</span><span>0</span></div><div class="sample-table__row"><span>0</span><span>1</span><span>1</span></div><div class="sample-table__row"><span>1</span><span>0</span><span>1</span></div><div class="sample-table__row"><span>1</span><span>1</span><span>0</span></div></div></div></section><section class="training-main"><div class="training-actions"><div class="tag-row"><span class="tag-pill" style="border-color: rgb(142, 207, 255); color: rgb(142, 207, 255);">idle</span><span class="tag-pill tag-pill--muted">~55 params</span></div><div class="training-actions__buttons"><button type="button" class="primary-button"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-play" aria-hidden="true"><path d="M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z"></path></svg>Train</button><button type="button" class="secondary-button"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-rotate-ccw" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>Reset run</button></div></div><div class="stat-grid"><div class="stat-card" style="border-color: rgb(142, 207, 255);"><span class="stat-card__label">Epoch</span><strong class="stat-card__value">0</strong></div><div class="stat-card" style="border-color: rgb(255, 211, 108);"><span class="stat-card__label">Loss</span><strong class="stat-card__value">—</strong></div><div class="stat-card" style="border-color: rgb(134, 241, 200);"><span class="stat-card__label">Accuracy</span><strong class="stat-card__value">—</strong></div><div class="stat-card" style="border-color: rgb(197, 154, 255);"><span class="stat-card__label">Saved model</span><strong class="stat-card__value">Pending</strong></div></div><div class="training-callout"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-save" aria-hidden="true"><path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"></path><path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7"></path><path d="M7 3v4a1 1 0 0 0 1 1h7"></path></svg><span>Ready to train the active browser model.</span></div><div class="chart-card"><div class="chart-card__header"><div><p class="section-kicker">Metrics</p><h3>Loss and accuracy</h3></div></div><div class="recharts-responsive-container" style="width: 100%; height: 260px; min-width: 0px;"><div style="width: 0px; overflow-x: visible;"><div width="604" height="260" class="recharts-wrapper" style="position: relative; cursor: default; width: 604px; height: 260px;"><div xmlns="http://www.w3.org/1999/xhtml" tabindex="-1" class="recharts-tooltip-wrapper" style="visibility: hidden; pointer-events: none; position: absolute; top: 0px; left: 0px;"><div class="recharts-default-tooltip" role="status" aria-live="assertive" style="margin: 0px; padding: 10px; background: rgb(7, 18, 29); border: 1px solid rgb(27, 50, 66); white-space: nowrap; border-radius: 12px;"><p class="recharts-tooltip-label" style="margin: 0px;"></p></div></div><div class="recharts-legend-wrapper" style="position: absolute; width: 594px; height: auto; left: 5px; bottom: 5px;"><ul class="recharts-default-legend" style="padding: 0px; margin: 0px; text-align: center;"><li class="recharts-legend-item legend-item-0" style="display: inline-block; margin-right: 10px;"><svg aria-label="accuracy legend icon" class="recharts-surface" width="14" height="14" viewBox="0 0 32 32" style="display: inline-block; vertical-align: middle; margin-right: 4px;"><title></title><desc></desc><path stroke-width="4" fill="none" stroke="#74e2b6" d="M0,16h10.666666666666666
+            A5.333333333333333,5.333333333333333,0,1,1,21.333333333333332,16
+            H32M21.333333333333332,16
+            A5.333333333333333,5.333333333333333,0,1,1,10.666666666666666,16" class="recharts-legend-icon"></path></svg><span class="recharts-legend-item-text" style="color: rgb(116, 226, 182);">accuracy</span></li><li class="recharts-legend-item legend-item-1" style="display: inline-block; margin-right: 10px;"><svg aria-label="loss legend icon" class="recharts-surface" width="14" height="14" viewBox="0 0 32 32" style="display: inline-block; vertical-align: middle; margin-right: 4px;"><title></title><desc></desc><path stroke-width="4" fill="none" stroke="#ffd76c" d="M0,16h10.666666666666666
+            A5.333333333333333,5.333333333333333,0,1,1,21.333333333333332,16
+            H32M21.333333333333332,16
+            A5.333333333333333,5.333333333333333,0,1,1,10.666666666666666,16" class="recharts-legend-icon"></path></svg><span class="recharts-legend-item-text" style="color: rgb(255, 215, 108);">loss</span></li><li class="recharts-legend-item legend-item-2" style="display: inline-block; margin-right: 10px;"><svg aria-label="valAccuracy legend icon" class="recharts-surface" width="14" height="14" viewBox="0 0 32 32" style="display: inline-block; vertical-align: middle; margin-right: 4px;"><title></title><desc></desc><path stroke-width="4" fill="none" stroke="#7cc7ff" d="M0,16h10.666666666666666
+            A5.333333333333333,5.333333333333333,0,1,1,21.333333333333332,16
+            H32M21.333333333333332,16
+            A5.333333333333333,5.333333333333333,0,1,1,10.666666666666666,16" class="recharts-legend-icon"></path></svg><span class="recharts-legend-item-text" style="color: rgb(124, 199, 255);">valAccuracy</span></li><li class="recharts-legend-item legend-item-3" style="display: inline-block; margin-right: 10px;"><svg aria-label="valLoss legend icon" class="recharts-surface" width="14" height="14" viewBox="0 0 32 32" style="display: inline-block; vertical-align: middle; margin-right: 4px;"><title></title><desc></desc><path stroke-width="4" fill="none" stroke="#ffa96d" d="M0,16h10.666666666666666
+            A5.333333333333333,5.333333333333333,0,1,1,21.333333333333332,16
+            H32M21.333333333333332,16
+            A5.333333333333333,5.333333333333333,0,1,1,10.666666666666666,16" class="recharts-legend-icon"></path></svg><span class="recharts-legend-item-text" style="color: rgb(255, 169, 109);">valLoss</span></li></ul></div><svg role="application" tabindex="0" class="recharts-surface" width="604" height="260" viewBox="0 0 604 260" style="width: 100%; height: 100%; display: block;"><title></title><desc></desc><g tabindex="-1" class="recharts-zIndex-layer_-100"><g class="recharts-cartesian-grid"><g class="recharts-cartesian-grid-horizontal"><line stroke="#173040" stroke-dasharray="3 3" fill="none" x="65" y="5" width="534" height="199" x1="65" y1="5" x2="599" y2="5"></line><line stroke="#173040" stroke-dasharray="3 3" fill="none" x="65" y="5" width="534" height="199" x1="65" y1="204" x2="599" y2="204"></line></g><g class="recharts-cartesian-grid-vertical"><line stroke="#173040" stroke-dasharray="3 3" fill="none" x="65" y="5" width="534" height="199" x1="65" y1="5" x2="65" y2="204"></line><line stroke="#173040" stroke-dasharray="3 3" fill="none" x="65" y="5" width="534" height="199" x1="599" y1="5" x2="599" y2="204"></line></g></g></g><g tabindex="-1" class="recharts-zIndex-layer_-50"></g><defs><clipPath id="recharts1-clip"><rect x="65" y="5" height="199" width="534"></rect></clipPath></defs><g tabindex="-1" class="recharts-zIndex-layer_100"></g><g tabindex="-1" class="recharts-zIndex-layer_200"></g><g tabindex="-1" class="recharts-zIndex-layer_300"></g><g tabindex="-1" class="recharts-zIndex-layer_400"></g><g tabindex="-1" class="recharts-zIndex-layer_500"><g class="recharts-layer recharts-cartesian-axis recharts-xAxis xAxis"><line stroke="#6a8699" angle="0" height="30" orientation="bottom" x="65" y="204" width="534" class="recharts-cartesian-axis-line" fill="none" x1="65" y1="204" x2="599" y2="204"></line><g class="recharts-cartesian-axis-ticks recharts-xAxis-ticks"></g></g><g class="recharts-layer recharts-cartesian-axis recharts-yAxis yAxis"><line stroke="#6a8699" angle="0" orientation="left" width="60" x="5" y="5" height="199" class="recharts-cartesian-axis-line" fill="none" x1="65" y1="5" x2="65" y2="204"></line><g class="recharts-cartesian-axis-ticks recharts-yAxis-ticks"></g></g></g><g tabindex="-1" class="recharts-zIndex-layer_600"></g><g tabindex="-1" class="recharts-zIndex-layer_1000"></g><g tabindex="-1" class="recharts-zIndex-layer_1100"></g><g tabindex="-1" class="recharts-zIndex-layer_1200"></g><g tabindex="-1" class="recharts-zIndex-layer_2000"></g></svg></div></div></div></div><div class="training-grid"><div class="chart-card"><div class="chart-card__header"><div><p class="section-kicker">Predictions</p><h3>Preview outputs</h3></div></div><div class="prediction-list"><p class="muted-copy">Train the model to populate prediction previews.</p></div></div><div class="chart-card"><div class="chart-card__header"><div><p class="section-kicker">Validation</p><h3>Builder summary</h3></div></div><div class="prediction-list"><div class="prediction-row"><strong>Input</strong><span>input</span><span>2</span><small>0 params</small></div><div class="prediction-row"><strong>Hidden Dense A</strong><span>dense</span><span>8</span><small>24 params</small></div><div class="prediction-row"><strong>Hidden Dense B</strong><span>dense</span><span>3</span><small>27 params</small></div><div class="prediction-row"><strong>Output</strong><span>output</span><span>1</span><small>4 params</small></div></div></div></div></section></div></div></section></div></section></div></div>
+    <script type="module" src="/src/main.tsx?t=1776640503512"></script>
+  
+
+</body></html>

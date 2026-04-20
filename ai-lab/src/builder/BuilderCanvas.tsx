@@ -14,6 +14,7 @@ import {
   type Node,
   type OnConnect,
 } from '@xyflow/react'
+import { useEffect, useMemo } from 'react'
 import '@xyflow/react/dist/style.css'
 import { useShallow } from 'zustand/react/shallow'
 
@@ -66,15 +67,23 @@ const toFlowEdges = (edges: BuilderFlowEdge[]): Edge[] =>
     },
   }))
 
-const mergeNodePositions = (builderNodes: BuilderFlowNode[], flowNodes: Node[]): BuilderFlowNode[] =>
-  builderNodes.map((node) => {
-    const updated = flowNodes.find((flowNode) => flowNode.id === node.id)
-    return updated
-      ? {
-          ...node,
-          position: updated.position,
-        }
-      : node
+const syncBuilderNodesFromFlow = (
+  builderNodes: BuilderFlowNode[],
+  flowNodes: Node[],
+): BuilderFlowNode[] =>
+  flowNodes.flatMap((flowNode) => {
+    const updated = builderNodes.find((builderNode) => builderNode.id === flowNode.id)
+
+    if (!updated) {
+      return []
+    }
+
+    return [
+      {
+        ...updated,
+        position: flowNode.position,
+      },
+    ]
   })
 
 const mergeEdges = (flowEdges: Edge[]): BuilderFlowEdge[] =>
@@ -173,6 +182,41 @@ const isConnectionAllowed = (
 
   return !wouldCreateCycle(builder.edges, connection.source, connection.target)
 }
+
+const nodeChangeAffectsGraph = (change: { type: string }) =>
+  change.type === 'add' ||
+  change.type === 'remove' ||
+  change.type === 'replace' ||
+  change.type === 'position'
+
+const edgeChangeAffectsGraph = (change: { type: string }) =>
+  change.type === 'add' || change.type === 'remove' || change.type === 'replace'
+
+const sameBuilderNodes = (left: BuilderFlowNode[], right: BuilderFlowNode[]) =>
+  left.length === right.length &&
+  left.every((node, index) => {
+    const other = right[index]
+
+    return (
+      other !== undefined &&
+      node.id === other.id &&
+      node.position.x === other.position.x &&
+      node.position.y === other.position.y
+    )
+  })
+
+const sameBuilderEdges = (left: BuilderFlowEdge[], right: BuilderFlowEdge[]) =>
+  left.length === right.length &&
+  left.every((edge, index) => {
+    const other = right[index]
+
+    return (
+      other !== undefined &&
+      edge.id === other.id &&
+      edge.source === other.source &&
+      edge.target === other.target
+    )
+  })
 
 const BlockPalette = () => {
   const { mode, selectTrainingPreset, loadPresetArchitecture } = useLabStore(
@@ -372,8 +416,16 @@ const BuilderCanvasInner = () => {
   )
 
   const validation = validateBuilderFlow(builder)
-  const flowNodes = toFlowNodes(builder.nodes)
-  const flowEdges = toFlowEdges(builder.edges)
+  const flowNodes = useMemo(() => toFlowNodes(builder.nodes), [builder.nodes])
+  const flowEdges = useMemo(() => toFlowEdges(builder.edges), [builder.edges])
+
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(() => {
+      void reactFlow.fitView({ padding: 0.18, duration: 350 })
+    })
+
+    return () => window.cancelAnimationFrame(frame)
+  }, [reactFlow, builder.id, builder.nodes.length])
 
   const onConnect: OnConnect = (connection) => {
     if (!isConnectionAllowed(builder, connection)) {
@@ -446,18 +498,40 @@ const BuilderCanvasInner = () => {
           nodes={flowNodes}
           edges={flowEdges}
           nodeTypes={nodeTypes}
-          fitView
           nodesDraggable
           edgesFocusable
           onNodeClick={(_, node) => setBuilderSelection(node.id)}
           onSelectionChange={({ nodes }) => setBuilderSelection(nodes[0]?.id)}
           onNodesChange={(changes) => {
-            const nextNodes = applyNodeChanges(changes, flowNodes)
-            updateBuilderGraph(mergeNodePositions(builder.nodes, nextNodes), builder.edges)
+            const meaningfulChanges = changes.filter(nodeChangeAffectsGraph)
+
+            if (meaningfulChanges.length === 0) {
+              return
+            }
+
+            const nextNodes = applyNodeChanges(meaningfulChanges, flowNodes)
+            const mergedNodes = syncBuilderNodesFromFlow(builder.nodes, nextNodes)
+
+            if (sameBuilderNodes(builder.nodes, mergedNodes)) {
+              return
+            }
+
+            updateBuilderGraph(mergedNodes, builder.edges)
           }}
           onEdgesChange={(changes) => {
-            const nextEdges = applyEdgeChanges(changes, flowEdges)
-            updateBuilderGraph(builder.nodes, mergeEdges(nextEdges))
+            const meaningfulChanges = changes.filter(edgeChangeAffectsGraph)
+
+            if (meaningfulChanges.length === 0) {
+              return
+            }
+
+            const nextEdges = mergeEdges(applyEdgeChanges(meaningfulChanges, flowEdges))
+
+            if (sameBuilderEdges(builder.edges, nextEdges)) {
+              return
+            }
+
+            updateBuilderGraph(builder.nodes, nextEdges)
           }}
           onConnect={onConnect}
           deleteKeyCode={['Backspace', 'Delete']}
