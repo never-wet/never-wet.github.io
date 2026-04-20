@@ -1,5 +1,5 @@
 import { startTransition } from 'react'
-import { Download, FileUp, Search, Sparkles, Workflow, RotateCcw } from 'lucide-react'
+import { BookOpenText, Download, FileUp, Search, Sparkles, Workflow, RotateCcw } from 'lucide-react'
 
 import { appManifest } from '../memory/appManifest'
 import type { LabMode } from '../memory/types'
@@ -16,6 +16,7 @@ interface TopToolbarProps {
   onExport: () => void
   onImport: () => void
   onReset: () => void
+  onOpenTutorial: () => void
   onToggleConnected: (enabled: boolean) => void
   onToggleLabels: (enabled: boolean) => void
 }
@@ -31,6 +32,7 @@ export const TopToolbar = ({
   onExport,
   onImport,
   onReset,
+  onOpenTutorial,
   onToggleConnected,
   onToggleLabels,
 }: TopToolbarProps) => (
@@ -99,6 +101,11 @@ export const TopToolbar = ({
       <button type="button" className="toolbar-button" onClick={onImport}>
         <FileUp size={16} />
         Import
+      </button>
+
+      <button type="button" className="toolbar-button" onClick={onOpenTutorial}>
+        <BookOpenText size={16} />
+        Tutorial
       </button>
 
       <button type="button" className="toolbar-button toolbar-button--warn" onClick={onReset}>

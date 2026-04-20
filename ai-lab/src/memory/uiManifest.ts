@@ -3,6 +3,11 @@ export const uiManifest = {
   rightRailSections: ['selected item', 'connections', 'metrics'],
   bottomTabs: [
     {
+      id: 'canvas',
+      label: 'Canvas Workspace',
+      description: 'Lay out notes, web cards, and experiment artifacts on an infinite 2D canvas.',
+    },
+    {
       id: 'builder',
       label: 'Network Builder',
       description: 'Drag blocks, wire layers, and validate the current architecture.',

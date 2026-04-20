@@ -1,6 +1,6 @@
 export type LabMode = 'beginner' | 'advanced'
 
-export type BottomTabId = 'builder' | 'training' | 'notes' | 'workspace'
+export type BottomTabId = 'canvas' | 'builder' | 'training' | 'notes' | 'workspace'
 
 export type InspectorTabId = 'overview' | 'connections' | 'metrics'
 
@@ -58,6 +58,16 @@ export type TrainingTaskType =
   | 'regression'
 
 export type TrainingStatus = 'idle' | 'training' | 'paused' | 'completed' | 'error'
+
+export type CanvasNodeType = 'text' | 'file' | 'link' | 'group'
+
+export type CanvasSide = 'top' | 'right' | 'bottom' | 'left'
+
+export type CanvasEdgeEnd = 'none' | 'arrow'
+
+export type CanvasPresetColor = '1' | '2' | '3' | '4' | '5' | '6'
+
+export type CanvasColor = CanvasPresetColor | `#${string}`
 
 export type FieldInputKind = 'text' | 'textarea' | 'number' | 'range' | 'toggle' | 'select'
 
@@ -280,6 +290,45 @@ export interface BuilderFlowState {
   edges: BuilderFlowEdge[]
 }
 
+export interface CanvasNodeRecord {
+  id: string
+  type: CanvasNodeType
+  x: number
+  y: number
+  width: number
+  height: number
+  color?: CanvasColor
+  text?: string
+  file?: string
+  subpath?: string
+  url?: string
+  label?: string
+  background?: string
+  backgroundStyle?: 'cover' | 'ratio' | 'repeat'
+  entityKind?: EntityKind
+  entityId?: string
+  zIndex?: number
+}
+
+export interface CanvasEdgeRecord {
+  id: string
+  fromNode: string
+  fromSide?: CanvasSide
+  fromEnd?: CanvasEdgeEnd
+  toNode: string
+  toSide?: CanvasSide
+  toEnd?: CanvasEdgeEnd
+  color?: CanvasColor
+  label?: string
+}
+
+export interface CanvasState {
+  id: string
+  title: string
+  nodes: CanvasNodeRecord[]
+  edges: CanvasEdgeRecord[]
+}
+
 export interface TrainingConfig {
   epochs: number
   batchSize: number
@@ -350,6 +399,7 @@ export interface WorkspaceStateData {
   experiments: ExperimentRecord[]
   models: ModelRecord[]
   results: ResultRecord[]
+  canvas: CanvasState
   builder: BuilderFlowState
   training: TrainingState
   ui: UiState

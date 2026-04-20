@@ -1,16 +1,20 @@
-import { lazy, Suspense, useEffect, useMemo, useRef } from 'react'
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import { useShallow } from 'zustand/react/shallow'
 import { InspectorPanel } from '../components/InspectorPanel'
 import { SectionErrorBoundary } from '../components/SectionErrorBoundary'
 import { TopToolbar } from '../components/TopToolbar'
+import { TutorialOverlay } from '../components/TutorialOverlay'
 import { WorkspaceSidebar } from '../components/WorkspaceSidebar'
 import { uiManifest } from '../memory/uiManifest'
 import { createDefaultWorkspaceState } from '../memory/defaultState'
 import { normalizeImportedWorkspace } from '../memory/saveSchema'
+import { storageKeys } from '../memory/storageKeys'
+import { tutorialManifest } from '../memory/tutorialManifest'
 import { useLabStore } from '../state/useLabStore'
 import { downloadWorkspace, readWorkspaceFile, saveWorkspaceSnapshot } from '../utils/persistence'
 import { ForceGraphPanel } from '../graph/ForceGraphPanel'
 
+const CanvasWorkbench = lazy(async () => import('../canvas/CanvasWorkbench').then((module) => ({ default: module.CanvasWorkbench })))
 const BuilderCanvas = lazy(async () => import('../builder/BuilderCanvas').then((module) => ({ default: module.BuilderCanvas })))
 const TrainingConsole = lazy(async () => import('../training/TrainingConsole').then((module) => ({ default: module.TrainingConsole })))
 const NotesWorkbenchLazy = lazy(async () => import('../notes/NotesWorkbench').then((module) => ({ default: module.NotesWorkbench })))
@@ -18,6 +22,14 @@ const WorkspacePanel = lazy(async () => import('../components/WorkspacePanel').t
 
 export const LabApp = () => {
   const fileInputRef = useRef<HTMLInputElement | null>(null)
+  const [tutorialOpen, setTutorialOpen] = useState(() => {
+    if (typeof window === 'undefined') {
+      return false
+    }
+
+    return window.localStorage.getItem(storageKeys.tutorialDismissed) !== 'true'
+  })
+  const [tutorialStepIndex, setTutorialStepIndex] = useState(0)
 
   const {
     mode,
@@ -28,6 +40,7 @@ export const LabApp = () => {
     experiments,
     models,
     results,
+    canvas,
     builder,
     training,
     ui,
@@ -51,6 +64,7 @@ export const LabApp = () => {
       experiments: state.experiments,
       models: state.models,
       results: state.results,
+      canvas: state.canvas,
       builder: state.builder,
       training: state.training,
       ui: state.ui,
@@ -77,6 +91,7 @@ export const LabApp = () => {
       experiments,
       models,
       results,
+      canvas,
       builder,
       training,
       ui: {
@@ -103,6 +118,7 @@ export const LabApp = () => {
       experiments,
       models,
       results,
+      canvas,
       builder,
       training,
       ui.activeBottomTab,
@@ -128,7 +144,43 @@ export const LabApp = () => {
     return () => window.clearTimeout(timer)
   }, [workspaceForAutosave])
 
+  useEffect(() => {
+    if (!tutorialOpen) {
+      return
+    }
+
+    const step = tutorialManifest[tutorialStepIndex]
+
+    if (step?.targetBottomTab && ui.activeBottomTab !== step.targetBottomTab) {
+      setBottomTab(step.targetBottomTab)
+    }
+  }, [tutorialOpen, tutorialStepIndex, ui.activeBottomTab, setBottomTab])
+
+  const openTutorial = (stepIndex = 0) => {
+    setTutorialStepIndex(stepIndex)
+    setTutorialOpen(true)
+  }
+
+  const closeTutorial = () => {
+    window.localStorage.setItem(storageKeys.tutorialDismissed, 'true')
+    setTutorialOpen(false)
+  }
+
+  const nextTutorialStep = () => {
+    setTutorialStepIndex((current) =>
+      Math.min(current + 1, tutorialManifest.length - 1),
+    )
+  }
+
+  const previousTutorialStep = () => {
+    setTutorialStepIndex((current) => Math.max(current - 1, 0))
+  }
+
   const activeWorkbench = () => {
+    if (ui.activeBottomTab === 'canvas') {
+      return <CanvasWorkbench />
+    }
+
     if (ui.activeBottomTab === 'builder') {
       return <BuilderCanvas />
     }
@@ -184,6 +236,7 @@ export const LabApp = () => {
         onExport={() => downloadWorkspace(getWorkspaceData())}
         onImport={() => fileInputRef.current?.click()}
         onReset={resetWorkspace}
+        onOpenTutorial={() => openTutorial(0)}
         onToggleConnected={setShowOnlyConnected}
         onToggleLabels={setShowLabels}
       />
@@ -228,6 +281,17 @@ export const LabApp = () => {
           </SectionErrorBoundary>
         </div>
       </section>
+
+      <TutorialOverlay
+        visible={tutorialOpen}
+        step={tutorialManifest[tutorialStepIndex]}
+        stepIndex={tutorialStepIndex}
+        totalSteps={tutorialManifest.length}
+        onClose={closeTutorial}
+        onPrevious={previousTutorialStep}
+        onNext={nextTutorialStep}
+        onRestart={openTutorial}
+      />
     </div>
   )
 }

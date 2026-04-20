@@ -10,6 +10,7 @@ import type {
   BuilderFlowEdge,
   BuilderFlowNode,
   BuilderFlowState,
+  CanvasState,
   ConfusionMatrix,
   GraphNodeRecord,
   LabMode,
@@ -36,6 +37,7 @@ interface LabActions {
   setMode: (mode: LabMode) => void
   setSearchQuery: (query: string) => void
   setBottomTab: (tab: WorkspaceStateData['ui']['activeBottomTab']) => void
+  setCanvasState: (canvas: CanvasState) => void
   setInspectorTab: (tab: WorkspaceStateData['ui']['activeInspectorTab']) => void
   selectNode: (nodeId?: string) => void
   hoverNode: (nodeId?: string) => void
@@ -87,6 +89,7 @@ const extractWorkspaceData = (state: LabStore): WorkspaceStateData => ({
   experiments: state.experiments,
   models: state.models,
   results: state.results,
+  canvas: state.canvas,
   builder: state.builder,
   training: state.training,
   ui: state.ui,
@@ -188,6 +191,17 @@ export const useLabStore = create<LabStore>()(
                     ...state.ui,
                     activeBottomTab: tab,
                   },
+                }),
+              },
+        ),
+
+      setCanvasState: (canvas) =>
+        set((state) =>
+          state.canvas === canvas
+            ? state
+            : {
+                ...stamp({
+                  canvas,
                 }),
               },
         ),

@@ -21,6 +21,7 @@ export const normalizeImportedWorkspace = (
   return {
     ...fallback,
     ...workspace,
+    canvas: workspace.canvas ?? fallback.canvas,
     builder: workspace.builder ?? fallback.builder,
     training: workspace.training ?? fallback.training,
     ui: {

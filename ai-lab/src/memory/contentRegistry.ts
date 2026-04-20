@@ -1,4 +1,5 @@
 import { appManifest } from './appManifest'
+import { canvasNodeManifest } from './canvasManifest'
 import { graphClusters, nodeCategoryVisuals } from './graphIndex'
 import { modelBlockIndex } from './modelBlockIndex'
 import { trainingManifest } from './trainingManifest'
@@ -16,6 +17,9 @@ export const contentRegistry = {
   },
   builder: {
     blocks: Object.keys(modelBlockIndex),
+  },
+  canvas: {
+    cardTypes: Object.keys(canvasNodeManifest),
   },
   training: {
     presets: trainingManifest.presets.map((preset) => preset.id),
