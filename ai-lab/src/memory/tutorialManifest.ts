@@ -25,6 +25,19 @@ export const tutorialManifest: TutorialStep[] = [
     areaLabel: 'Whole app',
   },
   {
+    id: 'modes',
+    eyebrow: 'Modes',
+    title: 'Beginner and Advanced are different working styles',
+    summary:
+      'The mode switch in the top toolbar changes how much control the app gives you, especially in the network builder.',
+    bullets: [
+      'Beginner mode is preset-focused, guided, and keeps the parameter surface lighter.',
+      'Advanced mode unlocks richer builder blocks and gives you more freedom for experiment-oriented workflows.',
+      'If you are learning or just trying the app, start in Beginner. If you want more architecture control, switch to Advanced.',
+    ],
+    areaLabel: 'Top toolbar: mode switch',
+  },
+  {
     id: 'graph',
     eyebrow: '3D Graph',
     title: 'Use the center graph to explore relationships',

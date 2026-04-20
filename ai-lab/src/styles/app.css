@@ -93,6 +93,22 @@
   gap: 12px;
 }
 
+.toolbar-mode-note {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  background: rgba(10, 21, 32, 0.9);
+  color: var(--text-soft);
+  line-height: 1.4;
+}
+
+.toolbar-mode-note strong {
+  color: var(--text);
+  margin-right: 6px;
+}
+
 .toolbar-chip,
 .toolbar-button,
 .toolbar-toggle,
