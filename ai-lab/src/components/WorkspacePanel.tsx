@@ -2,6 +2,7 @@ import { Database, Download, FileUp, FolderSync, RefreshCcw } from 'lucide-react
 
 import { PanelFrame } from './PanelFrame'
 import { contentRegistry } from '../memory/contentRegistry'
+import { memoryManifest } from '../memory/memoryManifest'
 import { storageKeys } from '../memory/storageKeys'
 import { TagPill } from './TagPill'
 
@@ -110,23 +111,17 @@ export const WorkspacePanel = ({
           </div>
         </div>
         <div className="workspace-memory-grid">
-          {[
-            'appManifest.ts',
-            'graphIndex.ts',
-            'nodeTypeIndex.ts',
-            'modelBlockIndex.ts',
-            'trainingManifest.ts',
-            'uiManifest.ts',
-            'defaultState.ts',
-            'saveSchema.ts',
-          ].map((file) => (
-            <TagPill key={file} label={file} muted />
+          {memoryManifest.map((entry) => (
+            <TagPill key={entry.file} label={entry.file} muted />
           ))}
         </div>
         <div className="tag-row">
           <TagPill label={`${contentRegistry.graph.categories.length} graph categories`} />
           <TagPill label={`${contentRegistry.builder.blocks.length} builder blocks`} />
           <TagPill label={`${contentRegistry.training.presets.length} demo presets`} />
+          <TagPill label={`${contentRegistry.notes.templates.length} note templates`} />
+          <TagPill label={`${contentRegistry.ideas.prompts.length} idea prompts`} />
+          <TagPill label={`${contentRegistry.tutorial.steps.length} tutorial steps`} />
         </div>
       </div>
     </div>

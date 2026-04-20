@@ -109,6 +109,8 @@ That means opening the project folder directly should use `index.html`, while Vi
 
 ## Main memory files
 
+- `src/memory/assistantMemory.ts`
+- `src/memory/memoryManifest.ts`
 - `src/memory/appManifest.ts`
 - `src/memory/graphIndex.ts`
 - `src/memory/nodeTypeIndex.ts`
@@ -118,6 +120,8 @@ That means opening the project folder directly should use `index.html`, while Vi
 - `src/memory/defaultState.ts`
 - `src/memory/saveSchema.ts`
 - `src/memory/types.ts`
+
+Start with `src/memory/assistantMemory.ts` for the current high-level product memory, then `src/memory/memoryManifest.ts` for the map of every memory file.
 
 ## How the app works
 
