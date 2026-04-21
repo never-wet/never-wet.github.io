@@ -1,10 +1,10 @@
+import { BrandLogo } from './components/BrandLogo'
 import { FeatureShowcase } from './components/FeatureShowcase'
 import { FinalCallToAction } from './components/FinalCallToAction'
 import { Hero } from './components/Hero'
 import { LocaleProvider, localeOptions, useLocale } from './i18n'
 import { ModulesSection } from './components/ModulesSection'
 import { OwnershipSection } from './components/OwnershipSection'
-import { SmoothScrollController } from './components/SmoothScrollController'
 import { StudioWorkspace } from './components/StudioWorkspace'
 import { ValueGrid } from './components/ValueGrid'
 import { WhyDifferentSection } from './components/WhyDifferentSection'
@@ -131,11 +131,7 @@ function AppShell() {
     <div className="site-shell">
       <header className="topbar">
         <div className="container topbar__inner">
-          <a className="brand" href="#top">
-            Loreline
-          </a>
-
-          <nav aria-label="Primary" className="topbar__nav">
+          <nav aria-label="Primary" className="topbar__nav-shell">
             {navItems.map((item) => (
               <a className="topbar__link" href={item.href} key={item.href}>
                 {t(item.label)}
@@ -143,28 +139,39 @@ function AppShell() {
             ))}
           </nav>
 
-          <div className="topbar__actions">
-            <div className="locale-switcher" aria-label={t('Language')} role="group">
-              {localeOptions.map((option) => (
-                <button
-                  aria-pressed={locale === option.code}
-                  className={`locale-switcher__button ${locale === option.code ? 'locale-switcher__button--active' : ''}`}
-                  key={option.code}
-                  lang={option.code}
-                  onClick={() => setLocale(option.code)}
-                  title={option.nativeLabel}
-                  type="button"
-                >
-                  {option.shortLabel}
-                </button>
-              ))}
+          <div className="topbar__identity-panel">
+            <BrandLogo className="brand brand--topbar" href="#top" />
+          </div>
+
+          <div className="topbar__controls">
+            <div className="topbar__actions-panel">
+              <div className="topbar__locale-panel">
+                <p className="topbar__actions-label">{t('Language')}</p>
+                <div className="locale-switcher" aria-label={t('Language')} role="group">
+                  {localeOptions.map((option) => (
+                    <button
+                      aria-pressed={locale === option.code}
+                      className={`locale-switcher__button ${locale === option.code ? 'locale-switcher__button--active' : ''}`}
+                      key={option.code}
+                      lang={option.code}
+                      onClick={() => setLocale(option.code)}
+                      title={option.nativeLabel}
+                      type="button"
+                    >
+                      {option.shortLabel}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
-            <a className="button button--ghost button--compact" href="#showcase">
-              {t('Overview')}
-            </a>
-            <a className="button button--primary button--compact" href={studioHref}>
-              {t('Open studio')}
-            </a>
+
+            <div className="topbar__cta-panel">
+              <div className="topbar__actions">
+                <a className="button button--primary button--compact topbar__cta" href={studioHref}>
+                  {t('Open studio')}
+                </a>
+              </div>
+            </div>
           </div>
         </div>
       </header>
@@ -183,10 +190,7 @@ function AppShell() {
       <footer className="footer">
         <div className="container footer__inner">
           <div className="footer__identity">
-            <a className="footer__brand" href="#top">
-              <span className="footer__mark" aria-hidden="true" />
-              <span>Loreline</span>
-            </a>
+            <BrandLogo className="footer__brand brand--footer" href="#top" />
             <p className="footer__copy">{t('A premium worldbuilding and story-development platform for creators building entire fictional universes.')}</p>
           </div>
 
@@ -229,7 +233,6 @@ function AppShell() {
 function App() {
   return (
     <LocaleProvider>
-      <SmoothScrollController />
       <AppShell />
     </LocaleProvider>
   )

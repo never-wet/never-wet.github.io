@@ -67,18 +67,9 @@ export function HeroStoryArtwork() {
           d="M410 246L462 176L506 206L544 162L612 252L648 222L700 286H410Z"
           fill="rgba(77, 91, 118, 0.58)"
         />
-        <path
-          d="M242 74L276 40L310 74V132H242Z"
-          fill="rgba(108, 100, 110, 0.5)"
-        />
-        <path
-          d="M314 88L352 48L392 88V150H314Z"
-          fill="rgba(118, 106, 118, 0.5)"
-        />
-        <path
-          d="M386 104L428 62L474 104V176H386Z"
-          fill="rgba(136, 118, 122, 0.44)"
-        />
+        <path d="M242 74L276 40L310 74V132H242Z" fill="rgba(108, 100, 110, 0.5)" />
+        <path d="M314 88L352 48L392 88V150H314Z" fill="rgba(118, 106, 118, 0.5)" />
+        <path d="M386 104L428 62L474 104V176H386Z" fill="rgba(136, 118, 122, 0.44)" />
       </g>
 
       <g className="hero-story-artwork__figure hero-story-artwork__figure--knight">
@@ -100,26 +91,11 @@ export function HeroStoryArtwork() {
           stroke="rgba(123, 224, 184, 0.34)"
           strokeWidth="2"
         />
-        <path
-          d="M236 190L268 208L244 260L196 338L156 336L214 252Z"
-          fill="rgba(21, 34, 53, 0.84)"
-        />
-        <path
-          d="M318 190L286 210L300 258L344 338L384 336L330 246Z"
-          fill="rgba(14, 25, 41, 0.84)"
-        />
-        <path
-          d="M196 182L160 226L142 288L164 296L194 242L214 196Z"
-          fill="rgba(83, 120, 138, 0.72)"
-        />
-        <path
-          d="M334 184L372 228L392 302L370 308L338 246L318 198Z"
-          fill="rgba(66, 96, 118, 0.68)"
-        />
-        <path
-          d="M286 218L298 218L318 364H306Z"
-          fill="url(#hero-steel)"
-        />
+        <path d="M236 190L268 208L244 260L196 338L156 336L214 252Z" fill="rgba(21, 34, 53, 0.84)" />
+        <path d="M318 190L286 210L300 258L344 338L384 336L330 246Z" fill="rgba(14, 25, 41, 0.84)" />
+        <path d="M196 182L160 226L142 288L164 296L194 242L214 196Z" fill="rgba(83, 120, 138, 0.72)" />
+        <path d="M334 184L372 228L392 302L370 308L338 246L318 198Z" fill="rgba(66, 96, 118, 0.68)" />
+        <path d="M286 218L298 218L318 364H306Z" fill="url(#hero-steel)" />
         <rect x="300" y="356" width="32" height="8" rx="4" fill="rgba(240, 210, 142, 0.86)" />
         <path d="M276 262L286 366H262L248 274Z" fill="rgba(15, 23, 42, 0.88)" />
         <path d="M238 262L216 366H238L256 280Z" fill="rgba(18, 29, 45, 0.92)" />
@@ -144,34 +120,13 @@ export function HeroStoryArtwork() {
           stroke="rgba(240, 210, 142, 0.92)"
           strokeWidth="2"
         />
-        <path
-          d="M478 196C502 182 530 178 560 182L574 248L530 290L474 256Z"
-          fill="rgba(121, 64, 70, 0.82)"
-        />
-        <path
-          d="M560 184C590 188 612 198 626 216L650 286L620 294L588 242L566 214Z"
-          fill="url(#hero-cape-rose)"
-        />
-        <path
-          d="M520 214L540 232L520 272L488 328L450 328L494 256Z"
-          fill="rgba(23, 34, 51, 0.86)"
-        />
-        <path
-          d="M570 214L584 234L604 320L574 328L556 266Z"
-          fill="rgba(28, 40, 59, 0.9)"
-        />
-        <path
-          d="M616 222L652 202L670 214L624 248Z"
-          fill="rgba(247, 233, 191, 0.84)"
-        />
-        <path
-          d="M528 326L520 366H548L554 326Z"
-          fill="rgba(15, 23, 42, 0.92)"
-        />
-        <path
-          d="M584 324L594 366H620L604 324Z"
-          fill="rgba(18, 30, 46, 0.92)"
-        />
+        <path d="M478 196C502 182 530 178 560 182L574 248L530 290L474 256Z" fill="rgba(121, 64, 70, 0.82)" />
+        <path d="M560 184C590 188 612 198 626 216L650 286L620 294L588 242L566 214Z" fill="url(#hero-cape-rose)" />
+        <path d="M520 214L540 232L520 272L488 328L450 328L494 256Z" fill="rgba(23, 34, 51, 0.86)" />
+        <path d="M570 214L584 234L604 320L574 328L556 266Z" fill="rgba(28, 40, 59, 0.9)" />
+        <path d="M616 222L652 202L670 214L624 248Z" fill="rgba(247, 233, 191, 0.84)" />
+        <path d="M528 326L520 366H548L554 326Z" fill="rgba(15, 23, 42, 0.92)" />
+        <path d="M584 324L594 366H620L604 324Z" fill="rgba(18, 30, 46, 0.92)" />
       </g>
 
       <g className="hero-story-artwork__foreground">

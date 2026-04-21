@@ -1,23 +1,3 @@
-export type HeroStat = {
-  label: string
-  detail: string
-}
-
-export const heroStats: HeroStat[] = [
-  {
-    label: 'Interconnected by default',
-    detail: 'Characters, places, lore, factions, and manuscript threads live in one story system instead of scattered tools.',
-  },
-  {
-    label: 'Built for whole universes',
-    detail: 'Made for fantasy writers, sci-fi architects, RPG creators, and anyone developing a world deeper than a notes folder.',
-  },
-  {
-    label: 'Private creative ground',
-    detail: 'A calm, focused workspace that respects creator ownership and keeps the process centered on the work itself.',
-  },
-]
-
 export type ValuePillar = {
   sceneId: 'nexus' | 'atlas' | 'characters' | 'narrative' | 'writing'
   eyebrow: string

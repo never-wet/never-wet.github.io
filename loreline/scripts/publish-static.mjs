@@ -7,7 +7,6 @@ const sourceHtml = path.join(distDir, 'dev.html')
 const targetHtml = path.join(root, 'index.html')
 const copyTargets = [
   ['assets', true],
-  ['favicon.svg', false],
 ]
 
 if (!fs.existsSync(sourceHtml)) {

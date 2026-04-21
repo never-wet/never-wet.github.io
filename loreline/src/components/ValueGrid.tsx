@@ -148,7 +148,7 @@ export function ValueGrid() {
   }
 
   return (
-    <section className="section" id="value" aria-labelledby="value-title">
+    <section className="section section--value-intro" id="value" aria-labelledby="value-title">
       <div className="container">
         <ScrollReveal className="scroll-reveal--section">
           <SectionIntro

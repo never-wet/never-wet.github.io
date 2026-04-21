@@ -22,7 +22,6 @@ export function FeatureShowcase() {
   const [activeWorkspaceId, setActiveWorkspaceId] = useState(workspaceViews[0].id)
   const [pendingWorkspaceId, setPendingWorkspaceId] = useState<string | null>(null)
   const [workspacePhase, setWorkspacePhase] = useState<'steady' | 'switching-out' | 'switching-in'>('steady')
-  const [isWorkspaceOpen, setIsWorkspaceOpen] = useState(false)
   const [isSupportOpen, setIsSupportOpen] = useState(false)
   const [showcaseControlsOffset, setShowcaseControlsOffset] = useState(0)
   const [showcaseTrackHeight, setShowcaseTrackHeight] = useState(0)
@@ -112,7 +111,7 @@ export function FeatureShowcase() {
       window.removeEventListener('scroll', requestUpdate)
       window.removeEventListener('resize', requestUpdate)
     }
-  }, [activeWorkspaceId, isSupportOpen, isWorkspaceOpen, workspacePhase])
+  }, [activeWorkspaceId, isSupportOpen, workspacePhase])
 
   function handleWorkspaceChange(nextWorkspaceId: string) {
     if (nextWorkspaceId === highlightedWorkspaceId) {
@@ -145,18 +144,6 @@ export function FeatureShowcase() {
         setWorkspacePhase('steady')
       }, WORKSPACE_SWITCH_IN_MS)
     }, WORKSPACE_SWITCH_OUT_MS)
-  }
-
-  function handleRevealToggle() {
-    setIsWorkspaceOpen((current) => {
-      const next = !current
-
-      if (!next) {
-        setIsSupportOpen(false)
-      }
-
-      return next
-    })
   }
 
   return (
@@ -209,21 +196,12 @@ export function FeatureShowcase() {
 
                 <div className="showcase__actions">
                   <button
-                    aria-expanded={isWorkspaceOpen}
-                    className="button button--primary button--compact"
-                    onClick={handleRevealToggle}
-                    type="button"
-                  >
-                    {isWorkspaceOpen ? t('Hide workspace') : t('Reveal story system')}
-                  </button>
-                  <button
                     aria-expanded={isSupportOpen}
-                    className="button button--ghost button--compact"
-                    disabled={!isWorkspaceOpen}
+                    className="button button--secondary button--compact"
                     onClick={() => setIsSupportOpen((current) => !current)}
                     type="button"
                   >
-                    {isSupportOpen ? t('Hide linked detail') : t('Open linked detail')}
+                    {isSupportOpen ? t('Hide linked detail') : t('Show linked detail')}
                   </button>
                 </div>
               </div>
@@ -241,9 +219,7 @@ export function FeatureShowcase() {
               as="div"
               aria-busy={workspacePhase !== 'steady'}
               aria-labelledby={`workspace-tab-${activeWorkspace.id}`}
-              className={`workspace-shell ${isWorkspaceOpen ? 'workspace-shell--open' : ''} ${
-                isSupportOpen ? 'workspace-shell--support' : ''
-              } workspace-shell--${workspacePhase}`}
+              className={`workspace-shell ${isSupportOpen ? 'workspace-shell--support' : ''} workspace-shell--${workspacePhase}`}
               delay={120}
               id={`workspace-panel-${activeWorkspace.id}`}
               role="tabpanel"
@@ -269,68 +245,50 @@ export function FeatureShowcase() {
                 <p className="workspace-shell__description">{activeWorkspace.description}</p>
 
                 <div className="workspace-shell__body">
-                  {!isWorkspaceOpen ? (
-                    <div className="workspace-collapsed">
-                      <div className="workspace-collapsed__card">
-                        <p className="workspace-collapsed__label">{t('What stays visible first')}</p>
-                        <h4>{t(activeWorkspace.documentTitle)}</h4>
-                        <p>{t(activeWorkspace.documentExcerpt[0])}</p>
-                      </div>
-                      <div className="workspace-collapsed__note">
-                        <p className="workspace-collapsed__label">{t('Only when needed')}</p>
-                        <ul>
-                          <li>{t('World and manuscript links on demand')}</li>
-                          <li>{t('Plot, lore, and faction context without clutter')}</li>
-                          <li>{t('Deeper system detail only when the user asks for it')}</li>
-                        </ul>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="workspace-stage">
-                      <aside className="workspace-stage__rail">
-                        <p className="workspace-stage__label">{t(activeWorkspace.railTitle)}</p>
-                        <ul className="workspace-stage__list">
-                          {activeWorkspace.railItems.map((item) => (
-                            <li key={item}>{t(item)}</li>
-                          ))}
-                        </ul>
-                      </aside>
-
-                      <article className="workspace-stage__editor">
-                        <div className="workspace-stage__editor-bar">
-                          <span>{t(activeWorkspace.documentKicker)}</span>
-                          <span>{t('Synced across notes')}</span>
-                        </div>
-                        <h4>{t(activeWorkspace.documentTitle)}</h4>
-                        {activeWorkspace.documentExcerpt.map((paragraph) => (
-                          <p key={paragraph}>{t(paragraph)}</p>
+                  <div className="workspace-stage">
+                    <aside className="workspace-stage__rail">
+                      <p className="workspace-stage__label">{t(activeWorkspace.railTitle)}</p>
+                      <ul className="workspace-stage__list">
+                        {activeWorkspace.railItems.map((item) => (
+                          <li key={item}>{t(item)}</li>
                         ))}
+                      </ul>
+                    </aside>
 
-                        <div className="workspace-stage__metrics">
-                          {activeWorkspace.metrics.map((metric) => (
-                            <div className="workspace-metric" key={metric.label}>
-                              <span className="workspace-metric__value">{metric.value}</span>
-                              <span className="workspace-metric__label">{t(metric.label)}</span>
-                            </div>
+                    <article className="workspace-stage__editor">
+                      <div className="workspace-stage__editor-bar">
+                        <span>{t(activeWorkspace.documentKicker)}</span>
+                        <span>{t('Synced across notes')}</span>
+                      </div>
+                      <h4>{t(activeWorkspace.documentTitle)}</h4>
+                      {activeWorkspace.documentExcerpt.map((paragraph) => (
+                        <p key={paragraph}>{t(paragraph)}</p>
+                      ))}
+
+                      <div className="workspace-stage__metrics">
+                        {activeWorkspace.metrics.map((metric) => (
+                          <div className="workspace-metric" key={metric.label}>
+                            <span className="workspace-metric__value">{metric.value}</span>
+                            <span className="workspace-metric__label">{t(metric.label)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </article>
+
+                    {isSupportOpen ? (
+                      <aside className="workspace-stage__support">
+                        <p className="workspace-stage__label">{t(activeWorkspace.supportTitle)}</p>
+                        <div className="workspace-stage__support-list">
+                          {activeWorkspace.supportItems.map((item) => (
+                            <article className="workspace-support-card" key={item.title}>
+                              <h4>{t(item.title)}</h4>
+                              <p>{t(item.detail)}</p>
+                            </article>
                           ))}
                         </div>
-                      </article>
-
-                      {isSupportOpen ? (
-                        <aside className="workspace-stage__support">
-                          <p className="workspace-stage__label">{t(activeWorkspace.supportTitle)}</p>
-                          <div className="workspace-stage__support-list">
-                            {activeWorkspace.supportItems.map((item) => (
-                              <article className="workspace-support-card" key={item.title}>
-                                <h4>{t(item.title)}</h4>
-                                <p>{t(item.detail)}</p>
-                              </article>
-                            ))}
-                          </div>
-                        </aside>
-                      ) : null}
-                    </div>
-                  )}
+                      </aside>
+                    ) : null}
+                  </div>
                 </div>
               </div>
             </ScrollReveal>

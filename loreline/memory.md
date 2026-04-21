@@ -157,16 +157,52 @@ Rules:
 - Homepage reveal motion should feel editorial and premium:
   content rises in with soft opacity and blur easing, not flashy parallax or loud gimmicks.
 - On homepage refresh/load, the top bar and hero should animate upward into place in a staggered way so the page feels composed as it arrives.
-- Root page scrolling now has a light inertial/slippery feel across the site:
-  wheel-driven page scroll should glide a little farther after input stops, but it must animate the real window scroll position so sticky sections and scroll-driven scenes still behave correctly.
-- Global scroll smoothing must not hijack inner scroll contexts:
-  preserve native behavior for editable fields and nested scrollable panels.
+- Root page scrolling is currently fully native:
+  do not intercept, remap, or smooth wheel input until a later dedicated pass revisits scroll behavior.
 - Homepage scrollbars are visually hidden, matching the calmer studio presentation, while page scrolling itself remains fully functional.
 - Studio scrollbars are visually hidden to keep the writing environment cleaner, but scrolling behavior remains intact.
 - Reading time in the studio uses a simple fiction-reading estimate around `200 words per minute` and is shown as an `X min read` label.
 - The hero uses a two-column layout with an immersive product vignette showing linked story layers.
-- The hero now combines product UI with explicit story imagery:
-  the right-side hero panel includes an illustrated fantasy tableau near the top so the page immediately signals novels, worlds, characters, and dramatic fiction rather than abstract software alone.
+- The hero now uses a user-provided world-art image as the first-section background:
+  use `never-wet.github.io/img/932765c7cd00055218ba7398119d7d4d.jpg` as the source and keep readable overlays for text contrast.
+- The hero background image should stay visibly present on the first screen:
+  keep overlays light enough that the intro still clearly reads as image-led atmosphere rather than a mostly flat tinted panel.
+- The intro image should extend behind the sticky header:
+  the top bar can overlay the hero, but it should not create a separate empty band above the image.
+- The hero-to-overview seam should feel blurred and atmospheric rather than cut off:
+  hide the second section completely when the page is scrolled to the very top, then let the overview fade in through a softened overlap with the intro background.
+- The right-side hero preview artwork should use the in-house knight/prince SVG rather than repeating the photo background:
+  keep the real image as the section backdrop, and let the preview window carry the playful illustrated contrast.
+- The hero preview copy should stay minimal:
+  avoid faux dashboard text there and use one short project explanation so the artwork remains the focus.
+- The intro should no longer force a full-viewport height:
+  keep the first screen shorter and more content-driven so the background image can show with less aggressive crop and less zoomed-in pixel stretch.
+- The hero should prioritize clarity over stacked marketing blocks:
+  use a tighter subheadline, a compact audience strip, and a cleaner preview instead of multiple chunky signal cards or extra floating notes.
+- The hero should now stay even leaner:
+  avoid a long explanatory paragraph under the main headline and let the image, headline, CTA, and compact audience strip do the work.
+- The top navigation should avoid duplicated actions:
+  keep the primary CTA visible, but do not repeat overview/navigation behavior in separate buttons when the nav already handles it.
+- The first screen should avoid a generic straight navbar:
+  use distinct floating header clusters for brand, navigation, and entry actions so the page feels composed and bespoke instead of like a standard SaaS strip.
+- The main landing header should center the Loreline logo:
+  keep the brand lockup in the middle, with navigation on one side and language / studio entry on the other, so the intro feels ceremonial rather than left-weighted.
+- The `Open studio` CTA should live in its own panel:
+  keep it visually separate from the language selector rather than nesting both controls inside the same box.
+- The right-side header controls should not sit inside a visible wrapper panel:
+  let the locale pills and `Open studio` read as standalone translucent glass controls with the surrounding panel effectively invisible.
+- The top navigation and centered brand should also avoid visible background capsules:
+  keep the header line light and floating, with the glass treatment reserved for the actual interactive controls rather than large brown wrapper shapes.
+- The hero should use an asymmetric lower band beneath the headline:
+  keep the CTA group and the audience/worldbuilder cues in separate but coordinated panels so the intro feels editorial rather than like one long basic stack.
+- Remove custom drawn knight/prince artwork from the first screen:
+  the hero should present the provided image-based atmosphere instead of an in-house SVG illustration.
+- The old knight/prince SVG should remain in the site inside the right-side hero preview panel:
+  use it as a playful illustrated product vignette, but do not let it replace the full hero background image.
+- Loreline now has a dedicated brand emblem:
+  a warm heraldic badge with a sunlit story thread rising from an open book, used alongside the project name in the landing header, footer, studio header, and project favicon.
+- Brand usage should stay consistent:
+  pair the emblem with the `Loreline` wordmark in major identity positions rather than using bare text or unrelated placeholder dots.
 - The hero copy is worldbuilding-first and explicitly aimed at universe builders rather than generic writers.
 - The product-overview section now behaves like a scroll narrative on desktop:
   the explanation cards live on the left side, activate one at a time as the user scrolls, and reverse cleanly when scrolling upward.
@@ -187,6 +223,8 @@ Rules:
 - The workspace showcase uses four tabs:
   `Story Nexus`, `World Atlas`, `Chronicle Engine`, `Writing Room`
 - The showcase keeps secondary depth hidden until the user opens it.
+- The main workspace showcase should no longer hide the actual workspace behind a reveal gate:
+  show the real workspace state immediately, and keep only the linked-detail drawer as the optional progressive-disclosure step.
 - Switching between workspace showcase tabs should feel staged rather than instant:
   the current panel eases out first, then the next workspace rises in with subtle stagger across the internal rail, editor, metrics, and support surfaces.
 - On wide desktop, the showcase controls cluster with the tabs and actions should travel within the same vertical span as the workspace panel:
@@ -197,6 +235,8 @@ Rules:
   never create travel room by stretching the workspace panel with empty interior space.
 - The modules area now expands into a second "creative support systems" mosaic:
   characters, aesthetic boards, personal codex/wiki, studio ambience, plot weaving, and custom calendars should read as serious product systems inside the Loreline ecosystem.
+- The upper module grid should stay curated and high-signal:
+  show only the core worldbuilding pillars there, and let the broader systems mosaic carry the wider product breadth below it.
 - These support systems should be shown in a broad editorial mosaic with recognizably different internal previews, but always in the locked dark palette rather than copied light-theme reference styling.
 - The writing section uses a focused manuscript preview paired with a controlled context drawer to show world-aware drafting.
 - The ownership section uses principle cards plus an editorial quote moment instead of fake testimonials.
@@ -227,6 +267,12 @@ Rules:
   the site should still avoid rainbow UI, loud gradients, or candy-colored cards.
 - The brighter palette must extend into world visuals and illustrated backdrops too:
   hero artwork, sticky scene stages, system mosaics, and studio shells should all carry the warmer mint, gold, earth, and rose atmosphere instead of falling back to cold flat navy backgrounds.
+- The broader visual atmosphere should now lean warm rather than blue-heavy:
+  use cream, gold, earth, rose, and plum-charcoal across surfaces and image backdrops, while keeping the `Open studio` mint as the main green anchor for primary actions and key interactive emphasis.
+- Global mouse-wheel smoothing should feel like native scroll with a polished settle:
+  keep the wheel response immediate, avoid draggy slowdown during active input, and only add a light eased tail after the user stops so the page glides to rest instead of snapping.
+- The scroll controller should use direct wheel movement plus a simple momentum decay:
+  apply wheel input immediately, then let the leftover velocity count down toward zero in small steps instead of running a laggy target-follow animation.
 
 ## Responsive Rules Implemented
 

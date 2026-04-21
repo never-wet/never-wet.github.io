@@ -1,4 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react'
+import { BrandLogo } from './BrandLogo'
 import {
   studioNotebookSeed,
   studioProject,
@@ -212,9 +213,7 @@ export function StudioWorkspace() {
       <header className={`studio-topbar ${isFocusMode && isEditorActive ? 'studio-topbar--quiet' : ''}`}>
         <div className="studio-topbar__inner">
           <div className="studio-topbar__identity">
-            <a className="brand" href="./">
-              Loreline
-            </a>
+            <BrandLogo className="brand brand--studio" href="./" />
             <div className="studio-topbar__breadcrumbs" aria-label="Current writing location">
               <span>{studioProject.title}</span>
               <span>/</span>

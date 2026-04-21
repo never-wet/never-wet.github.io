@@ -18,6 +18,10 @@ export const translations: Record<string, Partial<Record<TranslatedLocale, strin
     ko: '프리미엄 월드빌딩 및 스토리 개발 플랫폼',
     es: 'Plataforma premium de worldbuilding y desarrollo narrativo',
   },
+  'Worldbuilding studio': {
+    ko: '월드빌딩 스튜디오',
+    es: 'Estudio de worldbuilding',
+  },
   'A premium worldbuilding and story-development platform for creators building entire fictional universes.': {
     ko: '전체 가상 우주를 구축하는 창작자를 위한 프리미엄 월드빌딩 및 스토리 개발 플랫폼입니다.',
     es: 'Una plataforma premium de worldbuilding y desarrollo narrativo para creadores que construyen universos ficticios completos.',
@@ -25,6 +29,10 @@ export const translations: Record<string, Partial<Record<TranslatedLocale, strin
   'Build worlds. Shape stories. Keep every thread connected.': {
     ko: '세계를 구축하고, 이야기를 다듬고, 모든 실마리를 연결하세요.',
     es: 'Construye mundos. Da forma a historias. Mantén cada hilo conectado.',
+  },
+  'Build worlds. Shape stories.': {
+    ko: '세계를 구축하고, 이야기를 다듬으세요.',
+    es: 'Construye mundos. Da forma a historias.',
   },
   'Loreline is a home for fantasy writers, sci-fi creators, RPG worldbuilders, and story architects building entire fictional universes. Characters, places, lore, systems, timelines, and manuscript pages all live inside the same serious creative workspace.': {
     ko: 'Loreline은 전체 가상 우주를 구축하는 판타지 작가, SF 창작자, RPG 월드빌더, 스토리 설계자를 위한 공간입니다. 캐릭터, 장소, 로어, 시스템, 타임라인, 원고 페이지가 모두 같은 진지한 창작 작업공간 안에서 함께 살아갑니다.',

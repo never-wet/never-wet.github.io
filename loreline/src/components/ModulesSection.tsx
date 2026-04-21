@@ -22,7 +22,7 @@ export function ModulesSection() {
         </ScrollReveal>
 
         <div className="modules-grid">
-          {moduleCards.map((module, index) => (
+          {moduleCards.slice(0, 4).map((module, index) => (
             <ScrollReveal as="article" className="module-card" delay={80 + index * 65} key={module.title}>
               <p className="module-card__eyebrow">{t(module.eyebrow)}</p>
               <h3 className="module-card__title">{t(module.title)}</h3>
