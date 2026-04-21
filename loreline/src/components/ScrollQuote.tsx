@@ -27,10 +27,6 @@ export function ScrollQuote() {
   const { t } = useLocale()
   const sectionRef = useRef<HTMLElement | null>(null)
   const [progress, setProgress] = useState(0)
-  const targetProgressRef = useRef(0)
-  const renderedProgressRef = useRef(0)
-  const velocityRef = useRef(0)
-  const animationFrameRef = useRef<number | null>(null)
   const translatedQuote = t(ownershipQuote.quote)
 
   const { quoteReleaseHoldDistance, quoteRevealScrollDistance, quoteTokens, revealableGlyphCount } = useMemo(() => {
@@ -77,12 +73,7 @@ export function ScrollQuote() {
       return
     }
 
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      setProgress(1)
-      return
-    }
-
-    function measureTargetProgress() {
+    function measureProgress() {
       const section = sectionRef.current
 
       if (!section) {
@@ -97,57 +88,21 @@ export function ScrollQuote() {
       return revealDistance / revealTravel
     }
 
-    function animate() {
-      animationFrameRef.current = null
-
-      const current = renderedProgressRef.current
-      const target = targetProgressRef.current
-      let nextVelocity = (velocityRef.current + (target - current) * 0.16) * 0.84
-      let nextProgress = clamp(current + nextVelocity, 0, 1)
-
-      if ((nextProgress === 0 && target === 0) || (nextProgress === 1 && target === 1)) {
-        nextVelocity = 0
-      }
-
-      renderedProgressRef.current = nextProgress
-      velocityRef.current = nextVelocity
-
+    function updateProgress() {
+      const nextProgress = measureProgress()
       setProgress((previous) => (Math.abs(previous - nextProgress) < 0.001 ? previous : nextProgress))
-
-      if (Math.abs(nextProgress - target) > 0.001 || Math.abs(nextVelocity) > 0.001) {
-        animationFrameRef.current = window.requestAnimationFrame(animate)
-      }
     }
 
-    function requestAnimation() {
-      if (animationFrameRef.current !== null) {
-        return
-      }
-
-      animationFrameRef.current = window.requestAnimationFrame(animate)
-    }
-
-    function updateTargetProgress() {
-      targetProgressRef.current = measureTargetProgress()
-      requestAnimation()
-    }
-
-    const initialProgress = measureTargetProgress()
-    targetProgressRef.current = initialProgress
-    renderedProgressRef.current = initialProgress
+    const initialProgress = measureProgress()
     setProgress(initialProgress)
 
-    updateTargetProgress()
-    window.addEventListener('scroll', updateTargetProgress, { passive: true })
-    window.addEventListener('resize', updateTargetProgress)
+    updateProgress()
+    window.addEventListener('scroll', updateProgress, { passive: true })
+    window.addEventListener('resize', updateProgress)
 
     return () => {
-      if (animationFrameRef.current !== null) {
-        window.cancelAnimationFrame(animationFrameRef.current)
-      }
-
-      window.removeEventListener('scroll', updateTargetProgress)
-      window.removeEventListener('resize', updateTargetProgress)
+      window.removeEventListener('scroll', updateProgress)
+      window.removeEventListener('resize', updateProgress)
     }
   }, [quoteReleaseHoldDistance, quoteRevealScrollDistance])
 

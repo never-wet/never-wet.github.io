@@ -8,7 +8,8 @@ export function Hero() {
   const { locale, t } = useLocale()
   const studioHref = `?view=studio&lang=${locale}`
   const heroStyle = {
-    '--hero-background-image': "url('/img/932765c7cd00055218ba7398119d7d4d.jpg')",
+    '--hero-background-image': "url('/hero-intro.jpg')",
+    '--hero-background-image-mobile': "url('/hero-intro.jpg')",
   } as CSSProperties
 
   return (

@@ -37,21 +37,26 @@ This file is the design memory and consistency guide for the `loreline/` project
 
 ## Locked Palette
 
-- Background: `#0F172A`
-- Surface: `#1E293B`
-- Primary text: `#F8FAFC`
-- Secondary text: `#CBD5E1`
-- Accent 1: `#14B8A6`
-- Accent 2: `#F59E0B`
-- Divider / subtle border: `#334155`
+- Background: `#161714`
+- Surface: `#26231D`
+- Surface strong: `#343028`
+- Primary text: `#F7F1E6`
+- Secondary text: `#DDD1BF`
+- Accent 1 / CTA mint: `#88DDB5`
+- Accent 2 / sunlit gold: `#DCC184`
+- Earth accent: `#9EA47A`
+- Rose accent: `#C99B8C`
+- Divider / subtle border: `#6D6757`
 
 Rules:
 
-- Keep the experience dark, cinematic, and premium.
-- `Accent 1` is the main interactive and emphasis color.
-- `Accent 2` is used sparingly for rare emphasis and trust/quote highlights.
+- Keep the experience dark, cinematic, and premium, but tuned to the hero painting:
+  mossy greens, aged stone, parchment cream, and warm sunlight instead of plum-heavy surfaces.
+- `Accent 1` remains the main interactive and emphasis color, preserving the `Open studio` mint CTA feel.
+- `Accent 2` is the sunlit gold note used for highlights and atmosphere.
+- The earth accent supports the forested castle mood across surfaces and image treatments.
 - No random extra colors.
-- Gradients must stay subtle and grounded in the locked palette.
+- Gradients must stay subtle and grounded in this painterly castle palette.
 
 ## Typography Rules
 
@@ -163,8 +168,8 @@ Rules:
 - Studio scrollbars are visually hidden to keep the writing environment cleaner, but scrolling behavior remains intact.
 - Reading time in the studio uses a simple fiction-reading estimate around `200 words per minute` and is shown as an `X min read` label.
 - The hero uses a two-column layout with an immersive product vignette showing linked story layers.
-- The hero now uses a user-provided world-art image as the first-section background:
-  use `never-wet.github.io/img/932765c7cd00055218ba7398119d7d4d.jpg` as the source and keep readable overlays for text contrast.
+- The hero now uses a served local public asset as the first-section background:
+  use `loreline/public/hero-intro.jpg` sourced from `never-wet.github.io/img/s-l400.jpg`, so the intro image works reliably in both localhost dev and the published static page.
 - The hero background image should stay visibly present on the first screen:
   keep overlays light enough that the intro still clearly reads as image-led atmosphere rather than a mostly flat tinted panel.
 - The intro image should extend behind the sticky header:
@@ -244,8 +249,8 @@ Rules:
   letters reveal one by one in ink-dark text as the user scrolls down, and they disappear again in reverse when scrolling back up.
 - The quote reveal is continuous rather than binary:
   each glyph should begin blurred and hidden, sharpen as it becomes readable, and pass back through blur before disappearing on reverse scroll.
-- The quote reveal now has slight inertial trailing:
-  when scrolling stops, the reveal should glide a little farther before settling so the motion feels slippery rather than mechanically locked to the wheel.
+- The quote reveal should now track scroll directly:
+  letters appear as the user scrolls down and disappear again as the user scrolls up, without extra inertial drift layered on top of the quote itself.
 - The quote section should hold the page on a dedicated pinned scroll track until the full sentence has resolved:
   the next section should not start moving in before the final glyphs have revealed and settled.
 - The quote text should wrap by whole words, not isolated letters:
