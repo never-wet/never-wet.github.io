@@ -155,6 +155,14 @@ Rules:
 - Focus mode hides project and guide chrome completely so the page can behave like a calm dedicated writing room.
 - Project navigation should feel dimmer and more restrained than the manuscript surface, following the principle that secondary structure should help orientation without competing with the page.
 - The writing room now includes a scene target progress bar, readable manuscript measure, concise breadcrumbs, and practical context panels instead of marketing-style explanatory content.
+- The studio UX should now be organized around three clear layers:
+  a light utility top bar, a quieter outline rail, and one primary editor column, with the story guide remaining secondary and optional.
+- The studio should avoid repeating the same information in multiple bars:
+  scene title, stats, saved state, and context shortcuts should each appear once in the clearest place instead of being duplicated across the top bar, editor chrome, and footer.
+- Scene navigation should read like an outline, not a wall of equal-weight cards:
+  keep chapter, title, POV, location, and progress visible, but make the current scene easier to scan immediately.
+- The editor column should include one concise inline reminder for the current scene pressure or continuity note:
+  help the writer stay oriented without forcing them to keep the right guide open.
 - Panel open/close behavior in the studio should animate as expansion/collapse rather than instant appearance.
 - The project rail, story guide, and tab-panel content use smoother panel transitions around `420ms` with soft opacity and position changes.
 - Switching between scenes in the studio should animate the main manuscript surface in, so the writing room feels continuous rather than abruptly replaced.
@@ -170,6 +178,8 @@ Rules:
 - The hero uses a two-column layout with an immersive product vignette showing linked story layers.
 - The hero now uses a served local public asset as the first-section background:
   use `loreline/public/hero-intro.jpg` sourced from `never-wet.github.io/img/s-l400.jpg`, so the intro image works reliably in both localhost dev and the published static page.
+- The hero background should be rendered through a dedicated DOM background layer, not only a pseudo-element image:
+  this keeps the intro artwork reliable in localhost dev and avoids silent background failures while overlays remain separate.
 - The hero background image should stay visibly present on the first screen:
   keep overlays light enough that the intro still clearly reads as image-led atmosphere rather than a mostly flat tinted panel.
 - The intro image should extend behind the sticky header:

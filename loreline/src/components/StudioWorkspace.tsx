@@ -149,6 +149,7 @@ export function StudioWorkspace() {
   const targetProgress = Math.min(100, Math.round((activeSceneWordCount / activeScene.targetWords) * 100))
   const readingTimeLabel = formatReadingTimeLabel(activeSceneWordCount)
   const projectReadingTimeLabel = formatReadingTimeLabel(totalWordCount)
+  const primaryWatchNote = activeScene.continuityNotes[0] ?? 'Keep the current scene aligned with the wider story system.'
 
   function handleProjectToggle() {
     if (isFocusMode) {
@@ -214,24 +215,21 @@ export function StudioWorkspace() {
         <div className="studio-topbar__inner">
           <div className="studio-topbar__identity">
             <BrandLogo className="brand brand--studio" href="./" />
-            <div className="studio-topbar__breadcrumbs" aria-label="Current writing location">
-              <span>{studioProject.title}</span>
-              <span>/</span>
-              <span>{activeScene.chapterLabel}</span>
-              <span>/</span>
-              <span>{activeScene.title}</span>
+            <div className="studio-topbar__project">
+              <p className="studio-topbar__label">Loreline studio</p>
+              <div className="studio-topbar__breadcrumbs" aria-label="Current writing location">
+                <span>{studioProject.title}</span>
+                <span>/</span>
+                <span>{activeScene.chapterLabel}</span>
+                <span>/</span>
+                <span>{activeScene.title}</span>
+              </div>
             </div>
-          </div>
-
-          <div className="studio-topbar__status">
-            <span>{activeSceneWordCount} words</span>
-            <span>{readingTimeLabel}</span>
-            <span>{savedLabel}</span>
           </div>
 
           <div className="studio-topbar__actions">
             <button className="button button--ghost button--compact" onClick={handleProjectToggle} type="button">
-              {isProjectOpen ? 'Hide project' : 'Show project'}
+              {isProjectOpen ? 'Hide outline' : 'Show outline'}
             </button>
             <button className="button button--ghost button--compact" onClick={handleContextToggle} type="button">
               {isContextOpen ? 'Hide guide' : 'Story guide'}
@@ -253,73 +251,103 @@ export function StudioWorkspace() {
           className={`studio-sidebar ${isProjectOpen ? 'studio-sidebar--open' : 'studio-sidebar--closed'}`}
           aria-label="Story project navigation"
         >
-            <div className="studio-sidebar__intro">
-              <p className="studio-sidebar__eyebrow">Writing studio</p>
-              <h1>{studioProject.title}</h1>
-              <p>{studioProject.summary}</p>
+          <div className="studio-sidebar__intro">
+            <p className="studio-sidebar__eyebrow">Project outline</p>
+            <h1>{studioProject.title}</h1>
+            <p>{studioProject.summary}</p>
+          </div>
+
+          <div className="studio-sidebar__summary-card" aria-label="Project writing summary">
+            <div className="studio-sidebar__summary-row">
+              <span>Manuscript total</span>
+              <strong>{totalWordCount} words</strong>
+            </div>
+            <div className="studio-sidebar__summary-row">
+              <span>Reading time</span>
+              <strong>{projectReadingTimeLabel}</strong>
+            </div>
+            <div className="studio-sidebar__summary-row">
+              <span>Current scene</span>
+              <strong>{activeScene.title}</strong>
+            </div>
+          </div>
+
+          <div className="studio-sidebar__metrics" aria-label="Project stats">
+            {studioProject.metrics.map((metric) => (
+              <article className="studio-sidebar__metric" key={metric.label}>
+                <span>{metric.value}</span>
+                <p>{metric.label}</p>
+              </article>
+            ))}
+          </div>
+
+          <div className="studio-sidebar__scene-list">
+            <div className="studio-sidebar__heading">
+              <h2>Scene outline</h2>
+              <p>Move through the manuscript in order, then open the guide only when the scene needs context.</p>
             </div>
 
-            <div className="studio-sidebar__metrics" aria-label="Project stats">
-              {studioProject.metrics.map((metric) => (
-                <article className="studio-sidebar__metric" key={metric.label}>
-                  <span>{metric.value}</span>
-                  <p>{metric.label}</p>
-                </article>
-              ))}
-            </div>
+            {studioScenes.map((scene) => {
+              const sceneWordCount = countWords(drafts[scene.id] ?? scene.initialText)
 
-            <div className="studio-sidebar__scene-list">
-              <div className="studio-sidebar__heading">
-                <h2>Draft scenes</h2>
-                <p>{totalWordCount} manuscript words, {projectReadingTimeLabel.toLowerCase()}</p>
-              </div>
-
-              {studioScenes.map((scene) => {
-                const sceneWordCount = countWords(drafts[scene.id] ?? scene.initialText)
-
-                return (
-                  <button
-                    aria-pressed={scene.id === activeScene.id}
-                    className={`studio-scene-button ${scene.id === activeScene.id ? 'studio-scene-button--active' : ''}`}
-                    key={scene.id}
-                    onClick={() => setActiveSceneId(scene.id)}
-                    type="button"
-                  >
-                    <div className="studio-scene-button__topline">
-                      <span>{scene.chapterLabel}</span>
-                      <span>{scene.status}</span>
-                    </div>
-                    <h3>{scene.title}</h3>
-                    <p>{scene.location}</p>
-                    <div className="studio-scene-button__meta">
-                      <span>{scene.pointOfView}</span>
-                      <span>{sceneWordCount} / {scene.targetWords}</span>
-                    </div>
-                  </button>
-                )
-              })}
-            </div>
+              return (
+                <button
+                  aria-pressed={scene.id === activeScene.id}
+                  className={`studio-scene-button ${scene.id === activeScene.id ? 'studio-scene-button--active' : ''}`}
+                  key={scene.id}
+                  onClick={() => setActiveSceneId(scene.id)}
+                  type="button"
+                >
+                  <div className="studio-scene-button__topline">
+                    <span>{scene.chapterLabel}</span>
+                    <span>{scene.status}</span>
+                  </div>
+                  <h3>{scene.title}</h3>
+                  <div className="studio-scene-button__meta">
+                    <span>{scene.pointOfView}</span>
+                    <span>{scene.location}</span>
+                  </div>
+                  <div className="studio-scene-button__progress">
+                    <span>{sceneWordCount} / {scene.targetWords}</span>
+                    <span>{formatReadingTimeLabel(sceneWordCount)}</span>
+                  </div>
+                </button>
+              )
+            })}
+          </div>
         </aside>
 
         <section className="studio-main" aria-labelledby="studio-scene-title">
           <div className="studio-main__scene" key={activeScene.id}>
-            <div className="studio-main__header">
-              <div>
-                <p className="studio-main__eyebrow">
-                  {activeScene.chapterLabel} / {activeScene.location} / {activeScene.status}
-                </p>
-                <h2 id="studio-scene-title">{activeScene.title}</h2>
-                <p className="studio-main__synopsis">{activeScene.synopsis}</p>
+            <div className="studio-main__masthead">
+              <div className="studio-main__header">
+                <div>
+                  <p className="studio-main__eyebrow">{activeScene.chapterLabel}</p>
+                  <h2 id="studio-scene-title">{activeScene.title}</h2>
+                  <p className="studio-main__synopsis">{activeScene.synopsis}</p>
+                </div>
               </div>
 
-              <div className="studio-main__insights" aria-label="Scene writing stats">
+              <div className="studio-main__meta-strip" aria-label="Scene writing stats">
+                <article className="studio-insight-card">
+                  <span>Status</span>
+                  <strong>{activeScene.status}</strong>
+                </article>
                 <article className="studio-insight-card">
                   <span>Point of view</span>
                   <strong>{activeScene.pointOfView}</strong>
                 </article>
                 <article className="studio-insight-card">
+                  <span>Location</span>
+                  <strong>{activeScene.location}</strong>
+                </article>
+                <article className="studio-insight-card">
                   <span>Scene target</span>
                   <strong>{activeScene.targetWords} words</strong>
+                </article>
+                <article className="studio-insight-card">
+                  <span>Current draft</span>
+                  <strong>{activeSceneWordCount} words</strong>
                 </article>
                 <article className="studio-insight-card">
                   <span>Read time</span>
@@ -328,39 +356,50 @@ export function StudioWorkspace() {
               </div>
             </div>
 
-            <div className="studio-main__tools" aria-label="Story context shortcuts">
-              {studioTabs.map((tab) => (
-                <button
-                  className={`studio-tool-chip ${
-                    isContextOpen && activeTab === tab.id ? 'studio-tool-chip--active' : ''
-                  }`}
-                  key={tab.id}
-                  onClick={() => openContext(tab.id)}
-                  type="button"
-                >
-                  {tab.label}
-                </button>
-              ))}
+            <div className="studio-main__utility-strip">
+              <div className="studio-main__tools" aria-label="Story context shortcuts">
+                {studioTabs.map((tab) => (
+                  <button
+                    className={`studio-tool-chip ${
+                      isContextOpen && activeTab === tab.id ? 'studio-tool-chip--active' : ''
+                    }`}
+                    key={tab.id}
+                    onClick={() => openContext(tab.id)}
+                    type="button"
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+
+              <div className="studio-main__statusline" aria-label="Current writing state">
+                <span>{activeSceneWordCount} words</span>
+                <span>{readingTimeLabel}</span>
+                <span>{savedLabel}</span>
+              </div>
             </div>
 
             <div className="studio-editor-frame">
               <div className="studio-editor-frame__top">
-                <div className="studio-editor-frame__route">
-                  <span>Manuscript</span>
-                  <span>/</span>
-                  <span>{activeScene.chapterLabel}</span>
-                  <span>/</span>
-                  <span>{activeScene.title}</span>
+                <div className="studio-editor-frame__heading">
+                  <p className="studio-context__label">Draft room</p>
+                  <div className="studio-editor-frame__route">
+                    <span>{activeScene.chapterLabel}</span>
+                    <span>/</span>
+                    <span>{activeScene.title}</span>
+                  </div>
                 </div>
                 <div className="studio-editor-frame__stats">
-                  <span>{activeSceneWordCount} words</span>
-                  <span>{readingTimeLabel}</span>
-                  <span>{activeScene.location}</span>
+                  <span>{savedLabel}</span>
                 </div>
               </div>
 
               <div className="studio-editor-surface">
                 <div className="studio-editor-shell">
+                  <div className="studio-editor-shell__note">
+                    <p className="studio-context__label">Keep in mind</p>
+                    <p>{primaryWatchNote}</p>
+                  </div>
                   <label className="studio-context__label" htmlFor="studio-editor">
                     Scene draft
                   </label>
@@ -395,8 +434,8 @@ export function StudioWorkspace() {
                 </div>
 
                 <div className="studio-editor-footer__meta">
-                  <span>{savedLabel}</span>
-                  <span>Keep the manuscript primary. Open world context only when the scene needs it.</span>
+                  <span>Use the guide as a quick lookup, then return to the page.</span>
+                  <span>{isContextOpen ? 'Guide open for cross-checking.' : 'Guide hidden to keep the draft calm.'}</span>
                 </div>
               </div>
             </div>
@@ -408,45 +447,45 @@ export function StudioWorkspace() {
           className={`studio-context ${isContextOpen ? 'studio-context--open' : 'studio-context--closed'}`}
           aria-label="Linked story context"
         >
-            <div className="studio-context__header">
-              <div>
-                <p className="studio-context__eyebrow">Story guide</p>
-                <h2>Linked material for this scene</h2>
-              </div>
-              <p className="studio-context__description">
-                Open the layer you need, check it, and get back to the page without dragging the whole interface into view.
-              </p>
+          <div className="studio-context__header">
+            <div>
+              <p className="studio-context__eyebrow">Story guide</p>
+              <h2>Linked material for this scene</h2>
             </div>
+            <p className="studio-context__description">
+              Check the exact layer you need, then close the rail and keep drafting.
+            </p>
+          </div>
 
-            <div aria-label="Reference categories" className="studio-context__tabs" role="tablist">
-              {studioTabs.map((tab) => (
-                <button
-                  aria-selected={tab.id === activeTab}
-                  className={`studio-context__tab ${tab.id === activeTab ? 'studio-context__tab--active' : ''}`}
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  role="tab"
-                  type="button"
-                >
-                  {tab.label}
-                </button>
+          <div aria-label="Reference categories" className="studio-context__tabs" role="tablist">
+            {studioTabs.map((tab) => (
+              <button
+                aria-selected={tab.id === activeTab}
+                className={`studio-context__tab ${tab.id === activeTab ? 'studio-context__tab--active' : ''}`}
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                role="tab"
+                type="button"
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+
+          <div className="studio-watchpanel">
+            <p className="studio-context__label">Continuity watchpoints</p>
+            <ul>
+              {activeScene.continuityNotes.map((note) => (
+                <li key={note}>{note}</li>
               ))}
-            </div>
+            </ul>
+          </div>
 
-            <div className="studio-watchpanel">
-              <p className="studio-context__label">Continuity watchpoints</p>
-              <ul>
-                {activeScene.continuityNotes.map((note) => (
-                  <li key={note}>{note}</li>
-                ))}
-              </ul>
+          <div className="studio-context__panel" role="tabpanel">
+            <div className="studio-context__panel-body" key={`${activeScene.id}-${activeTab}`}>
+              {contextContent}
             </div>
-
-            <div className="studio-context__panel" role="tabpanel">
-              <div className="studio-context__panel-body" key={`${activeScene.id}-${activeTab}`}>
-                {contextContent}
-              </div>
-            </div>
+          </div>
         </aside>
       </main>
     </div>

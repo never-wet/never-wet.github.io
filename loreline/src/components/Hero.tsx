@@ -14,6 +14,7 @@ export function Hero() {
 
   return (
     <section className="hero" id="top" style={heroStyle}>
+      <div aria-hidden="true" className="hero__background-layer" style={heroStyle} />
       <div className="container hero__layout">
         <div className="hero__content">
           <p className="hero__eyebrow">{t('Worldbuilding studio')}</p>
