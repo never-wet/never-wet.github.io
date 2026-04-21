@@ -1,0 +1,2415 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>POLAR//SEED</title>
+    <meta
+      name="description"
+      content="POLAR//SEED engineers climate-resilient crops through immersive biotech storytelling."
+    />
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Oxanium:wght@300;400;500;600;700;800&display=swap");
+
+      :root {
+        color-scheme: dark;
+        --bg: #05070a;
+        --bg-elevated: rgba(10, 14, 19, 0.72);
+        --bg-glass: rgba(10, 14, 19, 0.42);
+        --surface: rgba(255, 255, 255, 0.04);
+        --surface-strong: rgba(255, 255, 255, 0.08);
+        --text: #edf4ff;
+        --text-soft: rgba(237, 244, 255, 0.76);
+        --text-faint: rgba(237, 244, 255, 0.48);
+        --line: rgba(255, 255, 255, 0.12);
+        --cold: #80bfff;
+        --cold-bright: #bce2ff;
+        --steel: #7b8797;
+        --warm: #d58b49;
+        --warm-soft: rgba(213, 139, 73, 0.44);
+        --danger: #dbe8ff;
+        --shadow: 0 24px 60px rgba(0, 0, 0, 0.34);
+        --radius-sm: 10px;
+        --radius-md: 16px;
+        --content-pad: clamp(1rem, 2.8vw, 2.4rem);
+        --font-display: "Oxanium", sans-serif;
+        --font-body: "Instrument Sans", sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        overflow-x: hidden;
+        font-family: var(--font-body);
+        color: var(--text);
+        background:
+          radial-gradient(circle at 50% 18%, rgba(93, 154, 207, 0.16), transparent 34%),
+          radial-gradient(circle at 82% 68%, rgba(213, 139, 73, 0.08), transparent 28%),
+          linear-gradient(180deg, #07090c 0%, #040507 40%, #06080c 72%, #030406 100%);
+      }
+
+      body.reduced-motion,
+      body.reduced-motion * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+
+      a,
+      button {
+        color: inherit;
+        font: inherit;
+      }
+
+      button {
+        border: 0;
+        background: none;
+        padding: 0;
+        cursor: pointer;
+      }
+
+      .scene-canvas {
+        position: fixed;
+        inset: 0;
+        z-index: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+      }
+
+      .site-shell {
+        position: relative;
+        z-index: 2;
+      }
+
+      .grain,
+      .vignette,
+      .scanlines,
+      .fog {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+      }
+
+      .grain {
+        z-index: 3;
+        opacity: 0.14;
+        mix-blend-mode: soft-light;
+        background-image:
+          radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.16) 0, transparent 1.1px),
+          radial-gradient(circle at 70% 55%, rgba(255, 255, 255, 0.14) 0, transparent 1px),
+          radial-gradient(circle at 40% 80%, rgba(255, 255, 255, 0.12) 0, transparent 1px);
+        background-size: 4px 4px, 5px 5px, 3px 3px;
+        animation: grainShift 10s steps(4) infinite;
+      }
+
+      .scanlines {
+        z-index: 2;
+        opacity: 0.08;
+        background: repeating-linear-gradient(
+          180deg,
+          rgba(255, 255, 255, 0.025) 0,
+          rgba(255, 255, 255, 0.025) 1px,
+          transparent 1px,
+          transparent 4px
+        );
+      }
+
+      .vignette {
+        z-index: 2;
+        background:
+          radial-gradient(circle at center, transparent 38%, rgba(0, 0, 0, 0.2) 62%, rgba(0, 0, 0, 0.72) 100%),
+          linear-gradient(180deg, rgba(2, 4, 7, 0.22), rgba(2, 4, 7, 0.18));
+      }
+
+      .fog {
+        z-index: 1;
+        filter: blur(50px);
+      }
+
+      .fog-a {
+        background:
+          radial-gradient(circle at 50% 28%, rgba(120, 191, 255, 0.14), transparent 36%),
+          radial-gradient(circle at 22% 74%, rgba(188, 226, 255, 0.06), transparent 24%);
+        animation: driftA 18s ease-in-out infinite alternate;
+      }
+
+      .fog-b {
+        background:
+          radial-gradient(circle at 78% 68%, rgba(213, 139, 73, 0.08), transparent 28%),
+          radial-gradient(circle at 40% 84%, rgba(120, 191, 255, 0.08), transparent 32%);
+        animation: driftB 24s ease-in-out infinite alternate;
+      }
+
+      .overlay-nav {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 15;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 1rem var(--content-pad);
+        pointer-events: none;
+      }
+
+      .overlay-nav::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(180deg, rgba(4, 6, 9, 0.72), rgba(4, 6, 9, 0.18));
+        backdrop-filter: blur(20px);
+        mask-image: linear-gradient(180deg, black 0%, black 72%, transparent 100%);
+      }
+
+      .brand,
+      .nav-links,
+      .nav-actions {
+        position: relative;
+        z-index: 1;
+        pointer-events: auto;
+      }
+
+      .brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.9rem;
+        text-decoration: none;
+      }
+
+      .brand-mark {
+        position: relative;
+        width: 1rem;
+        height: 1rem;
+        border: 1px solid rgba(188, 226, 255, 0.4);
+        border-radius: 2px;
+        box-shadow: 0 0 24px rgba(128, 191, 255, 0.22);
+      }
+
+      .brand-mark::after {
+        content: "";
+        position: absolute;
+        inset: 3px;
+        background: linear-gradient(135deg, var(--cold-bright), rgba(188, 226, 255, 0.08));
+      }
+
+      .brand-text {
+        font-family: var(--font-display);
+        font-size: 0.78rem;
+        font-weight: 600;
+        letter-spacing: 0.36em;
+        text-transform: uppercase;
+      }
+
+      .nav-links {
+        display: flex;
+        align-items: center;
+        gap: 1.2rem;
+      }
+
+      .nav-links a,
+      .footer-links a {
+        position: relative;
+        font-size: 0.72rem;
+        letter-spacing: 0.26em;
+        text-transform: uppercase;
+        text-decoration: none;
+        color: var(--text-faint);
+        transition: color 200ms ease;
+      }
+
+      .nav-links a::after,
+      .footer-links a::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        bottom: -0.4rem;
+        width: 100%;
+        height: 1px;
+        background: linear-gradient(90deg, rgba(188, 226, 255, 0), rgba(188, 226, 255, 0.92), rgba(188, 226, 255, 0));
+        transform: scaleX(0.2);
+        transform-origin: center;
+        opacity: 0;
+        transition:
+          transform 220ms ease,
+          opacity 220ms ease;
+      }
+
+      .nav-links a:hover,
+      .nav-links a:focus-visible,
+      .footer-links a:hover,
+      .footer-links a:focus-visible,
+      .nav-links a.is-active {
+        color: var(--text);
+      }
+
+      .nav-links a:hover::after,
+      .nav-links a:focus-visible::after,
+      .footer-links a:hover::after,
+      .footer-links a:focus-visible::after,
+      .nav-links a.is-active::after {
+        opacity: 1;
+        transform: scaleX(1);
+      }
+
+      .nav-actions {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.75rem;
+      }
+
+      .button,
+      .sound-toggle {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.65rem;
+        min-height: 2.9rem;
+        padding: 0 1rem;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        border-radius: var(--radius-sm);
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.025));
+        color: var(--text);
+        text-decoration: none;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        font-size: 0.68rem;
+        transition:
+          transform 220ms ease,
+          border-color 220ms ease,
+          box-shadow 220ms ease,
+          color 220ms ease,
+          background 220ms ease;
+        backdrop-filter: blur(16px);
+      }
+
+      .button:hover,
+      .button:focus-visible,
+      .sound-toggle:hover,
+      .sound-toggle:focus-visible {
+        transform: translateY(-2px);
+        border-color: rgba(188, 226, 255, 0.42);
+        box-shadow:
+          inset 0 0 0 1px rgba(188, 226, 255, 0.12),
+          0 12px 30px rgba(0, 0, 0, 0.28);
+      }
+
+      .button-primary {
+        background:
+          linear-gradient(180deg, rgba(188, 226, 255, 0.18), rgba(128, 191, 255, 0.06)),
+          rgba(255, 255, 255, 0.04);
+        border-color: rgba(188, 226, 255, 0.36);
+      }
+
+      .button-secondary {
+        color: var(--text-soft);
+      }
+
+      .sound-toggle::before {
+        content: "";
+        width: 0.55rem;
+        height: 0.55rem;
+        border-radius: 999px;
+        background: rgba(188, 226, 255, 0.22);
+        box-shadow: 0 0 0 1px rgba(188, 226, 255, 0.18);
+        transition:
+          background 220ms ease,
+          box-shadow 220ms ease,
+          transform 220ms ease;
+      }
+
+      .sound-toggle.is-on::before {
+        background: var(--warm);
+        box-shadow:
+          0 0 18px rgba(213, 139, 73, 0.52),
+          0 0 0 1px rgba(213, 139, 73, 0.28);
+        transform: scale(1.08);
+      }
+
+      .progress-rail {
+        position: fixed;
+        top: 50%;
+        right: 1.1rem;
+        z-index: 14;
+        display: flex;
+        align-items: center;
+        gap: 0.95rem;
+        transform: translateY(-50%);
+      }
+
+      .progress-line {
+        position: relative;
+        width: 1px;
+        height: min(54vh, 30rem);
+        background: rgba(255, 255, 255, 0.12);
+      }
+
+      .progress-fill {
+        position: absolute;
+        left: 0;
+        bottom: 0;
+        width: 100%;
+        height: 100%;
+        transform-origin: bottom;
+        transform: scaleY(0);
+        background: linear-gradient(180deg, rgba(188, 226, 255, 0), rgba(188, 226, 255, 0.92) 65%, rgba(213, 139, 73, 0.82));
+        box-shadow: 0 0 24px rgba(188, 226, 255, 0.28);
+      }
+
+      .progress-labels {
+        display: flex;
+        flex-direction: column;
+        gap: 1.1rem;
+      }
+
+      .progress-label {
+        display: flex;
+        align-items: center;
+        gap: 0.65rem;
+        color: var(--text-faint);
+        font-size: 0.68rem;
+        letter-spacing: 0.25em;
+        text-transform: uppercase;
+        transition: color 220ms ease, transform 220ms ease;
+      }
+
+      .progress-label::before {
+        content: "";
+        width: 0.45rem;
+        height: 0.45rem;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.14);
+        transition:
+          background 220ms ease,
+          box-shadow 220ms ease,
+          transform 220ms ease;
+      }
+
+      .progress-label.is-active {
+        color: var(--text);
+        transform: translateX(-0.2rem);
+      }
+
+      .progress-label.is-active::before {
+        background: var(--cold-bright);
+        box-shadow: 0 0 14px rgba(188, 226, 255, 0.56);
+        transform: scale(1.12);
+      }
+
+      main {
+        position: relative;
+        z-index: 5;
+      }
+
+      .chapter {
+        position: relative;
+        min-height: 135svh;
+        padding: 8rem var(--content-pad) 4rem;
+      }
+
+      .chapter::after {
+        content: "";
+        position: absolute;
+        left: var(--content-pad);
+        right: var(--content-pad);
+        bottom: 0;
+        height: 1px;
+        background: linear-gradient(
+          90deg,
+          rgba(255, 255, 255, 0),
+          rgba(255, 255, 255, 0.12) 16%,
+          rgba(255, 255, 255, 0.12) 84%,
+          rgba(255, 255, 255, 0)
+        );
+      }
+
+      .chapter-grid {
+        position: relative;
+        display: grid;
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+        gap: 1.2rem;
+        min-height: calc(100svh - 12rem);
+      }
+
+      .eyebrow,
+      .section-kicker,
+      .detail-kicker,
+      .hero-caption,
+      .stat-label,
+      .bar-label,
+      .footer-meta,
+      .process-index {
+        font-size: 0.72rem;
+        letter-spacing: 0.28em;
+        text-transform: uppercase;
+        color: var(--text-faint);
+      }
+
+      .display,
+      .section-title,
+      .scene-line,
+      .finale-title {
+        margin: 0;
+        font-family: var(--font-display);
+        font-weight: 600;
+        text-transform: uppercase;
+        text-wrap: balance;
+        line-height: 0.88;
+        letter-spacing: -0.06em;
+      }
+
+      .display {
+        grid-column: 1 / span 8;
+        align-self: end;
+        font-size: clamp(4.2rem, 10vw, 11rem);
+        max-width: 9ch;
+      }
+
+      .section-title {
+        font-size: clamp(2.8rem, 6vw, 6.2rem);
+        max-width: 11ch;
+      }
+
+      .scene-line {
+        font-size: clamp(2.3rem, 5vw, 4.8rem);
+        max-width: 8ch;
+      }
+
+      .lead,
+      .scene-copy p,
+      .detail-copy,
+      .finale-copy,
+      .hero-meta p,
+      .process-copy,
+      .metric-text {
+        color: var(--text-soft);
+        line-height: 1.55;
+      }
+
+      .lead {
+        grid-column: 1 / span 4;
+        font-size: 1.06rem;
+        max-width: 30ch;
+        margin: 0;
+      }
+
+      .hero {
+        min-height: 150svh;
+        padding-top: 9rem;
+      }
+
+      .hero .chapter-grid {
+        align-items: end;
+        grid-template-rows: auto auto 1fr auto auto;
+      }
+
+      .hero .eyebrow {
+        grid-column: 1 / span 4;
+        align-self: end;
+      }
+
+      .hero-actions {
+        grid-column: 1 / span 4;
+        display: inline-flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        align-self: start;
+      }
+
+      .hero-meta {
+        grid-column: 1 / span 12;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 1rem;
+        align-self: end;
+        padding-top: 1.5rem;
+      }
+
+      .hero-meta-block {
+        padding: 1rem 0 0;
+        border-top: 1px solid var(--line);
+      }
+
+      .hero-meta h3 {
+        margin: 0 0 0.55rem;
+        font-family: var(--font-display);
+        font-size: 1rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      .hero-meta p {
+        margin: 0;
+        max-width: 28ch;
+      }
+
+      .hero-caption {
+        position: absolute;
+        right: var(--content-pad);
+        bottom: 3.2rem;
+        max-width: 21ch;
+        text-align: right;
+      }
+
+      .chapter-shell {
+        display: contents;
+      }
+
+      .split-copy .chapter-kicker {
+        grid-column: 1 / span 2;
+        align-self: start;
+      }
+
+      .story .scene-copy-main {
+        grid-column: 1 / span 6;
+        align-self: center;
+      }
+
+      .story .scene-copy-side {
+        grid-column: 9 / span 3;
+        align-self: end;
+        padding-bottom: 2.8rem;
+      }
+
+      .story-beats {
+        display: grid;
+        gap: 0.85rem;
+      }
+
+      .story-beats div {
+        padding-left: 1rem;
+        border-left: 1px solid rgba(255, 255, 255, 0.14);
+        color: var(--text-soft);
+      }
+
+      .process .chapter-grid {
+        align-items: center;
+      }
+
+      .process-intro {
+        grid-column: 1 / span 5;
+        align-self: center;
+      }
+
+      .process-copy {
+        max-width: 31ch;
+        margin: 1.2rem 0 0;
+      }
+
+      .process-track {
+        grid-column: 7 / span 6;
+        display: grid;
+        gap: 0.9rem;
+        align-self: end;
+        padding-bottom: 3rem;
+      }
+
+      .process-node {
+        position: relative;
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 1rem;
+        align-items: start;
+        padding: 1rem 0 0 0;
+        border-top: 1px solid rgba(255, 255, 255, 0.12);
+        opacity: 0.36;
+        transition:
+          opacity 260ms ease,
+          transform 260ms ease,
+          border-color 260ms ease;
+      }
+
+      .process-node.is-active {
+        opacity: 1;
+        transform: translateX(-0.3rem);
+        border-color: rgba(188, 226, 255, 0.38);
+      }
+
+      .process-index {
+        min-width: 3rem;
+      }
+
+      .process-node h3,
+      .pillar h3,
+      .metric-value,
+      .footer-mark,
+      .bar-value {
+        margin: 0;
+        font-family: var(--font-display);
+        text-transform: uppercase;
+      }
+
+      .process-node h3 {
+        font-size: 0.94rem;
+        letter-spacing: 0.18em;
+      }
+
+      .process-node p {
+        margin: 0.3rem 0 0;
+        color: var(--text-soft);
+        max-width: 34ch;
+      }
+
+      .roots .roots-main {
+        grid-column: 2 / span 6;
+        align-self: center;
+      }
+
+      .roots .roots-note {
+        grid-column: 9 / span 3;
+        align-self: end;
+        padding-bottom: 3.3rem;
+      }
+
+      .roots-note .note-line {
+        margin: 0 0 1rem;
+        padding-left: 1rem;
+        border-left: 1px solid rgba(255, 255, 255, 0.14);
+        color: var(--text-soft);
+      }
+
+      .innovation {
+        min-height: 150svh;
+      }
+
+      .innovation-heading {
+        grid-column: 1 / span 6;
+        align-self: start;
+      }
+
+      .pillar-grid {
+        grid-column: 1 / span 12;
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 0;
+        align-self: end;
+        min-height: 26rem;
+        border-top: 1px solid var(--line);
+        border-bottom: 1px solid var(--line);
+      }
+
+      .pillar {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 2.8rem;
+        padding: 1.3rem 1.3rem 1.5rem;
+        border-right: 1px solid var(--line);
+        text-align: left;
+        color: var(--text-soft);
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01)),
+          linear-gradient(135deg, rgba(128, 191, 255, 0), rgba(128, 191, 255, 0));
+        transition:
+          flex 300ms ease,
+          background 280ms ease,
+          color 280ms ease,
+          box-shadow 280ms ease,
+          transform 280ms ease;
+      }
+
+      .pillar:last-child {
+        border-right: 0;
+      }
+
+      .pillar:hover,
+      .pillar:focus-visible,
+      .pillar.is-active {
+        color: var(--text);
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.012)),
+          linear-gradient(135deg, rgba(128, 191, 255, 0.18), rgba(213, 139, 73, 0.06));
+        box-shadow:
+          inset 0 0 0 1px rgba(188, 226, 255, 0.16),
+          0 30px 70px rgba(0, 0, 0, 0.26);
+        transform: translateY(-0.2rem);
+      }
+
+      .pillar-index {
+        font-size: 0.72rem;
+        letter-spacing: 0.3em;
+        text-transform: uppercase;
+        color: var(--text-faint);
+      }
+
+      .pillar h3 {
+        font-size: clamp(1.2rem, 2vw, 1.8rem);
+        letter-spacing: 0.08em;
+      }
+
+      .pillar p {
+        margin: 0;
+        max-width: 20ch;
+        line-height: 1.45;
+      }
+
+      .pillar-signal {
+        font-size: 0.7rem;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        color: var(--text-faint);
+      }
+
+      .pillar-detail {
+        grid-column: 7 / span 5;
+        align-self: start;
+        padding-top: 1.5rem;
+      }
+
+      .detail-title {
+        margin: 0.5rem 0 0.7rem;
+        font-family: var(--font-display);
+        font-size: clamp(1.6rem, 3vw, 2.4rem);
+        line-height: 0.95;
+        text-transform: uppercase;
+        letter-spacing: -0.04em;
+      }
+
+      .detail-copy {
+        margin: 0 0 1rem;
+        max-width: 34ch;
+      }
+
+      .detail-lines {
+        display: grid;
+        gap: 0.8rem;
+      }
+
+      .detail-lines span {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.75rem;
+        color: var(--text-soft);
+      }
+
+      .detail-lines span::before {
+        content: "";
+        width: 1.4rem;
+        height: 1px;
+        background: linear-gradient(90deg, rgba(188, 226, 255, 0.86), rgba(188, 226, 255, 0.12));
+      }
+
+      .proof .chapter-grid {
+        align-items: center;
+      }
+
+      .proof-heading {
+        grid-column: 1 / span 5;
+        align-self: start;
+      }
+
+      .metrics {
+        grid-column: 1 / span 6;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 1rem;
+        align-self: end;
+        padding-bottom: 3rem;
+      }
+
+      .metric {
+        padding: 1.1rem 0 0;
+        border-top: 1px solid rgba(255, 255, 255, 0.12);
+      }
+
+      .metric-value {
+        font-size: clamp(2.6rem, 5vw, 4.8rem);
+        line-height: 0.9;
+        letter-spacing: -0.05em;
+      }
+
+      .metric-text {
+        margin: 0.6rem 0 0;
+        max-width: 18ch;
+      }
+
+      .proof-visual {
+        grid-column: 8 / span 5;
+        align-self: end;
+        padding-bottom: 3rem;
+      }
+
+      .signal-panel {
+        position: relative;
+        padding: 1.3rem 1.3rem 1.45rem;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: var(--radius-md);
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.015)),
+          rgba(4, 8, 12, 0.34);
+        backdrop-filter: blur(18px);
+        overflow: hidden;
+      }
+
+      .signal-panel::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+          radial-gradient(circle at 18% 24%, rgba(188, 226, 255, 0.12), transparent 28%),
+          radial-gradient(circle at 82% 78%, rgba(213, 139, 73, 0.08), transparent 30%);
+        pointer-events: none;
+      }
+
+      .signal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        margin-bottom: 1rem;
+      }
+
+      .signal-header h3 {
+        margin: 0;
+        font-family: var(--font-display);
+        font-size: 1rem;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+      }
+
+      .signal-bars {
+        display: grid;
+        gap: 0.9rem;
+      }
+
+      .signal-bar {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 0.9rem;
+        align-items: center;
+      }
+
+      .bar-track {
+        position: relative;
+        height: 2.4rem;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background:
+          linear-gradient(90deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01)),
+          rgba(0, 0, 0, 0.12);
+        overflow: hidden;
+      }
+
+      .bar-fill {
+        position: absolute;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        width: calc(var(--value) * 1%);
+        background:
+          linear-gradient(90deg, rgba(188, 226, 255, 0.24), rgba(188, 226, 255, 0.84)),
+          linear-gradient(90deg, rgba(213, 139, 73, 0), rgba(213, 139, 73, 0.32));
+        box-shadow: 0 0 22px rgba(188, 226, 255, 0.18);
+      }
+
+      .bar-label {
+        position: absolute;
+        left: 0.8rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: rgba(237, 244, 255, 0.7);
+      }
+
+      .bar-value {
+        font-size: 0.86rem;
+        letter-spacing: 0.18em;
+        color: var(--text);
+      }
+
+      .proof-note {
+        margin: 1.05rem 0 0;
+        color: var(--text-soft);
+        max-width: 35ch;
+      }
+
+      .finale {
+        min-height: 118svh;
+        padding-bottom: 2.4rem;
+      }
+
+      .finale-panel {
+        grid-column: 1 / span 12;
+        align-self: end;
+        display: grid;
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+        gap: 1.2rem;
+        padding: 2rem 0 0;
+        border-top: 1px solid rgba(255, 255, 255, 0.12);
+      }
+
+      .finale-copy-wrap {
+        grid-column: 1 / span 8;
+      }
+
+      .finale-title {
+        font-size: clamp(3.2rem, 8vw, 8.4rem);
+        max-width: 8ch;
+      }
+
+      .finale-copy {
+        max-width: 34ch;
+        margin: 1rem 0 0;
+      }
+
+      .finale-actions {
+        display: inline-flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        margin-top: 1.35rem;
+      }
+
+      .finale-aside {
+        grid-column: 10 / span 3;
+        align-self: end;
+      }
+
+      .footer-mark {
+        font-size: 0.84rem;
+        letter-spacing: 0.3em;
+      }
+
+      .footer-meta {
+        display: block;
+        margin-top: 0.7rem;
+      }
+
+      .footer-links {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem 1.2rem;
+        margin-top: 1.2rem;
+      }
+
+      .micro-copy {
+        margin-top: 1.3rem;
+        color: var(--text-faint);
+        font-size: 0.8rem;
+        line-height: 1.55;
+      }
+
+      .fade-up,
+      .fade-in {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+      }
+
+      .parallax {
+        will-change: transform;
+      }
+
+      @keyframes grainShift {
+        0% {
+          transform: translate(0, 0);
+        }
+        25% {
+          transform: translate(-1.5%, -1%);
+        }
+        50% {
+          transform: translate(1%, 1.5%);
+        }
+        75% {
+          transform: translate(0.6%, -1.5%);
+        }
+        100% {
+          transform: translate(0, 0);
+        }
+      }
+
+      @keyframes driftA {
+        from {
+          transform: translate3d(-1%, -1%, 0) scale(1);
+        }
+        to {
+          transform: translate3d(1.4%, 1.6%, 0) scale(1.06);
+        }
+      }
+
+      @keyframes driftB {
+        from {
+          transform: translate3d(1%, -1%, 0) scale(1);
+        }
+        to {
+          transform: translate3d(-1.2%, 1.4%, 0) scale(1.08);
+        }
+      }
+
+      @media (max-width: 1080px) {
+        .chapter {
+          min-height: 128svh;
+        }
+
+        .display {
+          grid-column: 1 / span 10;
+        }
+
+        .lead,
+        .hero-actions,
+        .story .scene-copy-main,
+        .process-intro,
+        .roots .roots-main,
+        .innovation-heading,
+        .proof-heading,
+        .finale-copy-wrap {
+          grid-column: 1 / span 7;
+        }
+
+        .story .scene-copy-side,
+        .roots .roots-note,
+        .proof-visual,
+        .finale-aside {
+          grid-column: 8 / span 5;
+        }
+
+        .pillar-detail {
+          grid-column: 1 / span 7;
+        }
+      }
+
+      @media (max-width: 860px) {
+        .overlay-nav {
+          padding-top: 0.85rem;
+        }
+
+        .nav-links {
+          display: none;
+        }
+
+        .progress-rail {
+          right: 0.9rem;
+        }
+
+        .chapter {
+          min-height: 118svh;
+          padding-top: 7rem;
+        }
+
+        .chapter-grid,
+        .finale-panel {
+          grid-template-columns: repeat(6, minmax(0, 1fr));
+        }
+
+        .display,
+        .lead,
+        .hero-actions,
+        .hero .eyebrow,
+        .story .scene-copy-main,
+        .story .scene-copy-side,
+        .process-intro,
+        .process-track,
+        .roots .roots-main,
+        .roots .roots-note,
+        .innovation-heading,
+        .pillar-grid,
+        .pillar-detail,
+        .proof-heading,
+        .metrics,
+        .proof-visual,
+        .finale-copy-wrap,
+        .finale-aside {
+          grid-column: 1 / -1;
+        }
+
+        .hero-meta {
+          grid-template-columns: 1fr;
+        }
+
+        .hero-caption {
+          position: static;
+          margin-top: 2rem;
+          text-align: left;
+        }
+
+        .pillar-grid {
+          grid-template-columns: 1fr;
+          min-height: auto;
+        }
+
+        .pillar {
+          min-height: 13.5rem;
+          border-right: 0;
+          border-bottom: 1px solid var(--line);
+        }
+
+        .pillar:last-child {
+          border-bottom: 0;
+        }
+
+        .metrics {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+
+      @media (max-width: 640px) {
+        .overlay-nav {
+          flex-wrap: wrap;
+          justify-content: space-between;
+          gap: 0.75rem;
+        }
+
+        .nav-actions {
+          width: 100%;
+          justify-content: space-between;
+        }
+
+        .sound-toggle,
+        .nav-actions .button {
+          min-height: 2.65rem;
+          padding: 0 0.8rem;
+        }
+
+        .progress-rail {
+          left: 1rem;
+          right: 1rem;
+          top: auto;
+          bottom: 1rem;
+          transform: none;
+          justify-content: center;
+        }
+
+        .progress-line {
+          width: min(70vw, 16rem);
+          height: 1px;
+        }
+
+        .progress-fill {
+          top: 0;
+          bottom: auto;
+          width: 100%;
+          height: 100%;
+          transform-origin: left;
+          transform: scaleX(0);
+        }
+
+        .progress-labels {
+          display: none;
+        }
+
+        .chapter {
+          padding-bottom: 6rem;
+        }
+
+        .display {
+          font-size: clamp(3.5rem, 17vw, 5.2rem);
+        }
+
+        .section-title {
+          font-size: clamp(2.4rem, 11vw, 3.3rem);
+        }
+
+        .scene-line,
+        .finale-title {
+          font-size: clamp(2.4rem, 13vw, 4rem);
+        }
+
+        .metrics {
+          grid-template-columns: 1fr;
+        }
+
+        .signal-bar {
+          grid-template-columns: 1fr;
+        }
+
+        .bar-value {
+          letter-spacing: 0.12em;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <canvas class="scene-canvas" aria-hidden="true"></canvas>
+    <div class="fog fog-a" aria-hidden="true"></div>
+    <div class="fog fog-b" aria-hidden="true"></div>
+    <div class="scanlines" aria-hidden="true"></div>
+    <div class="grain" aria-hidden="true"></div>
+    <div class="vignette" aria-hidden="true"></div>
+
+    <div class="site-shell">
+      <header class="overlay-nav">
+        <a class="brand" href="#hero" aria-label="POLAR//SEED home">
+          <span class="brand-mark" aria-hidden="true"></span>
+          <span class="brand-text">POLAR//SEED</span>
+        </a>
+
+        <nav class="nav-links" aria-label="Primary">
+          <a href="#story">Genome</a>
+          <a href="#process">Process</a>
+          <a href="#innovation">Systems</a>
+          <a href="#proof">Proof</a>
+          <a href="#contact">Contact</a>
+        </nav>
+
+        <div class="nav-actions">
+          <button class="sound-toggle" type="button" aria-pressed="false">Ambient Off</button>
+          <a class="button button-primary" href="#contact">Request Dossier</a>
+        </div>
+      </header>
+
+      <aside class="progress-rail" aria-label="Story progress">
+        <div class="progress-line">
+          <div class="progress-fill"></div>
+        </div>
+        <div class="progress-labels">
+          <span class="progress-label" data-target="hero">Entry</span>
+          <span class="progress-label" data-target="story">Gene</span>
+          <span class="progress-label" data-target="process">Seed</span>
+          <span class="progress-label" data-target="roots">Root</span>
+          <span class="progress-label" data-target="innovation">Field</span>
+          <span class="progress-label" data-target="proof">Yield</span>
+        </div>
+      </aside>
+
+      <main>
+        <section class="chapter hero scene-anchor" id="hero" data-scene="0">
+          <div class="chapter-grid">
+            <p class="eyebrow fade-in parallax" data-depth="0.18">Cryogenic Trait Foundry // Climate Interface // 2046</p>
+            <h1 class="display fade-in parallax" data-depth="0.12">Engineering harvests for a hotter world</h1>
+            <p class="lead fade-up parallax" data-depth="0.08">
+              POLAR//SEED decodes resilience from cold-adapted life and reassembles it into crops built for unstable climates,
+              volatile soils, and the seasons ahead.
+            </p>
+            <div class="hero-actions fade-up">
+              <a class="button button-primary" href="#story">Enter Field Film</a>
+              <a class="button button-secondary" href="#innovation">View Platform</a>
+            </div>
+
+            <div class="hero-meta fade-up">
+              <div class="hero-meta-block">
+                <h3>Polar Libraries</h3>
+                <p>Stress-memory sequences extracted from organisms evolved at the edge of survivability.</p>
+              </div>
+              <div class="hero-meta-block">
+                <h3>Adaptive Stacks</h3>
+                <p>Gene orchestration layers designed to stay legible under drought, heat shock, and salinity.</p>
+              </div>
+              <div class="hero-meta-block">
+                <h3>Field Intelligence</h3>
+                <p>Signal-responsive crop systems that keep recovery windows open when climate signals collapse.</p>
+              </div>
+            </div>
+          </div>
+          <p class="hero-caption fade-in">Scroll to watch one frozen shard recombine into a living crop system.</p>
+        </section>
+
+        <section class="chapter story scene-anchor" id="story" data-scene="1">
+          <div class="chapter-grid split-copy">
+            <p class="chapter-kicker section-kicker fade-up">01 // latent code</p>
+
+            <div class="scene-copy scene-copy-main fade-up parallax" data-depth="0.12">
+              <h2 class="section-title">From ice we read the blueprint</h2>
+              <p>
+                The first signal is not a plant. It is a survival pattern found where life stores precision against collapse.
+                POLAR//SEED isolates those patterns, refines them, and turns cold endurance into future agriculture.
+              </p>
+            </div>
+
+            <div class="scene-copy scene-copy-side fade-up parallax" data-depth="0.08">
+              <div class="story-beats">
+                <div>Dormant tolerance captured before stress becomes failure.</div>
+                <div>Genetic structures rebuilt as choreographed response, not static trait lists.</div>
+                <div>Every climate shock translated into a cleaner biological instruction.</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="chapter process scene-anchor" id="process" data-scene="2">
+          <div class="chapter-grid">
+            <div class="process-intro fade-up parallax" data-depth="0.11">
+              <p class="section-kicker">02 // transformation protocol</p>
+              <h2 class="section-title">Data becomes gene, gene becomes seed</h2>
+              <p class="process-copy">
+                The platform does not move linearly. It composes a living system through signals, edits, and field feedback until
+                resilience stops being theoretical and starts behaving like instinct.
+              </p>
+            </div>
+
+            <div class="process-track fade-up">
+              <div class="process-node" data-step="0">
+                <span class="process-index">01 / data</span>
+                <div>
+                  <h3>Stress signatures</h3>
+                  <p>We capture thermal, hydric, and saline pressure patterns at molecular resolution.</p>
+                </div>
+              </div>
+              <div class="process-node" data-step="1">
+                <span class="process-index">02 / gene</span>
+                <div>
+                  <h3>Precision recomposition</h3>
+                  <p>Targeted edits reframe resilience as timing, expression control, and recovery logic.</p>
+                </div>
+              </div>
+              <div class="process-node" data-step="2">
+                <span class="process-index">03 / seed</span>
+                <div>
+                  <h3>Embodied intelligence</h3>
+                  <p>Every seed carries a contained response system tuned for unstable seasons.</p>
+                </div>
+              </div>
+              <div class="process-node" data-step="3">
+                <span class="process-index">04 / root</span>
+                <div>
+                  <h3>Deep uptake behavior</h3>
+                  <p>Root architectures are tuned to chase sparse water, stabilize soil chemistry, and recover faster.</p>
+                </div>
+              </div>
+              <div class="process-node" data-step="4">
+                <span class="process-index">05 / field</span>
+                <div>
+                  <h3>Adaptive canopy systems</h3>
+                  <p>Plants learn how to distribute light, heat, and transpiration more intelligently at scale.</p>
+                </div>
+              </div>
+              <div class="process-node" data-step="5">
+                <span class="process-index">06 / yield</span>
+                <div>
+                  <h3>Stable harvest futures</h3>
+                  <p>Yield becomes more dependable under the precise conditions where conventional crops break apart.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="chapter roots scene-anchor" id="roots" data-scene="3">
+          <div class="chapter-grid">
+            <div class="roots-main fade-up parallax" data-depth="0.14">
+              <p class="section-kicker">03 // subterranean intelligence</p>
+              <h2 class="scene-line">The root is where adaptation becomes physical</h2>
+              <p>
+                Beneath the surface, resilience is not a claim. It is architecture. POLAR//SEED directs root systems to search wider,
+                anchor harder, and keep nutrient exchange stable while the climate shifts overhead.
+              </p>
+            </div>
+
+            <div class="roots-note fade-up parallax" data-depth="0.1">
+              <p class="note-line">Rebuilt uptake pathways reduce nutrient volatility.</p>
+              <p class="note-line">Recovery windows stay open after heat stress instead of collapsing.</p>
+              <p class="note-line">Soil interaction is treated as a living interface, not a fixed condition.</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="chapter innovation scene-anchor" id="innovation" data-scene="4">
+          <div class="chapter-grid">
+            <div class="innovation-heading fade-up">
+              <p class="section-kicker">04 // platform pillars</p>
+              <h2 class="section-title">Four systems, one resilient field</h2>
+            </div>
+
+            <div class="pillar-detail fade-up" id="pillar-detail">
+              <p class="detail-kicker">Live system focus</p>
+              <h3 class="detail-title">Resilience</h3>
+              <p class="detail-copy">
+                Layered tolerance stacks preserve reproductive timing, water balance, and stress recovery when weather volatility turns
+                conventional planning obsolete.
+              </p>
+              <div class="detail-lines">
+                <span>Heat-window hardening</span>
+                <span>Salinity response control</span>
+                <span>Recovery-speed amplification</span>
+              </div>
+            </div>
+
+            <div class="pillar-grid fade-up">
+              <button class="pillar is-active" type="button" data-pillar="resilience" aria-pressed="true">
+                <span class="pillar-index">01</span>
+                <div>
+                  <h3>Resilience</h3>
+                  <p>Designed to absorb instability before it becomes loss.</p>
+                </div>
+                <span class="pillar-signal">Thermal shock / drought / salt</span>
+              </button>
+
+              <button class="pillar" type="button" data-pillar="precision" aria-pressed="false">
+                <span class="pillar-index">02</span>
+                <div>
+                  <h3>Precision</h3>
+                  <p>Fine expression control without bloated trait stacks.</p>
+                </div>
+                <span class="pillar-signal">Targeted edits / clean timing</span>
+              </button>
+
+              <button class="pillar" type="button" data-pillar="adaptation" aria-pressed="false">
+                <span class="pillar-index">03</span>
+                <div>
+                  <h3>Adaptation</h3>
+                  <p>Field feedback loops keep the biology learning from real stress.</p>
+                </div>
+                <span class="pillar-signal">Climate memory / responsive behavior</span>
+              </button>
+
+              <button class="pillar" type="button" data-pillar="performance" aria-pressed="false">
+                <span class="pillar-index">04</span>
+                <div>
+                  <h3>Performance</h3>
+                  <p>Yield stability becomes measurable, repeatable, and investable.</p>
+                </div>
+                <span class="pillar-signal">Canopy efficiency / recovery / output</span>
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <section class="chapter proof scene-anchor" id="proof" data-scene="5">
+          <div class="chapter-grid">
+            <div class="proof-heading fade-up">
+              <p class="section-kicker">05 // proof of field</p>
+              <h2 class="section-title">Metrics that still feel cinematic</h2>
+              <p class="process-copy">
+                The platform is measured where stress makes numbers meaningful: recovery speed, expression fidelity, and the capacity to
+                keep harvest forecasts steady when the climate refuses to cooperate.
+              </p>
+            </div>
+
+            <div class="metrics fade-up">
+              <div class="metric">
+                <p class="metric-value">+27%</p>
+                <p class="metric-text">Yield stability under compound heat and water stress.</p>
+              </div>
+              <div class="metric">
+                <p class="metric-value">92%</p>
+                <p class="metric-text">Trait-expression fidelity after multi-wave climate events.</p>
+              </div>
+              <div class="metric">
+                <p class="metric-value">11d</p>
+                <p class="metric-text">Recovery window recaptured versus conventional controls.</p>
+              </div>
+              <div class="metric">
+                <p class="metric-value">4.8x</p>
+                <p class="metric-text">Root-zone responsiveness in saline transition soils.</p>
+              </div>
+            </div>
+
+            <div class="proof-visual fade-up">
+              <div class="signal-panel">
+                <div class="signal-header">
+                  <h3>Field Signal Delta</h3>
+                  <span class="stat-label">Multi-site trials // fictional dataset</span>
+                </div>
+
+                <div class="signal-bars">
+                  <div class="signal-bar">
+                    <div class="bar-track">
+                      <div class="bar-fill" style="--value: 78"></div>
+                      <span class="bar-label">Heat stress</span>
+                    </div>
+                    <span class="bar-value">+78</span>
+                  </div>
+                  <div class="signal-bar">
+                    <div class="bar-track">
+                      <div class="bar-fill" style="--value: 64"></div>
+                      <span class="bar-label">Salinity drift</span>
+                    </div>
+                    <span class="bar-value">+64</span>
+                  </div>
+                  <div class="signal-bar">
+                    <div class="bar-track">
+                      <div class="bar-fill" style="--value: 86"></div>
+                      <span class="bar-label">Recovery speed</span>
+                    </div>
+                    <span class="bar-value">+86</span>
+                  </div>
+                  <div class="signal-bar">
+                    <div class="bar-track">
+                      <div class="bar-fill" style="--value: 72"></div>
+                      <span class="bar-label">Yield continuity</span>
+                    </div>
+                    <span class="bar-value">+72</span>
+                  </div>
+                </div>
+
+                <p class="proof-note">
+                  Numbers remain restrained in the interface so the page still reads like a controlled world, not a dashboard.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="chapter finale scene-anchor" id="contact" data-scene="5">
+          <div class="chapter-grid">
+            <div class="finale-panel fade-up">
+              <div class="finale-copy-wrap">
+                <p class="section-kicker">06 // closing frame</p>
+                <h2 class="finale-title">Build the next climate baseline</h2>
+                <p class="finale-copy">
+                  POLAR//SEED creates crop systems for futures where weather behaves more like signal noise than seasonality. Enter the
+                  next growing era with biology that was engineered to stay composed.
+                </p>
+                <div class="finale-actions">
+                  <a class="button button-primary" href="mailto:future@polarseed.bio">Schedule Private Briefing</a>
+                  <a class="button button-secondary" href="#hero">Restart Story</a>
+                </div>
+              </div>
+
+              <div class="finale-aside">
+                <h3 class="footer-mark">POLAR//SEED</h3>
+                <span class="footer-meta">Toronto // Reykjavik // Salinas</span>
+                <div class="footer-links">
+                  <a href="#story">Genome</a>
+                  <a href="#innovation">Systems</a>
+                  <a href="#proof">Proof</a>
+                </div>
+                <p class="micro-copy">
+                  Concept site for a fictional biotech company. Motion intensity adapts to reduced-motion preferences, and ambient sound
+                  remains opt-in.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script defer src="https://cdn.jsdelivr.net/npm/three@0.163.0/build/three.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+    <script>
+      window.addEventListener("load", () => {
+        const revealStaticContent = () => {
+          document.querySelectorAll(".fade-up, .fade-in").forEach((element) => {
+            element.style.opacity = "1";
+            element.style.transform = "translate3d(0,0,0)";
+          });
+        };
+
+        revealStaticContent();
+
+        try {
+        const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        if (prefersReducedMotion) {
+          document.body.classList.add("reduced-motion");
+        }
+
+        const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
+        const lerp = (start, end, alpha) => start + (end - start) * alpha;
+        const smooth = (value) => value * value * (3 - 2 * value);
+        const randomRange = (min, max) => min + Math.random() * (max - min);
+        const normalize = (vector) => {
+          const length = Math.hypot(vector.x, vector.y, vector.z) || 1;
+          return { x: vector.x / length, y: vector.y / length, z: vector.z / length };
+        };
+        const weightedChoice = (items) => {
+          const total = items.reduce((sum, item) => sum + item.weight, 0);
+          let threshold = Math.random() * total;
+          for (const item of items) {
+            threshold -= item.weight;
+            if (threshold <= 0) {
+              return item;
+            }
+          }
+          return items[items.length - 1];
+        };
+
+        const canvas = document.querySelector(".scene-canvas");
+        const chapters = Array.from(document.querySelectorAll(".scene-anchor"));
+        const progressFill = document.querySelector(".progress-fill");
+        const progressLabels = Array.from(document.querySelectorAll(".progress-label"));
+        const navLinks = Array.from(document.querySelectorAll(".nav-links a"));
+        const processNodes = Array.from(document.querySelectorAll(".process-node"));
+        const parallaxItems = Array.from(document.querySelectorAll(".parallax"));
+        const soundToggle = document.querySelector(".sound-toggle");
+        const pillarButtons = Array.from(document.querySelectorAll(".pillar"));
+        const pillarDetail = document.getElementById("pillar-detail");
+
+        const pillarContent = {
+          resilience: {
+            title: "Resilience",
+            copy:
+              "Layered tolerance stacks preserve reproductive timing, water balance, and stress recovery when weather volatility turns conventional planning obsolete.",
+            lines: ["Heat-window hardening", "Salinity response control", "Recovery-speed amplification"],
+          },
+          precision: {
+            title: "Precision",
+            copy:
+              "Gene edits are applied with disciplined expression timing so plants respond without carrying noisy, overbuilt trait baggage.",
+            lines: ["Clean expression gating", "Selective trait activation", "Minimal metabolic drag"],
+          },
+          adaptation: {
+            title: "Adaptation",
+            copy:
+              "Field signals flow back into the system, letting each generation learn from compound climate stress instead of repeating a fixed assumption.",
+            lines: ["Climate memory loops", "Responsive recalibration", "Multi-season feedback"],
+          },
+          performance: {
+            title: "Performance",
+            copy:
+              "The last measure is composure at scale: steadier yield, stronger recovery, and more dependable harvest planning when conditions become irregular.",
+            lines: ["Yield continuity", "Canopy efficiency", "Stress-recovery gains"],
+          },
+        };
+
+        const updatePillarDetail = (key) => {
+          const content = pillarContent[key];
+          if (!content || !pillarDetail) {
+            return;
+          }
+
+          pillarDetail.innerHTML = `
+            <p class="detail-kicker">Live system focus</p>
+            <h3 class="detail-title">${content.title}</h3>
+            <p class="detail-copy">${content.copy}</p>
+            <div class="detail-lines">
+              ${content.lines.map((line) => `<span>${line}</span>`).join("")}
+            </div>
+          `;
+
+          pillarButtons.forEach((button) => {
+            const isActive = button.dataset.pillar === key;
+            button.classList.toggle("is-active", isActive);
+            button.setAttribute("aria-pressed", String(isActive));
+          });
+        };
+
+        pillarButtons.forEach((button) => {
+          const activate = () => updatePillarDetail(button.dataset.pillar);
+          button.addEventListener("mouseenter", activate);
+          button.addEventListener("focus", activate);
+          button.addEventListener("click", activate);
+        });
+
+        const pointCount = prefersReducedMotion ? 1800 : window.innerWidth < 700 ? 2600 : 4200;
+
+        const generateShard = (count) => {
+          const positions = new Float32Array(count * 3);
+          for (let i = 0; i < count; i += 1) {
+            const index = i * 3;
+            const y = randomRange(-4.6, 4.8);
+            const falloff = Math.pow(1 - clamp(Math.abs(y) / 5.1, 0, 1), 0.42);
+            const angle = Math.random() * Math.PI * 2 + y * 0.26;
+            const radius = (0.14 + Math.pow(Math.random(), 0.5) * 1.08) * falloff;
+            let x = Math.cos(angle) * radius * (0.45 + Math.random() * 1.1);
+            let z = Math.sin(angle) * radius * (0.2 + Math.random() * 0.52);
+            x += Math.sign(Math.random() - 0.5) * radius * 0.24;
+            z += Math.sin(y * 0.55) * radius * 0.08;
+            positions[index] = x;
+            positions[index + 1] = y;
+            positions[index + 2] = z;
+          }
+          return positions;
+        };
+
+        const generateGene = (count) => {
+          const positions = new Float32Array(count * 3);
+          for (let i = 0; i < count; i += 1) {
+            const index = i * 3;
+            const t = i / count;
+            const y = (t - 0.5) * 8.4 + randomRange(-0.08, 0.08);
+            const angle = t * Math.PI * 18;
+            const radius = 1.28 + Math.sin(t * 24) * 0.14;
+            const mode = i % 5;
+            let x;
+            let z;
+
+            if (mode === 0 || mode === 1) {
+              const phase = mode === 0 ? 0 : Math.PI;
+              x = Math.cos(angle + phase) * radius;
+              z = Math.sin(angle + phase) * radius;
+            } else {
+              const ax = Math.cos(angle) * radius;
+              const az = Math.sin(angle) * radius;
+              const bx = Math.cos(angle + Math.PI) * radius;
+              const bz = Math.sin(angle + Math.PI) * radius;
+              const blend = mode === 2 ? 0.28 : mode === 3 ? 0.52 : 0.76;
+              x = lerp(ax, bx, blend);
+              z = lerp(az, bz, blend);
+            }
+
+            positions[index] = x + randomRange(-0.08, 0.08);
+            positions[index + 1] = y;
+            positions[index + 2] = z + randomRange(-0.08, 0.08);
+          }
+          return positions;
+        };
+
+        const generateSeed = (count) => {
+          const positions = new Float32Array(count * 3);
+          for (let i = 0; i < count; i += 1) {
+            const index = i * 3;
+
+            if (Math.random() < 0.18) {
+              const t = Math.random();
+              const angle = t * Math.PI * 4.6;
+              positions[index] = 0.22 + Math.cos(angle) * 0.28 + randomRange(-0.04, 0.04);
+              positions[index + 1] = (t - 0.5) * 1.6;
+              positions[index + 2] = Math.sin(angle) * 0.22 + randomRange(-0.04, 0.04);
+              continue;
+            }
+
+            const u = Math.random();
+            const v = Math.random();
+            const theta = u * Math.PI * 2;
+            const phi = Math.acos(2 * v - 1);
+            let x = Math.sin(phi) * Math.cos(theta);
+            let y = Math.cos(phi);
+            let z = Math.sin(phi) * Math.sin(theta);
+            x *= 1.36;
+            y *= 1.82;
+            z *= 1.04;
+            const groove = Math.exp(-((y * 0.58) ** 2 + (z * 1.12) ** 2) * 2.8);
+            if (x > 0) {
+              x *= 1 - groove * 0.42;
+            }
+            x *= 0.88 + Math.abs(y) * 0.24;
+            const jitter = 1 + Math.pow(Math.random(), 1.4) * 0.06;
+            positions[index] = x * jitter;
+            positions[index + 1] = y * jitter;
+            positions[index + 2] = z * jitter;
+          }
+          return positions;
+        };
+
+        const generateRoots = (count) => {
+          const positions = new Float32Array(count * 3);
+          const segments = [];
+
+          const addBranch = (start, direction, length, depth) => {
+            const end = {
+              x: start.x + direction.x * length,
+              y: start.y + direction.y * length,
+              z: start.z + direction.z * length,
+            };
+
+            segments.push({
+              start,
+              end,
+              depth,
+              weight: length * (4.8 - depth),
+            });
+
+            if (depth >= 3) {
+              return;
+            }
+
+            const branchCount = depth === 0 ? 3 : 1 + Math.floor(Math.random() * 3);
+            for (let branch = 0; branch < branchCount; branch += 1) {
+              const nextDirection = normalize({
+                x: direction.x * 0.26 + randomRange(-0.92, 0.92),
+                y: direction.y - randomRange(0.34, 0.74),
+                z: direction.z * 0.26 + randomRange(-0.92, 0.92),
+              });
+              addBranch(end, nextDirection, length * randomRange(0.46, 0.7), depth + 1);
+            }
+          };
+
+          for (let i = 0; i < 5; i += 1) {
+            addBranch(
+              { x: randomRange(-0.32, 0.32), y: 0.72 + Math.random() * 0.22, z: randomRange(-0.32, 0.32) },
+              normalize({ x: randomRange(-0.44, 0.44), y: -1, z: randomRange(-0.44, 0.44) }),
+              randomRange(1.85, 2.35),
+              0
+            );
+          }
+
+          const weightedSegments = segments.map((segment) => ({ ...segment, weight: segment.weight }));
+
+          for (let i = 0; i < count; i += 1) {
+            const index = i * 3;
+
+            if (Math.random() < 0.12) {
+              positions[index] = randomRange(-0.58, 0.58);
+              positions[index + 1] = randomRange(0.4, 1.18);
+              positions[index + 2] = randomRange(-0.58, 0.58);
+              continue;
+            }
+
+            const segment = weightedChoice(weightedSegments);
+            const t = Math.pow(Math.random(), 0.72);
+            const x = lerp(segment.start.x, segment.end.x, t);
+            const y = lerp(segment.start.y, segment.end.y, t);
+            const z = lerp(segment.start.z, segment.end.z, t);
+            const thickness = (4.2 - segment.depth) * 0.044 * (1 - t * 0.6);
+
+            positions[index] = x + randomRange(-thickness, thickness);
+            positions[index + 1] = y + randomRange(-thickness, thickness);
+            positions[index + 2] = z + randomRange(-thickness, thickness);
+          }
+
+          return positions;
+        };
+
+        const generateField = (count) => {
+          const positions = new Float32Array(count * 3);
+          for (let i = 0; i < count; i += 1) {
+            const index = i * 3;
+            const baseX = randomRange(-4.8, 4.8);
+            const baseZ = randomRange(-2.2, 2.2);
+            const mode = Math.random();
+
+            if (mode < 0.16) {
+              positions[index] = baseX * 0.9;
+              positions[index + 1] = randomRange(0.7, 2.7);
+              positions[index + 2] = baseZ;
+              continue;
+            }
+
+            if (mode < 0.32) {
+              positions[index] = baseX * 0.55 + Math.sin(baseZ * 3) * 0.24;
+              positions[index + 1] = randomRange(-2.4, -1.45);
+              positions[index + 2] = baseZ * 0.65;
+              continue;
+            }
+
+            const height = 0.65 + Math.pow(Math.random(), 0.35) * 2.5;
+            const t = Math.random();
+            const bend = Math.sin((baseX + baseZ) * 0.8) * 0.2;
+
+            positions[index] = baseX + Math.sin(t * Math.PI) * bend * height;
+            positions[index + 1] = -1.7 + t * height;
+            positions[index + 2] = baseZ + Math.cos(t * Math.PI * 0.8) * 0.1;
+          }
+
+          return positions;
+        };
+
+        const generateYield = (count) => {
+          const positions = new Float32Array(count * 3);
+          for (let i = 0; i < count; i += 1) {
+            const index = i * 3;
+            const branch = i % 14;
+            const angle = (branch / 14) * Math.PI * 2 + randomRange(-0.16, 0.16);
+            const t = Math.random();
+            const arc = Math.pow(t, 0.76);
+            const radius = arc * randomRange(1.2, 3.1);
+            const lift = Math.sin(arc * Math.PI) * randomRange(1.7, 3.2);
+            const crown = Math.pow(arc, 1.3) * 0.9;
+
+            positions[index] = Math.cos(angle) * radius + Math.sin(arc * 8 + angle) * 0.18;
+            positions[index + 1] = -1.2 + lift + crown;
+            positions[index + 2] = Math.sin(angle) * radius * 0.72 + Math.cos(arc * 7 + angle) * 0.16;
+
+            if (Math.random() < 0.12) {
+              positions[index] *= 0.42;
+              positions[index + 1] -= randomRange(0.6, 1.4);
+              positions[index + 2] *= 0.42;
+            }
+          }
+          return positions;
+        };
+
+        const states = [
+          generateShard(pointCount),
+          generateGene(pointCount),
+          generateSeed(pointCount),
+          generateRoots(pointCount),
+          generateField(pointCount),
+          generateYield(pointCount),
+        ];
+
+        const sceneConfigs = [
+          { scale: 1.58, rotX: -0.2, rotY: 0.36, rotZ: 0.1, posX: 0.2, posY: 0.32, camZ: 10.8, glowX: 0.1, glowY: 0.8 },
+          { scale: 1.34, rotX: 0.14, rotY: 0.88, rotZ: -0.12, posX: 0, posY: 0.08, camZ: 9.8, glowX: -0.2, glowY: 0.3 },
+          { scale: 1.14, rotX: 0.34, rotY: 1.44, rotZ: 0.22, posX: -0.12, posY: -0.12, camZ: 9.3, glowX: 0, glowY: 0.1 },
+          { scale: 1.44, rotX: 0.62, rotY: 2.06, rotZ: 0.02, posX: 0.18, posY: -0.76, camZ: 10.4, glowX: 0.08, glowY: -0.4 },
+          { scale: 1.74, rotX: 0.18, rotY: 2.76, rotZ: -0.02, posX: 0, posY: -0.88, camZ: 11.7, glowX: 0, glowY: -0.7 },
+          { scale: 1.38, rotX: -0.06, rotY: 3.28, rotZ: -0.08, posX: 0, posY: -0.18, camZ: 9.8, glowX: -0.1, glowY: 0.1 },
+        ];
+
+        const renderer = new THREE.WebGLRenderer({
+          canvas,
+          alpha: true,
+          antialias: !prefersReducedMotion && window.innerWidth > 900,
+          powerPreference: "high-performance",
+        });
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, prefersReducedMotion ? 1.1 : 1.75));
+        renderer.setSize(window.innerWidth, window.innerHeight);
+
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(36, window.innerWidth / window.innerHeight, 0.1, 100);
+        camera.position.set(0, 0, 10.8);
+
+        const group = new THREE.Group();
+        scene.add(group);
+
+        const geometry = new THREE.BufferGeometry();
+        const positions = new Float32Array(states[0]);
+        geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+
+        const scales = new Float32Array(pointCount);
+        const randomness = new Float32Array(pointCount);
+        for (let i = 0; i < pointCount; i += 1) {
+          scales[i] = 0.45 + Math.random() * 1.4;
+          randomness[i] = Math.random();
+        }
+        geometry.setAttribute("aScale", new THREE.BufferAttribute(scales, 1));
+        geometry.setAttribute("aRandom", new THREE.BufferAttribute(randomness, 1));
+
+        const material = new THREE.ShaderMaterial({
+          transparent: true,
+          depthWrite: false,
+          blending: THREE.AdditiveBlending,
+          uniforms: {
+            uTime: { value: 0 },
+            uPixelRatio: { value: Math.min(window.devicePixelRatio, prefersReducedMotion ? 1.1 : 1.75) },
+            uCold: { value: new THREE.Color("#80bfff") },
+            uColdBright: { value: new THREE.Color("#e2f0ff") },
+            uWarm: { value: new THREE.Color("#d58b49") },
+            uEnergy: { value: 0.5 },
+          },
+          vertexShader: `
+            attribute float aScale;
+            attribute float aRandom;
+            uniform float uTime;
+            uniform float uPixelRatio;
+            uniform float uEnergy;
+            varying float vRandom;
+            varying float vDepth;
+            varying vec3 vPosition;
+
+            void main() {
+              vec3 transformed = position;
+              float drift = sin(uTime * 0.7 + aRandom * 12.0 + length(position) * 0.6) * 0.04 * uEnergy;
+              transformed += normalize(position + vec3(0.001)) * drift;
+
+              vec4 modelPosition = modelMatrix * vec4(transformed, 1.0);
+              vec4 viewPosition = viewMatrix * modelPosition;
+              vec4 projectedPosition = projectionMatrix * viewPosition;
+
+              gl_Position = projectedPosition;
+              gl_PointSize = (aScale * 8.0 + 1.5) * uPixelRatio;
+              gl_PointSize *= (1.0 / -viewPosition.z);
+
+              vRandom = aRandom;
+              vDepth = -viewPosition.z;
+              vPosition = transformed;
+            }
+          `,
+          fragmentShader: `
+            uniform float uTime;
+            uniform vec3 uCold;
+            uniform vec3 uColdBright;
+            uniform vec3 uWarm;
+            varying float vRandom;
+            varying float vDepth;
+            varying vec3 vPosition;
+
+            void main() {
+              vec2 uv = gl_PointCoord - 0.5;
+              float dist = length(uv);
+              float alpha = smoothstep(0.52, 0.08, dist);
+              float halo = smoothstep(0.5, 0.0, dist);
+              float iridescence = sin(vPosition.x * 1.1 - vPosition.z * 1.3 + uTime * 0.6 + vRandom * 10.0) * 0.5 + 0.5;
+              vec3 cold = mix(uCold, uColdBright, sin(vPosition.y * 0.8 + uTime * 0.5 + vRandom * 8.0) * 0.5 + 0.5);
+              vec3 color = mix(cold, uWarm, pow(iridescence, 10.0) * 0.55);
+              float depthFade = smoothstep(16.0, 3.0, vDepth);
+              gl_FragColor = vec4(color, alpha * depthFade * 0.86 + halo * 0.12);
+            }
+          `,
+        });
+
+        const particles = new THREE.Points(geometry, material);
+        group.add(particles);
+
+        const shell = new THREE.Mesh(
+          new THREE.IcosahedronGeometry(1.7, 2),
+          new THREE.MeshBasicMaterial({
+            color: new THREE.Color("#84bfff"),
+            wireframe: true,
+            transparent: true,
+            opacity: 0.09,
+            depthWrite: false,
+          })
+        );
+        group.add(shell);
+
+        const createGlowTexture = (inner, outer) => {
+          const size = 256;
+          const glowCanvas = document.createElement("canvas");
+          glowCanvas.width = size;
+          glowCanvas.height = size;
+          const context = glowCanvas.getContext("2d");
+          const gradient = context.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
+          gradient.addColorStop(0, inner);
+          gradient.addColorStop(0.35, outer);
+          gradient.addColorStop(1, "rgba(0,0,0,0)");
+          context.fillStyle = gradient;
+          context.fillRect(0, 0, size, size);
+          return new THREE.CanvasTexture(glowCanvas);
+        };
+
+        const coldGlow = new THREE.Sprite(
+          new THREE.SpriteMaterial({
+            map: createGlowTexture("rgba(188,226,255,0.6)", "rgba(128,191,255,0.16)"),
+            transparent: true,
+            depthWrite: false,
+            blending: THREE.AdditiveBlending,
+            opacity: 0.46,
+          })
+        );
+        coldGlow.scale.set(8.8, 8.8, 1);
+        coldGlow.position.set(0, 0.6, -2.4);
+        scene.add(coldGlow);
+
+        const warmGlow = new THREE.Sprite(
+          new THREE.SpriteMaterial({
+            map: createGlowTexture("rgba(213,139,73,0.38)", "rgba(213,139,73,0.08)"),
+            transparent: true,
+            depthWrite: false,
+            blending: THREE.AdditiveBlending,
+            opacity: 0.32,
+          })
+        );
+        warmGlow.scale.set(5.2, 5.2, 1);
+        warmGlow.position.set(1.5, -1.2, -2.8);
+        scene.add(warmGlow);
+
+        let chapterMetrics = [];
+        let maxScroll = 1;
+        let currentMorph = 0;
+        let targetMorph = 0;
+        let activeChapterId = "hero";
+        let lastKnownScroll = 0;
+        let reducedScheduled = false;
+        let animationFrame = null;
+
+        const computeMetrics = () => {
+          maxScroll = Math.max(document.documentElement.scrollHeight - window.innerHeight, 1);
+          chapterMetrics = chapters.map((chapter) => ({
+            element: chapter,
+            id: chapter.id,
+            scene: Number(chapter.dataset.scene || 0),
+            top: chapter.offsetTop,
+            height: chapter.offsetHeight,
+          }));
+        };
+
+        const updateIndicators = () => {
+          const progress = clamp(lastKnownScroll / maxScroll, 0, 1);
+          const progressTarget = activeChapterId === "contact" ? "proof" : activeChapterId;
+          if (window.innerWidth <= 640) {
+            progressFill.style.transform = `scaleX(${progress})`;
+          } else {
+            progressFill.style.transform = `scaleY(${progress})`;
+          }
+
+          progressLabels.forEach((label) => {
+            label.classList.toggle("is-active", label.dataset.target === progressTarget);
+          });
+
+          navLinks.forEach((link) => {
+            const targetId = link.getAttribute("href").replace("#", "");
+            link.classList.toggle("is-active", targetId === activeChapterId);
+          });
+        };
+
+        const updateScrollState = () => {
+          lastKnownScroll = window.scrollY || window.pageYOffset;
+
+          if (!chapterMetrics.length) {
+            computeMetrics();
+          }
+
+          let currentMetric = chapterMetrics[0];
+          let nextMetric = chapterMetrics[chapterMetrics.length - 1];
+          const midpoint = lastKnownScroll + window.innerHeight * 0.42;
+
+          for (let i = 0; i < chapterMetrics.length; i += 1) {
+            const metric = chapterMetrics[i];
+            if (midpoint >= metric.top) {
+              activeChapterId = metric.id;
+              currentMetric = metric;
+              nextMetric = chapterMetrics[Math.min(i + 1, chapterMetrics.length - 1)];
+            }
+          }
+
+          const distance = Math.max(nextMetric.top - currentMetric.top, currentMetric.height, 1);
+          const localProgress = clamp((lastKnownScroll - currentMetric.top) / distance, 0, 1);
+          const blend = smooth(localProgress);
+          targetMorph = currentMetric.scene + (nextMetric.scene - currentMetric.scene) * blend;
+
+          processNodes.forEach((node) => {
+            const step = Number(node.dataset.step);
+            node.classList.toggle("is-active", Math.round(targetMorph) === step);
+          });
+
+          parallaxItems.forEach((item) => {
+            const depth = Number(item.dataset.depth || 0.08);
+            const rect = item.getBoundingClientRect();
+            const delta = (rect.top + rect.height * 0.5 - window.innerHeight * 0.5) * depth * -0.12;
+            item.style.transform = prefersReducedMotion ? "translate3d(0,0,0)" : `translate3d(0, ${delta}px, 0)`;
+          });
+
+          updateIndicators();
+        };
+
+        const updateScene = (timeSeconds) => {
+          currentMorph = prefersReducedMotion ? targetMorph : lerp(currentMorph, targetMorph, 0.08);
+          const segment = clamp(currentMorph, 0, states.length - 1);
+          const lowerIndex = Math.floor(segment);
+          const upperIndex = Math.min(lowerIndex + 1, states.length - 1);
+          const mix = smooth(segment - lowerIndex);
+          const fromState = states[lowerIndex];
+          const toState = states[upperIndex];
+          const positionArray = geometry.attributes.position.array;
+
+          for (let i = 0; i < positionArray.length; i += 1) {
+            positionArray[i] = lerp(fromState[i], toState[i], mix);
+          }
+
+          geometry.attributes.position.needsUpdate = true;
+
+          const configA = sceneConfigs[lowerIndex];
+          const configB = sceneConfigs[upperIndex];
+          const config = {
+            scale: lerp(configA.scale, configB.scale, mix),
+            rotX: lerp(configA.rotX, configB.rotX, mix),
+            rotY: lerp(configA.rotY, configB.rotY, mix),
+            rotZ: lerp(configA.rotZ, configB.rotZ, mix),
+            posX: lerp(configA.posX, configB.posX, mix),
+            posY: lerp(configA.posY, configB.posY, mix),
+            camZ: lerp(configA.camZ, configB.camZ, mix),
+            glowX: lerp(configA.glowX, configB.glowX, mix),
+            glowY: lerp(configA.glowY, configB.glowY, mix),
+          };
+
+          const drift = prefersReducedMotion ? 0 : Math.sin(timeSeconds * 0.45) * 0.08;
+          group.position.set(config.posX, config.posY + drift, 0);
+          group.rotation.x = config.rotX + (prefersReducedMotion ? 0 : Math.sin(timeSeconds * 0.26) * 0.08);
+          group.rotation.y = config.rotY + (prefersReducedMotion ? 0 : Math.cos(timeSeconds * 0.21) * 0.12);
+          group.rotation.z = config.rotZ + (prefersReducedMotion ? 0 : Math.sin(timeSeconds * 0.17) * 0.04);
+          group.scale.setScalar(config.scale);
+
+          shell.rotation.x = timeSeconds * 0.18;
+          shell.rotation.y = timeSeconds * 0.12;
+          shell.scale.setScalar(0.9 + Math.sin(timeSeconds * 0.42) * 0.04 + config.scale * 0.12);
+          shell.material.opacity = 0.06 + (1 - mix) * 0.04;
+
+          coldGlow.position.set(config.glowX, config.glowY, -2.4);
+          warmGlow.position.set(config.glowX + 1.6, config.glowY - 1.4, -2.8);
+          coldGlow.scale.setScalar(7.4 + config.scale * 0.8);
+          warmGlow.scale.setScalar(4.8 + Math.sin(timeSeconds * 0.3 + 0.8) * 0.18);
+
+          camera.position.z = config.camZ;
+          material.uniforms.uTime.value = timeSeconds;
+          material.uniforms.uEnergy.value = 0.32 + Math.sin(mix * Math.PI) * 0.5;
+
+          renderer.render(scene, camera);
+        };
+
+        const renderReducedFrame = () => {
+          reducedScheduled = false;
+          updateScene(performance.now() * 0.001);
+        };
+
+        const requestReducedFrame = () => {
+          if (reducedScheduled) {
+            return;
+          }
+          reducedScheduled = true;
+          requestAnimationFrame(renderReducedFrame);
+        };
+
+        const animate = () => {
+          animationFrame = requestAnimationFrame(animate);
+          updateScene(performance.now() * 0.001);
+        };
+
+        const handleResize = () => {
+          computeMetrics();
+          renderer.setPixelRatio(Math.min(window.devicePixelRatio, prefersReducedMotion ? 1.1 : 1.75));
+          renderer.setSize(window.innerWidth, window.innerHeight);
+          material.uniforms.uPixelRatio.value = Math.min(window.devicePixelRatio, prefersReducedMotion ? 1.1 : 1.75);
+          camera.aspect = window.innerWidth / window.innerHeight;
+          camera.updateProjectionMatrix();
+          updateScrollState();
+          if (prefersReducedMotion) {
+            requestReducedFrame();
+          }
+        };
+
+        window.addEventListener("resize", handleResize);
+        window.addEventListener(
+          "scroll",
+          () => {
+            updateScrollState();
+            if (prefersReducedMotion) {
+              requestReducedFrame();
+            }
+          },
+          { passive: true }
+        );
+
+        const initMotion = () => {
+          if (window.gsap && window.ScrollTrigger && !prefersReducedMotion) {
+            window.gsap.registerPlugin(window.ScrollTrigger);
+
+            window.gsap.fromTo(
+              ".hero .fade-in",
+              { opacity: 0, y: 36 },
+              { opacity: 1, y: 0, duration: 1.2, stagger: 0.12, ease: "power3.out", delay: 0.15 }
+            );
+
+            window.gsap.utils.toArray(".fade-up").forEach((element) => {
+              window.gsap.fromTo(
+                element,
+                { opacity: 0, y: 50 },
+                {
+                  opacity: 1,
+                  y: 0,
+                  duration: 1.05,
+                  ease: "power3.out",
+                  scrollTrigger: {
+                    trigger: element,
+                    start: "top 84%",
+                    once: true,
+                  },
+                }
+              );
+            });
+          } else {
+            document.querySelectorAll(".fade-up, .fade-in").forEach((element) => {
+              element.style.opacity = "1";
+              element.style.transform = "translate3d(0,0,0)";
+            });
+          }
+        };
+
+        let audioContext = null;
+        let masterGain = null;
+        let noiseSource = null;
+        let droneOsc = null;
+        let shimmerOsc = null;
+        let filterNode = null;
+        let isSoundOn = false;
+
+        const startAmbient = async () => {
+          if (!audioContext) {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            masterGain = audioContext.createGain();
+            masterGain.gain.value = 0.0001;
+            masterGain.connect(audioContext.destination);
+
+            filterNode = audioContext.createBiquadFilter();
+            filterNode.type = "lowpass";
+            filterNode.frequency.value = 720;
+            filterNode.Q.value = 0.3;
+            filterNode.connect(masterGain);
+
+            const noiseBuffer = audioContext.createBuffer(1, audioContext.sampleRate * 2, audioContext.sampleRate);
+            const noiseData = noiseBuffer.getChannelData(0);
+            for (let i = 0; i < noiseData.length; i += 1) {
+              noiseData[i] = (Math.random() * 2 - 1) * 0.22;
+            }
+
+            noiseSource = audioContext.createBufferSource();
+            noiseSource.buffer = noiseBuffer;
+            noiseSource.loop = true;
+
+            const noiseGain = audioContext.createGain();
+            noiseGain.gain.value = 0.06;
+            noiseSource.connect(noiseGain);
+            noiseGain.connect(filterNode);
+
+            droneOsc = audioContext.createOscillator();
+            droneOsc.type = "sine";
+            droneOsc.frequency.value = 54;
+
+            const droneGain = audioContext.createGain();
+            droneGain.gain.value = 0.05;
+            droneOsc.connect(droneGain);
+            droneGain.connect(filterNode);
+
+            shimmerOsc = audioContext.createOscillator();
+            shimmerOsc.type = "triangle";
+            shimmerOsc.frequency.value = 161;
+
+            const shimmerGain = audioContext.createGain();
+            shimmerGain.gain.value = 0.02;
+            shimmerOsc.connect(shimmerGain);
+            shimmerGain.connect(filterNode);
+
+            const lfo = audioContext.createOscillator();
+            lfo.type = "sine";
+            lfo.frequency.value = 0.09;
+            const lfoGain = audioContext.createGain();
+            lfoGain.gain.value = 22;
+            lfo.connect(lfoGain);
+            lfoGain.connect(filterNode.frequency);
+
+            noiseSource.start();
+            droneOsc.start();
+            shimmerOsc.start();
+            lfo.start();
+          }
+
+          await audioContext.resume();
+          const now = audioContext.currentTime;
+          masterGain.gain.cancelScheduledValues(now);
+          masterGain.gain.linearRampToValueAtTime(0.08, now + 1.2);
+          isSoundOn = true;
+          soundToggle.classList.add("is-on");
+          soundToggle.textContent = "Ambient On";
+          soundToggle.setAttribute("aria-pressed", "true");
+        };
+
+        const stopAmbient = async () => {
+          if (!audioContext || !masterGain) {
+            return;
+          }
+
+          const now = audioContext.currentTime;
+          masterGain.gain.cancelScheduledValues(now);
+          masterGain.gain.linearRampToValueAtTime(0.0001, now + 0.8);
+          isSoundOn = false;
+          soundToggle.classList.remove("is-on");
+          soundToggle.textContent = "Ambient Off";
+          soundToggle.setAttribute("aria-pressed", "false");
+        };
+
+        soundToggle.addEventListener("click", async () => {
+          if (isSoundOn) {
+            await stopAmbient();
+          } else {
+            await startAmbient();
+          }
+        });
+
+        computeMetrics();
+        updateScrollState();
+        updatePillarDetail("resilience");
+        initMotion();
+
+        if (prefersReducedMotion) {
+          requestReducedFrame();
+        } else {
+          animate();
+        }
+
+        document.addEventListener("visibilitychange", () => {
+          if (prefersReducedMotion) {
+            if (!document.hidden) {
+              requestReducedFrame();
+            }
+            return;
+          }
+
+          if (document.hidden) {
+            cancelAnimationFrame(animationFrame);
+          } else {
+            animate();
+          }
+        });
+        } catch (error) {
+          console.error("POLAR//SEED boot error:", error);
+          const canvas = document.querySelector(".scene-canvas");
+          if (canvas) {
+            canvas.style.display = "none";
+          }
+          revealStaticContent();
+        }
+      });
+    </script>
+  </body>
+</html>

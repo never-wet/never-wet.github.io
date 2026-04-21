@@ -1,5 +1,4 @@
 import { ComparisonTable } from './ComparisonTable'
-import { DifferenceSignalCloud } from './DifferenceSignalCloud'
 import { useLocale } from '../i18n'
 import { SectionIntro } from './SectionIntro'
 import { ScrollReveal } from './ScrollReveal'
@@ -20,8 +19,6 @@ export function WhyDifferentSection() {
             headingId="difference-title"
           />
         </ScrollReveal>
-
-        <DifferenceSignalCloud />
         <ComparisonTable />
       </div>
     </section>

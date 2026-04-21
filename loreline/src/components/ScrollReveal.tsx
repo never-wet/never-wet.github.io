@@ -1,5 +1,7 @@
 import { createElement, useEffect, useRef, useState, type CSSProperties, type ElementType, type ReactNode } from 'react'
 
+const REVEAL_DURATION_MS = 420
+
 type ScrollRevealProps = {
   as?: ElementType
   children: ReactNode
@@ -21,6 +23,9 @@ export function ScrollReveal({
   ...restProps
 }: ScrollRevealProps) {
   const elementRef = useRef<HTMLElement | null>(null)
+  const hideTimerRef = useRef<number | null>(null)
+  const lockUntilRef = useRef(0)
+  const intersectingRef = useRef(false)
   const [isVisible, setIsVisible] = useState(false)
 
   useEffect(() => {
@@ -39,6 +44,13 @@ export function ScrollReveal({
       return
     }
 
+    const clearHideTimer = () => {
+      if (hideTimerRef.current !== null) {
+        window.clearTimeout(hideTimerRef.current)
+        hideTimerRef.current = null
+      }
+    }
+
     const observer = new window.IntersectionObserver(
       (entries) => {
         const [entry] = entries
@@ -47,8 +59,12 @@ export function ScrollReveal({
           return
         }
 
+        intersectingRef.current = entry.isIntersecting
+
         if (entry.isIntersecting) {
+          clearHideTimer()
           setIsVisible(true)
+          lockUntilRef.current = window.performance.now() + delay + REVEAL_DURATION_MS
 
           if (once) {
             observer.unobserve(entry.target)
@@ -58,7 +74,15 @@ export function ScrollReveal({
         }
 
         if (!once) {
-          setIsVisible(false)
+          clearHideTimer()
+
+          const remaining = Math.max(0, lockUntilRef.current - window.performance.now())
+
+          hideTimerRef.current = window.setTimeout(() => {
+            if (!intersectingRef.current) {
+              setIsVisible(false)
+            }
+          }, remaining)
         }
       },
       {
@@ -70,9 +94,10 @@ export function ScrollReveal({
     observer.observe(element)
 
     return () => {
+      clearHideTimer()
       observer.disconnect()
     }
-  }, [once, rootMargin, threshold])
+  }, [delay, once, rootMargin, threshold])
 
   const resolvedClassName = `scroll-reveal ${isVisible ? 'scroll-reveal--visible' : ''} ${className}`.trim()
 
@@ -86,6 +111,7 @@ export function ScrollReveal({
       },
       style: {
         '--reveal-delay': `${delay}ms`,
+        '--reveal-duration': `${REVEAL_DURATION_MS}ms`,
       } as CSSProperties,
     },
     children,

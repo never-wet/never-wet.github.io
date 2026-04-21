@@ -1,4 +1,5 @@
 import { BrandLogo } from './components/BrandLogo'
+import { DifferenceSignalCloud } from './components/DifferenceSignalCloud'
 import { FeatureShowcase } from './components/FeatureShowcase'
 import { FinalCallToAction } from './components/FinalCallToAction'
 import { Hero } from './components/Hero'
@@ -178,6 +179,11 @@ function AppShell() {
 
       <main>
         <Hero />
+        <section className="section section--signal-intro" aria-labelledby="signal-intro-title">
+          <div className="container">
+            <DifferenceSignalCloud />
+          </div>
+        </section>
         <ValueGrid />
         <FeatureShowcase />
         <ModulesSection />

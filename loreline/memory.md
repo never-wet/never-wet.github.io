@@ -143,7 +143,7 @@ Rules:
 ## Current Implementation Decisions
 
 - The site structure is:
-  hero, product overview, interconnected workspace, worldbuilding modules, writing experience, ownership/privacy/focus, why it is different, final CTA
+  hero, editorial signal cloud, product overview, interconnected workspace, worldbuilding modules, writing experience, ownership/privacy/focus, why it is different, final CTA
 - `loreline/index.html` is the homepage and should remain the public landing page/front door for the product.
 - If deeper product views, demos, or app-like screens are added later, they should live on separate routes instead of replacing the homepage.
 - The homepage now includes explicit entry points into the actual writing workspace through `?view=studio`.
@@ -169,6 +169,8 @@ Rules:
 - The homepage should use restrained scroll-reveal animation for sections after the hero, while refresh/load behavior should lift the visible page elements into place from below.
 - Homepage reveal motion should feel editorial and premium:
   content rises in with soft opacity and blur easing, not flashy parallax or loud gimmicks.
+- Scroll-triggered reveal animations should now feel fast and self-completing:
+  once a reveal begins, it should finish automatically even if the user stops scrolling, and reversible reveals should not snap back out before their entrance motion completes.
 - On homepage refresh/load, the top bar and hero should animate upward into place in a staggered way so the page feels composed as it arrives.
 - Root page scrolling is currently fully native:
   do not intercept, remap, or smooth wheel input until a later dedicated pass revisits scroll behavior.
@@ -219,22 +221,10 @@ Rules:
 - Brand usage should stay consistent:
   pair the emblem with the `Loreline` wordmark in major identity positions rather than using bare text or unrelated placeholder dots.
 - The hero copy is worldbuilding-first and explicitly aimed at universe builders rather than generic writers.
-- The product-overview section now behaves like a scroll narrative on desktop:
-  the explanation cards live on the left side, activate one at a time as the user scrolls, and reverse cleanly when scrolling upward.
-- The product-overview visuals use a sticky right-side pseudo-3D stage with scene-specific motion tied to the active card's scroll progress.
-- The product-overview imagery should live on the sticky right side of the screen, not inside each left-hand card.
-- The right-side stage should drift and react with scroll progress so the visual feels scrubbed by scrolling, and it should reverse naturally when scrolling upward.
-- Every product-overview box should map to its own clearly distinct right-side scene, with different internal structures and ambient treatment so the stage never reads like only the first box has artwork.
-- On wide desktop, every overview box should be paired with its own right-hand sticky stage inside the same chapter row.
-- On wide desktop, the left overview card should travel within the same pinned window as the right-side stage:
-  it starts aligned to the stage top, moves downward with scroll, stops when its bottom reaches the stage bottom, and clamps back to the stage top when scrolling upward.
-- The overview left cards should share a consistent desktop height:
-  normalize them to the tallest card so the left-side boxes keep the same Y rhythm and do not feel jumpy from chapter to chapter.
-- On narrower layouts, each box should still keep its own companion stage, stacked above or below as needed without losing the one-box-to-one-visual relationship.
-- The overview stage scroll animation should be clearly recognizable:
-  movement needs to be strong enough to read immediately rather than barely perceptible drift.
-- The overview stage should render as pure artwork:
-  no frame border, no progress or scroll indicators, no labels, and no explanatory copy inside the visual itself.
+- The product-overview section is now an editorial split composition:
+  strong positioning copy on the left, a light connected-world constellation on the right, and a slim three-line supporting thread list beneath the copy.
+- The overview should still feel like positioning copy, not a feature-card demo:
+  avoid boxed dashboards there, and use atmosphere, threads, and connected visual language instead of heavy UI panels.
 - The workspace showcase uses four tabs:
   `Story Nexus`, `World Atlas`, `Chronicle Engine`, `Writing Room`
 - The showcase keeps secondary depth hidden until the user opens it.
@@ -249,10 +239,19 @@ Rules:
 - The showcase controls must clamp against the real workspace panel height:
   never create travel room by stretching the workspace panel with empty interior space.
 - The modules area now expands into a second "creative support systems" mosaic:
-  characters, aesthetic boards, personal codex/wiki, studio ambience, plot weaving, and custom calendars should read as serious product systems inside the Loreline ecosystem.
+  characters, codex space, plot weaving, atmosphere, and custom time should still read as serious product systems inside the Loreline ecosystem.
 - The upper module grid should stay curated and high-signal:
-  show only the core worldbuilding pillars there, and let the broader systems mosaic carry the wider product breadth below it.
-- These support systems should be shown in a broad editorial mosaic with recognizably different internal previews, but always in the locked dark palette rather than copied light-theme reference styling.
+  show only the core worldbuilding pillars there, and let the broader support section carry the wider product breadth below it.
+- The core modules section should now behave like a scroll chapter on desktop:
+  the overview text stays pinned on the left around mid-screen while one module card at a time occupies the right stage, with the current card sliding upward and the next card rising from below as the user scrolls.
+- The modules transition should feel smooth and cinematic rather than abrupt:
+  treat the right column as one changing viewport, not a static grid of equal cards.
+- The modules stage should avoid an outer fake-app window:
+  show the transitioning cards, labels, and sequence markers directly, without wrapping them in a bordered shell or heavy frame.
+- The modules cards should travel like a vertical sequence, not fade around the middle:
+  each card should rise from below the visible stage and exit fully out the top as the next one takes its place.
+- The support systems section should no longer be a dense six-card grid:
+  present it as one integrated panoramic "room around the manuscript" with a central writing-world visual and a few concise supporting notes instead of many repetitive boxes.
 - The writing section uses a focused manuscript preview paired with a controlled context drawer to show world-aware drafting.
 - The ownership section uses principle cards plus an editorial quote moment instead of fake testimonials.
 - The ownership quote is now a public-domain inspirational passage rendered inside a pale manuscript-like panel:
@@ -272,6 +271,8 @@ Rules:
 - The comparison table should highlight Loreline's column, keep the terminology worldbuilding-specific, and include a note that the categories are representative rather than vendor-by-vendor claims.
 - The "why different" area now opens with an editorial signal cloud:
   centered positioning copy with floating non-interactive lozenges around it, revealed in stagger on scroll, using restrained accent-tinted capsules rather than bright promotional stickers.
+- The editorial signal cloud should now sit directly below the hero:
+  it acts as the first brand-principles statement after the intro image, while the later "why different" section keeps the comparison framing and table without repeating the cloud.
 - The footer should use an editorial three-part layout rather than a generic multi-column SaaS block:
   left brand/signature, centered compact link rows, and a restrained right-side utility icon cluster inside the locked dark palette.
 - Multilingual support should feel native to the product chrome:
