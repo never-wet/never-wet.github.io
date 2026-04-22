@@ -1,0 +1,2807 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Never Wet // Project Hub</title>
+    <meta
+      name="description"
+      content="Never Wet Project Hub: a premium immersive homepage and portfolio world with realtime Three.js motion, GSAP reveals, and interactive project chambers."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Sora:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #02050a;
+        --bg-soft: rgba(7, 11, 16, 0.76);
+        --panel: rgba(8, 12, 18, 0.6);
+        --panel-strong: rgba(8, 12, 18, 0.82);
+        --line: rgba(224, 238, 255, 0.11);
+        --line-strong: rgba(224, 238, 255, 0.24);
+        --text: #edf6ff;
+        --text-soft: rgba(237, 246, 255, 0.76);
+        --text-faint: rgba(237, 246, 255, 0.48);
+        --cold: #90c8ff;
+        --cold-bright: #deefff;
+        --warm: #d6a974;
+        --accent: #cfe8ff;
+        --shadow: 0 32px 100px rgba(0, 0, 0, 0.38);
+        --panel-radius: 16px;
+        --card-radius: 12px;
+        --button-radius: 10px;
+        --pad: clamp(1rem, 3vw, 2.75rem);
+        --display: "Sora", sans-serif;
+        --body: "Instrument Sans", sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        min-height: 100%;
+        background:
+          radial-gradient(circle at 50% 18%, rgba(144, 200, 255, 0.12), transparent 30%),
+          radial-gradient(circle at 78% 72%, rgba(214, 169, 116, 0.08), transparent 24%),
+          linear-gradient(180deg, #05080d 0%, #03060a 46%, #020409 100%);
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100%;
+        overflow-x: hidden;
+        background: transparent;
+        color: var(--text);
+        font-family: var(--body);
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-rendering: optimizeLegibility;
+      }
+
+      body.cursor-active,
+      body.cursor-active * {
+        cursor: none !important;
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      button,
+      input,
+      textarea,
+      select {
+        font: inherit;
+      }
+
+      button {
+        border: 0;
+        background: transparent;
+        color: inherit;
+      }
+
+      ::selection {
+        background: rgba(144, 200, 255, 0.24);
+        color: var(--text);
+      }
+
+      body::-webkit-scrollbar {
+        width: 0.72rem;
+      }
+
+      body::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.03);
+      }
+
+      body::-webkit-scrollbar-thumb {
+        background: rgba(222, 239, 255, 0.16);
+        border-radius: 999px;
+        border: 2px solid transparent;
+        background-clip: padding-box;
+      }
+
+      .experience-shell {
+        position: relative;
+        min-height: 100vh;
+      }
+
+      .scene-canvas,
+      .site-noise,
+      .site-vignette,
+      .site-glow {
+        position: fixed;
+        inset: 0;
+      }
+
+      .scene-canvas {
+        z-index: 0;
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+
+      .site-noise,
+      .site-vignette,
+      .site-glow {
+        pointer-events: none;
+      }
+
+      .site-noise {
+        z-index: 3;
+        opacity: 0.12;
+        mix-blend-mode: soft-light;
+        background-image:
+          radial-gradient(circle at 20% 28%, rgba(255, 255, 255, 0.18) 0, transparent 1px),
+          radial-gradient(circle at 70% 62%, rgba(255, 255, 255, 0.16) 0, transparent 1px),
+          radial-gradient(circle at 84% 16%, rgba(255, 255, 255, 0.12) 0, transparent 1px);
+        background-size: 5px 5px, 4px 4px, 3px 3px;
+        animation: noise-drift 14s steps(6) infinite;
+      }
+
+      .site-vignette {
+        z-index: 2;
+        background:
+          radial-gradient(circle at center, transparent 34%, rgba(0, 0, 0, 0.22) 64%, rgba(0, 0, 0, 0.84) 100%),
+          linear-gradient(180deg, rgba(0, 0, 0, 0.22), rgba(0, 0, 0, 0.06));
+      }
+
+      .site-glow {
+        z-index: 1;
+        filter: blur(84px);
+      }
+
+      .site-glow--a {
+        background:
+          radial-gradient(circle at 38% 18%, rgba(144, 200, 255, 0.16), transparent 28%),
+          radial-gradient(circle at 68% 56%, rgba(86, 132, 190, 0.12), transparent 30%);
+        animation: glow-drift-a 20s ease-in-out infinite alternate;
+      }
+
+      .site-glow--b {
+        background:
+          radial-gradient(circle at 76% 72%, rgba(214, 169, 116, 0.12), transparent 22%),
+          radial-gradient(circle at 22% 80%, rgba(144, 200, 255, 0.1), transparent 28%);
+        animation: glow-drift-b 24s ease-in-out infinite alternate;
+      }
+
+      .custom-cursor {
+        position: fixed;
+        inset: 0;
+        z-index: 40;
+        pointer-events: none;
+      }
+
+      .custom-cursor[hidden] {
+        display: none;
+      }
+
+      .custom-cursor__ring,
+      .custom-cursor__dot {
+        position: fixed;
+        top: 0;
+        left: 0;
+        opacity: 0;
+        will-change: transform;
+        transition:
+          opacity 180ms ease,
+          width 220ms ease,
+          height 220ms ease,
+          border-color 220ms ease,
+          background-color 220ms ease,
+          color 220ms ease;
+      }
+
+      .custom-cursor__ring {
+        width: 4.7rem;
+        height: 4.7rem;
+        margin-left: -2.35rem;
+        margin-top: -2.35rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid rgba(144, 200, 255, 0.4);
+        border-radius: 999px;
+        background: rgba(7, 11, 17, 0.24);
+        color: var(--cold-bright);
+        font-size: 0.66rem;
+        font-weight: 700;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        backdrop-filter: blur(16px);
+        box-shadow: 0 0 36px rgba(144, 200, 255, 0.16);
+      }
+
+      .custom-cursor__dot {
+        width: 0.44rem;
+        height: 0.44rem;
+        margin-left: -0.22rem;
+        margin-top: -0.22rem;
+        border-radius: 999px;
+        background: var(--cold-bright);
+        box-shadow: 0 0 18px rgba(222, 239, 255, 0.62);
+      }
+
+      .custom-cursor.is-visible .custom-cursor__ring,
+      .custom-cursor.is-visible .custom-cursor__dot {
+        opacity: 1;
+      }
+
+      .custom-cursor.is-active .custom-cursor__ring {
+        width: 5.4rem;
+        height: 5.4rem;
+        margin-left: -2.7rem;
+        margin-top: -2.7rem;
+        border-color: rgba(222, 239, 255, 0.5);
+        background: rgba(9, 14, 20, 0.42);
+      }
+
+      .custom-cursor.is-warm .custom-cursor__ring {
+        border-color: rgba(214, 169, 116, 0.54);
+        color: #f4dfc3;
+        box-shadow: 0 0 36px rgba(214, 169, 116, 0.16);
+      }
+
+      .custom-cursor.is-warm .custom-cursor__dot {
+        background: var(--warm);
+        box-shadow: 0 0 18px rgba(214, 169, 116, 0.54);
+      }
+
+      .boot-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 34;
+        display: grid;
+        place-items: center;
+        padding: 1rem;
+        animation: boot-failsafe 0.01s linear 7s forwards;
+      }
+
+      .boot-overlay::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+          radial-gradient(circle at 50% 20%, rgba(144, 200, 255, 0.18), transparent 24%),
+          radial-gradient(circle at 74% 70%, rgba(214, 169, 116, 0.08), transparent 18%),
+          rgba(4, 8, 12, 0.88);
+        backdrop-filter: blur(18px);
+      }
+
+      .boot-overlay.is-exiting {
+        opacity: 0;
+        transform: translate3d(0, -2%, 0) scale(1.02);
+        transition:
+          opacity 620ms cubic-bezier(0.22, 1, 0.36, 1),
+          transform 620ms cubic-bezier(0.22, 1, 0.36, 1);
+        pointer-events: none;
+      }
+
+      .boot-panel,
+      .header-readout,
+      .project-dock,
+      .journey-meter,
+      .chapter-copy,
+      .summary-strip,
+      .annotation-card,
+      .metric-card,
+      .live-focus,
+      .project-panel__sheet,
+      .project-panel__block {
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(16px);
+      }
+
+      .boot-panel {
+        position: relative;
+        width: min(33rem, 100%);
+        padding: 1.7rem;
+        border: 1px solid var(--line);
+        border-radius: var(--panel-radius);
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.015)),
+          rgba(6, 10, 15, 0.78);
+      }
+
+      .boot-mark {
+        position: relative;
+        width: 6.4rem;
+        height: 6.4rem;
+        margin-bottom: 1.2rem;
+      }
+
+      .boot-mark span {
+        position: absolute;
+        inset: 0;
+        border: 1px solid rgba(144, 200, 255, 0.22);
+        border-radius: 999px;
+      }
+
+      .boot-mark span:first-child {
+        animation: orbit-spin 5.4s linear infinite;
+      }
+
+      .boot-mark span:nth-child(2) {
+        inset: 0.8rem;
+        border-color: rgba(222, 239, 255, 0.28);
+        animation: orbit-spin 4.1s linear infinite reverse;
+      }
+
+      .boot-mark span:nth-child(3) {
+        inset: 1.8rem;
+        background: radial-gradient(circle, rgba(222, 239, 255, 0.94), rgba(144, 200, 255, 0.2));
+        border-color: rgba(222, 239, 255, 0.36);
+        box-shadow: 0 0 24px rgba(144, 200, 255, 0.26);
+      }
+
+      .boot-eyebrow,
+      .brand-wordmark,
+      .site-nav__link,
+      .chapter-index,
+      .chapter-eyebrow,
+      .progress-marker,
+      .project-dock__eyebrow,
+      .project-panel__eyebrow,
+      .annotation-label,
+      .metric-label,
+      .scroll-cue,
+      .header-kicker,
+      .header-state {
+        text-transform: uppercase;
+        letter-spacing: 0.22em;
+      }
+
+      .boot-eyebrow {
+        color: var(--text-faint);
+        font-size: 0.7rem;
+        font-weight: 700;
+      }
+
+      .boot-panel h1,
+      .chapter-title,
+      .project-dock__title,
+      .project-panel__header h2 {
+        margin: 0;
+        font-family: var(--display);
+        text-transform: uppercase;
+      }
+
+      .boot-panel h1 {
+        margin-top: 0.9rem;
+        font-size: clamp(2rem, 5vw, 3.4rem);
+        line-height: 0.92;
+        letter-spacing: -0.04em;
+      }
+
+      .boot-status {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        margin-top: 1rem;
+        color: var(--text-soft);
+      }
+
+      .boot-status strong {
+        color: var(--text);
+        font-family: var(--display);
+        font-size: 1.08rem;
+      }
+
+      .boot-bar {
+        margin-top: 0.7rem;
+        height: 0.38rem;
+        overflow: hidden;
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 999px;
+      }
+
+      .boot-bar span {
+        display: block;
+        width: 100%;
+        height: 100%;
+        transform-origin: left;
+        transform: scaleX(0);
+        background: linear-gradient(90deg, rgba(144, 200, 255, 0.16), rgba(144, 200, 255, 1));
+      }
+
+      .boot-copy {
+        margin: 1rem 0 0;
+        color: var(--text-soft);
+        line-height: 1.65;
+      }
+
+      .site-header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 16;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 1rem var(--pad);
+      }
+
+      .site-header::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(180deg, rgba(4, 7, 11, 0.74), rgba(4, 7, 11, 0));
+        backdrop-filter: blur(18px);
+        mask-image: linear-gradient(180deg, black 0%, black 72%, transparent 100%);
+      }
+
+      .brand-lockup,
+      .site-nav,
+      .header-readout {
+        position: relative;
+        z-index: 1;
+      }
+
+      .brand-lockup {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.9rem;
+      }
+
+      .brand-glyph {
+        position: relative;
+        width: 0.98rem;
+        height: 0.98rem;
+        border: 1px solid rgba(222, 239, 255, 0.42);
+        border-radius: 2px;
+        transform: rotate(45deg);
+        box-shadow: 0 0 18px rgba(144, 200, 255, 0.22);
+        transition: transform 180ms ease, box-shadow 180ms ease;
+      }
+
+      .brand-glyph::after {
+        content: "";
+        position: absolute;
+        inset: 2px;
+        background: linear-gradient(135deg, rgba(222, 239, 255, 0.96), rgba(144, 200, 255, 0.16));
+      }
+
+      .brand-lockup:hover .brand-glyph,
+      .brand-lockup:focus-visible .brand-glyph {
+        transform: rotate(45deg) translateY(-1px);
+        box-shadow: 0 0 22px rgba(144, 200, 255, 0.3);
+      }
+
+      .brand-wordmark {
+        font-size: 0.76rem;
+        font-weight: 700;
+      }
+
+      .site-nav {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+
+      .site-nav__link {
+        position: relative;
+        color: var(--text-faint);
+        font-size: 0.72rem;
+        font-weight: 600;
+        transition: color 180ms ease, transform 180ms ease;
+      }
+
+      .site-nav__link::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: -0.42rem;
+        height: 1px;
+        transform: scaleX(0);
+        transform-origin: center;
+        background: linear-gradient(90deg, transparent, rgba(222, 239, 255, 0.82), transparent);
+        transition: transform 180ms ease;
+      }
+
+      .site-nav__link:hover,
+      .site-nav__link:focus-visible,
+      .site-nav__link.is-active {
+        color: var(--text);
+        transform: translateY(-1px);
+      }
+
+      .site-nav__link:hover::after,
+      .site-nav__link:focus-visible::after,
+      .site-nav__link.is-active::after {
+        transform: scaleX(1);
+      }
+
+      .header-readout {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.9rem;
+        padding: 0.78rem 0.95rem;
+        border: 1px solid var(--line);
+        border-radius: 0.9rem;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.015));
+      }
+
+      .header-kicker {
+        color: var(--text-faint);
+        font-size: 0.62rem;
+      }
+
+      .header-state {
+        color: var(--text);
+        font-size: 0.68rem;
+      }
+
+      .header-state::before {
+        content: "";
+        display: inline-block;
+        width: 0.42rem;
+        height: 0.42rem;
+        margin-right: 0.66rem;
+        border-radius: 999px;
+        background: var(--warm);
+        box-shadow: 0 0 14px rgba(214, 169, 116, 0.44);
+      }
+
+      .progress-rail {
+        position: fixed;
+        right: 1.1rem;
+        top: 50%;
+        z-index: 15;
+        display: flex;
+        align-items: center;
+        gap: 0.92rem;
+        transform: translateY(-50%);
+      }
+
+      .progress-track {
+        position: relative;
+        width: 1px;
+        height: min(52vh, 25rem);
+        background: rgba(255, 255, 255, 0.12);
+      }
+
+      .progress-fill {
+        position: absolute;
+        inset: 0;
+        transform-origin: bottom;
+        transform: scaleY(0);
+        background: linear-gradient(180deg, rgba(222, 239, 255, 0), rgba(144, 200, 255, 0.9) 70%, rgba(214, 169, 116, 0.76));
+        box-shadow: 0 0 18px rgba(144, 200, 255, 0.28);
+      }
+
+      .progress-markers {
+        display: grid;
+        gap: 0.9rem;
+      }
+
+      .progress-marker {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.65rem;
+        color: var(--text-faint);
+        font-size: 0.63rem;
+        transition: color 180ms ease, transform 180ms ease;
+      }
+
+      .progress-marker::before {
+        content: "";
+        width: 0.38rem;
+        height: 0.38rem;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.22);
+        transition: background 180ms ease, box-shadow 180ms ease;
+      }
+
+      .progress-marker:hover,
+      .progress-marker:focus-visible,
+      .progress-marker.is-active {
+        color: var(--text);
+        transform: translateX(-0.18rem);
+      }
+
+      .progress-marker:hover::before,
+      .progress-marker:focus-visible::before,
+      .progress-marker.is-active::before {
+        background: var(--cold-bright);
+        box-shadow: 0 0 12px rgba(144, 200, 255, 0.46);
+      }
+
+      .project-dock {
+        position: fixed;
+        left: var(--pad);
+        bottom: 1.2rem;
+        z-index: 14;
+        width: min(27rem, calc(100vw - 2rem));
+        padding: 1rem;
+        border: 1px solid var(--line);
+        border-radius: var(--panel-radius);
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.015)),
+          rgba(8, 12, 17, 0.6);
+        transition: opacity 200ms ease, transform 200ms ease;
+      }
+
+      .project-dock.is-muted {
+        opacity: 0.2;
+        transform: translateY(0.6rem);
+      }
+
+      .project-dock__eyebrow {
+        margin: 0;
+        color: var(--text-faint);
+        font-size: 0.68rem;
+        font-weight: 700;
+      }
+
+      .project-dock__title {
+        margin-top: 0.5rem;
+        font-size: clamp(1.2rem, 2vw, 1.58rem);
+        line-height: 0.94;
+        letter-spacing: -0.04em;
+      }
+
+      .project-dock__category {
+        display: inline-block;
+        margin-top: 0.42rem;
+        color: var(--text-faint);
+        font-size: 0.72rem;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+      }
+
+      .project-dock__summary {
+        margin: 0.72rem 0 0;
+        color: var(--text-soft);
+        line-height: 1.56;
+      }
+
+      .project-dock__list {
+        display: grid;
+        gap: 0.5rem;
+        max-height: min(42vh, 24rem);
+        margin-top: 1rem;
+        overflow: auto;
+        padding-right: 0.2rem;
+      }
+
+      .project-dock__list::-webkit-scrollbar {
+        width: 0.38rem;
+      }
+
+      .project-dock__list::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.14);
+        border-radius: 999px;
+      }
+
+      .project-dock__item {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 0.25rem 0.75rem;
+        width: 100%;
+        padding: 0.82rem 0.9rem 0.86rem;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: var(--card-radius);
+        background: rgba(255, 255, 255, 0.025);
+        text-align: left;
+        cursor: pointer;
+        transition:
+          transform 180ms ease,
+          border-color 180ms ease,
+          background-color 180ms ease,
+          box-shadow 180ms ease,
+          opacity 180ms ease;
+      }
+
+      .project-dock__item strong {
+        font-family: var(--display);
+        font-size: 0.95rem;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+
+      .project-dock__item span,
+      .project-dock__item small {
+        color: var(--text-soft);
+        font-size: 0.72rem;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
+
+      .project-dock__item small {
+        align-self: start;
+        justify-self: end;
+        color: var(--text-faint);
+      }
+
+      .project-dock__item:hover,
+      .project-dock__item:focus-visible,
+      .project-dock__item.is-focused {
+        transform: translateY(-1px);
+        border-color: rgba(144, 200, 255, 0.32);
+        background: rgba(144, 200, 255, 0.06);
+        box-shadow: inset 0 0 0 1px rgba(144, 200, 255, 0.08);
+      }
+
+      .journey-meter {
+        position: fixed;
+        right: calc(1rem + 2.2rem);
+        bottom: 1.2rem;
+        z-index: 14;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.8rem;
+        padding: 0.74rem 0.92rem;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: rgba(9, 13, 18, 0.58);
+      }
+
+      .journey-meter span {
+        color: var(--text-faint);
+        font-size: 0.68rem;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+      }
+
+      .journey-meter strong {
+        font-family: var(--display);
+        font-size: 1.04rem;
+      }
+
+      .project-panel {
+        position: fixed;
+        inset: 0;
+        z-index: 26;
+        pointer-events: none;
+      }
+
+      .project-panel__backdrop {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        background:
+          radial-gradient(circle at 22% 20%, rgba(144, 200, 255, 0.12), transparent 24%),
+          rgba(4, 8, 12, 0.7);
+        transition: opacity 280ms ease;
+      }
+
+      .project-panel__sheet {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        bottom: 1rem;
+        width: min(34rem, calc(100vw - 2rem));
+        padding: 1.2rem;
+        overflow: auto;
+        border: 1px solid var(--line);
+        border-radius: var(--panel-radius);
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.015)),
+          rgba(8, 12, 18, 0.84);
+        transform: translate3d(104%, 0, 0);
+        transition: transform 420ms cubic-bezier(0.22, 1, 0.36, 1);
+      }
+
+      .project-panel.is-open {
+        pointer-events: auto;
+      }
+
+      .project-panel.is-open .project-panel__backdrop {
+        opacity: 1;
+      }
+
+      .project-panel.is-open .project-panel__sheet {
+        transform: translate3d(0, 0, 0);
+      }
+
+      .project-panel__close,
+      .atlas-button,
+      .project-panel__links a {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 2.9rem;
+        padding: 0.8rem 1.15rem;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: var(--button-radius);
+        background: rgba(255, 255, 255, 0.03);
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        font-size: 0.72rem;
+        font-weight: 700;
+        transition:
+          transform 180ms ease,
+          border-color 180ms ease,
+          background-color 180ms ease,
+          color 180ms ease,
+          box-shadow 180ms ease;
+      }
+
+      .project-panel__close:hover,
+      .project-panel__close:focus-visible,
+      .atlas-button:hover,
+      .atlas-button:focus-visible,
+      .project-panel__links a:hover,
+      .project-panel__links a:focus-visible {
+        transform: translateY(-1px);
+        border-color: rgba(144, 200, 255, 0.3);
+        background: rgba(144, 200, 255, 0.08);
+        box-shadow: inset 0 0 0 1px rgba(144, 200, 255, 0.08);
+      }
+
+      .atlas-button.is-solid,
+      .project-panel__links a.is-solid {
+        border-color: rgba(144, 200, 255, 0.26);
+        background: linear-gradient(180deg, rgba(144, 200, 255, 0.16), rgba(144, 200, 255, 0.08));
+      }
+
+      .project-panel__header h2 {
+        margin-top: 0.9rem;
+        font-size: clamp(1.8rem, 4vw, 2.6rem);
+        line-height: 0.92;
+        letter-spacing: -0.04em;
+      }
+
+      .project-panel__lead {
+        margin-top: 0.9rem;
+        color: var(--text-soft);
+        line-height: 1.7;
+      }
+
+      .project-panel__grid {
+        display: grid;
+        gap: 0.9rem;
+        margin-top: 1.1rem;
+      }
+
+      .project-panel__block {
+        padding: 1rem;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: var(--card-radius);
+        background: rgba(255, 255, 255, 0.03);
+      }
+
+      .project-panel__block h3 {
+        margin: 0 0 0.7rem;
+        font-size: 0.82rem;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--text-faint);
+      }
+
+      .project-panel__links {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.7rem;
+      }
+
+      .stat-list {
+        display: grid;
+        gap: 0.64rem;
+      }
+
+      .stat-list__item {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 1rem;
+      }
+
+      .stat-list__item span {
+        color: var(--text-faint);
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        font-size: 0.66rem;
+      }
+
+      .stat-list__item strong {
+        font-family: var(--display);
+        font-size: 0.96rem;
+      }
+
+      .chip-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+      }
+
+      .chip {
+        display: inline-flex;
+        align-items: center;
+        min-height: 2rem;
+        padding: 0.34rem 0.66rem;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.03);
+        color: var(--text-soft);
+        font-size: 0.7rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      .chapter-stack {
+        position: relative;
+        z-index: 5;
+      }
+
+      .chapter {
+        position: relative;
+        min-height: 120vh;
+        display: flex;
+        align-items: center;
+        padding: 8rem var(--pad);
+      }
+
+      .chapter-panel {
+        width: min(42rem, 100%);
+      }
+
+      .chapter-panel--right {
+        margin-left: auto;
+      }
+
+      .chapter-copy-wrap {
+        width: 100%;
+      }
+
+      .chapter-copy {
+        width: min(36rem, 100%);
+        padding: clamp(1.1rem, 2vw, 1.6rem);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: var(--panel-radius);
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.015)),
+          rgba(7, 11, 16, 0.58);
+      }
+
+      .chapter-index {
+        margin: 0;
+        color: var(--text-faint);
+        font-size: 0.66rem;
+        font-weight: 700;
+      }
+
+      .chapter-eyebrow {
+        margin: 0.5rem 0 0;
+        color: var(--text-faint);
+        font-size: 0.72rem;
+        font-weight: 700;
+      }
+
+      .chapter-title {
+        margin-top: 0.7rem;
+        font-size: clamp(2rem, 5vw, 4rem);
+        line-height: 0.92;
+        letter-spacing: -0.05em;
+      }
+
+      .chapter-title--hero {
+        font-size: clamp(2.6rem, 7vw, 5.4rem);
+      }
+
+      .chapter-body {
+        margin-top: 1rem;
+        color: var(--text-soft);
+        font-size: clamp(1rem, 2vw, 1.08rem);
+        line-height: 1.72;
+        max-width: 36rem;
+      }
+
+      .chapter-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.8rem;
+        margin-top: 1.2rem;
+      }
+
+      .atlas-button--secondary {
+        background: rgba(255, 255, 255, 0.02);
+      }
+
+      .summary-row,
+      .annotation-grid,
+      .metric-grid {
+        display: grid;
+        gap: 0.8rem;
+        margin-top: 1.2rem;
+      }
+
+      .summary-row {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .annotation-grid,
+      .metric-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .summary-strip,
+      .annotation-card,
+      .metric-card,
+      .live-focus {
+        padding: 0.9rem 1rem;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: var(--card-radius);
+        background: rgba(255, 255, 255, 0.03);
+      }
+
+      .summary-strip strong,
+      .metric-value {
+        display: block;
+        font-family: var(--display);
+        font-size: 1rem;
+        text-transform: uppercase;
+      }
+
+      .summary-strip span,
+      .annotation-value,
+      .metric-body,
+      .live-focus p {
+        display: block;
+        margin-top: 0.46rem;
+        color: var(--text-soft);
+        line-height: 1.55;
+      }
+
+      .annotation-label,
+      .metric-label,
+      .live-focus__label {
+        color: var(--text-faint);
+        font-size: 0.66rem;
+        font-weight: 700;
+      }
+
+      .metric-value {
+        font-size: 1.4rem;
+      }
+
+      .live-focus h3 {
+        margin: 0.4rem 0 0;
+        font-family: var(--display);
+        text-transform: uppercase;
+        letter-spacing: -0.02em;
+      }
+
+      .scroll-cue {
+        margin-top: 1.2rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.7rem;
+        color: var(--text-faint);
+        font-size: 0.66rem;
+        font-weight: 700;
+      }
+
+      .scroll-cue__line {
+        position: relative;
+        display: block;
+        width: 2.2rem;
+        height: 1px;
+        overflow: hidden;
+        background: rgba(255, 255, 255, 0.14);
+      }
+
+      .scroll-cue__line::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(90deg, transparent, rgba(222, 239, 255, 0.92), transparent);
+        animation: cue-run 1.9s ease-in-out infinite;
+      }
+
+      .reveal-on-enter,
+      .section-reveal {
+        opacity: 0;
+        transform: translate3d(0, 2.2rem, 0) scale(0.985);
+        filter: blur(12px);
+      }
+
+      .is-visible {
+        opacity: 1;
+        transform: translate3d(0, 0, 0) scale(1);
+        filter: blur(0);
+      }
+
+      .chapter-entry {
+        min-height: 130vh;
+        align-items: flex-end;
+        padding-top: 9rem;
+        padding-bottom: 10rem;
+      }
+
+      .chapter-orbit,
+      .chapter-systems {
+        justify-content: flex-end;
+      }
+
+      .chapter-finale {
+        min-height: 126vh;
+        padding-bottom: 14rem;
+      }
+
+      @keyframes orbit-spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      @keyframes noise-drift {
+        0% {
+          transform: translate3d(0, 0, 0);
+        }
+        50% {
+          transform: translate3d(-1%, 1%, 0);
+        }
+        100% {
+          transform: translate3d(1%, -1%, 0);
+        }
+      }
+
+      @keyframes glow-drift-a {
+        0% {
+          transform: translate3d(-2%, 0, 0);
+        }
+        100% {
+          transform: translate3d(2%, 3%, 0);
+        }
+      }
+
+      @keyframes glow-drift-b {
+        0% {
+          transform: translate3d(2%, 0, 0);
+        }
+        100% {
+          transform: translate3d(-2%, -2%, 0);
+        }
+      }
+
+      @keyframes cue-run {
+        0% {
+          transform: translateX(-120%);
+        }
+        100% {
+          transform: translateX(140%);
+        }
+      }
+
+      @keyframes boot-failsafe {
+        to {
+          opacity: 0;
+          visibility: hidden;
+          pointer-events: none;
+        }
+      }
+
+      @media (max-width: 1080px) {
+        .site-nav,
+        .progress-rail {
+          display: none;
+        }
+
+        .journey-meter {
+          right: 1rem;
+          bottom: 7.4rem;
+        }
+
+        .summary-row,
+        .annotation-grid,
+        .metric-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .project-panel__sheet {
+          width: min(38rem, calc(100vw - 1rem));
+          top: 0.5rem;
+          right: 0.5rem;
+          bottom: 0.5rem;
+        }
+      }
+
+      @media (max-width: 820px) {
+        .site-header {
+          padding-top: 0.85rem;
+          align-items: flex-start;
+          flex-wrap: wrap;
+        }
+
+        .header-readout {
+          margin-left: auto;
+        }
+
+        .project-dock {
+          left: 0.75rem;
+          right: 0.75rem;
+          width: auto;
+          bottom: 0.75rem;
+        }
+
+        .journey-meter {
+          bottom: calc(0.75rem + 18.5rem);
+          right: 0.75rem;
+        }
+
+        .chapter {
+          min-height: 110vh;
+          padding: 8rem 0.9rem 18rem;
+        }
+
+        .chapter-entry {
+          padding-bottom: 20rem;
+        }
+
+        .chapter-copy {
+          width: 100%;
+        }
+
+        .project-panel__sheet {
+          top: auto;
+          left: 0.5rem;
+          right: 0.5rem;
+          bottom: 0.5rem;
+          width: auto;
+          max-height: min(72vh, 40rem);
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        html {
+          scroll-behavior: auto;
+        }
+
+        *,
+        *::before,
+        *::after {
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 0.01ms !important;
+          scroll-behavior: auto !important;
+        }
+
+        .site-noise,
+        .site-glow {
+          animation: none !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="experience-shell" id="experience">
+      <canvas class="scene-canvas" id="sceneCanvas" aria-hidden="true"></canvas>
+      <div class="site-glow site-glow--a" aria-hidden="true"></div>
+      <div class="site-glow site-glow--b" aria-hidden="true"></div>
+      <div class="site-noise" aria-hidden="true"></div>
+      <div class="site-vignette" aria-hidden="true"></div>
+
+      <div class="boot-overlay" id="bootOverlay">
+        <div class="boot-panel">
+          <div class="boot-mark" aria-hidden="true">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+          <p class="boot-eyebrow">Never Wet // Project Hub</p>
+          <h1>Charging the orbit</h1>
+          <p class="boot-status">
+            <span>Loading systems</span>
+            <strong id="bootPercent">0%</strong>
+          </p>
+          <div class="boot-bar">
+            <span id="bootFill"></span>
+          </div>
+          <p class="boot-copy">
+            Bringing the realtime archive, custom cursor, scene choreography, and project chamber online as one
+            continuous world.
+          </p>
+        </div>
+      </div>
+
+      <div class="custom-cursor" id="customCursor" hidden aria-hidden="true">
+        <div class="custom-cursor__ring" id="cursorRing"><span id="cursorLabel">View</span></div>
+        <div class="custom-cursor__dot" id="cursorDot"></div>
+      </div>
+
+      <header class="site-header">
+        <a class="brand-lockup reveal-on-enter" href="#entry" data-cursor-label="Jump" data-cursor-tone="cold">
+          <span class="brand-glyph" aria-hidden="true"></span>
+          <span class="brand-wordmark">Never Wet / Project Hub</span>
+        </a>
+
+        <nav class="site-nav reveal-on-enter" id="siteNav" aria-label="Primary navigation"></nav>
+
+        <div class="header-readout reveal-on-enter">
+          <span class="header-kicker">Realtime archive</span>
+          <span class="header-state" id="headerState">Cold open</span>
+        </div>
+      </header>
+
+      <aside class="progress-rail reveal-on-enter" aria-label="Journey progression">
+        <div class="progress-track">
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <div class="progress-markers" id="progressMarkers"></div>
+      </aside>
+
+      <aside class="project-dock reveal-on-enter" id="projectDock">
+        <p class="project-dock__eyebrow">Archive focus</p>
+        <h2 class="project-dock__title" id="dockTitle">Freeform</h2>
+        <span class="project-dock__category" id="dockCategory">Writing Studio</span>
+        <p class="project-dock__summary" id="dockSummary">
+          A live writing system shown as a polished chamber suspended inside the orbit.
+        </p>
+        <div class="project-dock__list" id="projectList"></div>
+      </aside>
+
+      <div class="journey-meter reveal-on-enter" id="journeyMeter">
+        <span>Journey</span>
+        <strong id="journeyValue">0%</strong>
+      </div>
+
+      <section class="project-panel" id="projectPanel" aria-hidden="true">
+        <button
+          class="project-panel__backdrop"
+          id="projectPanelBackdrop"
+          type="button"
+          aria-label="Close project panel"
+          data-cursor-label="Back"
+          data-cursor-tone="warm"
+        ></button>
+
+        <div class="project-panel__sheet">
+          <div class="project-panel__header">
+            <button
+              class="project-panel__close"
+              id="projectPanelClose"
+              type="button"
+              data-cursor-label="Back"
+              data-cursor-tone="warm"
+            >
+              Return to orbit
+            </button>
+            <p class="project-panel__eyebrow" id="panelCategory">Writing Studio</p>
+            <h2 id="panelTitle">Freeform</h2>
+            <p class="project-panel__lead" id="panelLead">
+              Freeform turns writing into an authored immersive tool with cleaner motion and a stronger sense of place.
+            </p>
+          </div>
+
+          <div class="project-panel__grid">
+            <section class="project-panel__block">
+              <h3>Path</h3>
+              <p id="panelPath">/freeform/</p>
+            </section>
+
+            <section class="project-panel__block">
+              <h3>Project signals</h3>
+              <div class="stat-list" id="panelStats"></div>
+            </section>
+
+            <section class="project-panel__block">
+              <h3>Tags</h3>
+              <div class="chip-row" id="panelTags"></div>
+            </section>
+
+            <section class="project-panel__block">
+              <h3>Tech stack</h3>
+              <div class="chip-row" id="panelStack"></div>
+            </section>
+
+            <section class="project-panel__block">
+              <h3>Open paths</h3>
+              <div class="project-panel__links">
+                <a
+                  class="is-solid"
+                  id="panelLaunch"
+                  href="#"
+                  target="_blank"
+                  rel="noreferrer"
+                  data-cursor-label="Open"
+                  data-cursor-tone="cold"
+                >
+                  Launch project
+                </a>
+                <a
+                  id="panelRepo"
+                  href="#"
+                  target="_blank"
+                  rel="noreferrer"
+                  data-cursor-label="Open"
+                  data-cursor-tone="cold"
+                >
+                  Source folder
+                </a>
+              </div>
+            </section>
+
+            <section class="project-panel__block">
+              <h3>Status</h3>
+              <p id="panelStatus">
+                Live destination with hover states, camera focus, and a direct launch route from the orbit.
+              </p>
+            </section>
+          </div>
+        </div>
+      </section>
+
+      <main class="chapter-stack">
+        <section class="chapter chapter-entry" id="entry">
+          <div class="chapter-panel">
+            <div class="chapter-copy-wrap" data-depth="0.12">
+              <div class="chapter-copy section-reveal">
+                <p class="chapter-index">01 / Cold Open</p>
+                <p class="chapter-eyebrow">Never Wet // Interactive hub</p>
+                <h1 class="chapter-title chapter-title--hero">A premium orbit for every world I build.</h1>
+                <p class="chapter-body">
+                  This homepage is a directed digital playground where tools, labs, worlds, and immersive experiments
+                  live as floating project chambers inside one controlled system instead of collapsing into a boring
+                  portfolio grid.
+                </p>
+
+                <div class="chapter-actions">
+                  <a class="atlas-button is-solid" href="#archive" data-cursor-label="Jump" data-cursor-tone="cold">
+                    Enter the archive
+                  </a>
+                  <a
+                    class="atlas-button atlas-button--secondary"
+                    href="https://github.com/never-wet"
+                    target="_blank"
+                    rel="noreferrer"
+                    data-cursor-label="Open"
+                    data-cursor-tone="cold"
+                  >
+                    Open GitHub
+                  </a>
+                </div>
+
+                <div class="summary-row">
+                  <article class="summary-strip">
+                    <strong>12 project chambers</strong>
+                    <span>Every site arrives as a floating artifact instead of a flat portfolio card.</span>
+                  </article>
+                  <article class="summary-strip">
+                    <strong>Persistent WebGL world</strong>
+                    <span>The canvas stays alive through the whole homepage with scroll and mouse choreography.</span>
+                  </article>
+                  <article class="summary-strip">
+                    <strong>Motion everywhere</strong>
+                    <span>Loader, reveals, cursor states, hover depth, and micro interactions are all wired in.</span>
+                  </article>
+                </div>
+
+                <div class="scroll-cue">
+                  <span class="scroll-cue__line"></span>
+                  Scroll to enter the field
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="chapter chapter-orbit" id="orbit">
+          <div class="chapter-panel chapter-panel--right">
+            <div class="chapter-copy-wrap" data-depth="0.08">
+              <div class="chapter-copy section-reveal">
+                <p class="chapter-index">02 / Loader To Field</p>
+                <p class="chapter-eyebrow">Motion system</p>
+                <h2 class="chapter-title">Projects wake up as a moving constellation.</h2>
+                <p class="chapter-body">
+                  The hero core splits open, rings drift into place, and the first project forms come off the centerline.
+                  Instead of dropping into a normal portfolio, you enter a world that already feels active and curated.
+                </p>
+
+                <div class="annotation-grid">
+                  <article class="annotation-card">
+                    <p class="annotation-label">Loader</p>
+                    <p class="annotation-value">
+                      Fullscreen progress sequence with a smooth dissolve into the main scene.
+                    </p>
+                  </article>
+                  <article class="annotation-card">
+                    <p class="annotation-label">Cursor</p>
+                    <p class="annotation-value">
+                      Hover states change label, scale, and color across both the UI and the 3D world.
+                    </p>
+                  </article>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="chapter chapter-archive" id="archive">
+          <div class="chapter-panel">
+            <div class="chapter-copy-wrap" data-depth="0.1">
+              <div class="chapter-copy section-reveal">
+                <p class="chapter-index">03 / Archive</p>
+                <p class="chapter-eyebrow">Project discovery</p>
+                <h2 class="chapter-title">Each destination is discoverable through depth and response.</h2>
+                <p class="chapter-body">
+                  Hover the floating artifacts or use the dock to bring a project forward. The archive stays alive behind
+                  every interaction so the homepage behaves like one immersive system rather than stacked sections.
+                </p>
+
+                <div class="live-focus" id="liveFocus">
+                  <p class="live-focus__label">Live hover signal</p>
+                  <h3 id="focusTitle">Freeform</h3>
+                  <p id="focusSummary">
+                    A live writing system shown as a polished chamber suspended inside the orbit.
+                  </p>
+                  <div class="chip-row" id="focusTags"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="chapter chapter-systems" id="systems">
+          <div class="chapter-panel chapter-panel--right">
+            <div class="chapter-copy-wrap" data-depth="0.07">
+              <div class="chapter-copy section-reveal">
+                <p class="chapter-index">04 / System</p>
+                <p class="chapter-eyebrow">Interaction grammar</p>
+                <h2 class="chapter-title">The hub behaves like one directed machine.</h2>
+                <p class="chapter-body">
+                  Smooth scroll, controlled reveals, camera drift, project hover reactions, and layered parallax all move
+                  as one motion language. Once a transition starts, it finishes cleanly instead of freezing halfway.
+                </p>
+
+                <div class="metric-grid">
+                  <article class="metric-card">
+                    <p class="metric-value">01</p>
+                    <p class="metric-label">Custom cursor</p>
+                    <p class="metric-body">Smoothed ring, trailing dot, and label states across scene and overlay.</p>
+                  </article>
+                  <article class="metric-card">
+                    <p class="metric-value">02</p>
+                    <p class="metric-label">Hover depth</p>
+                    <p class="metric-body">Project chambers lift, brighten, and sharpen when they receive focus.</p>
+                  </article>
+                  <article class="metric-card">
+                    <p class="metric-value">03</p>
+                    <p class="metric-label">Parallax layers</p>
+                    <p class="metric-body">Mouse and scroll both contribute to depth without turning noisy or chaotic.</p>
+                  </article>
+                  <article class="metric-card">
+                    <p class="metric-value">60</p>
+                    <p class="metric-label">FPS target</p>
+                    <p class="metric-body">Renderer quality steps down on weaker devices while preserving the feel.</p>
+                  </article>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="chapter chapter-finale" id="finale">
+          <div class="chapter-panel">
+            <div class="chapter-copy-wrap" data-depth="0.1">
+              <div class="chapter-copy section-reveal">
+                <p class="chapter-index">05 / Final Scene</p>
+                <p class="chapter-eyebrow">Launch surface</p>
+                <h2 class="chapter-title">Stay in the orbit or open a world.</h2>
+                <p class="chapter-body">
+                  Use the archive as your main homepage hub: drift through the work as one immersive sequence, then drop
+                  directly into any destination when a project chamber earns your attention.
+                </p>
+
+                <div class="chapter-actions">
+                  <a
+                    class="atlas-button is-solid"
+                    href="https://github.com/never-wet"
+                    target="_blank"
+                    rel="noreferrer"
+                    data-cursor-label="Open"
+                    data-cursor-tone="cold"
+                  >
+                    Open GitHub
+                  </a>
+                  <a
+                    class="atlas-button atlas-button--secondary"
+                    href="#entry"
+                    data-cursor-label="Jump"
+                    data-cursor-tone="cold"
+                  >
+                    Restart sequence
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+    <script>
+      (() => {
+        const chapters = [
+          { id: "entry", label: "Cold open", state: "Cold open" },
+          { id: "orbit", label: "Loader", state: "Orbit wake" },
+          { id: "archive", label: "Archive", state: "Project field" },
+          { id: "systems", label: "Systems", state: "Interaction grammar" },
+          { id: "finale", label: "Finale", state: "Launch surface" },
+        ];
+
+        const projects = [
+          {
+            id: "freeform",
+            title: "Freeform",
+            category: "Writing Studio",
+            pathLabel: "/freeform/",
+            href: "https://never-wet.github.io/freeform/",
+            repoHref: "https://github.com/never-wet/never-wet.github.io/tree/main/freeform",
+            status: "Live",
+            tone: "cold",
+            short:
+              "A live writing system shown as a polished chamber suspended inside the orbit.",
+            full:
+              "Freeform turns writing into an authored immersive tool with cleaner motion, calmer pacing, and a stronger sense of place. In the hub it appears as a disciplined editorial object with lighter signal edges and a more focused silhouette.",
+            tags: ["writing", "editorial", "immersive"],
+            stack: ["HTML", "CSS", "JavaScript"],
+            stats: [
+              { label: "Mode", value: "Editor" },
+              { label: "Tone", value: "Quiet" },
+              { label: "Focus", value: "Flow" },
+            ],
+          },
+          {
+            id: "loreline",
+            title: "Loreline",
+            category: "Narrative Studio",
+            pathLabel: "/loreline/",
+            href: "https://never-wet.github.io/loreline/",
+            repoHref: "https://github.com/never-wet/never-wet.github.io/tree/main/loreline",
+            status: "Live",
+            tone: "warm",
+            short:
+              "A narrative-heavy world represented as a warmer chamber with slower, moodier presence.",
+            full:
+              "Loreline is a more atmospheric build, so the hub treats it like a warmer narrative chamber with softer highlights, slower motion cues, and a stronger sense of story framing.",
+            tags: ["story", "worldbuilding", "atmosphere"],
+            stack: ["WebGL", "CSS", "JavaScript"],
+            stats: [
+              { label: "Mode", value: "Story" },
+              { label: "Tone", value: "Warm" },
+              { label: "Focus", value: "World" },
+            ],
+          },
+          {
+            id: "ai-lab",
+            title: "AI Lab",
+            category: "Interactive Lab",
+            pathLabel: "/ai-lab/",
+            href: "https://never-wet.github.io/ai-lab/",
+            repoHref: "https://github.com/never-wet/never-wet.github.io/tree/main/ai-lab",
+            status: "Live",
+            tone: "cold",
+            short:
+              "A visual AI workspace presented as a bright suspended instrument cluster inside the archive.",
+            full:
+              "AI Lab reads as a technical chamber centered on experimentation, datasets, and interface feedback. Inside the homepage it becomes a sharper object with colder material and clearer signal contrast.",
+            tags: ["ai", "lab", "tools"],
+            stack: ["JavaScript", "UI", "Experiments"],
+            stats: [
+              { label: "Mode", value: "Lab" },
+              { label: "Tone", value: "Cold" },
+              { label: "Focus", value: "Research" },
+            ],
+          },
+          {
+            id: "circuit-lab",
+            title: "Circuit Lab",
+            category: "Learning System",
+            pathLabel: "/electric-circuit-lab/",
+            href: "https://never-wet.github.io/electric-circuit-lab/",
+            repoHref: "https://github.com/never-wet/never-wet.github.io/tree/main/electric-circuit-lab",
+            status: "Live",
+            tone: "cold",
+            short:
+              "An educational build presented as a denser lab artifact with structured geometry and clear logic.",
+            full:
+              "Circuit Lab is more schematic and instructional than the narrative worlds, so the hub stages it as a denser precision object where structure and readability come first.",
+            tags: ["education", "simulation", "builder"],
+            stack: ["JavaScript", "Canvas", "Simulation"],
+            stats: [
+              { label: "Mode", value: "Learn" },
+              { label: "Tone", value: "Precise" },
+              { label: "Focus", value: "Systems" },
+            ],
+          },
+          {
+            id: "games",
+            title: "Games Archive",
+            category: "World Collection",
+            pathLabel: "/games/",
+            href: "https://never-wet.github.io/games/",
+            repoHref: "https://github.com/never-wet/never-wet.github.io/tree/main/games",
+            status: "Live",
+            tone: "warm",
+            short:
+              "A larger gateway artifact suggesting multiple playable worlds branching from one core.",
+            full:
+              "Games is not one project so much as an archive of interactive worlds, so it becomes a wider gateway chamber with richer branching motion and a slightly warmer palette.",
+            tags: ["games", "archive", "play"],
+            stack: ["TypeScript", "Canvas", "UI"],
+            stats: [
+              { label: "Mode", value: "Play" },
+              { label: "Tone", value: "Charged" },
+              { label: "Focus", value: "Archive" },
+            ],
+          },
+          {
+            id: "house-builder",
+            title: "House Builder",
+            category: "Sandbox Build",
+            pathLabel: "/house-builder/",
+            href: "https://never-wet.github.io/house-builder/",
+            repoHref: "https://github.com/never-wet/never-wet.github.io/tree/main/house-builder",
+            status: "Live",
+            tone: "warm",
+            short:
+              "A spatial sandbox shown as a heavier modular object built from stacked structural planes.",
+            full:
+              "House Builder carries more physical assembly logic than the other projects, so the hub represents it as a modular structure with thicker planes and stronger architectural weight.",
+            tags: ["sandbox", "builder", "spatial"],
+            stack: ["JavaScript", "3D", "Sandbox"],
+            stats: [
+              { label: "Mode", value: "Build" },
+              { label: "Tone", value: "Material" },
+              { label: "Focus", value: "Assembly" },
+            ],
+          },
+          {
+            id: "threejs",
+            title: "Three.js Playground",
+            category: "Realtime Experiments",
+            pathLabel: "/threejs/",
+            href: "https://never-wet.github.io/threejs/",
+            repoHref: "https://github.com/never-wet/never-wet.github.io/tree/main/threejs",
+            status: "Live",
+            tone: "cold",
+            short:
+              "A direct realtime playground represented as a bright procedural engine at the edge of the field.",
+            full:
+              "The Three.js playground is already about realtime graphics, so it becomes one of the brightest objects in the orbit: a direct procedural engine that feeds the rest of the homepage's language.",
+            tags: ["threejs", "realtime", "graphics"],
+            stack: ["Three.js", "WebGL", "Shaders"],
+            stats: [
+              { label: "Mode", value: "Realtime" },
+              { label: "Tone", value: "Bright" },
+              { label: "Focus", value: "Graphics" },
+            ],
+          },
+          {
+            id: "cinematic-portfolio",
+            title: "Project Atlas",
+            category: "Portfolio Scene",
+            pathLabel: "/cinematic-portfolio/",
+            href: "https://never-wet.github.io/cinematic-portfolio/",
+            repoHref: "https://github.com/never-wet/never-wet.github.io/tree/main/cinematic-portfolio",
+            status: "Live",
+            tone: "cold",
+            short:
+              "A cinematic portfolio prototype folded back into this larger archive as one of its own chambers.",
+            full:
+              "Project Atlas already explores immersive portfolio language, so here it becomes a mirrored archive object inside the wider project hub: a project about showcasing projects embedded inside a larger system.",
+            tags: ["portfolio", "cinematic", "prototype"],
+            stack: ["WebGL", "GSAP", "UI"],
+            stats: [
+              { label: "Mode", value: "Showcase" },
+              { label: "Tone", value: "Controlled" },
+              { label: "Focus", value: "Presentation" },
+            ],
+          },
+          {
+            id: "arctis-signal",
+            title: "ARCTIS / SIGNAL",
+            category: "Brand World",
+            pathLabel: "/arctis-signal/",
+            href: "https://never-wet.github.io/arctis-signal/",
+            repoHref: "https://github.com/never-wet/never-wet.github.io/tree/main/arctis-signal",
+            status: "Live",
+            tone: "cold",
+            short:
+              "One of the sharper immersive builds, represented as a harder monolith anchoring the field.",
+            full:
+              "ARCTIS / SIGNAL is a polished brand world with strong material language, so the hub stages it as a cooler, harder monument that anchors the overall orbit with confidence.",
+            tags: ["brand", "world", "signal"],
+            stack: ["React", "R3F", "GSAP"],
+            stats: [
+              { label: "Mode", value: "Brand" },
+              { label: "Tone", value: "Icy" },
+              { label: "Focus", value: "Identity" },
+            ],
+          },
+          {
+            id: "noema-vault",
+            title: "Noema Vault",
+            category: "Archive Experience",
+            pathLabel: "/noema-vault/out/",
+            href: "https://never-wet.github.io/noema-vault/out/",
+            repoHref: "https://github.com/never-wet/never-wet.github.io/tree/main/noema-vault",
+            status: "Live",
+            tone: "warm",
+            short:
+              "A memory-driven prototype represented as a sealed vault chamber in the far orbit.",
+            full:
+              "Noema Vault is more conceptual and archive-driven, so it appears as a sealed memory chamber with heavier warmth and a stronger sense of containment.",
+            tags: ["memory", "archive", "concept"],
+            stack: ["Web", "Narrative", "Architecture"],
+            stats: [
+              { label: "Mode", value: "Vault" },
+              { label: "Tone", value: "Quiet" },
+              { label: "Focus", value: "Memory" },
+            ],
+          },
+          {
+            id: "translator",
+            title: "Translator",
+            category: "Utility Tool",
+            pathLabel: "/translator/",
+            href: "https://never-wet.github.io/translator/",
+            repoHref: "https://github.com/never-wet/never-wet.github.io/tree/main/translator",
+            status: "Live",
+            tone: "cold",
+            short:
+              "A compact precision tool shown as a smaller instrument instead of forcing utility into spectacle.",
+            full:
+              "Translator is intentionally more functional than the large immersive worlds, which makes it useful contrast. In the hub it becomes a compact precision object that still feels premium without pretending to be massive.",
+            tags: ["utility", "tool", "precision"],
+            stack: ["JavaScript", "Utility", "UI"],
+            stats: [
+              { label: "Mode", value: "Tool" },
+              { label: "Tone", value: "Exact" },
+              { label: "Focus", value: "Speed" },
+            ],
+          },
+          {
+            id: "junha2010",
+            title: "Junha2010",
+            category: "External Site",
+            pathLabel: "junha2010.github.io",
+            href: "https://junha2010.github.io/",
+            repoHref: "",
+            status: "External",
+            tone: "warm",
+            short:
+              "The outward-facing route from the orbit, staged as the final launch node in the wider field.",
+            full:
+              "Junha2010 is the outward-facing external site, so the hub presents it as the last node in the journey: a clean route out of the archive and into a different public-facing surface.",
+            tags: ["external", "profile", "launch"],
+            stack: ["Web", "Profile", "Portfolio"],
+            stats: [
+              { label: "Mode", value: "Exit" },
+              { label: "Tone", value: "Clear" },
+              { label: "Focus", value: "Route" },
+            ],
+          },
+        ];
+
+        const state = {
+          hoveredProjectId: null,
+          activeProjectId: null,
+          activeChapter: 0,
+          bootVisible: true,
+          bootCurrent: 0,
+          bootTarget: 12,
+          worldReady: false,
+          reducedMotion: window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+          finePointer: window.matchMedia("(pointer: fine)").matches,
+          lowPower: false,
+          scrollTarget: 0,
+          scrollCurrent: 0,
+          mouseTargetX: window.innerWidth * 0.5,
+          mouseTargetY: window.innerHeight * 0.5,
+          mouseCurrentX: window.innerWidth * 0.5,
+          mouseCurrentY: window.innerHeight * 0.5,
+          cursorText: "View",
+          cursorTone: "cold",
+          cursorActive: false,
+          cursorVisible: false,
+          viewed: new Set(),
+        };
+
+        const elements = {
+          bootOverlay: document.getElementById("bootOverlay"),
+          bootPercent: document.getElementById("bootPercent"),
+          bootFill: document.getElementById("bootFill"),
+          nav: document.getElementById("siteNav"),
+          progressMarkers: document.getElementById("progressMarkers"),
+          progressFill: document.getElementById("progressFill"),
+          projectList: document.getElementById("projectList"),
+          dock: document.getElementById("projectDock"),
+          dockTitle: document.getElementById("dockTitle"),
+          dockCategory: document.getElementById("dockCategory"),
+          dockSummary: document.getElementById("dockSummary"),
+          headerState: document.getElementById("headerState"),
+          journeyValue: document.getElementById("journeyValue"),
+          liveFocusTitle: document.getElementById("focusTitle"),
+          liveFocusSummary: document.getElementById("focusSummary"),
+          liveFocusTags: document.getElementById("focusTags"),
+          projectPanel: document.getElementById("projectPanel"),
+          projectPanelBackdrop: document.getElementById("projectPanelBackdrop"),
+          projectPanelClose: document.getElementById("projectPanelClose"),
+          panelCategory: document.getElementById("panelCategory"),
+          panelTitle: document.getElementById("panelTitle"),
+          panelLead: document.getElementById("panelLead"),
+          panelPath: document.getElementById("panelPath"),
+          panelStats: document.getElementById("panelStats"),
+          panelTags: document.getElementById("panelTags"),
+          panelStack: document.getElementById("panelStack"),
+          panelLaunch: document.getElementById("panelLaunch"),
+          panelRepo: document.getElementById("panelRepo"),
+          panelStatus: document.getElementById("panelStatus"),
+          cursor: document.getElementById("customCursor"),
+          cursorRing: document.getElementById("cursorRing"),
+          cursorDot: document.getElementById("cursorDot"),
+          cursorLabel: document.getElementById("cursorLabel"),
+          canvas: document.getElementById("sceneCanvas"),
+        };
+
+        const sceneState = {
+          renderer: null,
+          scene: null,
+          camera: null,
+          root: null,
+          coreGroup: null,
+          corridorGroup: null,
+          particleField: null,
+          pointLight: null,
+          ambientLight: null,
+          raycaster: null,
+          pointer: null,
+          interactiveMeshes: [],
+          projectArtifacts: [],
+          connectionLines: [],
+          lastTime: performance.now(),
+        };
+
+        const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
+
+        const smoothstep = (value, min, max) => {
+          const t = clamp((value - min) / (max - min || 1), 0, 1);
+          return t * t * (3 - 2 * t);
+        };
+
+        const mix = (a, b, t) => a + (b - a) * t;
+
+        const projectById = new Map(projects.map((project) => [project.id, project]));
+
+        function buildChrome() {
+          elements.nav.innerHTML = chapters
+            .map(
+              (chapter) =>
+                `<a class="site-nav__link" href="#${chapter.id}" data-cursor-label="Jump" data-cursor-tone="cold">${chapter.label}</a>`,
+            )
+            .join("");
+
+          elements.progressMarkers.innerHTML = chapters
+            .map(
+              (chapter) =>
+                `<a class="progress-marker" href="#${chapter.id}" data-cursor-label="Jump" data-cursor-tone="cold">${chapter.label}</a>`,
+            )
+            .join("");
+
+          elements.projectList.innerHTML = projects
+            .map(
+              (project) => `
+                <button
+                  class="project-dock__item"
+                  type="button"
+                  data-project-id="${project.id}"
+                  data-cursor-label="Open"
+                  data-cursor-tone="${project.tone}"
+                >
+                  <strong>${project.title}</strong>
+                  <small>${project.status}</small>
+                  <span>${project.pathLabel}</span>
+                </button>
+              `,
+            )
+            .join("");
+
+          updateDock(projects[0].id);
+          fillPanel(projects[0].id);
+        }
+
+        function updateDock(projectId) {
+          const project = projectById.get(projectId) || projects[0];
+          elements.dockTitle.textContent = project.title;
+          elements.dockCategory.textContent = project.category;
+          elements.dockSummary.textContent = project.short;
+          elements.liveFocusTitle.textContent = project.title;
+          elements.liveFocusSummary.textContent = project.short;
+          elements.liveFocusTags.innerHTML = project.tags.map((tag) => `<span class="chip">${tag}</span>`).join("");
+
+          elements.projectList.querySelectorAll(".project-dock__item").forEach((button) => {
+            button.classList.toggle("is-focused", button.dataset.projectId === project.id);
+          });
+        }
+
+        function fillPanel(projectId) {
+          const project = projectById.get(projectId) || projects[0];
+          elements.panelCategory.textContent = project.category;
+          elements.panelTitle.textContent = project.title;
+          elements.panelLead.textContent = project.full;
+          elements.panelPath.textContent = project.pathLabel;
+          elements.panelStats.innerHTML = project.stats
+            .map(
+              (stat) =>
+                `<div class="stat-list__item"><span>${stat.label}</span><strong>${stat.value}</strong></div>`,
+            )
+            .join("");
+          elements.panelTags.innerHTML = project.tags.map((tag) => `<span class="chip">${tag}</span>`).join("");
+          elements.panelStack.innerHTML = project.stack.map((item) => `<span class="chip">${item}</span>`).join("");
+          elements.panelLaunch.href = project.href;
+          elements.panelRepo.href = project.repoHref || project.href;
+          elements.panelRepo.style.display = project.repoHref ? "" : "none";
+          elements.panelStatus.textContent = `${project.status} destination with hover states, camera focus, and a direct launch route from the orbit.`;
+        }
+
+        function setHoveredProject(projectId) {
+          state.hoveredProjectId = projectId;
+          updateDock(projectId || state.activeProjectId || projects[0].id);
+        }
+
+        function openProject(projectId) {
+          state.activeProjectId = projectId;
+          state.viewed.add(projectId);
+          fillPanel(projectId);
+          elements.projectPanel.classList.add("is-open");
+          elements.projectPanel.setAttribute("aria-hidden", "false");
+          elements.dock.classList.add("is-muted");
+          document.body.style.overflow = "hidden";
+          setCursorState("Back", "warm", true);
+        }
+
+        function closeProject() {
+          state.activeProjectId = null;
+          elements.projectPanel.classList.remove("is-open");
+          elements.projectPanel.setAttribute("aria-hidden", "true");
+          elements.dock.classList.remove("is-muted");
+          document.body.style.overflow = "";
+          syncCursorFromDom();
+        }
+
+        function initPanelEvents() {
+          elements.projectPanelBackdrop.addEventListener("click", closeProject);
+          elements.projectPanelClose.addEventListener("click", closeProject);
+
+          window.addEventListener("keydown", (event) => {
+            if (event.key === "Escape") {
+              closeProject();
+            }
+          });
+        }
+
+        function initDockEvents() {
+          elements.projectList.addEventListener("mouseover", (event) => {
+            const item = event.target.closest("[data-project-id]");
+            if (!item) {
+              return;
+            }
+            setHoveredProject(item.dataset.projectId);
+          });
+
+          elements.projectList.addEventListener("mouseout", (event) => {
+            if (!event.target.closest("[data-project-id]")) {
+              return;
+            }
+            if (!state.activeProjectId) {
+              setHoveredProject(null);
+            }
+          });
+
+          elements.projectList.addEventListener("focusin", (event) => {
+            const item = event.target.closest("[data-project-id]");
+            if (item) {
+              setHoveredProject(item.dataset.projectId);
+            }
+          });
+
+          elements.projectList.addEventListener("click", (event) => {
+            const item = event.target.closest("[data-project-id]");
+            if (!item) {
+              return;
+            }
+            openProject(item.dataset.projectId);
+          });
+        }
+
+        function initCursor() {
+          state.lowPower =
+            state.reducedMotion ||
+            window.innerWidth < 920 ||
+            (navigator.hardwareConcurrency || 8) <= 6 ||
+            window.devicePixelRatio > 2;
+
+          if (!state.finePointer || state.reducedMotion) {
+            elements.cursor.hidden = true;
+            document.body.classList.remove("cursor-active");
+            return;
+          }
+
+          elements.cursor.hidden = false;
+          document.body.classList.add("cursor-active");
+
+          document.addEventListener("pointermove", (event) => {
+            state.mouseTargetX = event.clientX;
+            state.mouseTargetY = event.clientY;
+            state.cursorVisible = true;
+            elements.cursor.classList.add("is-visible");
+          });
+
+          document.addEventListener("pointerleave", () => {
+            state.cursorVisible = false;
+            elements.cursor.classList.remove("is-visible");
+          });
+
+          document.addEventListener("pointerover", syncCursorFromDom);
+          document.addEventListener("pointerout", syncCursorFromDom);
+        }
+
+        function setCursorState(label, tone, active) {
+          state.cursorText = label || "View";
+          state.cursorTone = tone || "cold";
+          state.cursorActive = Boolean(active);
+          elements.cursorLabel.textContent = state.cursorText;
+          elements.cursor.classList.toggle("is-active", state.cursorActive);
+          elements.cursor.classList.toggle("is-warm", state.cursorTone === "warm");
+        }
+
+        function syncCursorFromDom(event) {
+          if (!state.finePointer || state.reducedMotion) {
+            return;
+          }
+
+          if (state.activeProjectId) {
+            setCursorState("Back", "warm", true);
+            return;
+          }
+
+          const target = event && event.target ? event.target.closest("[data-cursor-label]") : null;
+          if (!target) {
+            setCursorState("View", "cold", false);
+            return;
+          }
+
+          setCursorState(target.dataset.cursorLabel || "View", target.dataset.cursorTone || "cold", true);
+        }
+
+        function applyParallax() {
+          document.querySelectorAll("[data-depth]").forEach((element) => {
+            const depth = Number(element.dataset.depth || 0);
+            const x = (state.mouseCurrentX - window.innerWidth * 0.5) * depth * 0.05;
+            const y = (state.mouseCurrentY - window.innerHeight * 0.5) * depth * 0.04 - state.scrollCurrent * depth * 24;
+            element.style.transform = `translate3d(${x.toFixed(2)}px, ${y.toFixed(2)}px, 0)`;
+          });
+        }
+
+        function bootTo(target) {
+          state.bootTarget = Math.max(state.bootTarget, target);
+        }
+
+        function finishBoot() {
+          if (!state.bootVisible) {
+            return;
+          }
+
+          state.bootVisible = false;
+          elements.bootOverlay.classList.add("is-exiting");
+          window.setTimeout(() => {
+            elements.bootOverlay.style.display = "none";
+            startEntranceReveal();
+          }, 680);
+        }
+
+        function startEntranceReveal() {
+          const gsap = window.gsap;
+          const ScrollTrigger = window.ScrollTrigger;
+
+          const visibleElements = document.querySelectorAll(".reveal-on-enter, .section-reveal");
+
+          if (!gsap || !ScrollTrigger) {
+            visibleElements.forEach((element) => element.classList.add("is-visible"));
+            return;
+          }
+
+          gsap.registerPlugin(ScrollTrigger);
+
+          gsap.fromTo(
+            ".reveal-on-enter",
+            {
+              autoAlpha: 0,
+              y: 34,
+              scale: 0.985,
+              filter: state.reducedMotion ? "blur(0px)" : "blur(12px)",
+            },
+            {
+              autoAlpha: 1,
+              y: 0,
+              scale: 1,
+              filter: "blur(0px)",
+              duration: state.reducedMotion ? 0.01 : 0.9,
+              ease: "power3.out",
+              stagger: state.reducedMotion ? 0 : 0.08,
+            },
+          );
+
+          document.querySelectorAll(".section-reveal").forEach((element) => {
+            gsap.fromTo(
+              element,
+              {
+                autoAlpha: 0,
+                y: 36,
+                scale: 0.985,
+                filter: state.reducedMotion ? "blur(0px)" : "blur(12px)",
+              },
+              {
+                autoAlpha: 1,
+                y: 0,
+                scale: 1,
+                filter: "blur(0px)",
+                duration: state.reducedMotion ? 0.01 : 0.92,
+                ease: "power3.out",
+                scrollTrigger: {
+                  trigger: element,
+                  start: "top 84%",
+                  once: true,
+                },
+              },
+            );
+          });
+
+          document.querySelectorAll(".chapter").forEach((section, index) => {
+            ScrollTrigger.create({
+              trigger: section,
+              start: "top 46%",
+              end: "bottom 42%",
+              onEnter: () => setActiveChapter(index),
+              onEnterBack: () => setActiveChapter(index),
+            });
+          });
+
+          ScrollTrigger.refresh();
+        }
+
+        function setActiveChapter(index) {
+          state.activeChapter = index;
+          const chapter = chapters[index] || chapters[0];
+          elements.headerState.textContent = chapter.state;
+
+          elements.nav.querySelectorAll(".site-nav__link").forEach((link, linkIndex) => {
+            link.classList.toggle("is-active", linkIndex === index);
+          });
+
+          elements.progressMarkers.querySelectorAll(".progress-marker").forEach((link, linkIndex) => {
+            link.classList.toggle("is-active", linkIndex === index);
+          });
+        }
+
+        function initThreeScene() {
+          if (!window.THREE) {
+            state.worldReady = true;
+            bootTo(78);
+            return;
+          }
+
+          sceneState.raycaster = new THREE.Raycaster();
+          sceneState.pointer = new THREE.Vector2(9, 9);
+
+          const renderer = new THREE.WebGLRenderer({
+            canvas: elements.canvas,
+            antialias: !state.lowPower,
+            alpha: true,
+            powerPreference: "high-performance",
+          });
+
+          renderer.setPixelRatio(Math.min(window.devicePixelRatio, state.lowPower ? 1.2 : 1.7));
+          renderer.setSize(window.innerWidth, window.innerHeight, false);
+
+          const scene = new THREE.Scene();
+          scene.fog = new THREE.FogExp2(0x03060a, state.lowPower ? 0.058 : 0.048);
+
+          const camera = new THREE.PerspectiveCamera(42, window.innerWidth / window.innerHeight, 0.1, 60);
+          camera.position.set(0, 1.2, 8.5);
+
+          const root = new THREE.Group();
+          scene.add(root);
+
+          const ambientLight = new THREE.HemisphereLight(0xdcebff, 0x20160d, 0.56);
+          scene.add(ambientLight);
+
+          const pointLight = new THREE.PointLight(0x9ed1ff, 18, 28, 2);
+          pointLight.position.set(2.6, 3.8, 4.8);
+          scene.add(pointLight);
+
+          const rimLight = new THREE.PointLight(0xd6a974, 7, 22, 2);
+          rimLight.position.set(-6, -1, 6);
+          scene.add(rimLight);
+
+          const rootGlow = new THREE.Mesh(
+            new THREE.SphereGeometry(1.8, 24, 24),
+            new THREE.MeshBasicMaterial({
+              color: 0x8fc7ff,
+              transparent: true,
+              opacity: 0.06,
+            }),
+          );
+          root.add(rootGlow);
+
+          const coreGroup = new THREE.Group();
+          root.add(coreGroup);
+
+          const shellMaterial = new THREE.MeshPhysicalMaterial({
+            color: 0x95cfff,
+            metalness: 0.42,
+            roughness: 0.18,
+            transmission: 0.12,
+            transparent: true,
+            opacity: 0.94,
+            clearcoat: 0.8,
+            emissive: 0x1f4d7f,
+            emissiveIntensity: 0.18,
+          });
+
+          const coreMesh = new THREE.Mesh(new THREE.IcosahedronGeometry(0.82, 1), shellMaterial);
+          coreGroup.add(coreMesh);
+
+          const wire = new THREE.LineSegments(
+            new THREE.WireframeGeometry(new THREE.IcosahedronGeometry(1.22, 0)),
+            new THREE.LineBasicMaterial({
+              color: 0xdcebff,
+              transparent: true,
+              opacity: 0.22,
+            }),
+          );
+          coreGroup.add(wire);
+
+          const halo = new THREE.Mesh(
+            new THREE.TorusGeometry(1.8, 0.02, 12, 120),
+            new THREE.MeshBasicMaterial({
+              color: 0x9dd0ff,
+              transparent: true,
+              opacity: 0.22,
+            }),
+          );
+          halo.rotation.x = Math.PI * 0.5;
+          coreGroup.add(halo);
+
+          const corridorGroup = new THREE.Group();
+          root.add(corridorGroup);
+
+          for (let index = 0; index < 9; index += 1) {
+            const ring = new THREE.Mesh(
+              new THREE.TorusGeometry(4.4 + index * 0.58, 0.015, 8, 96),
+              new THREE.MeshBasicMaterial({
+                color: index % 2 === 0 ? 0x95cfff : 0xd6a974,
+                transparent: true,
+                opacity: 0.07,
+              }),
+            );
+            ring.rotation.x = Math.PI * 0.5;
+            ring.position.z = -index * 1.2;
+            corridorGroup.add(ring);
+          }
+
+          const particleCount = state.lowPower ? 950 : 1800;
+          const particleGeometry = new THREE.BufferGeometry();
+          const particlePositions = new Float32Array(particleCount * 3);
+          const particleScalars = new Float32Array(particleCount);
+
+          for (let index = 0; index < particleCount; index += 1) {
+            const spread = 18 + Math.random() * 12;
+            const angle = Math.random() * Math.PI * 2;
+            const radius = Math.sqrt(Math.random()) * spread;
+            const y = (Math.random() - 0.5) * 12;
+            particlePositions[index * 3] = Math.cos(angle) * radius;
+            particlePositions[index * 3 + 1] = y;
+            particlePositions[index * 3 + 2] = (Math.random() - 0.5) * 24;
+            particleScalars[index] = 0.6 + Math.random() * 1.6;
+          }
+
+          particleGeometry.setAttribute("position", new THREE.BufferAttribute(particlePositions, 3));
+          particleGeometry.setAttribute("aScale", new THREE.BufferAttribute(particleScalars, 1));
+
+          const particleField = new THREE.Points(
+            particleGeometry,
+            new THREE.PointsMaterial({
+              color: 0xddebff,
+              size: state.lowPower ? 0.028 : 0.04,
+              transparent: true,
+              opacity: 0.72,
+              depthWrite: false,
+              blending: THREE.AdditiveBlending,
+            }),
+          );
+          root.add(particleField);
+
+          const lineMaterial = new THREE.LineBasicMaterial({
+            color: 0x7fb8f5,
+            transparent: true,
+            opacity: 0.16,
+          });
+
+          const geometryFactories = [
+            () => new THREE.IcosahedronGeometry(0.44, 0),
+            () => new THREE.OctahedronGeometry(0.46, 0),
+            () => new THREE.CylinderGeometry(0.28, 0.46, 0.88, 6),
+            () => new THREE.TorusKnotGeometry(0.24, 0.08, 80, 12),
+          ];
+
+          const projectArtifacts = [];
+          const interactiveMeshes = [];
+          const connectionLines = [];
+
+          projects.forEach((project, index) => {
+            const group = new THREE.Group();
+            const toneColor = project.tone === "warm" ? 0xd6a974 : 0x95cfff;
+            const highlight = project.tone === "warm" ? 0xf1ddc2 : 0xe4f3ff;
+
+            const core = new THREE.Mesh(
+              geometryFactories[index % geometryFactories.length](),
+              new THREE.MeshPhysicalMaterial({
+                color: toneColor,
+                emissive: toneColor,
+                emissiveIntensity: 0.12,
+                metalness: 0.55,
+                roughness: 0.22,
+                clearcoat: 0.78,
+                transparent: true,
+                opacity: 0.96,
+              }),
+            );
+            group.add(core);
+
+            const frame = new THREE.Mesh(
+              new THREE.TorusGeometry(0.78 + (index % 3) * 0.08, 0.02, 10, 88),
+              new THREE.MeshBasicMaterial({
+                color: highlight,
+                transparent: true,
+                opacity: 0.22,
+              }),
+            );
+            frame.rotation.x = Math.PI * 0.5;
+            group.add(frame);
+
+            const fin = new THREE.Mesh(
+              new THREE.BoxGeometry(0.08, 1.12, 0.08),
+              new THREE.MeshStandardMaterial({
+                color: highlight,
+                metalness: 0.45,
+                roughness: 0.38,
+                transparent: true,
+                opacity: 0.42,
+              }),
+            );
+            fin.rotation.z = index % 2 === 0 ? 0.44 : -0.32;
+            group.add(fin);
+
+            const pickMesh = new THREE.Mesh(
+              new THREE.SphereGeometry(0.94, 18, 18),
+              new THREE.MeshBasicMaterial({
+                transparent: true,
+                opacity: 0,
+              }),
+            );
+            pickMesh.userData.projectId = project.id;
+            pickMesh.userData.pickOnly = true;
+            group.add(pickMesh);
+
+            const lineGeometry = new THREE.BufferGeometry().setFromPoints([
+              new THREE.Vector3(0, 0, 0),
+              new THREE.Vector3(0, 0, 0),
+            ]);
+            const line = new THREE.Line(lineGeometry, lineMaterial.clone());
+            root.add(line);
+
+            projectArtifacts.push({
+              project,
+              group,
+              core,
+              frame,
+              fin,
+              pickMesh,
+              line,
+              angle: (index / projects.length) * Math.PI * 2,
+              lift: (index % 4) * 0.45 - 0.6,
+              drift: Math.random() * Math.PI * 2,
+            });
+
+            interactiveMeshes.push(pickMesh);
+            connectionLines.push(line);
+            root.add(group);
+          });
+
+          sceneState.renderer = renderer;
+          sceneState.scene = scene;
+          sceneState.camera = camera;
+          sceneState.root = root;
+          sceneState.coreGroup = coreGroup;
+          sceneState.corridorGroup = corridorGroup;
+          sceneState.particleField = particleField;
+          sceneState.pointLight = pointLight;
+          sceneState.ambientLight = ambientLight;
+          sceneState.projectArtifacts = projectArtifacts;
+          sceneState.interactiveMeshes = interactiveMeshes;
+          sceneState.connectionLines = connectionLines;
+
+          state.worldReady = true;
+          bootTo(82);
+        }
+
+        function updateScene(time) {
+          const { renderer, scene, camera, coreGroup, corridorGroup, particleField, pointLight, ambientLight } = sceneState;
+          if (!renderer || !scene || !camera || !coreGroup || !corridorGroup || !particleField) {
+            return;
+          }
+
+          const progress = state.scrollCurrent;
+          const revealPhase = smoothstep(progress, 0, 0.18);
+          const archivePhase = smoothstep(progress, 0.18, 0.62);
+          const systemPhase = smoothstep(progress, 0.56, 0.86);
+          const finalPhase = smoothstep(progress, 0.82, 1);
+
+          const cameraStops = [
+            { pos: new THREE.Vector3(0, 1.1, 8.6), target: new THREE.Vector3(0, 0.2, 0) },
+            { pos: new THREE.Vector3(2.6, 1.5, 7.1), target: new THREE.Vector3(0.6, 0.3, -0.4) },
+            { pos: new THREE.Vector3(-3.8, 1.1, 8.8), target: new THREE.Vector3(0, 0.5, -1.2) },
+            { pos: new THREE.Vector3(3.6, 2.2, 10.2), target: new THREE.Vector3(0.8, 0.8, -2.2) },
+            { pos: new THREE.Vector3(0, 3.1, 13.4), target: new THREE.Vector3(0, 1, -2.8) },
+          ];
+
+          const segment = progress * (cameraStops.length - 1);
+          const segmentIndex = Math.min(cameraStops.length - 2, Math.floor(segment));
+          const segmentT = segment - segmentIndex;
+          const fromStop = cameraStops[segmentIndex];
+          const toStop = cameraStops[segmentIndex + 1];
+
+          camera.position.set(
+            mix(fromStop.pos.x, toStop.pos.x, segmentT),
+            mix(fromStop.pos.y, toStop.pos.y, segmentT),
+            mix(fromStop.pos.z, toStop.pos.z, segmentT),
+          );
+
+          camera.position.x += (state.mouseCurrentX / window.innerWidth - 0.5) * (state.lowPower ? 0.35 : 0.7);
+          camera.position.y += (state.mouseCurrentY / window.innerHeight - 0.5) * (state.lowPower ? -0.2 : -0.36);
+
+          const lookAt = new THREE.Vector3(
+            mix(fromStop.target.x, toStop.target.x, segmentT),
+            mix(fromStop.target.y, toStop.target.y, segmentT),
+            mix(fromStop.target.z, toStop.target.z, segmentT),
+          );
+          camera.lookAt(lookAt);
+
+          coreGroup.rotation.y += state.reducedMotion ? 0.0015 : 0.004;
+          coreGroup.rotation.x = Math.sin(time * 0.00035) * 0.16;
+          coreGroup.position.y = Math.sin(time * 0.0012) * 0.12 + revealPhase * 0.4;
+          coreGroup.scale.setScalar(1 + revealPhase * 0.28 + finalPhase * 0.14);
+
+          corridorGroup.children.forEach((ring, index) => {
+            ring.rotation.z += 0.0004 + index * 0.00004;
+            ring.position.z = -index * 1.2 + archivePhase * -2.2 - finalPhase * 1.1;
+            ring.material.opacity = 0.04 + archivePhase * 0.14 + finalPhase * 0.05;
+          });
+
+          particleField.rotation.y += 0.00045;
+          particleField.rotation.x = Math.sin(time * 0.00016) * 0.12;
+          particleField.position.z = archivePhase * -1.6;
+
+          ambientLight.intensity = 0.52 + archivePhase * 0.12 + finalPhase * 0.1;
+          pointLight.intensity = 16 + revealPhase * 4 + finalPhase * 5;
+          pointLight.position.x = 2.6 + Math.sin(time * 0.0004) * 1.6;
+          pointLight.position.z = 4.8 - archivePhase * 2;
+
+          sceneState.projectArtifacts.forEach((artifact, index) => {
+            const hoverStrength =
+              artifact.project.id === state.hoveredProjectId || artifact.project.id === state.activeProjectId ? 1 : 0;
+
+            const cluster = new THREE.Vector3(
+              Math.cos(artifact.angle * 1.2) * (1.2 + (index % 3) * 0.16),
+              artifact.lift,
+              Math.sin(artifact.angle * 2) * 0.7,
+            );
+
+            const orbit = new THREE.Vector3(
+              Math.cos(artifact.angle) * (4.6 + (index % 3) * 0.35),
+              artifact.lift + Math.sin(artifact.angle * 2 + time * 0.0006) * 0.2,
+              Math.sin(artifact.angle) * (2.8 + (index % 4) * 0.22),
+            );
+
+            const system = new THREE.Vector3(
+              Math.cos(artifact.angle + 0.35) * (6.8 + (index % 2) * 0.5),
+              artifact.lift * 1.6 + Math.sin(artifact.angle + time * 0.0005) * 0.34,
+              Math.sin(artifact.angle + 0.4) * (5.2 + (index % 3) * 0.4) - 2.4,
+            );
+
+            const finalPose = new THREE.Vector3(
+              Math.cos(artifact.angle + 0.6) * (8.2 + (index % 2) * 0.7),
+              artifact.lift * 1.9 + 0.9,
+              Math.sin(artifact.angle + 0.6) * (6.2 + (index % 3) * 0.42) - 4.2,
+            );
+
+            const position = cluster
+              .clone()
+              .lerp(orbit, archivePhase)
+              .lerp(system, systemPhase)
+              .lerp(finalPose, finalPhase);
+
+            position.z += hoverStrength * 0.7;
+            artifact.group.position.copy(position);
+
+            artifact.group.rotation.y += 0.004 + index * 0.00015;
+            artifact.group.rotation.x = Math.sin(time * 0.0007 + artifact.drift) * 0.2 + hoverStrength * 0.08;
+            artifact.group.rotation.z = Math.cos(time * 0.0004 + artifact.drift) * 0.12;
+
+            const scale = 0.76 + archivePhase * 0.28 + finalPhase * 0.1 + hoverStrength * 0.16;
+            artifact.group.scale.setScalar(scale);
+            artifact.core.material.emissiveIntensity = 0.1 + archivePhase * 0.1 + hoverStrength * 0.3;
+            artifact.frame.material.opacity = 0.18 + hoverStrength * 0.34;
+            artifact.fin.material.opacity = 0.34 + hoverStrength * 0.28;
+
+            artifact.line.geometry.setFromPoints([new THREE.Vector3(0, 0, -0.4), artifact.group.position.clone()]);
+            artifact.line.material.opacity = 0.06 + archivePhase * 0.1 + hoverStrength * 0.18;
+          });
+
+          sceneState.raycaster.setFromCamera(sceneState.pointer, camera);
+          const intersections = sceneState.raycaster.intersectObjects(sceneState.interactiveMeshes, false);
+          const hit = intersections[0];
+          const hoveredId = hit && hit.object && hit.object.userData ? hit.object.userData.projectId : null;
+
+          if (hoveredId && hoveredId !== state.hoveredProjectId && !state.activeProjectId) {
+            setHoveredProject(hoveredId);
+            setCursorState("Open", projectById.get(hoveredId).tone, true);
+          } else if (!hoveredId && !state.activeProjectId && state.hoveredProjectId) {
+            setHoveredProject(null);
+            syncCursorFromDom();
+          }
+
+          renderer.render(scene, camera);
+        }
+
+        function animationLoop(now) {
+          const pageHeight = Math.max(document.documentElement.scrollHeight - window.innerHeight, 1);
+          state.scrollTarget = clamp(window.scrollY / pageHeight, 0, 1);
+          state.scrollCurrent += (state.scrollTarget - state.scrollCurrent) * (state.reducedMotion ? 0.18 : 0.08);
+          state.mouseCurrentX += (state.mouseTargetX - state.mouseCurrentX) * 0.14;
+          state.mouseCurrentY += (state.mouseTargetY - state.mouseCurrentY) * 0.14;
+
+          state.bootCurrent += (state.bootTarget - state.bootCurrent) * 0.08;
+          const roundedBoot = Math.round(state.bootCurrent);
+          elements.bootPercent.textContent = `${roundedBoot}%`;
+          elements.bootFill.style.transform = `scaleX(${roundedBoot / 100})`;
+
+          if (state.worldReady && state.bootTarget < 94) {
+            bootTo(94);
+          }
+
+          elements.progressFill.style.transform = `scaleY(${state.scrollCurrent})`;
+          elements.journeyValue.textContent = `${Math.round(state.scrollCurrent * 100)}%`;
+
+          updateScene(now);
+          applyParallax();
+
+          if (!elements.cursor.hidden) {
+            elements.cursorRing.style.transform = `translate3d(${state.mouseCurrentX}px, ${state.mouseCurrentY}px, 0)`;
+            elements.cursorDot.style.transform = `translate3d(${state.mouseCurrentX}px, ${state.mouseCurrentY}px, 0)`;
+          }
+
+          requestAnimationFrame(animationLoop);
+        }
+
+        function initSceneEvents() {
+          if (!sceneState.pointer) {
+            return;
+          }
+
+          elements.canvas.addEventListener("pointermove", (event) => {
+            const rect = elements.canvas.getBoundingClientRect();
+            const x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+            const y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+            sceneState.pointer.set(x, y);
+          });
+
+          elements.canvas.addEventListener("pointerleave", () => {
+            sceneState.pointer.set(9, 9);
+            if (!state.activeProjectId) {
+              setHoveredProject(null);
+              syncCursorFromDom();
+            }
+          });
+
+          elements.canvas.addEventListener("click", () => {
+            if (state.hoveredProjectId) {
+              openProject(state.hoveredProjectId);
+            }
+          });
+
+          window.addEventListener("resize", () => {
+            state.lowPower =
+              state.reducedMotion ||
+              window.innerWidth < 920 ||
+              (navigator.hardwareConcurrency || 8) <= 6 ||
+              window.devicePixelRatio > 2;
+
+            if (!sceneState.renderer || !sceneState.camera) {
+              return;
+            }
+
+            sceneState.renderer.setPixelRatio(Math.min(window.devicePixelRatio, state.lowPower ? 1.2 : 1.7));
+            sceneState.renderer.setSize(window.innerWidth, window.innerHeight, false);
+            sceneState.camera.aspect = window.innerWidth / window.innerHeight;
+            sceneState.camera.updateProjectionMatrix();
+          });
+        }
+
+        function initInteractionDelegation() {
+          document.addEventListener("mouseover", (event) => {
+            const target = event.target.closest("[data-project-id]");
+            if (target) {
+              setHoveredProject(target.dataset.projectId);
+            }
+          });
+
+          document.addEventListener("click", (event) => {
+            const target = event.target.closest('a[href^="#"]');
+            if (!target) {
+              return;
+            }
+
+            const id = target.getAttribute("href").slice(1);
+            const section = document.getElementById(id);
+            if (!section) {
+              return;
+            }
+
+            event.preventDefault();
+            section.scrollIntoView({
+              behavior: state.reducedMotion ? "auto" : "smooth",
+              block: "start",
+            });
+          });
+        }
+
+        function finalizeBootWhenReady() {
+          bootTo(100);
+          window.setTimeout(finishBoot, 520);
+        }
+
+        buildChrome();
+        initPanelEvents();
+        initDockEvents();
+        initCursor();
+        initThreeScene();
+        initSceneEvents();
+        initInteractionDelegation();
+        setActiveChapter(0);
+        updateDock(projects[0].id);
+
+        bootTo(58);
+        requestAnimationFrame(animationLoop);
+
+        window.addEventListener("load", () => {
+          finalizeBootWhenReady();
+        });
+
+        window.setTimeout(() => {
+          if (state.bootVisible) {
+            finalizeBootWhenReady();
+          }
+        }, 2200);
+      })();
+    </script>
+  </body>
+</html>
