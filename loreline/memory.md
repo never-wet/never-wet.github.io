@@ -250,6 +250,8 @@ Rules:
   show the transitioning cards, labels, and sequence markers directly, without wrapping them in a bordered shell or heavy frame.
 - The modules cards should travel like a vertical sequence, not fade around the middle:
   each card should rise from below the visible stage and exit fully out the top as the next one takes its place.
+- The modules stage should now advance discretely by card:
+  as the user scrolls into each segment, switch to the next module box with one clean animated handoff instead of continuously scrubbing between in-between card states.
 - The support systems section should no longer be a dense six-card grid:
   present it as one integrated panoramic "room around the manuscript" with a central writing-world visual and a few concise supporting notes instead of many repetitive boxes.
 - The writing section uses a focused manuscript preview paired with a controlled context drawer to show world-aware drafting.

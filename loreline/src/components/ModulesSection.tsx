@@ -13,7 +13,7 @@ export function ModulesSection() {
   const { t } = useLocale()
   const modules = moduleCards.slice(0, 4)
   const storyRef = useRef<HTMLDivElement | null>(null)
-  const [floatIndex, setFloatIndex] = useState(0)
+  const [activeIndex, setActiveIndex] = useState(0)
 
   useEffect(() => {
     let frame = 0
@@ -26,16 +26,17 @@ export function ModulesSection() {
       }
 
       if (window.innerWidth <= 860) {
-        setFloatIndex(0)
+        setActiveIndex(0)
         return
       }
 
       const rect = element.getBoundingClientRect()
-      const anchor = window.innerHeight * 0.5
-      const progress = clamp((anchor - rect.top) / Math.max(rect.height, 1), 0, 1)
-      const nextIndex = progress * (modules.length - 1)
+      const totalTravel = Math.max(rect.height - window.innerHeight, 1)
+      const traveled = clamp(window.innerHeight * 0.5 - rect.top, 0, totalTravel)
+      const segment = totalTravel / modules.length
+      const nextIndex = clamp(Math.floor(traveled / Math.max(segment, 1)), 0, modules.length - 1)
 
-      setFloatIndex((current) => (Math.abs(current - nextIndex) < 0.002 ? current : nextIndex))
+      setActiveIndex((current) => (current === nextIndex ? current : nextIndex))
     }
 
     const requestUpdate = () => {
@@ -53,8 +54,6 @@ export function ModulesSection() {
       window.removeEventListener('resize', requestUpdate)
     }
   }, [modules.length])
-
-  const activeIndex = Math.round(floatIndex)
 
   return (
     <section className="section" id="modules" aria-label={t('Worldbuilding modules')}>
@@ -86,24 +85,43 @@ export function ModulesSection() {
             <div className="modules-story__frame">
               <div className="modules-story__viewport">
                 {modules.map((module, index) => {
-                  const relative = index - floatIndex
-                  const distance = Math.abs(relative)
-                  const translateY = relative * 72
-                  const scale = 1 - Math.min(distance, 1.2) * 0.05
-                  const opacity = clamp(1.02 - distance * 0.72, 0, 1)
-                  const blur = distance * 7
+                  const isActive = index === activeIndex
+                  const hasPassed = index < activeIndex
+                  const isNext = index === activeIndex + 1
+
+                  let translateY = 132
+                  let scale = 0.985
+                  let opacity = 0
+                  let blur = 10
+
+                  if (hasPassed) {
+                    translateY = -132
+                    scale = 0.975
+                    opacity = 0
+                    blur = 10
+                  } else if (isActive) {
+                    translateY = 0
+                    scale = 1
+                    opacity = 1
+                    blur = 0
+                  } else if (isNext) {
+                    translateY = 132
+                    scale = 0.988
+                    opacity = 0.14
+                    blur = 7
+                  }
 
                   return (
                     <article
-                      aria-hidden={distance > 1.2}
-                      className={`module-card modules-story__card ${index === activeIndex ? 'modules-story__card--active' : ''}`}
+                      aria-hidden={!isActive}
+                      className={`module-card modules-story__card ${isActive ? 'modules-story__card--active' : ''}`}
                       key={module.title}
                       style={{
                         filter: `blur(${blur}px)`,
                         opacity,
-                        pointerEvents: index === activeIndex ? 'auto' : 'none',
+                        pointerEvents: isActive ? 'auto' : 'none',
                         transform: `translate3d(0, ${translateY}vh, 0) scale(${scale})`,
-                        zIndex: Math.round(100 - distance * 10),
+                        zIndex: isActive ? 3 : hasPassed ? 1 : 2,
                       }}
                     >
                       <p className="module-card__eyebrow">{t(module.eyebrow)}</p>

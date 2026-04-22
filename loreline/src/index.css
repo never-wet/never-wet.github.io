@@ -2880,6 +2880,9 @@ svg {
     0 18px 40px rgba(12, 12, 9, 0.14);
   transform-origin: center center;
   transition:
+    transform 420ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 360ms ease,
+    filter 360ms ease,
     box-shadow 280ms ease,
     border-color 280ms ease;
 }
