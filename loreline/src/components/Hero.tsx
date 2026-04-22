@@ -1,21 +1,120 @@
-import type { CSSProperties } from 'react'
+import { useLayoutEffect, useRef, type CSSProperties } from 'react'
 import { useLocale } from '../i18n'
 import { HeroStoryArtwork } from './HeroStoryArtwork'
+import heroIntro from '../assets/hero-intro.jpg'
 
 const audienceTags = ['Fantasy writers', 'Sci-fi creators', 'RPG worldbuilders', 'Story architects']
+const MIN_DESKTOP_HERO_FIT_RATIO = 0.8
 
 export function Hero() {
   const { locale, t } = useLocale()
+  const heroRef = useRef<HTMLElement | null>(null)
+  const layoutRef = useRef<HTMLDivElement | null>(null)
   const studioHref = `?view=studio&lang=${locale}`
   const heroStyle = {
-    '--hero-background-image': "url('/hero-intro.jpg')",
-    '--hero-background-image-mobile': "url('/hero-intro.jpg')",
+    '--hero-background-image': `url('${heroIntro}')`,
+    '--hero-background-image-mobile': `url('${heroIntro}')`,
   } as CSSProperties
 
+  useLayoutEffect(() => {
+    const heroElement = heroRef.current
+    const layoutElement = layoutRef.current
+
+    if (!heroElement || !layoutElement) {
+      return
+    }
+
+    let frame = 0
+    const topbarElement = document.querySelector<HTMLElement>('.topbar')
+
+    const setHeroVariable = (name: string, value: string) => {
+      if (heroElement.style.getPropertyValue(name) !== value) {
+        heroElement.style.setProperty(name, value)
+      }
+    }
+
+    const getViewportSize = () => ({
+      height: Math.round(window.visualViewport?.height ?? window.innerHeight),
+      width: Math.round(window.visualViewport?.width ?? window.innerWidth),
+    })
+
+    const updateHeroFit = () => {
+      const { height: viewportHeight, width: viewportWidth } = getViewportSize()
+      const topbarHeight = Math.ceil(topbarElement?.getBoundingClientRect().height ?? 0)
+
+      document.documentElement.style.setProperty('--topbar-overlay-depth', `${topbarHeight}px`)
+      setHeroVariable('--topbar-overlay-depth', `${topbarHeight}px`)
+      setHeroVariable('--hero-fit-ratio', '1')
+
+      // Let the browser recalculate with the reset ratio before measuring.
+      void layoutElement.offsetHeight
+
+      if (viewportWidth > 1100) {
+        for (let attempt = 0; attempt < 3; attempt += 1) {
+          const heroStyles = window.getComputedStyle(heroElement)
+          const availableHeight =
+            viewportHeight - parseFloat(heroStyles.paddingTop) - parseFloat(heroStyles.paddingBottom)
+          const layoutHeight = layoutElement.getBoundingClientRect().height
+
+          if (layoutHeight <= availableHeight + 1) {
+            break
+          }
+
+          const currentRatio = Number.parseFloat(heroElement.style.getPropertyValue('--hero-fit-ratio')) || 1
+          const nextRatio = Math.max(
+            MIN_DESKTOP_HERO_FIT_RATIO,
+            Math.min(1, currentRatio * (availableHeight / layoutHeight)),
+          )
+
+          if (Math.abs(nextRatio - currentRatio) < 0.01) {
+            break
+          }
+
+          setHeroVariable('--hero-fit-ratio', nextRatio.toFixed(4))
+        }
+      }
+
+      const resolvedHeroStyles = window.getComputedStyle(heroElement)
+      const measuredHeight =
+        layoutElement.getBoundingClientRect().height +
+        parseFloat(resolvedHeroStyles.paddingTop) +
+        parseFloat(resolvedHeroStyles.paddingBottom)
+
+      setHeroVariable('--hero-measured-min-height', `${Math.max(viewportHeight, Math.ceil(measuredHeight))}px`)
+    }
+
+    const scheduleHeroFit = () => {
+      window.cancelAnimationFrame(frame)
+      frame = window.requestAnimationFrame(updateHeroFit)
+    }
+
+    const resizeObserver = new ResizeObserver(() => {
+      scheduleHeroFit()
+    })
+
+    resizeObserver.observe(layoutElement)
+
+    if (topbarElement) {
+      resizeObserver.observe(topbarElement)
+    }
+
+    scheduleHeroFit()
+    window.addEventListener('resize', scheduleHeroFit)
+    window.visualViewport?.addEventListener('resize', scheduleHeroFit)
+    document.fonts.ready.then(scheduleHeroFit).catch(() => {})
+
+    return () => {
+      window.cancelAnimationFrame(frame)
+      resizeObserver.disconnect()
+      window.removeEventListener('resize', scheduleHeroFit)
+      window.visualViewport?.removeEventListener('resize', scheduleHeroFit)
+    }
+  }, [locale])
+
   return (
-    <section className="hero" id="top" style={heroStyle}>
+    <section className="hero" id="top" ref={heroRef} style={heroStyle}>
       <div aria-hidden="true" className="hero__background-layer" style={heroStyle} />
-      <div className="container hero__layout">
+      <div className="container hero__layout" ref={layoutRef}>
         <div className="hero__content">
           <p className="hero__eyebrow">{t('Worldbuilding studio')}</p>
           <h1 className="hero__headline">{t('Build worlds. Shape stories.')}</h1>
