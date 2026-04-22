@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NOEMA / VAULT Preview</title>
+    <meta http-equiv="refresh" content="0; url=./out/index.html" />
+    <style>
+      :root {
+        color-scheme: dark;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        background:
+          radial-gradient(circle at 46% 18%, rgba(140, 196, 255, 0.14), transparent 34%),
+          radial-gradient(circle at 76% 78%, rgba(217, 169, 106, 0.1), transparent 26%),
+          linear-gradient(180deg, #06080d 0%, #040609 100%);
+        color: #eef5ff;
+        font-family: "Segoe UI", Arial, sans-serif;
+      }
+
+      main {
+        padding: 1.5rem;
+        text-align: center;
+      }
+
+      a {
+        color: #c2e0ff;
+      }
+    </style>
+    <script>
+      window.location.replace("./out/index.html");
+    </script>
+  </head>
+  <body>
+    <main>
+      <p>Opening NOEMA / VAULT...</p>
+      <p><a href="./out/index.html">Open the exported preview manually</a></p>
+    </main>
+  </body>
+</html>
