@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Never Wet | Igloo Experience</title>
+    <meta
+      name="description"
+      content="A fullscreen 3D Arctic igloo scene used as the immersive mode for the Never Wet homepage."
+    />
+    <link rel="stylesheet" href="./styles.css" />
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "../threejs/three.js-master/build/three.module.js"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <div class="scene-rail" aria-label="Immersive scene controls">
+      <div class="scene-rail__group">
+        <a class="scene-link scene-link--brand" href="../index.html">Never Wet Home</a>
+        <a class="scene-link" href="../project-hub.html">Project Directory</a>
+      </div>
+      <div class="scene-rail__group">
+        <a class="scene-link" href="../games/">Games</a>
+        <a class="scene-link" href="../loreline/">Loreline</a>
+      </div>
+    </div>
+
+    <canvas id="igloo-canvas" aria-label="Interactive 3D igloo scene"></canvas>
+
+    <div class="scene-fallback" aria-live="polite">
+      <strong>Immersive mode stays optional.</strong>
+      <p>
+        If the 3D scene does not render correctly, return to the homepage or use the project directory instead of
+        getting stuck on a blank view.
+      </p>
+      <div class="scene-fallback__actions">
+        <a class="scene-link scene-link--brand" href="../index.html">Return Home</a>
+        <a class="scene-link" href="../project-hub.html">Open Directory</a>
+      </div>
+    </div>
+
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>

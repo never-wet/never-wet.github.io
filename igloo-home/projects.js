@@ -1,0 +1,81 @@
+export const projects = [
+  {
+    title: "Igloo Experience",
+    tag: "Homepage / Immersive",
+    description: "Scene-only version of the Never Wet homepage with interactive brick disassembly and snowfall.",
+    href: "../igloo-home/",
+  },
+  {
+    title: "ARCTIS / SIGNAL",
+    tag: "Immersive / WebGL",
+    description: "Realtime brand world with cinematic scroll-driven 3D choreography.",
+    href: "../arctis-signal/index.html",
+  },
+  {
+    title: "Noema Vault",
+    tag: "Storyworld / Archive",
+    description: "Atmospheric scrollytelling prototype built around memory as architecture.",
+    href: "../noema-vault/",
+  },
+  {
+    title: "Loreline",
+    tag: "Writing / Worldbuilding",
+    description: "Premium drafting, character, and lore workspace for long-form fiction.",
+    href: "../loreline/",
+  },
+  {
+    title: "AI Lab",
+    tag: "Research / Sandbox",
+    description: "Browser neural-network lab with a floating 3D graph workspace.",
+    href: "../ai-lab/",
+  },
+  {
+    title: "Electric Circuit Lab",
+    tag: "Education / Simulation",
+    description: "Lessons, circuit building, simulation, and electronics practice in one app.",
+    href: "../electric-circuit-lab/",
+  },
+  {
+    title: "Freeform",
+    tag: "Workspace / Canvas",
+    description: "Project boards and canvas launching in a clean browser workspace.",
+    href: "../freeform/",
+  },
+  {
+    title: "Games",
+    tag: "Arcade / Experiments",
+    description: "Browser mini-games and interaction experiments collected in one hub.",
+    href: "../games/",
+  },
+  {
+    title: "House Builder",
+    tag: "3D / Modular",
+    description: "Modular building playground for assembling houses in the browser.",
+    href: "../house-builder/",
+  },
+  {
+    title: "Three.js",
+    tag: "Cinematic / Scene Lab",
+    description: "Local Three.js experiments and realtime visual prototypes.",
+    href: "../threejs/",
+  },
+  {
+    title: "Project Atlas",
+    tag: "Portfolio / Immersive",
+    description: "Cinematic portfolio experience with premium motion and 3D presentation.",
+    href: "../cinematic-portfolio/",
+  },
+  {
+    title: "Translator",
+    tag: "Tool / Interface",
+    description: "Analog-inspired Morse translator with tactile controls.",
+    href: "../translator/",
+  },
+  {
+    title: "Junha2010.github.io",
+    tag: "External / Personal Site",
+    description: "External site link for the broader web presence.",
+    href: "https://junha2010.github.io/",
+    external: true,
+  },
+];

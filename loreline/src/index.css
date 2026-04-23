@@ -633,13 +633,54 @@ svg {
   position: relative;
   display: flex;
   align-items: flex-start;
-  min-height: max(100svh, var(--hero-measured-min-height));
+  min-height: var(--hero-measured-min-height);
   padding:
     calc((clamp(2.25rem, 4vw, 3.35rem) * var(--hero-fit-ratio)) + var(--topbar-overlay-depth))
     0
     calc((clamp(2.75rem, 5vw, 4.5rem) * var(--hero-fit-ratio)) + var(--hero-transition-depth));
   overflow: hidden;
   isolation: isolate;
+}
+
+.hero[data-hero-density='compact'] .hero__layout {
+  grid-template-columns: minmax(0, 1.12fr) minmax(280px, 0.88fr);
+  gap: calc(clamp(1.35rem, 2vw, 2.35rem) * var(--hero-fit-ratio));
+}
+
+.hero[data-hero-density='compact'] .hero__headline {
+  max-width: 9.25ch;
+}
+
+.hero[data-hero-density='compact'] .hero__content-footer {
+  grid-template-columns: 1fr;
+  align-items: start;
+  max-width: 25rem;
+}
+
+.hero[data-hero-density='compact'] .hero__audience-panel {
+  max-width: 25rem;
+}
+
+.hero[data-hero-density='compact'] .hero-preview {
+  margin-top: calc(0.65rem * var(--hero-fit-ratio));
+  transform:
+    translateY(calc(0.35rem * var(--hero-fit-ratio)))
+    rotate(calc(-0.55deg * var(--hero-fit-ratio)));
+}
+
+.hero[data-hero-density='compact'] .hero-preview__artwork {
+  min-height: calc(clamp(10.5rem, 18vw, 13.6rem) * var(--hero-fit-ratio));
+}
+
+.hero[data-hero-density='compact'] .hero-preview__artwork .hero-story-artwork {
+  width: min(100%, calc(27rem * var(--hero-fit-ratio)));
+}
+
+.hero[data-hero-density='compact'] .hero-preview__body {
+  padding:
+    calc(0.85rem * var(--hero-fit-ratio))
+    calc(0.95rem * var(--hero-fit-ratio))
+    calc(0.95rem * var(--hero-fit-ratio));
 }
 
 .hero__background-layer {
@@ -5577,13 +5618,32 @@ svg {
     width: min(calc(100% - 2rem), var(--container-width));
   }
 
-  .topbar__nav-shell {
-    display: none;
-  }
-
   .topbar__inner {
     grid-template-columns: 1fr;
     align-items: flex-start;
+  }
+
+  .topbar__identity-panel {
+    order: 1;
+  }
+
+  .topbar__controls {
+    order: 2;
+  }
+
+  .topbar__nav-shell {
+    order: 3;
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 0.15rem;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .topbar__nav-shell::-webkit-scrollbar {
+    display: none;
   }
 
   .topbar__controls,
@@ -5599,6 +5659,10 @@ svg {
 
   .topbar__controls {
     justify-self: stretch;
+  }
+
+  .topbar__link {
+    white-space: nowrap;
   }
 
   .footer__inner {
@@ -5858,6 +5922,10 @@ svg {
 
   .topbar {
     padding-top: 0.75rem;
+  }
+
+  .topbar__nav-shell {
+    gap: 0.35rem;
   }
 
   .topbar__cta-panel,

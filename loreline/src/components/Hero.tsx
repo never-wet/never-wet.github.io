@@ -4,7 +4,9 @@ import { HeroStoryArtwork } from './HeroStoryArtwork'
 import heroIntro from '../assets/hero-intro.jpg'
 
 const audienceTags = ['Fantasy writers', 'Sci-fi creators', 'RPG worldbuilders', 'Story architects']
-const MIN_DESKTOP_HERO_FIT_RATIO = 0.8
+const MIN_DESKTOP_HERO_FIT_RATIO = 0.62
+const COMPACT_DESKTOP_VIEWPORT_HEIGHT = 920
+const COMPACT_DESKTOP_ASPECT_RATIO = 1.62
 
 export function Hero() {
   const { locale, t } = useLocale()
@@ -33,6 +35,12 @@ export function Hero() {
       }
     }
 
+    const setHeroDensity = (density: 'balanced' | 'compact') => {
+      if (heroElement.dataset.heroDensity !== density) {
+        heroElement.dataset.heroDensity = density
+      }
+    }
+
     const getViewportSize = () => ({
       height: Math.round(window.visualViewport?.height ?? window.innerHeight),
       width: Math.round(window.visualViewport?.width ?? window.innerWidth),
@@ -41,16 +49,22 @@ export function Hero() {
     const updateHeroFit = () => {
       const { height: viewportHeight, width: viewportWidth } = getViewportSize()
       const topbarHeight = Math.ceil(topbarElement?.getBoundingClientRect().height ?? 0)
+      const shouldLockDesktopHero = viewportWidth > 1100
+      const shouldPreferCompactDesktop =
+        shouldLockDesktopHero &&
+        (viewportHeight <= COMPACT_DESKTOP_VIEWPORT_HEIGHT ||
+          viewportWidth / Math.max(viewportHeight, 1) >= COMPACT_DESKTOP_ASPECT_RATIO)
 
       document.documentElement.style.setProperty('--topbar-overlay-depth', `${topbarHeight}px`)
       setHeroVariable('--topbar-overlay-depth', `${topbarHeight}px`)
       setHeroVariable('--hero-fit-ratio', '1')
+      setHeroDensity(shouldPreferCompactDesktop ? 'compact' : 'balanced')
 
       // Let the browser recalculate with the reset ratio before measuring.
       void layoutElement.offsetHeight
 
-      if (viewportWidth > 1100) {
-        for (let attempt = 0; attempt < 3; attempt += 1) {
+      if (shouldLockDesktopHero) {
+        for (let attempt = 0; attempt < 6; attempt += 1) {
           const heroStyles = window.getComputedStyle(heroElement)
           const availableHeight =
             viewportHeight - parseFloat(heroStyles.paddingTop) - parseFloat(heroStyles.paddingBottom)
@@ -60,10 +74,18 @@ export function Hero() {
             break
           }
 
+          if (heroElement.dataset.heroDensity !== 'compact' && attempt >= 2) {
+            setHeroDensity('compact')
+
+            // Re-measure after compacting the layout before reducing further.
+            void layoutElement.offsetHeight
+            continue
+          }
+
           const currentRatio = Number.parseFloat(heroElement.style.getPropertyValue('--hero-fit-ratio')) || 1
           const nextRatio = Math.max(
             MIN_DESKTOP_HERO_FIT_RATIO,
-            Math.min(1, currentRatio * (availableHeight / layoutHeight)),
+            Math.min(1, currentRatio * (availableHeight / layoutHeight) * 0.995),
           )
 
           if (Math.abs(nextRatio - currentRatio) < 0.01) {
@@ -80,7 +102,11 @@ export function Hero() {
         parseFloat(resolvedHeroStyles.paddingTop) +
         parseFloat(resolvedHeroStyles.paddingBottom)
 
-      setHeroVariable('--hero-measured-min-height', `${Math.max(viewportHeight, Math.ceil(measuredHeight))}px`)
+      const nextMeasuredHeight = shouldLockDesktopHero
+        ? viewportHeight
+        : Math.max(viewportHeight, Math.ceil(measuredHeight))
+
+      setHeroVariable('--hero-measured-min-height', `${nextMeasuredHeight}px`)
     }
 
     const scheduleHeroFit = () => {

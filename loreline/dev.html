@@ -1,7 +1,65 @@
 <!doctype html>
 <html lang="en">
   <head>
-    <script src="../shared/never-wet-scale.js"></script>
+    <script>
+      ;(() => {
+        const root = document.documentElement
+        const fixedLayoutWidth = Number(root.getAttribute('data-never-wet-scale-width')) || 1440
+        const narrowScreenQuery = window.matchMedia(`(max-width: ${fixedLayoutWidth - 1}px)`)
+        const fallbackViewportContent = 'width=device-width, initial-scale=1.0, viewport-fit=cover'
+
+        function ensureViewportMeta() {
+          let viewportMeta = document.querySelector('meta[name="viewport"]')
+
+          if (viewportMeta) {
+            return viewportMeta
+          }
+
+          if (!document.head || document.readyState === 'loading') {
+            return null
+          }
+
+          viewportMeta = document.createElement('meta')
+          viewportMeta.setAttribute('name', 'viewport')
+          viewportMeta.setAttribute('content', fallbackViewportContent)
+          document.head.appendChild(viewportMeta)
+          return viewportMeta
+        }
+
+        function applyScaleMode() {
+          const viewportMeta = ensureViewportMeta()
+
+          if (!viewportMeta) {
+            window.requestAnimationFrame(applyScaleMode)
+            return
+          }
+
+          if (!viewportMeta.dataset.neverWetOriginalContent) {
+            viewportMeta.dataset.neverWetOriginalContent =
+              viewportMeta.getAttribute('content') || fallbackViewportContent
+          }
+
+          if (narrowScreenQuery.matches) {
+            viewportMeta.setAttribute('content', `width=${fixedLayoutWidth}, viewport-fit=cover`)
+            root.dataset.neverWetScale = 'scaled'
+            root.style.setProperty('--never-wet-fixed-layout-width', String(fixedLayoutWidth))
+            return
+          }
+
+          viewportMeta.setAttribute('content', viewportMeta.dataset.neverWetOriginalContent)
+          root.dataset.neverWetScale = 'native'
+          root.style.removeProperty('--never-wet-fixed-layout-width')
+        }
+
+        applyScaleMode()
+
+        if (typeof narrowScreenQuery.addEventListener === 'function') {
+          narrowScreenQuery.addEventListener('change', applyScaleMode)
+        } else if (typeof narrowScreenQuery.addListener === 'function') {
+          narrowScreenQuery.addListener(applyScaleMode)
+        }
+      })()
+    </script>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />

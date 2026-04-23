@@ -1,0 +1,142 @@
+:root {
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #dce5ea;
+}
+
+body {
+  position: relative;
+  font-family: "Space Grotesk", sans-serif;
+  color: #ecf8ff;
+}
+
+#igloo-canvas {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  background: #dce5ea;
+  touch-action: none;
+}
+
+.scene-failed {
+  background: #0c141b;
+}
+
+.scene-rail,
+.scene-fallback {
+  position: fixed;
+  z-index: 2;
+}
+
+.scene-rail {
+  top: 1rem;
+  left: 1rem;
+  right: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  pointer-events: none;
+}
+
+.scene-rail__group,
+.scene-fallback__actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.scene-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.8rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid rgba(164, 217, 246, 0.18);
+  border-radius: 999px;
+  background:
+    linear-gradient(180deg, rgba(9, 19, 33, 0.9), rgba(4, 10, 19, 0.72)),
+    rgba(7, 15, 28, 0.76);
+  color: #ecf8ff;
+  font-size: 0.92rem;
+  text-decoration: none;
+  pointer-events: auto;
+  backdrop-filter: blur(18px);
+  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.24);
+  transition:
+    transform 160ms ease,
+    border-color 160ms ease,
+    background-color 160ms ease;
+}
+
+.scene-link:hover,
+.scene-link:focus-visible {
+  transform: translateY(-2px);
+  border-color: rgba(164, 217, 246, 0.3);
+}
+
+.scene-link--brand {
+  background: linear-gradient(135deg, rgba(158, 226, 247, 0.94), rgba(244, 223, 185, 0.78));
+  color: #02111d;
+}
+
+.scene-fallback {
+  left: 50%;
+  bottom: 1rem;
+  width: min(calc(100% - 2rem), 34rem);
+  padding: 1rem 1.1rem;
+  border: 1px solid rgba(164, 217, 246, 0.18);
+  border-radius: 24px;
+  background:
+    linear-gradient(180deg, rgba(9, 19, 33, 0.92), rgba(4, 10, 19, 0.82)),
+    rgba(7, 15, 28, 0.78);
+  color: #ecf8ff;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(-50%) translateY(1rem);
+  backdrop-filter: blur(18px);
+  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.24);
+  transition:
+    opacity 180ms ease,
+    transform 180ms ease;
+}
+
+.scene-fallback strong {
+  display: block;
+  margin-bottom: 0.45rem;
+}
+
+.scene-fallback p {
+  margin: 0;
+  color: rgba(236, 248, 255, 0.76);
+  line-height: 1.65;
+}
+
+.scene-fallback__actions {
+  margin-top: 0.9rem;
+}
+
+.scene-failed .scene-fallback {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateX(-50%) translateY(0);
+}
+
+@media (max-width: 760px) {
+  .scene-rail {
+    justify-content: flex-start;
+  }
+}
