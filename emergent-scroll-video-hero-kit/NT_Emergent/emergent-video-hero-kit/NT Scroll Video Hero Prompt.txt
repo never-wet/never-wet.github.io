@@ -1,0 +1,75 @@
+Use the website already pasted in this chat as the visual reference, and use the attached video file as the main hero media.
+
+Purpose:
+Recreate the pasted website’s visual style, UI system, color palette, typography, spacing, layout rhythm, navigation, component styling, and UX behavior as closely as possible. Preserve the spirit of the original site. The only intentional structural change is the hero/header: rebuild that section around the attached video so the video becomes the dominant full-hero experience, while still using the exact style language of the reference site.
+
+Important context:
+- The reference website is already pasted in this chat.
+- The video is already attached as a file.
+- Use those directly.
+- Do not ask again for the website or video unless one is actually missing.
+
+Site matching rules:
+- Match the pasted website’s colors as closely as possible.
+- Match the pasted website’s UI style as closely as possible.
+- Match the pasted website’s UX style and layout behavior as closely as possible.
+- Preserve the same visual spirit, interaction patterns, spacing, density, polish, and design logic.
+- Do not modernize, simplify, restyle, or create a merely inspired version.
+- Do not introduce a new design system.
+- The page should feel like the same website with a video-led hero, not a new website inspired by it.
+
+Brand handling:
+- Replace the website’s actual brand name, company name, product names, and brand-specific labels with neutral placeholders.
+- Keep the same structure and tone, but sanitize the original brand identity.
+- Do not use the real brand name in the final result.
+
+Hero transformation:
+- The attached video must become the main hero element.
+- The video must dominate the full header hero area.
+- Do not place the video as a small card, side image, boxed asset, preview tile, or secondary section.
+- Do not preserve the original hero composition if it makes the video visually secondary.
+- Rebuild the hero so it feels like the original site itself was designed around this video.
+- Text, CTA, navigation, and supporting UI can sit within or over the hero, but the video must remain the primary visual.
+- The first viewport must immediately communicate that this is a video-led hero.
+
+Scroll behavior:
+- The video must be controlled by scroll position.
+- Do not use normal autoplay as the primary hero behavior.
+- As the user scrolls through the hero, scroll position should drive the video timeline directly.
+- If continuous scrubbing is unstable, use clearly defined stepped cue-point progression controlled by scroll position.
+- The default behavior must be scroll-controlled video progression, not regular playback.
+- Do not implement a normally playing video with text scrolling beside it or over it unless scroll-controlled progression is technically impossible.
+- If fallback is needed, use the smoothest robust fallback that still feels scroll-linked and intentional.
+
+Text and content:
+- Add synchronized text states or hero messaging that changes smoothly with scroll.
+- Keep text pacing aligned with the video progression.
+- Keep the copy restrained so the video remains the main visual.
+- Use placeholder brand/product/company names instead of real names.
+- Write placeholder copy that matches the tone, structure, and polish of the pasted website.
+- Do not write generic AI demo copy like “scroll video hero”, “cue point”, “starter”, or other internal implementation language.
+
+Technical expectations:
+- Smooth scroll-controlled video behavior
+- Responsive desktop and mobile layout
+- Reduced-motion fallback
+- Mobile-safe fallback
+- No janky scroll math
+- No nested scroll-container bugs
+- No unrelated redesign outside the hero and necessary surrounding structure
+
+Behavior:
+- If the attached video file is missing, stop and ask for it.
+- If the pasted website reference is missing, stop and ask for it.
+- If timestamps are missing, infer reasonable cue points automatically.
+- Ask follow-up questions only if absolutely necessary.
+- Otherwise proceed directly.
+
+Output requirements:
+- Summarize the implementation approach
+- List changed files
+- Explain how to preview it
+- Mention fallback decisions or limitations
+
+Final objective:
+The final result should feel like the original website was preserved almost exactly in color, style, UI, UX, and overall spirit, with one deliberate change: the hero/header is rebuilt around the attached video as the dominant full-hero scroll-controlled experience.
