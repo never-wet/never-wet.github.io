@@ -323,6 +323,7 @@
         <a class="brand" href="./">Never Wet</a>
         <nav class="nav" aria-label="Primary">
           <a href="./igloo-home/">Igloo Experience</a>
+          <a href="./car/">Car Showcase</a>
           <a href="./threejs/">Three.js Lab</a>
           <a class="button" href="./arctis-signal/index.html">Launch ARCTIS / SIGNAL</a>
         </nav>
@@ -357,7 +358,7 @@
           </div>
           <div class="stat">
             <span class="tag">Status</span>
-            <strong>12 live destinations</strong>
+            <strong data-directory-count>18 live destinations</strong>
             <p>Projects stay launchable from the homepage and fully listed here for quick scanning.</p>
           </div>
         </div>
@@ -513,5 +514,51 @@
         <span>Igloo now lives in its own folder</span>
       </footer>
     </div>
+    <script type="module">
+      import { projects } from "./igloo-home/projects.js";
+
+      const grid = document.getElementById("projects");
+      const count = document.querySelector("[data-directory-count]");
+
+      function normalizeHref(href) {
+        if (!href) return "#";
+        if (/^(https?:|mailto:|tel:)/i.test(href)) return href;
+        if (href.startsWith("../")) return `./${href.slice(3)}`;
+        return href;
+      }
+
+      function createCard(project, index) {
+        const link = document.createElement("a");
+        link.className = `card${index < 2 ? " featured" : ""}`;
+        link.href = normalizeHref(project.href);
+        if (project.external) {
+          link.target = "_blank";
+          link.rel = "noreferrer";
+        }
+        link.innerHTML = `
+          <span class="tag"></span>
+          <div class="card-head">
+            <div>
+              <h${index < 2 ? "2" : "3"}></h${index < 2 ? "2" : "3"}>
+              <p></p>
+            </div>
+            <span class="card-arrow">${project.external ? "\u2197" : "\u2192"}</span>
+          </div>
+        `;
+        link.querySelector(".tag").textContent = project.tag;
+        link.querySelector(index < 2 ? "h2" : "h3").textContent = project.title;
+        link.querySelector("p").textContent = project.description;
+        return link;
+      }
+
+      if (grid) {
+        grid.replaceChildren(...projects.map(createCard));
+      }
+
+      if (count) {
+        const localCount = projects.filter((project) => !project.external).length;
+        count.textContent = `${localCount} live destinations`;
+      }
+    </script>
   </body>
 </html>

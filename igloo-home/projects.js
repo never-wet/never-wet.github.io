@@ -6,6 +6,12 @@ export const projects = [
     href: "../igloo-home/",
   },
   {
+    title: "Aeroform Car Showcase",
+    tag: "Automotive / Three.js",
+    description: "Premium scroll-driven car showcase with GLTF vehicles, airflow visualization, and 360 inspection.",
+    href: "../car/",
+  },
+  {
     title: "ARCTIS / SIGNAL",
     tag: "Immersive / WebGL",
     description: "Realtime brand world with cinematic scroll-driven 3D choreography.",
@@ -16,6 +22,12 @@ export const projects = [
     tag: "Storyworld / Archive",
     description: "Atmospheric scrollytelling prototype built around memory as architecture.",
     href: "../noema-vault/",
+  },
+  {
+    title: "UIUXPRO",
+    tag: "Design / Interface",
+    description: "Friendly pet grooming landing page with polished responsive UI and booking-focused flows.",
+    href: "../uiuxpro/",
   },
   {
     title: "Loreline",
@@ -42,10 +54,22 @@ export const projects = [
     href: "../freeform/",
   },
   {
+    title: "Freeform Backup",
+    tag: "Archive / Canvas",
+    description: "Earlier infinite-canvas workspace snapshot kept available as a backup launch path.",
+    href: "../freeform-backup/",
+  },
+  {
     title: "Games",
     tag: "Arcade / Experiments",
     description: "Browser mini-games and interaction experiments collected in one hub.",
     href: "../games/",
+  },
+  {
+    title: "Handtracking Lab",
+    tag: "Camera / Gesture",
+    description: "MediaPipe hand-tracking experiment with gesture readouts and layered canvas effects.",
+    href: "../handtracking/",
   },
   {
     title: "House Builder",
@@ -64,6 +88,18 @@ export const projects = [
     tag: "Portfolio / Immersive",
     description: "Cinematic portfolio experience with premium motion and 3D presentation.",
     href: "../cinematic-portfolio/",
+  },
+  {
+    title: "Bible",
+    tag: "External / Reference",
+    description: "Redirect launch path for the Bible project hosted on the external GitHub Pages site.",
+    href: "../bible/",
+  },
+  {
+    title: "TNHX",
+    tag: "SVG / Drawing",
+    description: "Small SVG drawing study with layered geometric forms.",
+    href: "../tnhx/",
   },
   {
     title: "Translator",
