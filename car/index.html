@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="A premium scroll-driven aerodynamic car showcase rendered in WebGL."
+    />
+    <title>Aeroform | Interactive Car Showcase</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <canvas id="windTunnel" aria-label="Interactive aerodynamic car showcase"></canvas>
+
+    <div class="loader" id="loader" aria-live="polite">
+      <div class="loader__brand">Aeroform</div>
+      <div class="loader__copy">Loading aerodynamic study</div>
+      <div class="loader__track"><span id="loaderBar"></span></div>
+    </div>
+
+    <header class="site-chrome" aria-label="Primary">
+      <a class="brand-mark" href="#start" aria-label="Aeroform home">
+        <span class="brand-mark__glyph"></span>
+        <span>Aeroform</span>
+      </a>
+
+      <nav class="car-switcher" aria-label="Select car">
+        <button class="is-active" type="button" data-car="porsche">Porsche 911 GT3</button>
+        <button type="button" data-car="ferrari">Ferrari 488 GTE</button>
+        <button type="button" data-car="lotus">Lotus Emira</button>
+        <button type="button" data-car="bmw">BMW M3</button>
+      </nav>
+
+      <div class="wind-readout" aria-label="Wind tunnel readout">
+        <span id="readoutVelocity">132 km/h</span>
+        <span id="readoutCd">0.34 Cd</span>
+      </div>
+    </header>
+
+    <aside class="story-panel" aria-live="polite">
+      <div class="stage-kicker" id="stageKicker">01 / Arrival</div>
+      <h1 id="stageTitle">The body enters the tunnel.</h1>
+      <p id="stageText">
+        A dark studio opens around the car while the first pressure lines settle into formation.
+      </p>
+    </aside>
+
+    <aside class="car-meta" aria-label="Active car details">
+      <span id="activeBrand">Porsche</span>
+      <strong id="activeModel">911 GT3</strong>
+      <small id="activeTrait">rear-biased fastback profile</small>
+    </aside>
+
+    <aside class="aero-metrics" aria-label="Aerodynamic telemetry">
+      <article>
+        <span>Flow</span>
+        <strong id="metricFlow">28%</strong>
+      </article>
+      <article>
+        <span>Pressure</span>
+        <strong id="metricPressure">Low</strong>
+      </article>
+      <article>
+        <span>Wake</span>
+        <strong id="metricWake">Tight</strong>
+      </article>
+    </aside>
+
+    <div class="feature-layer" aria-hidden="true">
+      <span class="feature-label" data-feature="splitter">Front splitter</span>
+      <span class="feature-label" data-feature="channels">Side channels</span>
+      <span class="feature-label" data-feature="diffuser">Rear diffuser</span>
+    </div>
+
+    <div class="scroll-rail" aria-hidden="true">
+      <span id="scrollRail"></span>
+    </div>
+
+    <div class="inspect-hint" aria-hidden="true">
+      <span>Drag the car</span>
+      <strong>360 view</strong>
+    </div>
+
+    <div class="cursor-dot" id="cursorDot" aria-hidden="true"></div>
+
+    <main id="start" class="scroll-space" aria-label="Scroll story">
+      <section class="chapter">
+        <span>01</span>
+      </section>
+      <section class="chapter">
+        <span>02</span>
+      </section>
+      <section class="chapter">
+        <span>03</span>
+      </section>
+      <section class="chapter">
+        <span>04</span>
+      </section>
+      <section class="chapter">
+        <span>05</span>
+      </section>
+    </main>
+
+    <noscript>
+      <div class="noscript">
+        This aerodynamic showcase requires JavaScript and WebGL.
+      </div>
+    </noscript>
+
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "./vendor/three.module.min.js"
+        }
+      }
+    </script>
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>
