@@ -3,16 +3,16 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Never Wet | Immersive 3D Portfolio</title>
+    <title>Never Wet | Interactive Portfolio</title>
     <meta
       name="description"
-      content="Never Wet is an immersive 3D portfolio gallery for interactive projects, games, tools, and cinematic web experiments."
+      content="Never Wet is an interactive portfolio for cinematic web experiments, browser tools, games, simulations, and realtime 3D interfaces."
     />
     <link rel="icon" type="image/x-icon" href="./favicon.ico" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Space+Grotesk:wght@400;500;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Archivo:wght@300;400;500;600;700;800;900&family=Michroma&family=Space+Grotesk:wght@400;500;600;700&family=Syncopate:wght@400;700&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="./css/never-wet-home.css" />
@@ -27,156 +27,176 @@
       }
     </script>
   </head>
-  <body class="portfolio-entry">
+  <body class="home-entry">
     <div class="loader" id="pageLoader" aria-live="polite" aria-label="Loading Never Wet portfolio">
-      <div class="loader__mark">NW</div>
-      <div class="loader__copy">
-        <span>Never Wet</span>
-        <strong>Building the gallery</strong>
+      <div class="loader__panel">
+        <span class="loader__kicker">Never Wet</span>
+        <strong>Preparing the portfolio field</strong>
+        <div class="loader__track"><span id="loaderProgress"></span></div>
       </div>
-      <div class="loader__track"><span id="loaderProgress"></span></div>
     </div>
 
     <div class="cursor" id="customCursor" aria-hidden="true">
       <span class="cursor__dot"></span>
       <span class="cursor__ring"></span>
-      <span class="cursor__label">Explore</span>
+      <span class="cursor__label">View</span>
     </div>
 
-    <canvas class="webgl-stage" id="portfolioStage" aria-hidden="true"></canvas>
-    <div class="atmosphere atmosphere--far" aria-hidden="true"></div>
-    <div class="atmosphere atmosphere--near" aria-hidden="true"></div>
-    <div class="grain" aria-hidden="true"></div>
+    <canvas class="motion-stage" id="portfolioStage" aria-hidden="true"></canvas>
 
     <header class="site-header reveal" data-reveal>
-      <a class="brand magnetic" href="./" data-cursor="Home" aria-label="Never Wet home">
-        <span class="brand__mark">N</span>
+      <a class="brand magnetic" href="./" aria-label="Never Wet home" data-cursor="Home">
+        <span class="brand__mark">NW</span>
         <span>
           <strong>Never Wet</strong>
-          <small>3D Portfolio Gallery</small>
+          <small>Interactive Portfolio</small>
         </span>
       </a>
-
       <nav class="site-nav" aria-label="Primary">
-        <a href="#projects" data-cursor="Projects">Projects</a>
-        <a href="#capabilities" data-cursor="Skills">Capabilities</a>
-        <a href="#about" data-cursor="About">About</a>
-        <a class="nav-cta magnetic" href="#contact" data-cursor="Contact">Contact</a>
+        <a href="#work" data-cursor="Work">Work</a>
+        <a href="#motion" data-cursor="Motion">Motion</a>
+        <a href="#index" data-cursor="Index">Index</a>
+        <a class="nav-cta magnetic" href="#contact" data-cursor="Start">Start</a>
       </nav>
     </header>
 
     <main>
-      <section class="hero section-panel" id="top" aria-labelledby="home-title">
-        <div class="hero__copy reveal" data-reveal>
-          <p class="eyebrow">Interactive worlds, tools, and cinematic web systems</p>
-          <h1 id="home-title">Junha builds digital spaces that feel alive.</h1>
-          <p class="hero__lead">
-            A premium 3D portfolio for experiments that move beyond flat pages:
-            WebGL showrooms, browser games, creative tools, simulations, and
-            story-driven interfaces.
-          </p>
-          <div class="hero__actions">
-            <a class="button button--primary magnetic" href="#projects" data-cursor="View">Explore Projects</a>
-            <a class="button button--ghost magnetic" href="./project-hub.html" data-cursor="Open">Open Directory</a>
-          </div>
-        </div>
-
-        <aside class="hero__console reveal" data-reveal>
-          <span>Live Gallery</span>
-          <strong data-live-count>18</strong>
-          <p>Launchable destinations arranged as interactive objects in WebGL space.</p>
-        </aside>
-      </section>
-
-      <section class="project-voyage section-panel" id="projects" aria-labelledby="projects-title">
-        <div class="section-kicker reveal" data-reveal>
-          <p class="eyebrow">Featured Projects</p>
-          <h2 id="projects-title">A 3D gallery of project objects, not a flat card wall.</h2>
-        </div>
-
-        <div class="project-focus reveal" data-reveal>
-          <div class="project-focus__meta">
-            <span id="activeProjectTag">Immersive / WebGL</span>
-            <strong id="activeProjectTitle">ARCTIS / SIGNAL</strong>
-          </div>
-          <p id="activeProjectDescription">
-            Realtime brand world with cinematic scroll-driven 3D choreography.
-          </p>
-          <a class="button button--small magnetic" id="activeProjectLink" href="./arctis-signal/index.html" data-cursor="Open">
-            Open Project
-          </a>
-        </div>
-
-        <div class="project-rail" data-project-rail></div>
-      </section>
-
-      <section class="capabilities section-panel" id="capabilities" aria-labelledby="capabilities-title">
-        <div class="section-kicker reveal" data-reveal>
-          <p class="eyebrow">Capabilities</p>
-          <h2 id="capabilities-title">Systems thinking with a cinematic interface layer.</h2>
-        </div>
-
-        <div class="capability-orbit reveal" data-reveal>
-          <article data-cursor="Design">
+      <section class="hero" id="top" aria-labelledby="home-title">
+        <div class="hero__visual parallax-media reveal" data-reveal data-parallax-speed="-0.08">
+          <img
+            src="./assets/homepage/hero-light-abstract.jpg"
+            alt="Abstract light and shadow texture"
+            width="3840"
+            height="5729"
+            loading="eager"
+          />
+          <div class="hero__visual-label">
             <span>01</span>
-            <strong>Immersive UI</strong>
-            <p>Premium layouts, clear navigation, responsive states, and motion that guides instead of distracting.</p>
+            <strong>Live Motion Field</strong>
+          </div>
+        </div>
+
+        <div class="hero__content">
+          <p class="eyebrow reveal" data-reveal>Portfolio / WebGL / Tools / Games</p>
+          <h1 id="home-title" class="reveal" data-reveal>
+            Junha builds digital places that react back.
+          </h1>
+          <div class="hero__bottom reveal" data-reveal>
+            <p>
+              A light, image-led archive for interactive projects: cinematic web scenes,
+              practical browser tools, playful experiments, and systems with motion built in.
+            </p>
+            <div class="hero__actions">
+              <a class="button button--dark magnetic" href="#work" data-cursor="Explore">Explore Work</a>
+              <a class="button button--light magnetic" href="./project-hub.html" data-cursor="Open">Project Hub</a>
+            </div>
+          </div>
+        </div>
+
+        <aside class="hero__stats reveal" data-reveal>
+          <div>
+            <strong data-live-count>18</strong>
+            <span>launch paths</span>
+          </div>
+          <div>
+            <strong>3D</strong>
+            <span>motion layer</span>
+          </div>
+          <div>
+            <strong>4K</strong>
+            <span>local imagery</span>
+          </div>
+        </aside>
+
+        <div class="scroll-cue" aria-hidden="true">
+          <span>Scroll</span>
+          <i></i>
+        </div>
+      </section>
+
+      <section class="visual-strip" id="motion" aria-label="Visual direction">
+        <figure class="strip-card reveal" data-reveal data-tilt-card data-parallax-speed="0.06">
+          <img src="./assets/homepage/architecture-shadow.jpg" alt="Sharp architectural shadows" width="3840" height="2880" loading="lazy" />
+          <figcaption><span>Image system</span><strong>Light, shadow, structure</strong></figcaption>
+        </figure>
+        <figure class="strip-card strip-card--tall reveal" data-reveal data-tilt-card data-parallax-speed="-0.04">
+          <img src="./assets/homepage/gallery-installation.jpg" alt="Modern geometric art installation" width="3840" height="2560" loading="lazy" />
+          <figcaption><span>Interaction mood</span><strong>Gallery-grade motion</strong></figcaption>
+        </figure>
+        <figure class="strip-card reveal" data-reveal data-tilt-card data-parallax-speed="0.08">
+          <img src="./assets/homepage/render-structure.jpg" alt="Abstract 3D architectural render" width="3840" height="2560" loading="lazy" />
+          <figcaption><span>3D layer</span><strong>Objects with depth</strong></figcaption>
+        </figure>
+      </section>
+
+      <section class="statement section-wrap" aria-labelledby="statement-title">
+        <p class="eyebrow reveal" data-reveal>Design Direction</p>
+        <h2 id="statement-title" class="reveal" data-reveal>
+          Clean base. Strong images. Motion that earns its place.
+        </h2>
+        <p class="statement__copy reveal" data-reveal>
+          The homepage now starts from a calm #f2f2f2 surface and uses hover states,
+          cursor feedback, parallax, entrance reveals, and a lightweight 3D layer to give
+          the archive presence without burying the work.
+        </p>
+      </section>
+
+      <section class="work section-wrap" id="work" aria-labelledby="work-title">
+        <div class="section-heading reveal" data-reveal>
+          <p class="eyebrow">Selected Work</p>
+          <h2 id="work-title">Featured launches</h2>
+        </div>
+        <div class="project-grid" data-project-grid></div>
+      </section>
+
+      <section class="capabilities section-wrap" aria-labelledby="capabilities-title">
+        <div class="section-heading reveal" data-reveal>
+          <p class="eyebrow">Interaction System</p>
+          <h2 id="capabilities-title">The polish layer</h2>
+        </div>
+        <div class="capability-grid">
+          <article class="capability reveal" data-reveal data-tilt-card data-cursor="Hover">
+            <span>01</span>
+            <strong>Hover effects</strong>
+            <p>Cards lift, images scale, metadata slides, and the cursor names the action.</p>
           </article>
-          <article data-cursor="WebGL">
+          <article class="capability reveal" data-reveal data-tilt-card data-cursor="Reveal">
             <span>02</span>
-            <strong>Realtime 3D</strong>
-            <p>Three.js scenes, raycast hover, camera choreography, object depth, and performant atmospheric effects.</p>
+            <strong>Entrance reveal</strong>
+            <p>Sections fade and rise in with staggered timing so the page feels intentional.</p>
           </article>
-          <article data-cursor="Tools">
+          <article class="capability reveal" data-reveal data-tilt-card data-cursor="Parallax">
             <span>03</span>
-            <strong>Interactive Tools</strong>
-            <p>Browser labs, builders, simulators, and creative workspaces with practical UX at the center.</p>
+            <strong>Parallax depth</strong>
+            <p>Image panels drift at different speeds while the 3D field responds to scroll.</p>
           </article>
-          <article data-cursor="Games">
+          <article class="capability reveal" data-reveal data-tilt-card data-cursor="Motion">
             <span>04</span>
-            <strong>Playable Systems</strong>
-            <p>Game loops, puzzle flows, tactile micro interactions, and interfaces that make play understandable.</p>
+            <strong>3D motion</strong>
+            <p>A soft WebGL object system floats behind the layout and reacts to pointer movement.</p>
           </article>
         </div>
       </section>
 
-      <section class="about section-panel" id="about" aria-labelledby="about-title">
-        <div class="about__text reveal" data-reveal>
-          <p class="eyebrow">About</p>
-          <h2 id="about-title">A builder of web experiences with atmosphere and intent.</h2>
-          <p>
-            Never Wet is a collection of experiments across design, code, games,
-            3D spaces, creative tooling, and learning interfaces. This homepage
-            turns that collection into a navigable digital room: clear enough to
-            use, cinematic enough to remember.
-          </p>
+      <section class="index section-wrap" id="index" aria-labelledby="index-title">
+        <div class="section-heading reveal" data-reveal>
+          <p class="eyebrow">Full Index</p>
+          <h2 id="index-title">Every live path</h2>
         </div>
-        <div class="about__stats reveal" data-reveal>
-          <div><strong data-live-count-secondary>18</strong><span>live projects</span></div>
-          <div><strong>3D</strong><span>native gallery</span></div>
-          <div><strong>7</strong><span>polished effects</span></div>
-        </div>
+        <div class="archive-list reveal" data-reveal data-project-index></div>
       </section>
 
-      <section class="contact section-panel" id="contact" aria-labelledby="contact-title">
-        <div class="contact__panel reveal" data-reveal>
-          <p class="eyebrow">Contact</p>
-          <h2 id="contact-title">Ready to explore the full archive?</h2>
-          <p>Start with the curated 3D objects above, or open the complete directory when you want everything in one place.</p>
+      <section class="contact section-wrap" id="contact" aria-labelledby="contact-title">
+        <div class="contact__panel reveal" data-reveal data-tilt-card>
+          <p class="eyebrow">Next</p>
+          <h2 id="contact-title">Open the archive and start moving through it.</h2>
           <div class="hero__actions">
-            <a class="button button--primary magnetic" href="./project-hub.html" data-cursor="Open">Open Project Hub</a>
-            <a class="button button--ghost magnetic" href="https://junha2010.github.io/" target="_blank" rel="noreferrer" data-cursor="Visit">
-              Visit Personal Site
-            </a>
+            <a class="button button--dark magnetic" href="./project-hub.html" data-cursor="Hub">Open Project Hub</a>
+            <a class="button button--light magnetic" href="#top" data-cursor="Top">Back to Top</a>
           </div>
         </div>
       </section>
     </main>
-
-    <div class="scene-fallback" id="sceneFallback" role="status">
-      <strong>WebGL scene unavailable</strong>
-      <span>The portfolio links still work normally.</span>
-    </div>
 
     <script type="module" src="./shared/never-wet-homepage.js"></script>
   </body>

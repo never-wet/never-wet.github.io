@@ -2,20 +2,31 @@ import * as THREE from "three";
 import { projects } from "../igloo-home/projects.js";
 
 const localProjects = projects.filter((project) => !project.external);
-const featuredProjects = [
+const featuredNames = [
   "ARCTIS / SIGNAL",
   "Aeroform Car Showcase",
   "Noema Vault",
   "Loreline",
   "Electric Circuit Lab",
   "AI Lab",
-].map((title) => localProjects.find((project) => project.title === title)).filter(Boolean);
+  "Igloo Experience",
+  "Project Atlas",
+];
+
+const projectImages = [
+  "./assets/homepage/architecture-shadow.jpg",
+  "./assets/homepage/gallery-installation.jpg",
+  "./assets/homepage/render-structure.jpg",
+  "./assets/homepage/hero-light-abstract.jpg",
+];
+
+const featuredProjects = featuredNames
+  .map((title) => projects.find((project) => project.title === title))
+  .filter(Boolean);
 
 const state = {
-  activeIndex: 0,
-  hoveredIndex: -1,
   pointer: new THREE.Vector2(),
-  targetPointer: { x: 0, y: 0 },
+  pointerTarget: { x: 0, y: 0 },
   scrollProgress: 0,
   reducedMotion: window.matchMedia("(prefers-reduced-motion: reduce)").matches,
 };
@@ -26,11 +37,8 @@ const els = {
   loaderProgress: document.getElementById("loaderProgress"),
   cursor: document.getElementById("customCursor"),
   cursorLabel: document.querySelector(".cursor__label"),
-  rail: document.querySelector("[data-project-rail]"),
-  activeTag: document.getElementById("activeProjectTag"),
-  activeTitle: document.getElementById("activeProjectTitle"),
-  activeDescription: document.getElementById("activeProjectDescription"),
-  activeLink: document.getElementById("activeProjectLink"),
+  projectGrid: document.querySelector("[data-project-grid]"),
+  projectIndex: document.querySelector("[data-project-index]"),
 };
 
 function normalizeHref(href) {
@@ -41,65 +49,78 @@ function normalizeHref(href) {
 }
 
 function boot() {
-  populateProjectRail();
-  updateActiveProject(0);
-  initReveals();
+  populateProjects();
+  populateArchive();
+  updateCounts();
   initLoader();
+  initReveals();
   initCursor();
   initMagnetic();
-  initCapabilityTilt();
+  initAnchorNavigation();
+  initTiltCards();
+  initParallax();
   initScene();
-  initParallaxLayers();
-  updateCounts();
 }
 
-function populateProjectRail() {
-  if (!els.rail) return;
+function populateProjects() {
+  if (!els.projectGrid) return;
 
   featuredProjects.forEach((project, index) => {
-    const link = document.createElement("a");
-    link.className = "project-pill";
-    link.href = normalizeHref(project.href);
-    link.dataset.projectIndex = String(index);
-    link.dataset.cursor = "Open";
-    link.innerHTML = `
-      <span class="project-pill__index">${String(index + 1).padStart(2, "0")}</span>
-      <span>
-        <strong>${project.title}</strong>
-        <span>${project.tag}</span>
-      </span>
-      <span class="project-pill__arrow">Open</span>
-    `;
+    const card = document.createElement("a");
+    card.className = "project-card reveal";
+    card.href = normalizeHref(project.href);
+    card.dataset.reveal = "";
+    card.dataset.tiltCard = "";
+    card.dataset.cursor = "Open";
+    if (project.external) {
+      card.target = "_blank";
+      card.rel = "noreferrer";
+    }
 
-    link.addEventListener("mouseenter", () => updateActiveProject(index));
-    link.addEventListener("focus", () => updateActiveProject(index));
-    els.rail.append(link);
+    const image = projectImages[index % projectImages.length];
+    card.innerHTML = `
+      <span class="project-card__media" aria-hidden="true">
+        <img src="${image}" alt="" loading="lazy" />
+      </span>
+      <span class="project-card__top">
+        <span class="project-card__meta">${String(index + 1).padStart(2, "0")} / ${project.tag}</span>
+        <span class="project-card__arrow">Open</span>
+      </span>
+      <span class="project-card__body">
+        <h3>${project.title}</h3>
+        <p>${project.description}</p>
+      </span>
+    `;
+    els.projectGrid.append(card);
+  });
+}
+
+function populateArchive() {
+  if (!els.projectIndex) return;
+
+  projects.forEach((project, index) => {
+    const link = document.createElement("a");
+    link.className = "archive-item";
+    link.href = normalizeHref(project.href);
+    link.dataset.cursor = "Open";
+    if (project.external) {
+      link.target = "_blank";
+      link.rel = "noreferrer";
+    }
+
+    link.innerHTML = `
+      <span class="archive-item__meta">${String(index + 1).padStart(2, "0")}</span>
+      <strong>${project.title}</strong>
+      <p>${project.tag}</p>
+      <span class="archive-item__arrow">Open</span>
+    `;
+    els.projectIndex.append(link);
   });
 }
 
 function updateCounts() {
-  document.querySelectorAll("[data-live-count], [data-live-count-secondary]").forEach((node) => {
+  document.querySelectorAll("[data-live-count]").forEach((node) => {
     node.textContent = String(localProjects.length);
-  });
-}
-
-function updateActiveProject(index) {
-  const safeIndex = THREE.MathUtils.clamp(index, 0, featuredProjects.length - 1);
-  const project = featuredProjects[safeIndex];
-  if (!project) return;
-
-  state.activeIndex = safeIndex;
-  if (els.activeTag) els.activeTag.textContent = project.tag;
-  if (els.activeTitle) els.activeTitle.textContent = project.title;
-  if (els.activeDescription) els.activeDescription.textContent = project.description;
-  if (els.activeLink) {
-    els.activeLink.href = normalizeHref(project.href);
-    els.activeLink.target = project.external ? "_blank" : "";
-    els.activeLink.rel = project.external ? "noreferrer" : "";
-  }
-
-  document.querySelectorAll(".project-pill").forEach((pill, pillIndex) => {
-    pill.classList.toggle("is-active", pillIndex === safeIndex);
   });
 }
 
@@ -108,23 +129,29 @@ function initLoader() {
 
   let progress = 0;
   const interval = window.setInterval(() => {
-    progress = Math.min(progress + Math.random() * 18 + 7, 92);
+    progress = Math.min(progress + Math.random() * 11 + 6, 94);
     els.loaderProgress.style.width = `${progress}%`;
-  }, 130);
+  }, 95);
 
   window.setTimeout(() => {
     window.clearInterval(interval);
     els.loaderProgress.style.width = "100%";
+    els.loader.classList.add("is-complete");
     window.setTimeout(() => {
       els.loader.classList.add("is-hidden");
-      window.setTimeout(() => els.loader?.remove(), 1000);
-    }, 360);
-  }, 1100);
+      window.setTimeout(() => els.loader?.remove(), 900);
+    }, 520);
+  }, 920);
 }
 
 function initReveals() {
   const reveals = document.querySelectorAll("[data-reveal]");
   if (!reveals.length) return;
+
+  if (!("IntersectionObserver" in window)) {
+    reveals.forEach((element) => element.classList.add("is-visible"));
+    return;
+  }
 
   const observer = new IntersectionObserver(
     (entries) => {
@@ -134,11 +161,11 @@ function initReveals() {
         observer.unobserve(entry.target);
       });
     },
-    { threshold: 0.12, rootMargin: "0px 0px -8% 0px" }
+    { threshold: 0.16, rootMargin: "0px 0px -8% 0px" }
   );
 
   reveals.forEach((element, index) => {
-    element.style.transitionDelay = `${Math.min(index * 70, 360)}ms`;
+    element.style.transitionDelay = `${Math.min(index * 55, 420)}ms`;
     observer.observe(element);
   });
 }
@@ -149,58 +176,62 @@ function initCursor() {
 
   const dot = cursor.querySelector(".cursor__dot");
   const ring = cursor.querySelector(".cursor__ring");
-  let dotX = 0;
-  let dotY = 0;
-  let ringX = 0;
-  let ringY = 0;
-  let mouseX = window.innerWidth / 2;
-  let mouseY = window.innerHeight / 2;
+  let dotX = window.innerWidth / 2;
+  let dotY = window.innerHeight / 2;
+  let ringX = dotX;
+  let ringY = dotY;
+  let mouseX = dotX;
+  let mouseY = dotY;
 
   document.addEventListener("pointermove", (event) => {
     mouseX = event.clientX;
     mouseY = event.clientY;
+    state.pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
+    state.pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
+    state.pointerTarget.x = state.pointer.x;
+    state.pointerTarget.y = state.pointer.y;
     cursor.classList.add("is-visible");
   });
 
-  document.addEventListener("pointerdown", () => cursor.classList.add("is-clicking"));
-  document.addEventListener("pointerup", () => cursor.classList.remove("is-clicking"));
-
   document.addEventListener("mouseover", (event) => {
-    const target = event.target.closest("a, button, [data-cursor]");
+    const target = event.target.closest("a, button, [data-cursor], [data-tilt-card]");
     if (!target) return;
     cursor.classList.add("is-hovering");
-    if (els.cursorLabel) els.cursorLabel.textContent = target.dataset.cursor || "Open";
+    if (els.cursorLabel) els.cursorLabel.textContent = target.dataset.cursor || "View";
   });
 
   document.addEventListener("mouseout", (event) => {
-    const target = event.target.closest("a, button, [data-cursor]");
+    const target = event.target.closest("a, button, [data-cursor], [data-tilt-card]");
     if (!target) return;
     cursor.classList.remove("is-hovering");
   });
 
-  function animate() {
-    dotX += (mouseX - dotX) * 0.32;
-    dotY += (mouseY - dotY) * 0.32;
-    ringX += (mouseX - ringX) * 0.16;
-    ringY += (mouseY - ringY) * 0.16;
+  function animateCursor() {
+    dotX += (mouseX - dotX) * 0.34;
+    dotY += (mouseY - dotY) * 0.34;
+    ringX += (mouseX - ringX) * 0.15;
+    ringY += (mouseY - ringY) * 0.15;
+
     dot.style.transform = `translate(${dotX}px, ${dotY}px) translate(-50%, -50%)`;
     ring.style.transform = `translate(${ringX}px, ${ringY}px) translate(-50%, -50%)`;
     if (els.cursorLabel) {
-      els.cursorLabel.style.transform = `translate(${ringX}px, ${ringY}px) translate(22px, -50%)`;
+      els.cursorLabel.style.transform = `translate(${ringX}px, ${ringY}px) translate(24px, -50%)`;
     }
-    requestAnimationFrame(animate);
+    requestAnimationFrame(animateCursor);
   }
 
-  animate();
+  animateCursor();
 }
 
 function initMagnetic() {
+  if (window.matchMedia("(pointer: coarse)").matches) return;
+
   document.querySelectorAll(".magnetic").forEach((element) => {
     element.addEventListener("pointermove", (event) => {
       const rect = element.getBoundingClientRect();
       const x = event.clientX - rect.left - rect.width / 2;
       const y = event.clientY - rect.top - rect.height / 2;
-      element.style.transform = `translate(${x * 0.12}px, ${y * 0.18}px)`;
+      element.style.transform = `translate(${x * 0.09}px, ${y * 0.14}px)`;
     });
 
     element.addEventListener("pointerleave", () => {
@@ -209,30 +240,79 @@ function initMagnetic() {
   });
 }
 
-function initCapabilityTilt() {
-  document.querySelectorAll(".capability-orbit article").forEach((card) => {
-    card.addEventListener("pointermove", (event) => {
-      const rect = card.getBoundingClientRect();
-      const x = (event.clientX - rect.left) / rect.width - 0.5;
-      const y = (event.clientY - rect.top) / rect.height - 0.5;
-      card.style.transform = `rotateX(${y * -7}deg) rotateY(${x * 9}deg) translateZ(16px)`;
-    });
+function initAnchorNavigation() {
+  document.querySelectorAll('a[href^="#"]').forEach((link) => {
+    link.addEventListener("click", (event) => {
+      const id = link.getAttribute("href");
+      if (!id || id === "#") return;
 
-    card.addEventListener("pointerleave", () => {
-      card.style.transform = "";
+      const target = document.querySelector(id);
+      if (!target) return;
+
+      event.preventDefault();
+      const header = document.querySelector(".site-header");
+      const headerOffset = header ? header.getBoundingClientRect().height + 28 : 0;
+      const comfortableOffset = Math.min(window.innerHeight * 0.18, 150);
+      const top = target.getBoundingClientRect().top + window.scrollY - headerOffset - comfortableOffset;
+
+      window.scrollTo({
+        top: Math.max(top, 0),
+        behavior: state.reducedMotion ? "auto" : "smooth",
+      });
+
+      history.pushState(null, "", id);
     });
   });
 }
 
-function initParallaxLayers() {
-  const far = document.querySelector(".atmosphere--far");
-  const near = document.querySelector(".atmosphere--near");
+function initTiltCards() {
+  if (window.matchMedia("(pointer: coarse)").matches) return;
 
-  window.addEventListener("scroll", () => {
-    const y = window.scrollY;
-    if (far) far.style.transform = `translate3d(0, ${y * 0.08}px, 0)`;
-    if (near) near.style.transform = `translate3d(0, ${y * 0.18}px, 0)`;
-  }, { passive: true });
+  document.querySelectorAll("[data-tilt-card]").forEach((card) => {
+    card.addEventListener("pointermove", (event) => {
+      const rect = card.getBoundingClientRect();
+      const x = (event.clientX - rect.left) / rect.width - 0.5;
+      const y = (event.clientY - rect.top) / rect.height - 0.5;
+      card.style.setProperty("--tilt-x", `${y * -7}deg`);
+      card.style.setProperty("--tilt-y", `${x * 8}deg`);
+    });
+
+    card.addEventListener("pointerleave", () => {
+      card.style.setProperty("--tilt-x", "0deg");
+      card.style.setProperty("--tilt-y", "0deg");
+    });
+  });
+}
+
+function initParallax() {
+  const layers = [...document.querySelectorAll("[data-parallax-speed]")];
+  if (!layers.length || state.reducedMotion) return;
+
+  let ticking = false;
+  const update = () => {
+    const viewportCenter = window.innerHeight / 2;
+    layers.forEach((layer) => {
+      const speed = Number(layer.dataset.parallaxSpeed) || 0;
+      const rect = layer.getBoundingClientRect();
+      const layerCenter = rect.top + rect.height / 2;
+      const offset = (viewportCenter - layerCenter) * speed;
+      layer.style.setProperty("--parallax-y", `${offset.toFixed(2)}px`);
+    });
+
+    const pageMax = Math.max(document.documentElement.scrollHeight - window.innerHeight, 1);
+    state.scrollProgress = window.scrollY / pageMax;
+    ticking = false;
+  };
+
+  const requestUpdate = () => {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(update);
+  };
+
+  window.addEventListener("scroll", requestUpdate, { passive: true });
+  window.addEventListener("resize", requestUpdate);
+  update();
 }
 
 function initScene() {
@@ -243,245 +323,163 @@ function initScene() {
       canvas: els.canvas,
       antialias: true,
       alpha: true,
+      preserveDrawingBuffer: true,
       powerPreference: "high-performance",
     });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.8));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75));
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.outputColorSpace = THREE.SRGBColorSpace;
 
     const scene = new THREE.Scene();
-    scene.fog = new THREE.FogExp2(0x05060b, 0.035);
-
-    const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
-    camera.position.set(0, 1.25, 9.5);
+    const camera = new THREE.PerspectiveCamera(46, window.innerWidth / window.innerHeight, 0.1, 120);
+    camera.position.set(1.2, 0.7, 10.8);
 
     const rig = new THREE.Group();
     scene.add(rig);
 
-    const ambient = new THREE.AmbientLight(0x7189ff, 0.85);
-    const key = new THREE.DirectionalLight(0x73e3ff, 2.2);
-    key.position.set(4, 5, 7);
-    const rim = new THREE.PointLight(0xd6a84f, 30, 18);
-    rim.position.set(-5, 1.2, 2);
-    scene.add(ambient, key, rim);
+    const ambient = new THREE.AmbientLight(0xffffff, 1.4);
+    const key = new THREE.DirectionalLight(0x222222, 1.7);
+    key.position.set(5, 5, 7);
+    const blue = new THREE.PointLight(0x2f64ff, 5, 18);
+    blue.position.set(-4, 2, 2);
+    scene.add(ambient, key, blue);
 
-    const raycaster = new THREE.Raycaster();
-    const projectMeshes = createProjectObjects(scene);
-    createEnvironment(scene);
+    const objects = createPortfolioHalo(rig);
+    const clock = new THREE.Clock();
+    const temp = new THREE.Vector3();
 
     window.addEventListener("resize", () => {
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.8));
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75));
       renderer.setSize(window.innerWidth, window.innerHeight);
     });
 
-    window.addEventListener("pointermove", (event) => {
-      state.pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
-      state.pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
-      state.targetPointer.x = state.pointer.x;
-      state.targetPointer.y = state.pointer.y;
+    function renderFrame() {
+      const elapsed = clock.getElapsedTime();
+      const scrollEase = THREE.MathUtils.smoothstep(state.scrollProgress, 0, 1);
 
-      raycaster.setFromCamera(state.pointer, camera);
-      const hit = raycaster.intersectObjects(projectMeshes, false)[0];
-      const nextIndex = hit ? hit.object.userData.index : -1;
-      if (state.hoveredIndex !== nextIndex) {
-        state.hoveredIndex = nextIndex;
-        if (nextIndex >= 0) updateActiveProject(nextIndex);
-        document.body.classList.toggle("is-project-hover", nextIndex >= 0);
-        if (els.cursor) els.cursor.classList.toggle("is-hovering", nextIndex >= 0);
-        if (els.cursorLabel && nextIndex >= 0) els.cursorLabel.textContent = "Open";
-      }
-    });
+      camera.position.x += (1.2 + state.pointerTarget.x * 0.42 - camera.position.x) * 0.035;
+      camera.position.y += (0.7 + state.pointerTarget.y * 0.28 - camera.position.y) * 0.035;
+      camera.position.z += (10 - scrollEase * 1.8 - camera.position.z) * 0.035;
+      camera.lookAt(0, 0, 0);
 
-    window.addEventListener("click", () => {
-      if (state.hoveredIndex < 0) return;
-      const project = featuredProjects[state.hoveredIndex];
-      if (project) window.location.href = normalizeHref(project.href);
-    });
+      rig.rotation.y += (state.pointerTarget.x * 0.08 + scrollEase * 0.32 - rig.rotation.y) * 0.035;
+      rig.rotation.x += (-state.pointerTarget.y * 0.08 - rig.rotation.x) * 0.035;
 
-    window.addEventListener("scroll", () => {
-      const max = Math.max(document.body.scrollHeight - window.innerHeight, 1);
-      state.scrollProgress = window.scrollY / max;
-      const projectZone = document.getElementById("projects");
-      if (!projectZone) return;
-      const rect = projectZone.getBoundingClientRect();
-      if (rect.top < window.innerHeight * 0.65 && rect.bottom > window.innerHeight * 0.35) {
-        const local = THREE.MathUtils.clamp((window.innerHeight * 0.55 - rect.top) / Math.max(rect.height, 1), 0, 0.999);
-        updateActiveProject(Math.floor(local * featuredProjects.length));
-      }
-    }, { passive: true });
-
-    const clock = new THREE.Clock();
-
-    function tick() {
-      const time = clock.getElapsedTime();
-      const targetZ = 9.5 - state.scrollProgress * 2.2;
-      camera.position.x += (state.targetPointer.x * 0.55 - camera.position.x) * 0.035;
-      camera.position.y += (1.25 + state.targetPointer.y * 0.35 - camera.position.y) * 0.035;
-      camera.position.z += (targetZ - camera.position.z) * 0.035;
-      camera.lookAt(0, 0.25, 0);
-
-      rig.rotation.y += ((state.targetPointer.x * 0.06) - rig.rotation.y) * 0.04;
-      rig.rotation.x += ((-state.targetPointer.y * 0.035) - rig.rotation.x) * 0.04;
-
-      projectMeshes.forEach((mesh, index) => {
-        const isActive = index === state.activeIndex;
-        const isHover = index === state.hoveredIndex;
-        const targetScale = isHover ? 1.14 : isActive ? 1.08 : 1;
-        mesh.scale.lerp(new THREE.Vector3(targetScale, targetScale, targetScale), 0.08);
-        mesh.position.y = mesh.userData.baseY + Math.sin(time * 0.75 + index) * 0.09;
-        mesh.rotation.y = mesh.userData.baseRotY + Math.sin(time * 0.35 + index) * 0.05 + (isActive ? 0.12 : 0);
-        mesh.rotation.x = Math.sin(time * 0.42 + index * 0.7) * 0.035;
-        mesh.material.emissiveIntensity += (((isActive || isHover) ? 0.45 : 0.12) - mesh.material.emissiveIntensity) * 0.08;
-      });
-
-      scene.traverse((object) => {
-        if (object.userData.spin) object.rotation.y += object.userData.spin;
-        if (object.userData.pulse) object.material.opacity = object.userData.baseOpacity + Math.sin(time + object.userData.phase) * 0.08;
+      objects.forEach((object, index) => {
+        const pulse = 1 + Math.sin(elapsed * 0.55 + index) * 0.018;
+        temp.setScalar(pulse);
+        object.scale.lerp(temp, 0.07);
+        object.position.y = object.userData.baseY + Math.sin(elapsed * object.userData.speed + index) * 0.08;
+        object.rotation.x += object.userData.spinX;
+        object.rotation.y += object.userData.spinY;
+        if (object.userData.fadeMaterials) {
+          object.userData.fadeMaterials.forEach((material) => {
+            material.opacity =
+              object.userData.baseOpacity + Math.sin(elapsed * 0.7 + index) * 0.018;
+          });
+        } else if (object.userData.fadeMaterial) {
+          object.userData.fadeMaterial.opacity =
+            object.userData.baseOpacity + Math.sin(elapsed * 0.7 + index) * 0.025;
+        }
       });
 
       renderer.render(scene, camera);
+    }
+
+    function tick() {
+      renderFrame();
       requestAnimationFrame(tick);
     }
 
-    if (!state.reducedMotion) tick();
-    else renderer.render(scene, camera);
+    if (state.reducedMotion) renderFrame();
+    else tick();
   } catch (error) {
-    document.body.classList.add("scene-failed");
-    console.error("Portfolio scene failed to start:", error);
+    console.error("Homepage motion stage failed:", error);
   }
 }
 
-function createProjectObjects(scene) {
-  const group = new THREE.Group();
-  scene.add(group);
-  const meshes = [];
-  const radius = 4.25;
-  const colors = [0x38d5ff, 0x8b5cf6, 0xd6a84f, 0x4ade80, 0x7dd3fc, 0xa78bfa];
+function createPortfolioHalo(group) {
+  const objects = [];
+  const clusters = [
+    { x: 2.35, y: 0.05, z: -4.5, scale: 1, rotation: [-0.06, -0.2, 0.02], opacity: 0.14 },
+    { x: -2.55, y: 1.58, z: -5.7, scale: 0.46, rotation: [0.08, 0.18, -0.12], opacity: 0.085 },
+    { x: -2.15, y: -1.42, z: -5.25, scale: 0.38, rotation: [-0.04, 0.24, 0.18], opacity: 0.075 },
+    { x: 4.75, y: 1.82, z: -6.1, scale: 0.34, rotation: [0.1, -0.3, 0.09], opacity: 0.07 },
+    { x: 4.65, y: -1.58, z: -5.8, scale: 0.42, rotation: [-0.12, -0.22, -0.16], opacity: 0.08 },
+  ];
 
-  featuredProjects.forEach((project, index) => {
-    const angle = (index / featuredProjects.length) * Math.PI * 2 - Math.PI * 0.42;
-    const x = Math.cos(angle) * radius;
-    const z = Math.sin(angle) * 1.55;
-    const y = Math.sin(index * 1.7) * 0.52;
-    const material = new THREE.MeshPhysicalMaterial({
-      color: 0x111827,
-      metalness: 0.35,
-      roughness: 0.22,
-      transmission: 0.12,
-      thickness: 0.3,
-      transparent: true,
-      opacity: 0.86,
-      emissive: colors[index % colors.length],
-      emissiveIntensity: 0.12,
-      clearcoat: 0.7,
-      clearcoatRoughness: 0.18,
-      side: THREE.DoubleSide,
-    });
-
-    const mesh = new THREE.Mesh(new THREE.BoxGeometry(1.72, 2.28, 0.12, 4, 4, 1), material);
-    mesh.position.set(x, y, z - 1.8);
-    mesh.rotation.y = -angle * 0.42;
-    mesh.userData = {
-      index,
-      project,
-      baseY: y,
-      baseRotY: mesh.rotation.y,
+  clusters.forEach((spec, index) => {
+    const halo = createFrameCluster(spec.opacity, index);
+    halo.position.set(spec.x, spec.y, spec.z);
+    halo.rotation.set(spec.rotation[0], spec.rotation[1], spec.rotation[2]);
+    halo.scale.setScalar(spec.scale);
+    halo.userData = {
+      baseY: halo.position.y,
+      speed: 0.22 + index * 0.045,
+      spinX: 0,
+      spinY: (index % 2 ? -1 : 1) * (0.00035 + index * 0.00007),
+      fadeMaterials: collectMaterials(halo),
+      baseOpacity: spec.opacity,
     };
-    group.add(mesh);
-    meshes.push(mesh);
-
-    const edge = new THREE.LineSegments(
-      new THREE.EdgesGeometry(mesh.geometry),
-      new THREE.LineBasicMaterial({ color: colors[index % colors.length], transparent: true, opacity: 0.55 })
-    );
-    edge.position.copy(mesh.position);
-    edge.rotation.copy(mesh.rotation);
-    edge.scale.setScalar(1.01);
-    group.add(edge);
-
-    const icon = createIconMark(colors[index % colors.length], index);
-    icon.position.set(x, y + 0.2, z - 1.71);
-    icon.rotation.copy(mesh.rotation);
-    group.add(icon);
+    group.add(halo);
+    objects.push(halo);
   });
 
-  return meshes;
+  return objects;
 }
 
-function createIconMark(color, index) {
-  const mark = new THREE.Group();
-  const material = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.92 });
-  const ring = new THREE.Mesh(new THREE.TorusGeometry(0.34, 0.01, 16, 80), material);
-  const core = new THREE.Mesh(new THREE.IcosahedronGeometry(0.16, 1), material);
-  const line = new THREE.Mesh(new THREE.BoxGeometry(0.52, 0.018, 0.018), material);
-  ring.userData.spin = 0.002 + index * 0.0003;
-  core.userData.spin = -0.004;
-  mark.add(ring, core, line);
-  mark.scale.setScalar(1.35);
-  return mark;
+function createFrameCluster(opacity, seed) {
+  const halo = new THREE.Group();
+  const lineMaterials = [
+    new THREE.LineBasicMaterial({ color: 0x222222, transparent: true, opacity }),
+    new THREE.LineBasicMaterial({ color: 0x2f64ff, transparent: true, opacity: opacity * 0.86 }),
+  ];
+  const plateMaterial = new THREE.MeshBasicMaterial({
+    color: 0x222222,
+    transparent: true,
+    opacity: opacity * 0.32,
+    side: THREE.DoubleSide,
+  });
+
+  for (let index = 0; index < 5; index += 1) {
+    const geometry = new THREE.PlaneGeometry(3.9 + index * 0.52, 5.2 + index * 0.52);
+    const edges = new THREE.LineSegments(new THREE.EdgesGeometry(geometry), lineMaterials[(index + seed) % 2].clone());
+    edges.position.z = -index * 0.12;
+    edges.rotation.z = (index - 2) * 0.015;
+    halo.add(edges);
+  }
+
+  const plate = new THREE.Mesh(new THREE.PlaneGeometry(4.8, 6.2), plateMaterial);
+  plate.position.z = -0.42;
+  halo.add(plate);
+
+  for (let index = 0; index < 8; index += 1) {
+    const line = new THREE.Mesh(
+      new THREE.BoxGeometry(index % 2 ? 1.2 : 0.72, 0.012, 0.012),
+      new THREE.MeshBasicMaterial({
+        color: index % 3 === 0 ? 0x2f64ff : 0x222222,
+        transparent: true,
+        opacity: index % 3 === 0 ? opacity * 1.1 : opacity * 0.72,
+      })
+    );
+    line.position.set(-1.8 + (index % 4) * 1.2, -2.4 + Math.floor(index / 4) * 4.8, 0.08);
+    line.rotation.z = index % 2 ? Math.PI / 2 : 0;
+    halo.add(line);
+  }
+
+  return halo;
 }
 
-function createEnvironment(scene) {
-  const starGeometry = new THREE.BufferGeometry();
-  const starCount = 900;
-  const positions = new Float32Array(starCount * 3);
-  for (let i = 0; i < starCount; i += 1) {
-    positions[i * 3] = (Math.random() - 0.5) * 28;
-    positions[i * 3 + 1] = (Math.random() - 0.5) * 16;
-    positions[i * 3 + 2] = -Math.random() * 16 - 1;
-  }
-  starGeometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
-  const stars = new THREE.Points(
-    starGeometry,
-    new THREE.PointsMaterial({
-      color: 0x9edfff,
-      size: 0.018,
-      transparent: true,
-      opacity: 0.72,
-      depthWrite: false,
-    })
-  );
-  scene.add(stars);
-
-  const floor = new THREE.GridHelper(34, 32, 0x38d5ff, 0x1f2937);
-  floor.position.y = -2.55;
-  floor.position.z = -2.5;
-  floor.material.transparent = true;
-  floor.material.opacity = 0.18;
-  scene.add(floor);
-
-  for (let i = 0; i < 10; i += 1) {
-    const ring = new THREE.Mesh(
-      new THREE.TorusGeometry(1.9 + i * 0.34, 0.006, 8, 128),
-      new THREE.MeshBasicMaterial({
-        color: i % 2 ? 0x8b5cf6 : 0x38d5ff,
-        transparent: true,
-        opacity: 0.09,
-        depthWrite: false,
-      })
-    );
-    ring.rotation.x = Math.PI / 2;
-    ring.rotation.z = i * 0.22;
-    ring.position.z = -2.15 - i * 0.05;
-    ring.userData.spin = (i % 2 ? -1 : 1) * (0.0007 + i * 0.00008);
-    scene.add(ring);
-  }
-
-  for (let i = 0; i < 16; i += 1) {
-    const shard = new THREE.Mesh(
-      new THREE.OctahedronGeometry(0.06 + Math.random() * 0.1, 0),
-      new THREE.MeshBasicMaterial({
-        color: i % 3 === 0 ? 0xd6a84f : 0x7dd3fc,
-        transparent: true,
-        opacity: 0.36,
-      })
-    );
-    shard.position.set((Math.random() - 0.5) * 11, (Math.random() - 0.5) * 5.5, -2 - Math.random() * 5);
-    shard.userData.spin = (Math.random() - 0.5) * 0.006;
-    scene.add(shard);
-  }
+function collectMaterials(object) {
+  const materials = [];
+  object.traverse((child) => {
+    if (!child.material) return;
+    if (Array.isArray(child.material)) materials.push(...child.material);
+    else materials.push(child.material);
+  });
+  return materials;
 }
 
 if (document.readyState === "loading") {
