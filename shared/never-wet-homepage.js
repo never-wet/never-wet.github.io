@@ -39,6 +39,8 @@ const els = {
   cursorLabel: document.querySelector(".cursor__label"),
   projectGrid: document.querySelector("[data-project-grid]"),
   projectIndex: document.querySelector("[data-project-index]"),
+  pageTransition: null,
+  pageTransitionTitle: null,
 };
 
 function normalizeHref(href) {
@@ -57,6 +59,7 @@ function boot() {
   initCursor();
   initMagnetic();
   initAnchorNavigation();
+  initPageTransitions();
   initTiltCards();
   initParallax();
   initScene();
@@ -250,10 +253,11 @@ function initAnchorNavigation() {
       if (!target) return;
 
       event.preventDefault();
+      const scrollTarget = getPreferredScrollTarget(id, target);
       const header = document.querySelector(".site-header");
-      const headerOffset = header ? header.getBoundingClientRect().height + 28 : 0;
-      const comfortableOffset = Math.min(window.innerHeight * 0.18, 150);
-      const top = target.getBoundingClientRect().top + window.scrollY - headerOffset - comfortableOffset;
+      const headerOffset = header ? header.getBoundingClientRect().height + 26 : 0;
+      const landingOffset = 42;
+      const top = scrollTarget.getBoundingClientRect().top + window.scrollY - headerOffset - landingOffset;
 
       window.scrollTo({
         top: Math.max(top, 0),
@@ -263,6 +267,74 @@ function initAnchorNavigation() {
       history.pushState(null, "", id);
     });
   });
+}
+
+function initPageTransitions() {
+  const transition = document.createElement("div");
+  transition.className = "page-transition";
+  transition.setAttribute("aria-hidden", "true");
+  transition.innerHTML = `
+    <div class="page-transition__inner">
+      <span class="page-transition__kicker">Opening</span>
+      <strong class="page-transition__title">Launch path</strong>
+      <div class="page-transition__bar"><span></span></div>
+    </div>
+  `;
+  document.body.append(transition);
+  els.pageTransition = transition;
+  els.pageTransitionTitle = transition.querySelector(".page-transition__title");
+
+  window.addEventListener("pageshow", () => {
+    transition.classList.remove("is-active");
+  });
+
+  document.addEventListener("click", (event) => {
+    const link = event.target.closest("a[href]");
+    if (!link || event.defaultPrevented || event.button !== 0) return;
+    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+
+    const href = link.getAttribute("href");
+    if (!href || href.startsWith("#") || href.startsWith("mailto:") || href.startsWith("tel:")) return;
+    if (link.hasAttribute("download")) return;
+
+    const url = new URL(href, window.location.href);
+    if (url.href === window.location.href) return;
+
+    event.preventDefault();
+    const destinationLabel = getTransitionLabel(link, url);
+    if (els.pageTransitionTitle) els.pageTransitionTitle.textContent = destinationLabel;
+    transition.classList.add("is-active");
+
+    window.setTimeout(() => {
+      if (link.target === "_blank") {
+        window.open(url.href, "_blank", "noopener,noreferrer");
+        transition.classList.remove("is-active");
+        return;
+      }
+      window.location.href = url.href;
+    }, state.reducedMotion ? 0 : 620);
+  });
+}
+
+function getTransitionLabel(link, url) {
+  const cardTitle = link.querySelector("h3, strong")?.textContent?.trim();
+  if (cardTitle) return cardTitle;
+
+  const label = link.textContent.trim().replace(/\s+/g, " ");
+  if (label && label.length <= 28) return label;
+
+  return url.hostname.replace(/^www\./, "") || "Launch path";
+}
+
+function getPreferredScrollTarget(id, section) {
+  const preferred = {
+    "#work": "#work .section-heading",
+    "#motion": "#motion .section-heading",
+    "#index": "#index .section-heading",
+    "#contact": ".contact__panel",
+  };
+  const selector = preferred[id];
+  return selector ? section.querySelector(selector) || document.querySelector(selector) || section : section;
 }
 
 function initTiltCards() {
