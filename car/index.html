@@ -27,15 +27,19 @@
 
       <nav class="car-switcher" aria-label="Select car">
         <button class="is-active" type="button" data-car="porsche">Porsche 911 GT3</button>
-        <button type="button" data-car="ferrari">Ferrari 488 GTE</button>
+        <button type="button" data-car="ferrari">Ferrari SF90 Spider</button>
         <button type="button" data-car="lotus">Lotus Emira</button>
-        <button type="button" data-car="bmw">BMW M3</button>
+        <button type="button" data-car="bmw">BMW M3 G80</button>
       </nav>
 
       <div class="wind-readout" aria-label="Wind tunnel readout">
         <span id="readoutVelocity">132 km/h</span>
         <span id="readoutCd">0.34 Cd</span>
       </div>
+
+      <button class="debug-toggle" id="debugToggle" type="button" aria-pressed="false">
+        Debug
+      </button>
     </header>
 
     <aside class="story-panel" aria-live="polite">
@@ -67,20 +71,18 @@
       </article>
     </aside>
 
-    <div class="feature-layer" aria-hidden="true">
-      <span class="feature-label" data-feature="splitter">Front splitter</span>
-      <span class="feature-label" data-feature="channels">Side channels</span>
-      <span class="feature-label" data-feature="diffuser">Rear diffuser</span>
-    </div>
+    <div class="feature-layer" aria-hidden="true"></div>
 
     <div class="scroll-rail" aria-hidden="true">
       <span id="scrollRail"></span>
     </div>
 
     <div class="inspect-hint" aria-hidden="true">
-      <span>Drag the car</span>
+      <span>Drag camera</span>
       <strong>360 view</strong>
     </div>
+
+    <aside class="debug-readout" id="debugReadout" aria-live="polite" aria-hidden="true"></aside>
 
     <div class="cursor-dot" id="cursorDot" aria-hidden="true"></div>
 
@@ -99,6 +101,9 @@
       </section>
       <section class="chapter">
         <span>05</span>
+      </section>
+      <section class="chapter">
+        <span>06</span>
       </section>
     </main>
 

@@ -1,18 +1,18 @@
 :root {
-  --base: #0f0f0e;
-  --base-soft: #151514;
-  --panel: #2222;
-  --panel-strong: rgba(34, 34, 34, 0.72);
-  --line: rgba(242, 242, 242, 0.14);
-  --line-strong: rgba(242, 242, 242, 0.3);
-  --ink: #f2f2f2;
-  --ink-glass: #f2f2f2f2;
-  --muted: rgba(242, 242, 242, 0.56);
-  --faint: rgba(242, 242, 242, 0.3);
-  --accent: #d8ff48;
-  --warm: #ff9f54;
+  --base: #f2f2f2;
+  --base-soft: #e8e8e5;
+  --panel: rgba(242, 242, 242, 0.68);
+  --panel-strong: rgba(242, 242, 242, 0.86);
+  --line: rgba(34, 34, 34, 0.12);
+  --line-strong: rgba(34, 34, 34, 0.24);
+  --ink: #171717;
+  --ink-glass: rgba(23, 23, 23, 0.92);
+  --muted: rgba(23, 23, 23, 0.56);
+  --faint: rgba(23, 23, 23, 0.28);
+  --accent: #3c5cff;
+  --warm: #7c6a4a;
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 * {
@@ -30,7 +30,7 @@ body {
   margin: 0;
   overflow-x: hidden;
   background:
-    linear-gradient(180deg, rgba(242, 242, 242, 0.035), transparent 32rem),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(242, 242, 242, 0.45) 32rem),
     var(--base);
   color: var(--ink);
   font-family:
@@ -60,7 +60,7 @@ button {
   height: 100%;
   display: block;
   z-index: 0;
-  background: #0e0e0d;
+  background: #f2f2f2;
   cursor: grab;
   touch-action: none;
 }
@@ -95,7 +95,8 @@ body.is-inspecting #windTunnel {
 
 .brand-mark,
 .wind-readout,
-.car-switcher {
+.car-switcher,
+.debug-toggle {
   pointer-events: auto;
 }
 
@@ -117,7 +118,7 @@ body.is-inspecting #windTunnel {
   height: 0.72rem;
   border: 1px solid var(--accent);
   border-radius: 50%;
-  box-shadow: 0 0 20px rgba(216, 255, 72, 0.45);
+  box-shadow: 0 0 20px rgba(60, 92, 255, 0.28);
 }
 
 .car-switcher {
@@ -126,14 +127,14 @@ body.is-inspecting #windTunnel {
   gap: 0.25rem;
   min-width: 0;
   padding: 0.32rem;
-  border: 1px solid rgba(242, 242, 242, 0.18);
+  border: 1px solid var(--line);
   background:
-    linear-gradient(180deg, rgba(242, 242, 242, 0.085), rgba(34, 34, 34, 0.2)),
-    rgba(15, 15, 14, 0.58);
+    linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(242, 242, 242, 0.58)),
+    rgba(242, 242, 242, 0.68);
   backdrop-filter: blur(22px);
   box-shadow:
-    0 18px 50px rgba(0, 0, 0, 0.38),
-    inset 0 1px 0 rgba(242, 242, 242, 0.08);
+    0 18px 50px rgba(20, 20, 20, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.72);
 }
 
 .car-switcher button {
@@ -161,9 +162,9 @@ body.is-inspecting #windTunnel {
 }
 
 .car-switcher button.is-active {
-  background: linear-gradient(180deg, var(--ink), rgba(242, 242, 242, 0.82));
-  color: #141412;
-  box-shadow: 0 8px 22px rgba(242, 242, 242, 0.12);
+  background: linear-gradient(180deg, #222, #101010);
+  color: #f2f2f2;
+  box-shadow: 0 10px 24px rgba(20, 20, 20, 0.2);
 }
 
 .wind-readout {
@@ -181,6 +182,42 @@ body.is-inspecting #windTunnel {
 .wind-readout span {
   min-width: 5rem;
   text-align: right;
+}
+
+.debug-toggle {
+  position: absolute;
+  right: 1.5rem;
+  top: 4.45rem;
+  min-height: 2rem;
+  border: 1px solid var(--line);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.86), rgba(242, 242, 242, 0.54)),
+    rgba(242, 242, 242, 0.74);
+  backdrop-filter: blur(16px);
+  color: var(--muted);
+  padding: 0 0.72rem;
+  text-transform: uppercase;
+  font-size: 0.58rem;
+  font-weight: 760;
+  letter-spacing: 0.16em;
+  cursor: pointer;
+  transition:
+    color 220ms var(--ease),
+    border-color 220ms var(--ease),
+    background 220ms var(--ease);
+}
+
+.debug-toggle:hover,
+.debug-toggle:focus-visible,
+.debug-toggle.is-active {
+  border-color: rgba(34, 34, 34, 0.38);
+  color: var(--ink);
+  outline: 0;
+}
+
+.debug-toggle.is-active {
+  background: linear-gradient(180deg, #222, #101010);
+  color: #f2f2f2;
 }
 
 .story-panel {
@@ -259,15 +296,15 @@ body.is-inspecting #windTunnel {
 .aero-metrics article {
   min-width: 0;
   padding: 0.8rem 0.9rem;
-  border: 1px solid rgba(242, 242, 242, 0.16);
+  border: 1px solid var(--line);
   background:
-    radial-gradient(circle at top left, rgba(216, 255, 72, 0.08), transparent 42%),
-    linear-gradient(180deg, rgba(242, 242, 242, 0.075), rgba(34, 34, 34, 0.24)),
-    rgba(15, 15, 14, 0.56);
+    radial-gradient(circle at top left, rgba(60, 92, 255, 0.08), transparent 42%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.84), rgba(242, 242, 242, 0.48)),
+    rgba(242, 242, 242, 0.7);
   backdrop-filter: blur(20px);
   box-shadow:
-    0 14px 36px rgba(0, 0, 0, 0.28),
-    inset 0 1px 0 rgba(242, 242, 242, 0.08);
+    0 14px 36px rgba(20, 20, 20, 0.11),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7);
 }
 
 .aero-metrics span {
@@ -310,34 +347,6 @@ body.is-inspecting #windTunnel {
   pointer-events: none;
 }
 
-.feature-label {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: max-content;
-  max-width: 12rem;
-  opacity: 0;
-  transform: translate3d(-50%, -50%, 0) scale(0.96);
-  padding: 0.55rem 0.65rem;
-  border: 1px solid rgba(242, 242, 242, 0.18);
-  background: rgba(15, 15, 14, 0.46);
-  backdrop-filter: blur(18px);
-  color: var(--ink);
-  text-transform: uppercase;
-  font-size: 0.62rem;
-  font-weight: 750;
-  letter-spacing: 0.15em;
-  white-space: nowrap;
-  transition:
-    opacity 300ms var(--ease),
-    transform 300ms var(--ease);
-}
-
-.feature-layer.is-visible .feature-label {
-  opacity: 1;
-  transform: translate3d(-50%, -50%, 0) scale(1);
-}
-
 .scroll-rail {
   position: fixed;
   z-index: 18;
@@ -346,7 +355,7 @@ body.is-inspecting #windTunnel {
   width: 1px;
   height: 11rem;
   transform: translateY(-50%);
-  background: rgba(242, 242, 242, 0.12);
+  background: rgba(34, 34, 34, 0.14);
   pointer-events: none;
 }
 
@@ -357,7 +366,7 @@ body.is-inspecting #windTunnel {
   width: 1px;
   height: 0;
   background: var(--ink);
-  box-shadow: 0 0 16px rgba(242, 242, 242, 0.45);
+  box-shadow: 0 0 16px rgba(34, 34, 34, 0.22);
 }
 
 .inspect-hint {
@@ -371,10 +380,10 @@ body.is-inspecting #windTunnel {
   align-items: baseline;
   transform: translateX(-50%);
   padding: 0.56rem 0.7rem;
-  border: 1px solid rgba(242, 242, 242, 0.16);
+  border: 1px solid var(--line);
   background:
-    linear-gradient(180deg, rgba(242, 242, 242, 0.075), rgba(34, 34, 34, 0.22)),
-    rgba(15, 15, 14, 0.46);
+    linear-gradient(180deg, rgba(255, 255, 255, 0.84), rgba(242, 242, 242, 0.5)),
+    rgba(242, 242, 242, 0.72);
   backdrop-filter: blur(18px);
   color: var(--muted);
   text-transform: uppercase;
@@ -398,6 +407,46 @@ body.is-inspecting .inspect-hint {
   transform: translateX(-50%) translateY(-0.2rem);
 }
 
+.debug-readout {
+  position: fixed;
+  z-index: 19;
+  right: 1.5rem;
+  top: 7.05rem;
+  width: min(17rem, calc(100vw - 3rem));
+  display: none;
+  grid-template-columns: 1fr;
+  gap: 0.28rem;
+  padding: 0.8rem 0.85rem;
+  border: 1px solid var(--line);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(242, 242, 242, 0.62)),
+    rgba(242, 242, 242, 0.8);
+  backdrop-filter: blur(18px);
+  color: var(--ink);
+  text-transform: uppercase;
+  font-size: 0.58rem;
+  font-weight: 690;
+  letter-spacing: 0.11em;
+  line-height: 1.55;
+  pointer-events: none;
+}
+
+.debug-readout.is-visible {
+  display: grid;
+}
+
+.debug-readout span {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.7rem;
+  color: var(--muted);
+}
+
+.debug-readout strong {
+  color: var(--ink);
+  font-weight: 780;
+}
+
 .scroll-space {
   position: relative;
   z-index: 1;
@@ -410,7 +459,7 @@ body.is-inspecting .inspect-hint {
   justify-content: flex-start;
   height: 105vh;
   padding: 0 0 1.2rem 1.5rem;
-  color: rgba(242, 242, 242, 0.12);
+  color: rgba(34, 34, 34, 0.12);
   pointer-events: none;
 }
 
@@ -428,7 +477,7 @@ body.is-inspecting .inspect-hint {
   place-items: center;
   align-content: center;
   gap: 1rem;
-  background: #0f0f0e;
+  background: #f2f2f2;
   color: var(--ink);
   transition:
     opacity 700ms var(--ease),
@@ -459,7 +508,7 @@ body.is-inspecting .inspect-hint {
 .loader__track {
   width: min(17rem, 62vw);
   height: 1px;
-  background: rgba(242, 242, 242, 0.16);
+  background: rgba(34, 34, 34, 0.16);
   overflow: hidden;
 }
 
@@ -468,7 +517,7 @@ body.is-inspecting .inspect-hint {
   width: 0;
   height: 100%;
   background: var(--ink);
-  box-shadow: 0 0 18px rgba(242, 242, 242, 0.55);
+  box-shadow: 0 0 18px rgba(34, 34, 34, 0.18);
   transition: width 180ms linear;
 }
 
@@ -480,7 +529,7 @@ body.is-inspecting .inspect-hint {
   width: 1.1rem;
   height: 1.1rem;
   margin: -0.55rem 0 0 -0.55rem;
-  border: 1px solid rgba(242, 242, 242, 0.5);
+  border: 1px solid rgba(34, 34, 34, 0.46);
   border-radius: 50%;
   opacity: 0;
   pointer-events: none;
@@ -542,6 +591,18 @@ body.is-inspecting .inspect-hint {
     min-width: auto;
   }
 
+  .debug-toggle {
+    top: auto;
+    right: 1rem;
+    bottom: 7.25rem;
+  }
+
+  .debug-readout {
+    top: auto;
+    right: 1rem;
+    bottom: 9.75rem;
+  }
+
   .story-panel h1 {
     font-size: 3.1rem;
   }
@@ -600,10 +661,6 @@ body.is-inspecting .inspect-hint {
   }
 
   .car-meta small {
-    display: none;
-  }
-
-  .feature-label {
     display: none;
   }
 

@@ -1,10 +1,10 @@
 # Model Attribution
 
-This showcase uses distinct vehicle assets for each selector.
+This showcase uses distinct user-provided GLB vehicle assets for each selector.
 
-- Porsche 911 GT3: Get3DModels, author DreamCar, Creative Commons Attribution. Source: https://www.get3dmodels.com/vehicles/porsche-911-gt/
-- Ferrari 488 GTE fallback: Get3DModels, author OUTPISTON, CC Attribution. Source: https://www.get3dmodels.com/vehicles/ferrari-race-car/
-- Lotus Emira: DownloadFree3D, credit 3designer94. Converted from FBX to GLB for this project. Source: https://downloadfree3d.com/3d-models/vehicles/car/lotus-emira/
-- BMW M3 display: source BMW M3 GTR model from GetGLB/Get3DModels, author OUTPISTON, CC Attribution. The rear wing geometry is trimmed at load time for the spoiler-free showcase. Source: https://www.getglb.com/vehicles/bmw-m3-coupe/
+- Porsche 911 GT3: `porsche_911_gt3.glb`. The download dialog credits Outlaw Games and lists Creative Commons Attribution-NonCommercial.
+- Ferrari SF90 Spider: `2021_ferrari_sf90_spider.glb`.
+- Lotus Emira 2022: `lotus_emira_2022__www.vecarz.com.glb`.
+- BMW M3 Competition G80: `2021_bmw_m3_competition_g80.glb`.
 
-The GLB files were optimized locally with glTF Transform. The Lotus FBX source was converted with FBX2glTF.
+These files replaced the earlier placeholder/fallback vehicle assets.
