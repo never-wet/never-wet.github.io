@@ -58,6 +58,16 @@ a {
   cursor: pointer;
 }
 
+@media (pointer: fine) {
+  .js-enabled body,
+  .js-enabled a,
+  .js-enabled button,
+  .js-enabled [data-cursor],
+  .js-enabled [data-tilt-card] {
+    cursor: none;
+  }
+}
+
 img,
 canvas {
   display: block;
