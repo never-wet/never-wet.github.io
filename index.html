@@ -12,10 +12,13 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Space+Grotesk:wght@400;500;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Space+Grotesk:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="./css/never-wet-home.css" />
+    <script>
+      document.documentElement.classList.add('js-enabled');
+    </script>
     <script type="importmap">
       {
         "imports": {
@@ -25,19 +28,38 @@
     </script>
   </head>
   <body class="home-entry">
-    <canvas id="igloo-canvas" aria-hidden="true"></canvas>
-    <div class="home-vignette" aria-hidden="true"></div>
+    <div class="home-overlay" aria-hidden="true"></div>
     <div class="home-noise" aria-hidden="true"></div>
 
+    <!-- Smooth Loader -->
+    <div class="page-loader" id="pageLoader">
+      <div class="loader-content">
+        <div class="loader-spinner"></div>
+        <div class="loader-text">Never Wet</div>
+        <div class="loader-bar">
+          <div class="loader-progress" id="loaderProgress"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Custom Cursor -->
+    <div class="custom-cursor" id="customCursor" aria-hidden="true">
+      <div class="cursor-dot"></div>
+      <div class="cursor-ring"></div>
+    </div>
+
     <div class="home-shell">
-      <header class="home-header">
+      <header class="home-header reveal">
         <a class="home-brand" href="./" aria-label="Never Wet home">
-          <span class="home-brand__eyebrow">Never Wet</span>
-          <span class="home-brand__wordmark">Interactive Project Hub</span>
+          <div class="brand-icon">N</div>
+          <div class="brand-text">
+            <span class="brand-name">Never Wet</span>
+            <span class="brand-tagline">Interactive Project Hub</span>
+          </div>
         </a>
 
         <nav class="home-nav" aria-label="Primary">
-          <a href="./project-hub.html">Directory View</a>
+          <a href="./project-hub.html">Directory</a>
           <a href="./car/">Car Showcase</a>
           <a href="./games/">Games</a>
           <a href="./loreline/">Loreline</a>
@@ -45,67 +67,63 @@
         </nav>
       </header>
 
-      <main class="home-layout">
-        <section class="panel panel--hero" aria-labelledby="home-title">
-          <p class="panel__eyebrow">Realtime home / igloo scene / live launcher</p>
-          <h1 id="home-title">One homepage again, with the igloo kept intact.</h1>
-          <p class="panel__lede">
-            The cinematic igloo scene is back as atmosphere instead of replacing the launcher. You can browse projects
-            immediately here, step into the pure immersive scene, or open the full directory when you want the complete
-            catalog.
+      <main>
+        <section class="hero reveal reveal-delay-1" aria-labelledby="home-title">
+          <div class="hero-eyebrow">Realtime 3D Atmosphere</div>
+          <h1 id="home-title">Launch immersive worlds with <span>cinematic atmosphere</span></h1>
+          <p class="hero-description">
+            A curated collection of interactive experiments, immersive worlds, and creative tools.
+            Browse the featured projects below or explore the complete directory — all from one
+            atmospheric launchpad.
           </p>
 
           <div class="hero-actions">
-            <a class="button button--primary" href="./igloo-home/">Open Immersive Igloo</a>
-            <a class="button button--secondary" href="./project-hub.html">Open Full Directory</a>
+            <a class="button button--primary" href="./igloo-home/">Enter Immersive Igloo</a>
+            <a class="button button--secondary" href="./project-hub.html">Browse Full Directory</a>
           </div>
 
           <div class="hero-metrics">
             <article class="metric">
-              <span class="metric__label">Live projects</span>
-              <strong class="metric__value" data-live-count>18</strong>
-              <span class="metric__detail">Launchable from this page</span>
+              <div class="metric__value" data-live-count>18</div>
+              <div class="metric__label">Live Projects</div>
+              <div class="metric__detail">Launchable from this page</div>
             </article>
             <article class="metric">
-              <span class="metric__label">Atmosphere</span>
-              <strong class="metric__value">Interactive igloo</strong>
-              <span class="metric__detail">Fullscreen Three.js background</span>
+              <div class="metric__value">7</div>
+              <div class="metric__label">Effects</div>
+              <div class="metric__detail">Premium interactive animations</div>
             </article>
             <article class="metric">
-              <span class="metric__label">Fallback</span>
-              <strong class="metric__value">Always navigable</strong>
-              <span class="metric__detail">Launcher still works if WebGL fails</span>
+              <div class="metric__value">100%</div>
+              <div class="metric__label">Resilient</div>
+              <div class="metric__detail">Works even if WebGL fails</div>
             </article>
           </div>
         </section>
 
-        <aside class="panel panel--launcher" aria-labelledby="quick-launch-title">
+        <section class="section reveal reveal-delay-2" aria-labelledby="quick-launch-title">
           <div class="panel__head">
-            <div>
-              <p class="panel__eyebrow">Quick launch</p>
-              <h2 id="quick-launch-title">Jump straight into the strongest destinations.</h2>
-            </div>
-            <a class="panel__link" href="./project-hub.html">See everything</a>
+            <div class="panel__eyebrow">Quick Launch</div>
+            <h2 id="quick-launch-title">Jump into the strongest destinations</h2>
+            <p class="panel__count">Featured projects ready to explore</p>
           </div>
 
           <div class="quick-launch" data-home-quick-launch></div>
 
           <div class="launcher-note">
-            <strong>Why this layout works better now</strong>
+            <strong>Why this layout works</strong>
             <p>
-              The scene is visual first, but the links stay visible, clickable, and resilient instead of hiding behind
-              a redirect.
+              The scene is visual first, but the links stay visible, clickable, and resilient.
+              No redirects, no hidden navigation — just immediate access to every world.
             </p>
           </div>
-        </aside>
+        </section>
 
-        <section class="panel panel--grid" aria-labelledby="project-grid-title">
+        <section class="section reveal reveal-delay-3" aria-labelledby="project-grid-title">
           <div class="panel__head">
-            <div>
-              <p class="panel__eyebrow">Project grid</p>
-              <h2 id="project-grid-title">Launch from the homepage without losing the cinematic feel.</h2>
-            </div>
-            <p class="panel__count" data-project-count>18 live destinations plus the external site.</p>
+            <div class="panel__eyebrow">Project Grid</div>
+            <h2 id="project-grid-title">Every destination, one atmospheric homepage</h2>
+            <p class="panel__count" data-project-count>18 live destinations plus the external site</p>
           </div>
 
           <div class="project-grid" data-home-project-grid></div>
@@ -113,7 +131,7 @@
       </main>
 
       <div class="scene-fallback" aria-live="polite">
-        <strong>Scene fallback active.</strong>
+        <strong>Scene fallback active</strong>
         <p>
           The 3D background did not start, but the launcher is still fully usable. You can continue from here or open
           the directory view.
@@ -122,6 +140,5 @@
     </div>
 
     <script type="module" src="./shared/never-wet-homepage.js"></script>
-    <script type="module" src="./igloo-home/app.js"></script>
   </body>
 </html>

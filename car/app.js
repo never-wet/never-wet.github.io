@@ -16,6 +16,7 @@ import { DRACOLoader } from "./vendor/DRACOLoader.js";
   const activeTrait = document.getElementById("activeTrait");
   const readoutVelocity = document.getElementById("readoutVelocity");
   const readoutCd = document.getElementById("readoutCd");
+  const airSpeedControl = document.getElementById("airSpeedControl");
   const metricFlow = document.getElementById("metricFlow");
   const metricPressure = document.getElementById("metricPressure");
   const metricWake = document.getElementById("metricWake");
@@ -34,8 +35,13 @@ import { DRACOLoader } from "./vendor/DRACOLoader.js";
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const smallViewport = () => window.innerWidth < 760;
   const BODY_BASE = 0.03;
-  const WORLD_START = -8.4;
-  const WORLD_END = 8.4;
+  const WORLD_START = -4.4;
+  const WORLD_END = 4.4;
+  const TUNNEL_Y_MIN = 0.02;
+  const TUNNEL_Y_MAX = 1.62;
+  const TUNNEL_Z_HALF = 1.35;
+  const INTRO_MAX_RADIUS = 6.8;
+  const INTRO_DURATION = 3.25;
 
   const CARS = [
     {
@@ -306,7 +312,6 @@ import { DRACOLoader } from "./vendor/DRACOLoader.js";
 
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0xf2f2f2);
-  scene.fog = new THREE.FogExp2(0xf2f2f2, 0.024);
 
   const camera = new THREE.PerspectiveCamera(34, 1, 0.1, 120);
   camera.position.set(0, 1.08, 7.2);
@@ -338,10 +343,27 @@ import { DRACOLoader } from "./vendor/DRACOLoader.js";
   const aoTexture = textureLoader.load("./models/ferrari_ao.png");
   aoTexture.colorSpace = THREE.SRGBColorSpace;
   let debugEnabled = false;
+  const introState = {
+    started: false,
+    time: 0,
+    progress: 0,
+    radius: -0.45,
+    reality: 0,
+    blueprint: 1,
+    center: new THREE.Vector3(0, BODY_BASE + 0.45, 0),
+    uniforms: [],
+  };
 
   const carGroups = CARS.map((car, index) => {
     const group = createGltfCarShell(car);
     setGroupOpacity(group, index === 0 ? 1 : 0);
+    root.add(group);
+    return group;
+  });
+
+  const blueprintGroups = CARS.map((car, index) => {
+    const group = createBlueprintCarGroup(car);
+    group.visible = index === 0;
     root.add(group);
     return group;
   });
@@ -357,6 +379,9 @@ import { DRACOLoader } from "./vendor/DRACOLoader.js";
   const featureGroup = createFeatureGroup();
   scene.add(featureGroup);
   createStudio();
+  const blueprintEnvironment = createBlueprintEnvironment();
+  root.add(blueprintEnvironment);
+  root.add(createWindTunnelBox());
   const modelReady = loadGltfCars(carGroups).catch((error) => {
     console.warn("GLTF car model batch failed to load; using sculpted fallback bodies.", error);
     carGroups.forEach((group, index) => {
@@ -375,6 +400,8 @@ import { DRACOLoader } from "./vendor/DRACOLoader.js";
   let currentStage = -1;
   let lastTime = performance.now();
   let elapsed = 0;
+  let flowRestartTime = 0;
+  let targetAirSpeedKmh = Number.parseFloat(airSpeedControl?.value || "160") || 160;
   const pointer = { x: 0, y: 0, tx: 0, ty: 0 };
   const orbit = {
     dragging: false,
@@ -445,6 +472,10 @@ import { DRACOLoader } from "./vendor/DRACOLoader.js";
     setDebugEnabled(!debugEnabled);
   });
 
+  airSpeedControl?.addEventListener("input", () => {
+    targetAirSpeedKmh = Number.parseFloat(airSpeedControl.value) || 160;
+  });
+
   window.addEventListener("keydown", (event) => {
     if (event.altKey || event.ctrlKey || event.metaKey) return;
     if (event.key.toLowerCase() === "d") setDebugEnabled(!debugEnabled);
@@ -459,17 +490,22 @@ import { DRACOLoader } from "./vendor/DRACOLoader.js";
 
   const loaderStarted = performance.now();
   let assetReady = false;
+  let primaryAssetReady = false;
   modelReady.finally(() => {
     assetReady = true;
   });
   const loaderTimer = window.setInterval(() => {
     const elapsedLoad = performance.now() - loaderStarted;
     const timedAmount = Math.min(92, (elapsedLoad / 1200) * 92);
-    const amount = assetReady ? Math.min(100, timedAmount + 10) : timedAmount;
+    const amount = primaryAssetReady ? Math.min(100, timedAmount + 10) : timedAmount;
     loaderBar.style.width = `${amount}%`;
-    if (assetReady && amount >= 100) {
+    if (primaryAssetReady && amount >= 100) {
       window.clearInterval(loaderTimer);
-      window.setTimeout(() => loader.classList.add("is-done"), 240);
+      loader.querySelector(".loader__copy").textContent = "Resolving blueprint";
+      window.setTimeout(() => {
+        startBlueprintReveal();
+        window.setTimeout(() => loader.classList.add("is-done"), 180);
+      }, 220);
     }
   }, 40);
 
@@ -485,16 +521,20 @@ import { DRACOLoader } from "./vendor/DRACOLoader.js";
     orbit.yaw += (orbit.targetYaw - orbit.yaw) * 0.11;
     orbit.pitch += (orbit.targetPitch - orbit.pitch) * 0.11;
     transition = Math.min(1, transition + delta * 1.55);
+    updateBlueprintReveal(delta);
 
-    const carReveal = 1;
+    const carReveal = Math.max(0.001, introState.reality);
+    const introFlow = smoothstep(0.58, 1, introState.progress);
     const flowReveal = 0.28 + smoothstep(0.13, 0.54, smoothScroll) * 0.72;
     const fullFlow = smoothstep(0.34, 0.62, smoothScroll);
     const featureFocus = smoothstep(0.62, 0.73, smoothScroll) * (1 - smoothstep(0.9, 0.98, smoothScroll));
     const finalPulse = smoothstep(0.82, 1, smoothScroll);
     const intensity = 0.14 + fullFlow * 0.86 + finalPulse * 0.28;
-    const windSpeed = reducedMotion
+    const baseWindSpeed = reducedMotion
       ? 0.32
       : 0.62 + fullFlow * 0.7 + Math.sin(elapsed * 0.7) * 0.04 - finalPulse * 0.16;
+    const airSpeedMultiplier = clamp(targetAirSpeedKmh / 160, 0.5, 3.125);
+    const windSpeed = baseWindSpeed * airSpeedMultiplier;
     const easedTransition = easeOutCubic(transition);
 
     carGroups.forEach((group, index) => {
@@ -511,18 +551,25 @@ import { DRACOLoader } from "./vendor/DRACOLoader.js";
       }
     });
 
-    flowGroups.forEach((group, index) => {
+    blueprintGroups.forEach((group, index) => {
       let opacity = 0;
       if (index === activeIndex) opacity = easedTransition;
       if (index === previousIndex && previousIndex !== activeIndex) opacity = 1 - easedTransition;
+      setBlueprintOpacity(group, opacity * introState.blueprint);
+    });
+    setBlueprintOpacity(blueprintEnvironment, introState.blueprint);
+
+    const flowRestartReveal = smoothstep(0.05, 1.15, elapsed - flowRestartTime);
+    flowGroups.forEach((group, index) => {
+      const opacity = index === activeIndex ? easedTransition * flowRestartReveal : 0;
       group.rotation.y = 0;
-      setFlowUniforms(group, opacity, flowReveal, intensity, windSpeed, 0);
+      setFlowUniforms(group, opacity * introFlow, flowReveal * flowRestartReveal, intensity, windSpeed, 0);
       updateFlowTime(group, elapsed, delta);
     });
 
     updateCamera(smoothScroll);
     updateFeatureMarkers(featureFocus);
-    updateHud(smoothScroll, intensity, windSpeed);
+    updateHud(smoothScroll, intensity, targetAirSpeedKmh);
     if (debugEnabled) updateDebugReadout();
 
     renderer.render(scene, camera);
@@ -534,10 +581,49 @@ import { DRACOLoader } from "./vendor/DRACOLoader.js";
     previousIndex = activeIndex;
     activeIndex = index;
     transition = 0;
+    flowRestartTime = elapsed;
+    resetFlowGroup(flowGroups[previousIndex]);
+    resetFlowGroup(flowGroups[activeIndex]);
     updateActiveCopy(CARS[activeIndex]);
     updateDebugReadout();
     carButtons.forEach((button) => {
       button.classList.toggle("is-active", button.dataset.car === CARS[index].id);
+    });
+  }
+
+  function startBlueprintReveal() {
+    if (introState.started) return;
+    introState.started = true;
+    introState.time = reducedMotion ? INTRO_DURATION : 0;
+  }
+
+  function updateBlueprintReveal(delta) {
+    if (!introState.started) {
+      introState.progress = 0;
+      introState.radius = -0.45;
+      introState.reality = 0;
+      introState.blueprint = 1;
+    } else {
+      introState.time = Math.min(INTRO_DURATION, introState.time + delta);
+      const raw = clamp(introState.time / INTRO_DURATION, 0, 1);
+      introState.progress = easeInOutCubic(raw);
+      introState.radius = lerp(-0.32, INTRO_MAX_RADIUS, introState.progress);
+      introState.reality = smoothstep(0.04, 0.36, introState.progress);
+      introState.blueprint = 1 - smoothstep(0.66, 1, introState.progress);
+    }
+
+    introState.uniforms.forEach((uniforms) => {
+      uniforms.uIntroCenter.value.copy(introState.center);
+      uniforms.uIntroRadius.value = introState.radius;
+      uniforms.uIntroSoftness.value = lerp(0.28, 0.72, 1 - introState.progress);
+      uniforms.uIntroActive.value = 1 - smoothstep(0.985, 1, introState.progress);
+    });
+
+    renderer.toneMappingExposure = 0.74 + introState.reality * 0.34;
+    scene.traverse((node) => {
+      if (node.isLight && typeof node.userData.baseIntensity === "number") {
+        node.intensity = node.userData.baseIntensity * (0.22 + introState.reality * 0.78);
+      }
     });
   }
 
@@ -586,7 +672,8 @@ import { DRACOLoader } from "./vendor/DRACOLoader.js";
       <span>Collision <strong>6 zones + SDF</strong></span>
       <span>Moving paths <strong>${streamlines}</strong></span>
       <span>Particles <strong>${tracers}</strong></span>
-      <span>Spawn / exit <strong>${WORLD_START.toFixed(1)} / ${WORLD_END.toFixed(1)}</strong></span>
+      <span>Box x <strong>${WORLD_START.toFixed(1)} / ${WORLD_END.toFixed(1)}</strong></span>
+      <span>Box y <strong>${TUNNEL_Y_MIN.toFixed(1)} / ${TUNNEL_Y_MAX.toFixed(1)}</strong></span>
       <span>Particle x <strong>${firstX}</strong></span>
       <span>Velocity x <strong>${firstVx}</strong></span>
       <span>Respawns <strong>${respawns}</strong></span>
@@ -594,7 +681,7 @@ import { DRACOLoader } from "./vendor/DRACOLoader.js";
     `;
   }
 
-  function updateHud(progress, intensity, windSpeed) {
+  function updateHud(progress, intensity, targetSpeedKmh = 160) {
     const stage = getStage(progress);
     if (stage !== currentStage) {
       currentStage = stage;
@@ -609,9 +696,10 @@ import { DRACOLoader } from "./vendor/DRACOLoader.js";
     }
 
     scrollRail.style.height = `${Math.max(1, progress * 100)}%`;
-    const velocity = Math.round(82 + intensity * 48 + windSpeed * 42);
+    const velocity = Math.round(targetSpeedKmh);
+    const speedMultiplier = clamp(targetSpeedKmh / 160, 0.5, 3.125);
     readoutVelocity.textContent = `${velocity} km/h`;
-    metricFlow.textContent = `${Math.min(100, Math.round(28 + intensity * 68))}%`;
+    metricFlow.textContent = `${Math.min(100, Math.round((28 + intensity * 68) * (0.76 + Math.min(speedMultiplier, 2.4) * 0.1)))}%`;
     metricPressure.textContent = progress > 0.62 ? "Mapped" : progress > 0.35 ? "Active" : "Low";
     metricWake.textContent = progress > 0.82 ? "Rejoined" : progress > 0.5 ? "Tight" : "Clean";
   }
@@ -669,29 +757,36 @@ import { DRACOLoader } from "./vendor/DRACOLoader.js";
   }
 
   function createStudio() {
-    scene.add(new THREE.HemisphereLight(0xffffff, 0xbfc3c7, 1.05));
+    const hemi = new THREE.HemisphereLight(0xffffff, 0xbfc3c7, 1.05);
+    hemi.userData.baseIntensity = hemi.intensity;
+    scene.add(hemi);
 
     const key = new THREE.DirectionalLight(0xffffff, 2.35);
     key.position.set(-4, 5, 5);
     key.castShadow = false;
     key.shadow.mapSize.set(1024, 1024);
+    key.userData.baseIntensity = key.intensity;
     scene.add(key);
 
     const rim = new THREE.DirectionalLight(0xcdd9ff, 1.18);
     rim.position.set(5, 2.4, -3.5);
+    rim.userData.baseIntensity = rim.intensity;
     scene.add(rim);
 
     const warm = new THREE.PointLight(0xf2e4d2, 0.82, 12);
     warm.position.set(-3.8, 1.2, 3.6);
+    warm.userData.baseIntensity = warm.intensity;
     scene.add(warm);
 
+    const floorMaterial = new THREE.MeshStandardMaterial({
+      color: 0xe9e9e6,
+      metalness: 0.22,
+      roughness: 0.34,
+    });
+    applyIntroRevealMaterial(floorMaterial);
     const floor = new THREE.Mesh(
       new THREE.PlaneGeometry(24, 11, 1, 1),
-      new THREE.MeshStandardMaterial({
-        color: 0xe9e9e6,
-        metalness: 0.22,
-        roughness: 0.34,
-      }),
+      floorMaterial,
     );
     floor.rotation.x = -Math.PI / 2;
     floor.receiveShadow = false;
@@ -722,6 +817,224 @@ import { DRACOLoader } from "./vendor/DRACOLoader.js";
     scene.add(ribLines);
   }
 
+  function createWindTunnelBox() {
+    const group = new THREE.Group();
+    group.name = "contained-wind-tunnel";
+    const y0 = TUNNEL_Y_MIN;
+    const y1 = TUNNEL_Y_MAX;
+    const z0 = -TUNNEL_Z_HALF;
+    const z1 = TUNNEL_Z_HALF;
+    const x0 = WORLD_START;
+    const x1 = WORLD_END;
+
+    const edges = [
+      x0, y0, z0, x1, y0, z0,
+      x1, y0, z0, x1, y1, z0,
+      x1, y1, z0, x0, y1, z0,
+      x0, y1, z0, x0, y0, z0,
+      x0, y0, z1, x1, y0, z1,
+      x1, y0, z1, x1, y1, z1,
+      x1, y1, z1, x0, y1, z1,
+      x0, y1, z1, x0, y0, z1,
+      x0, y0, z0, x0, y0, z1,
+      x0, y1, z0, x0, y1, z1,
+      x1, y0, z0, x1, y0, z1,
+      x1, y1, z0, x1, y1, z1,
+    ];
+    const edgeGeometry = new THREE.BufferGeometry();
+    edgeGeometry.setAttribute("position", new THREE.Float32BufferAttribute(edges, 3));
+    group.add(new THREE.LineSegments(
+      edgeGeometry,
+      new THREE.LineBasicMaterial({
+        color: 0x8a9aa8,
+        transparent: true,
+        opacity: 0.52,
+        depthTest: false,
+        depthWrite: false,
+      }),
+    ));
+
+    const planeGeometry = new THREE.PlaneGeometry(TUNNEL_Z_HALF * 2, TUNNEL_Y_MAX - TUNNEL_Y_MIN, 1, 1);
+    const inletMaterial = new THREE.MeshBasicMaterial({
+      color: 0xd7f0ff,
+      transparent: true,
+      opacity: 0.12,
+      side: THREE.DoubleSide,
+      depthTest: false,
+      depthWrite: false,
+    });
+    const outletMaterial = inletMaterial.clone();
+    outletMaterial.color.set(0xe7f3ff);
+    outletMaterial.opacity = 0.04;
+
+    const inlet = new THREE.Mesh(planeGeometry, inletMaterial);
+    inlet.position.set(WORLD_START, (y0 + y1) * 0.5, 0);
+    inlet.rotation.y = Math.PI / 2;
+    group.add(inlet);
+
+    const outlet = new THREE.Mesh(planeGeometry, outletMaterial);
+    outlet.position.set(WORLD_END, (y0 + y1) * 0.5, 0);
+    outlet.rotation.y = Math.PI / 2;
+    group.add(outlet);
+
+    const floorGuide = new THREE.Mesh(
+      new THREE.PlaneGeometry(WORLD_END - WORLD_START, TUNNEL_Z_HALF * 2, 1, 1),
+      new THREE.MeshBasicMaterial({
+        color: 0xffffff,
+        transparent: true,
+        opacity: 0.035,
+        side: THREE.DoubleSide,
+        depthTest: false,
+        depthWrite: false,
+      }),
+    );
+    floorGuide.position.set(0, TUNNEL_Y_MIN, 0);
+    floorGuide.rotation.x = -Math.PI / 2;
+    group.add(floorGuide);
+
+    const profile = [
+      x0, y0, 0, x1, y0, 0,
+      x1, y0, 0, x1, y1, 0,
+      x1, y1, 0, x0, y1, 0,
+      x0, y1, 0, x0, y0, 0,
+    ];
+    const profileGeometry = new THREE.BufferGeometry();
+    profileGeometry.setAttribute("position", new THREE.Float32BufferAttribute(profile, 3));
+    group.add(new THREE.LineSegments(
+      profileGeometry,
+      new THREE.LineBasicMaterial({
+        color: 0x8799a6,
+        transparent: true,
+        opacity: 0.44,
+        depthTest: false,
+        depthWrite: false,
+      }),
+    ));
+    group.traverse((node) => {
+      node.renderOrder = 12;
+    });
+    return group;
+  }
+
+  function createBlueprintEnvironment() {
+    const group = new THREE.Group();
+    group.name = "blueprint-environment";
+    const material = createBlueprintLineMaterial(0.42);
+
+    const floorLines = [];
+    for (let x = -7; x <= 7.001; x += 0.5) {
+      floorLines.push(x, 0.018, -3.2, x, 0.018, 3.2);
+    }
+    for (let z = -3; z <= 3.001; z += 0.5) {
+      floorLines.push(-7.2, 0.018, z, 7.2, 0.018, z);
+    }
+    const floorGeometry = new THREE.BufferGeometry();
+    floorGeometry.setAttribute("position", new THREE.Float32BufferAttribute(floorLines, 3));
+    const floorGrid = new THREE.LineSegments(floorGeometry, material.clone());
+    floorGrid.material.userData.baseOpacity = 0.32;
+    group.add(floorGrid);
+
+    const frameLines = [];
+    for (let x = -6; x <= 6.001; x += 2) {
+      frameLines.push(x, 0.02, -3.2, x, 2.1, -3.2);
+      frameLines.push(x, 2.1, -3.2, x, 2.1, 3.2);
+      frameLines.push(x, 2.1, 3.2, x, 0.02, 3.2);
+    }
+    frameLines.push(-6, 0.02, -3.2, 6, 0.02, -3.2);
+    frameLines.push(-6, 0.02, 3.2, 6, 0.02, 3.2);
+    const frameGeometry = new THREE.BufferGeometry();
+    frameGeometry.setAttribute("position", new THREE.Float32BufferAttribute(frameLines, 3));
+    const frame = new THREE.LineSegments(frameGeometry, material.clone());
+    frame.material.userData.baseOpacity = 0.42;
+    group.add(frame);
+
+    const scan = new THREE.Mesh(
+      new THREE.RingGeometry(0.98, 1.02, 128),
+      new THREE.MeshBasicMaterial({
+        color: 0x8bdcff,
+        transparent: true,
+        opacity: 0.52,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+      }),
+    );
+    scan.name = "blueprint-reveal-ring";
+    scan.rotation.x = -Math.PI / 2;
+    scan.position.set(0, BODY_BASE + 0.028, 0);
+    scan.userData.baseOpacity = 0.52;
+    group.userData.scan = scan;
+    group.add(scan);
+
+    group.renderOrder = 16;
+    return group;
+  }
+
+  function createBlueprintCarGroup(car) {
+    const group = new THREE.Group();
+    group.name = `${car.id}-blueprint`;
+    const material = createBlueprintLineMaterial(0.72);
+    const profilePoints = sampleProfilePoints(car, createBodyUpperProfile(car), car.lower);
+    const profile = [];
+    profilePoints.forEach((point, index) => {
+      const next = profilePoints[(index + 1) % profilePoints.length];
+      profile.push(point.x, point.y, -car.width * 0.5, next.x, next.y, -car.width * 0.5);
+      profile.push(point.x, point.y, car.width * 0.5, next.x, next.y, car.width * 0.5);
+      if (index % 8 === 0) {
+        profile.push(point.x, point.y, -car.width * 0.5, point.x, point.y, car.width * 0.5);
+      }
+    });
+    const profileGeometry = new THREE.BufferGeometry();
+    profileGeometry.setAttribute("position", new THREE.Float32BufferAttribute(profile, 3));
+    group.add(new THREE.LineSegments(profileGeometry, material.clone()));
+
+    const cabin = car.cabin.map(([x, y]) => new THREE.Vector3(x * car.length * 0.5, BODY_BASE + y * car.height, 0));
+    const cabinLines = [];
+    cabin.forEach((point, index) => {
+      const next = cabin[(index + 1) % cabin.length];
+      [-1, 1].forEach((side) => {
+        cabinLines.push(point.x, point.y, side * car.width * 0.29, next.x, next.y, side * car.width * 0.29);
+      });
+      if (index % 2 === 0) {
+        cabinLines.push(point.x, point.y, -car.width * 0.29, point.x, point.y, car.width * 0.29);
+      }
+    });
+    const cabinGeometry = new THREE.BufferGeometry();
+    cabinGeometry.setAttribute("position", new THREE.Float32BufferAttribute(cabinLines, 3));
+    group.add(new THREE.LineSegments(cabinGeometry, material.clone()));
+
+    const wheelMaterial = createBlueprintLineMaterial(0.58);
+    [car.wheelFront, car.wheelRear].forEach((xRatio) => {
+      [-1, 1].forEach((side) => {
+        const radius = car.displayWheelRadius || car.wheelRadius;
+        const wheel = new THREE.LineSegments(
+          new THREE.EdgesGeometry(new THREE.TorusGeometry(radius, radius * 0.08, 8, 48)),
+          wheelMaterial.clone(),
+        );
+        wheel.position.set(xRatio * car.length * 0.5, radius + 0.03 + (car.displayWheelYOffset || 0), side * (car.width * 0.5 + 0.05));
+        wheel.rotation.y = Math.PI / 2;
+        group.add(wheel);
+      });
+    });
+
+    group.traverse((node) => {
+      if (node.material) node.renderOrder = 18;
+    });
+    return group;
+  }
+
+  function createBlueprintLineMaterial(opacity) {
+    const material = new THREE.LineBasicMaterial({
+      color: 0x8bdcff,
+      transparent: true,
+      opacity,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+      depthTest: false,
+    });
+    material.userData.baseOpacity = opacity;
+    return material;
+  }
+
   function createGltfCarShell(car) {
     const group = new THREE.Group();
     group.name = car.id;
@@ -742,11 +1055,19 @@ import { DRACOLoader } from "./vendor/DRACOLoader.js";
         loadGltfCar(car)
           .then((gltf) => {
             mountGltfCar(groups[index], gltf.scene, car);
+            if (index === activeIndex) {
+              primaryAssetReady = true;
+              startBlueprintReveal();
+            }
           })
           .catch((error) => {
             console.warn(`${car.brand} ${car.model} failed to load; using sculpted fallback body.`, error);
             groups[index].add(createFallbackCarGroup(car));
             setGroupOpacity(groups[index], groups[index].visible ? 1 : 0);
+            if (index === activeIndex) {
+              primaryAssetReady = true;
+              startBlueprintReveal();
+            }
           }),
       ),
     );
@@ -1027,14 +1348,26 @@ import { DRACOLoader } from "./vendor/DRACOLoader.js";
     const group = new THREE.Group();
     group.name = `${car.id}-flow`;
     group.userData.materials = [];
-    const streamCount = smallViewport() ? 84 : 156;
+    const streamCount = smallViewport() ? 144 : 324;
     group.userData.streamlineCount = streamCount;
 
-    const pressureZones = createPressureZones(car);
-    pressureZones.traverse((node) => {
+    const streamlines = createStructuredStreamlines(car);
+    streamlines.traverse((node) => {
       if (node.material && node.material.uniforms) group.userData.materials.push(node.material);
     });
-    group.add(pressureZones);
+    group.add(streamlines);
+
+    const flowRibbons = createDirectionalFlowRibbons(car);
+    flowRibbons.traverse((node) => {
+      if (node.material && node.material.uniforms) group.userData.materials.push(node.material);
+    });
+    group.add(flowRibbons);
+
+    const featureFlows = createAeroFeatureFlows(car);
+    featureFlows.traverse((node) => {
+      if (node.material && node.material.uniforms) group.userData.materials.push(node.material);
+    });
+    group.add(featureFlows);
 
     const particleField = createAdvectedParticles(car);
     group.userData.particleField = particleField;
@@ -1055,16 +1388,432 @@ import { DRACOLoader } from "./vendor/DRACOLoader.js";
     return group;
   }
 
+  function createStructuredStreamlines(car) {
+    const group = new THREE.Group();
+    group.name = `${car.id}-structured-airflow`;
+    const seeds = [];
+    const rows = smallViewport() ? 5 : 8;
+    const columns = smallViewport() ? 5 : 8;
+    const total = rows * columns;
+
+    for (let row = 0; row < rows; row += 1) {
+      const yRatio = rows === 1 ? 0.5 : row / (rows - 1);
+      for (let col = 0; col < columns; col += 1) {
+        const zRatio = columns === 1 ? 0.5 : col / (columns - 1);
+        const y = lerp(TUNNEL_Y_MIN + 0.16, TUNNEL_Y_MAX - 0.14, yRatio);
+        const z = lerp(-TUNNEL_Z_HALF + 0.18, TUNNEL_Z_HALF - 0.18, zRatio);
+        const lane = clamp(z / TUNNEL_Z_HALF, -1, 1);
+        const side = z < 0 ? -1 : 1;
+        const normalizedBodyY = (y - BODY_BASE) / Math.max(0.1, car.height);
+        const absLane = Math.abs(lane);
+        let channel = "hood";
+        if (normalizedBodyY < 0.22) channel = "underbody";
+        else if (absLane > 0.58) channel = normalizedBodyY > 0.62 ? "shoulder" : "side";
+        else if (normalizedBodyY > 0.82) channel = "roof";
+        else if (normalizedBodyY > 0.52) channel = "hood";
+
+        seeds.push({
+          type: seeds.length % 6,
+          channel,
+          lane,
+          side,
+          y,
+          z,
+          influence: 0.72,
+          phase: seeds.length / Math.max(1, total),
+          inletOffset: 0,
+        });
+      }
+    }
+
+    const positions = [];
+    const progress = [];
+    const speeds = [];
+    seeds.forEach((seed) => {
+      const traced = traceStreamline(car, seed);
+      for (let i = 0; i < traced.points.length - 1; i += 1) {
+        const a = traced.points[i];
+        const b = traced.points[i + 1];
+        if (!isSegmentVisibleAroundCar(car, a, b)) continue;
+        const u0 = i / (traced.points.length - 1);
+        const u1 = (i + 1) / (traced.points.length - 1);
+        positions.push(a.x, a.y, a.z, b.x, b.y, b.z);
+        progress.push(u0, u1);
+        speeds.push(traced.speeds[i] || 0.4, traced.speeds[i + 1] || traced.speeds[i] || 0.4);
+      }
+    });
+
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+    geometry.setAttribute("aProgress", new THREE.Float32BufferAttribute(progress, 1));
+    geometry.setAttribute("aSpeed", new THREE.Float32BufferAttribute(speeds, 1));
+
+    const lines = new THREE.LineSegments(geometry, createStructuredLineMaterial(0.64, 0.0));
+    lines.frustumCulled = false;
+    group.add(lines);
+    return group;
+  }
+
+  function createDirectionalFlowRibbons(car) {
+    const group = new THREE.Group();
+    group.name = `${car.id}-directional-flow-ribbons`;
+    const lanes = [
+      { channel: "roof", lane: -0.22, y: BODY_BASE + car.height * 0.9, z: -car.width * 0.14, width: 0.022, opacity: 1.18 },
+      { channel: "roof", lane: 0.22, y: BODY_BASE + car.height * 0.9, z: car.width * 0.14, width: 0.022, opacity: 1.18 },
+      { channel: "hood", lane: -0.36, y: BODY_BASE + car.height * 0.62, z: -car.width * 0.24, width: 0.018, opacity: 1.08 },
+      { channel: "hood", lane: 0.36, y: BODY_BASE + car.height * 0.62, z: car.width * 0.24, width: 0.018, opacity: 1.08 },
+      { channel: "side", lane: -0.7, y: BODY_BASE + car.height * 0.48, z: -car.width * 0.64, width: 0.017, opacity: 1.02 },
+      { channel: "side", lane: 0.7, y: BODY_BASE + car.height * 0.48, z: car.width * 0.64, width: 0.017, opacity: 1.02 },
+      { channel: "shoulder", lane: -0.86, y: BODY_BASE + car.height * 0.72, z: -car.width * 0.74, width: 0.017, opacity: 1.02 },
+      { channel: "shoulder", lane: 0.86, y: BODY_BASE + car.height * 0.72, z: car.width * 0.74, width: 0.017, opacity: 1.02 },
+      { channel: "underbody", lane: -0.28, y: BODY_BASE + car.height * 0.15, z: -car.width * 0.22, width: 0.012, opacity: 0.9 },
+      { channel: "underbody", lane: 0.28, y: BODY_BASE + car.height * 0.15, z: car.width * 0.22, width: 0.012, opacity: 0.9 },
+    ];
+
+    lanes.forEach((lane, index) => {
+      const seed = {
+        type: index % 6,
+        channel: lane.channel,
+        lane: lane.lane,
+        side: lane.lane < 0 ? -1 : 1,
+        y: clamp(lane.y, TUNNEL_Y_MIN + 0.08, TUNNEL_Y_MAX - 0.08),
+        z: clamp(lane.z, -TUNNEL_Z_HALF + 0.12, TUNNEL_Z_HALF - 0.12),
+        influence: 1,
+        phase: index / lanes.length,
+        inletOffset: 0,
+      };
+      const traced = traceStreamline(car, seed);
+      const points = traced.points.filter((point, pointIndex) => {
+        if (pointIndex === 0 || pointIndex === traced.points.length - 1) return true;
+        const prev = traced.points[pointIndex - 1];
+        return isSegmentVisibleAroundCar(car, prev, point);
+      });
+      if (points.length < 4) return;
+      const curve = new THREE.CatmullRomCurve3(points, false, "catmullrom", 0.28);
+      const geometry = new THREE.TubeGeometry(curve, smallViewport() ? 72 : 116, lane.width, 5, false);
+      const ribbon = new THREE.Mesh(geometry, createFlowRibbonMaterial(lane.opacity || 1.2, index * 0.113));
+      ribbon.frustumCulled = false;
+      ribbon.renderOrder = 24 + index;
+      group.add(ribbon);
+    });
+
+    return group;
+  }
+
+  function createFlowRibbonMaterial(baseOpacity, seed) {
+    const material = new THREE.ShaderMaterial({
+      transparent: true,
+      depthWrite: false,
+      depthTest: false,
+      side: THREE.DoubleSide,
+      blending: THREE.NormalBlending,
+      uniforms: {
+        uTime: { value: 0 },
+        uOpacity: { value: 0 },
+        uReveal: { value: 0 },
+        uIntensity: { value: 0 },
+        uWind: { value: 0.6 },
+        uSeed: { value: seed },
+      },
+      vertexShader: `
+        varying vec2 vUv;
+        varying float vX;
+        uniform float uTime;
+        uniform float uWind;
+        uniform float uSeed;
+
+        void main() {
+          vUv = uv;
+          vX = position.x;
+          vec3 p = position;
+          float breathe = sin(uv.x * 16.0 - uTime * (0.7 + uWind * 0.35) + uSeed * 6.2831853);
+          p += normal * breathe * 0.006;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
+        }
+      `,
+      fragmentShader: `
+        precision highp float;
+        varying vec2 vUv;
+        uniform float uTime;
+        uniform float uOpacity;
+        uniform float uReveal;
+        uniform float uIntensity;
+        uniform float uWind;
+        uniform float uSeed;
+
+        void main() {
+          float reveal = smoothstep(vUv.x - 0.08, vUv.x + 0.08, uReveal);
+          float endFade = smoothstep(0.0, 0.04, vUv.x) * (1.0 - smoothstep(0.96, 1.0, vUv.x));
+          float core = 1.0 - smoothstep(0.08, 0.5, abs(vUv.y - 0.5));
+          float softEdge = 1.0 - smoothstep(0.22, 0.5, abs(vUv.y - 0.5));
+          float strand = 0.74 + 0.26 * sin(vUv.x * 38.0 + uSeed * 11.0);
+          float packetPhase = fract(vUv.x * 7.0 - uTime * (0.5 + uWind * 0.36) - uSeed);
+          float packet = smoothstep(0.0, 0.08, packetPhase) * (1.0 - smoothstep(0.22, 0.68, packetPhase));
+          vec3 color = mix(vec3(0.72, 0.86, 0.96), vec3(1.0), 0.7 + packet * 0.2);
+          float alpha = core * softEdge * strand * endFade * reveal * uOpacity * (0.34 + uIntensity * 0.32 + packet * 0.48);
+          if (alpha < 0.004) discard;
+          gl_FragColor = vec4(color, alpha);
+        }
+      `,
+    });
+    material.userData.baseOpacity = baseOpacity;
+    return material;
+  }
+
+  function createAeroFeatureFlows(car) {
+    const group = new THREE.Group();
+    group.name = `${car.id}-feature-aware-flow`;
+    const feature = getAeroFeatureProfile(car);
+    const material = createStructuredLineMaterial(0.78, 0.29);
+
+    addIntakeFlowLines(group, material, car, feature);
+    addWingSplitLines(group, material, car, feature);
+    addDiffuserLines(group, material, car, feature);
+    return group;
+  }
+
+  function addIntakeFlowLines(group, material, car, feature) {
+    const lines = [];
+    const progress = [];
+    const speeds = [];
+    const intakes = [
+      {
+        enabled: feature.frontIntake > 0.05,
+        x: -car.length * 0.46,
+        y: BODY_BASE + car.height * 0.32,
+        z: 0,
+        width: car.width * 0.36,
+        strength: feature.frontIntake,
+      },
+      {
+        enabled: feature.sideIntake > 0.05,
+        x: car.length * -0.08,
+        y: BODY_BASE + car.height * 0.46,
+        z: -car.width * 0.58,
+        width: car.width * 0.22,
+        strength: feature.sideIntake,
+      },
+      {
+        enabled: feature.sideIntake > 0.05,
+        x: car.length * -0.08,
+        y: BODY_BASE + car.height * 0.46,
+        z: car.width * 0.58,
+        width: car.width * 0.22,
+        strength: feature.sideIntake,
+      },
+    ].filter((intake) => intake.enabled);
+
+    intakes.forEach((intake, intakeIndex) => {
+      const strandCount = intake.z === 0 ? 5 : 4;
+      for (let i = 0; i < strandCount; i += 1) {
+        const lane = strandCount === 1 ? 0 : (i / (strandCount - 1) - 0.5);
+        const start = new THREE.Vector3(
+          Math.max(WORLD_START + 0.2, intake.x - car.length * (0.48 + intake.strength * 0.18)),
+          intake.y + lane * car.height * 0.13,
+          intake.z + lane * intake.width,
+        );
+        const mouth = new THREE.Vector3(intake.x, intake.y + lane * car.height * 0.045, intake.z + lane * intake.width * 0.28);
+        const sink = new THREE.Vector3(intake.x + car.length * 0.13, intake.y - car.height * 0.015, intake.z);
+        const curve = new THREE.CatmullRomCurve3([start, start.clone().lerp(mouth, 0.55), mouth, sink], false, "catmullrom", 0.25);
+        const points = curve.getPoints(28);
+        for (let j = 0; j < points.length - 1; j += 1) {
+          const a = points[j];
+          const b = points[j + 1];
+          lines.push(a.x, a.y, a.z, b.x, b.y, b.z);
+          progress.push(j / points.length, (j + 1) / points.length);
+          speeds.push(0.62 + intake.strength * 0.34, 0.68 + intake.strength * 0.34);
+        }
+      }
+      const ring = createFeatureRing(0xeffaff, 0.18 + intake.strength * 0.16);
+      ring.position.set(intake.x + 0.015, intake.y, intake.z);
+      ring.scale.setScalar(intake.z === 0 ? car.width * 0.18 : car.width * 0.1);
+      ring.rotation.y = Math.PI / 2;
+      group.add(ring);
+    });
+
+    if (!lines.length) return;
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute("position", new THREE.Float32BufferAttribute(lines, 3));
+    geometry.setAttribute("aProgress", new THREE.Float32BufferAttribute(progress, 1));
+    geometry.setAttribute("aSpeed", new THREE.Float32BufferAttribute(speeds, 1));
+    const mesh = new THREE.LineSegments(geometry, material.clone());
+    mesh.frustumCulled = false;
+    mesh.renderOrder = 30;
+    mesh.material.userData.baseOpacity = 0.62;
+    group.add(mesh);
+  }
+
+  function addWingSplitLines(group, material, car, feature) {
+    if (feature.wing < 0.08) return;
+    const lines = [];
+    const progress = [];
+    const speeds = [];
+    const wingX = car.length * 0.46;
+    const wingY = BODY_BASE + car.height * (0.86 + feature.wingHeight * 0.12);
+    const lanes = [-0.42, -0.16, 0.16, 0.42];
+
+    lanes.forEach((lane, laneIndex) => {
+      const z = lane * car.width;
+      const upper = [
+        new THREE.Vector3(wingX - car.length * 0.38, wingY + car.height * 0.08, z),
+        new THREE.Vector3(wingX - car.length * 0.08, wingY + car.height * 0.12, z * 0.92),
+        new THREE.Vector3(wingX + car.length * 0.2, wingY + car.height * 0.08, z * 0.86),
+        new THREE.Vector3(wingX + car.length * 0.55, wingY - car.height * (0.03 + feature.downforce * 0.08), z * 0.78),
+      ];
+      const lower = [
+        new THREE.Vector3(wingX - car.length * 0.34, wingY - car.height * 0.05, z),
+        new THREE.Vector3(wingX - car.length * 0.05, wingY - car.height * 0.07, z * 0.94),
+        new THREE.Vector3(wingX + car.length * 0.22, wingY - car.height * (0.09 + feature.downforce * 0.08), z * 0.84),
+        new THREE.Vector3(wingX + car.length * 0.48, wingY - car.height * (0.16 + feature.downforce * 0.14), z * 0.75),
+      ];
+      [upper, lower].forEach((path, pathIndex) => {
+        const curve = new THREE.CatmullRomCurve3(path, false, "catmullrom", 0.32);
+        const points = curve.getPoints(34);
+        for (let i = 0; i < points.length - 1; i += 1) {
+          const a = points[i];
+          const b = points[i + 1];
+          lines.push(a.x, a.y, a.z, b.x, b.y, b.z);
+          progress.push(i / points.length, (i + 1) / points.length);
+          const speed = pathIndex === 0 ? 0.8 + feature.wing * 0.28 : 0.34 + feature.wing * 0.14;
+          speeds.push(speed, speed);
+        }
+      });
+    });
+
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute("position", new THREE.Float32BufferAttribute(lines, 3));
+    geometry.setAttribute("aProgress", new THREE.Float32BufferAttribute(progress, 1));
+    geometry.setAttribute("aSpeed", new THREE.Float32BufferAttribute(speeds, 1));
+    const mesh = new THREE.LineSegments(geometry, material.clone());
+    mesh.frustumCulled = false;
+    mesh.renderOrder = 31;
+    mesh.material.userData.baseOpacity = 0.7;
+    group.add(mesh);
+  }
+
+  function addDiffuserLines(group, material, car, feature) {
+    const lines = [];
+    const progress = [];
+    const speeds = [];
+    const lanes = [-0.46, -0.22, 0, 0.22, 0.46];
+    lanes.forEach((lane) => {
+      const z = lane * car.width;
+      const path = [
+        new THREE.Vector3(-car.length * 0.34, BODY_BASE + car.height * 0.12, z * 0.78),
+        new THREE.Vector3(car.length * 0.18, BODY_BASE + car.height * 0.09, z * 0.9),
+        new THREE.Vector3(car.length * 0.5, BODY_BASE + car.height * 0.15, z * (1.05 + feature.diffuser * 0.2)),
+        new THREE.Vector3(WORLD_END - 0.45, BODY_BASE + car.height * (0.2 + feature.diffuser * 0.08), z * (1.18 + feature.diffuser * 0.22)),
+      ];
+      const curve = new THREE.CatmullRomCurve3(path, false, "catmullrom", 0.3);
+      const points = curve.getPoints(46);
+      for (let i = 0; i < points.length - 1; i += 1) {
+        const a = points[i];
+        const b = points[i + 1];
+        lines.push(a.x, a.y, a.z, b.x, b.y, b.z);
+        progress.push(i / points.length, (i + 1) / points.length);
+        speeds.push(0.7 + feature.diffuser * 0.28, 0.78 + feature.diffuser * 0.24);
+      }
+    });
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute("position", new THREE.Float32BufferAttribute(lines, 3));
+    geometry.setAttribute("aProgress", new THREE.Float32BufferAttribute(progress, 1));
+    geometry.setAttribute("aSpeed", new THREE.Float32BufferAttribute(speeds, 1));
+    const mesh = new THREE.LineSegments(geometry, material.clone());
+    mesh.frustumCulled = false;
+    mesh.renderOrder = 32;
+    mesh.material.userData.baseOpacity = 0.52 + feature.diffuser * 0.12;
+    group.add(mesh);
+  }
+
+  function createFeatureRing(color, opacity) {
+    const material = new THREE.MeshBasicMaterial({
+      color,
+      transparent: true,
+      opacity,
+      depthWrite: false,
+      depthTest: false,
+      side: THREE.DoubleSide,
+    });
+    material.userData.baseOpacity = opacity;
+    return new THREE.Mesh(new THREE.RingGeometry(0.9, 1, 36), material);
+  }
+
+  function isSegmentVisibleAroundCar(car, a, b) {
+    const x = (a.x + b.x) * 0.5;
+    const y = (a.y + b.y) * 0.5;
+    const t = x / (car.length * 0.5);
+    const body = smoothstep(-1.14, -0.9, t) * (1 - smoothstep(0.88, 1.12, t));
+    if (body < 0.02) return true;
+    const roof = sampleUpper(car, clamp(t, -1, 1)) + car.height * 0.1;
+    const lower = BODY_BASE + car.height * 0.08;
+    return y <= lower || y >= roof;
+  }
+
+  function createStructuredLineMaterial(baseOpacity, seed) {
+    const material = new THREE.ShaderMaterial({
+      transparent: true,
+      depthWrite: false,
+      depthTest: false,
+      blending: THREE.NormalBlending,
+      uniforms: {
+        uTime: { value: 0 },
+        uOpacity: { value: 0 },
+        uReveal: { value: 0 },
+        uIntensity: { value: 0 },
+        uWind: { value: 0.6 },
+        uSeed: { value: seed },
+      },
+      vertexShader: `
+        attribute float aProgress;
+        attribute float aSpeed;
+        varying float vProgress;
+        varying float vSpeed;
+
+        void main() {
+          vProgress = aProgress;
+          vSpeed = aSpeed;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+      `,
+      fragmentShader: `
+        precision highp float;
+        varying float vProgress;
+        varying float vSpeed;
+        uniform float uTime;
+        uniform float uOpacity;
+        uniform float uReveal;
+        uniform float uIntensity;
+        uniform float uWind;
+        uniform float uSeed;
+
+        void main() {
+          float reveal = smoothstep(vProgress - 0.12, vProgress + 0.08, uReveal);
+          float packetPhase = fract(vProgress * 7.0 - uTime * (0.46 + uWind * 0.36 + vSpeed * 0.12) - uSeed);
+          float packet = smoothstep(0.0, 0.08, packetPhase) * (1.0 - smoothstep(0.2, 0.72, packetPhase));
+          float endFade = smoothstep(0.0, 0.03, vProgress) * (1.0 - smoothstep(0.97, 1.0, vProgress));
+          vec3 color = mix(vec3(0.56, 0.78, 0.95), vec3(0.96, 0.99, 1.0), smoothstep(0.2, 1.0, vSpeed));
+          float alpha = endFade * reveal * uOpacity * (0.16 + uIntensity * 0.24 + packet * 0.56);
+          if (alpha < 0.005) discard;
+          gl_FragColor = vec4(color, alpha);
+        }
+      `,
+    });
+    material.userData.baseOpacity = baseOpacity;
+    return material;
+  }
+
   function createAdvectedParticles(car) {
-    const count = smallViewport() ? 84 : 156;
-    const trailPoints = smallViewport() ? 52 : 104;
+    const count = smallViewport() ? 96 : 180;
+    const trailPoints = smallViewport() ? 28 : 36;
     const trailSegments = trailPoints - 1;
+    const vertexCount = count * trailSegments * 2;
     const positions = new Float32Array(count * 3);
     const velocities = new Float32Array(count * 3);
     const history = new Float32Array(count * trailPoints * 3);
-    const linePositions = new Float32Array(count * trailSegments * 6);
-    const speeds = new Float32Array(count * trailSegments * 2);
-    const fades = new Float32Array(count * trailSegments * 2);
+    const linePositions = new Float32Array(vertexCount * 3);
+    const speeds = new Float32Array(vertexCount);
+    const fades = new Float32Array(vertexCount);
+    const progress = new Float32Array(vertexCount);
     const seeds = [];
     const geometry = new THREE.BufferGeometry();
 
@@ -1083,6 +1832,7 @@ import { DRACOLoader } from "./vendor/DRACOLoader.js";
       linePositions,
       speeds,
       fades,
+      progress,
       seeds,
       points: null,
       debugGroup: null,
@@ -1104,6 +1854,7 @@ import { DRACOLoader } from "./vendor/DRACOLoader.js";
     geometry.setAttribute("position", new THREE.BufferAttribute(linePositions, 3));
     geometry.setAttribute("aSpeed", new THREE.BufferAttribute(speeds, 1));
     geometry.setAttribute("aFade", new THREE.BufferAttribute(fades, 1));
+    geometry.setAttribute("aProgress", new THREE.BufferAttribute(progress, 1));
 
     const material = new THREE.ShaderMaterial({
       transparent: true,
@@ -1120,12 +1871,15 @@ import { DRACOLoader } from "./vendor/DRACOLoader.js";
       vertexShader: `
         attribute float aSpeed;
         attribute float aFade;
+        attribute float aProgress;
         varying float vSpeed;
         varying float vFade;
+        varying float vProgress;
 
         void main() {
           vSpeed = aSpeed;
           vFade = aFade;
+          vProgress = aProgress;
           vec4 mv = modelViewMatrix * vec4(position, 1.0);
           gl_Position = projectionMatrix * mv;
         }
@@ -1134,24 +1888,27 @@ import { DRACOLoader } from "./vendor/DRACOLoader.js";
         precision highp float;
         varying float vSpeed;
         varying float vFade;
+        varying float vProgress;
+        uniform float uTime;
         uniform float uOpacity;
         uniform float uReveal;
         uniform float uIntensity;
+        uniform float uWind;
 
         void main() {
-          vec3 slow = vec3(0.58, 0.86, 1.0);
-          vec3 mid = vec3(0.05, 0.95, 0.62);
-          vec3 fast = vec3(1.0, 0.9, 0.18);
-          vec3 color = mix(slow, mid, smoothstep(0.18, 0.58, vSpeed));
-          color = mix(color, fast, smoothstep(0.68, 1.08, vSpeed));
+          vec3 slow = vec3(0.62, 0.78, 0.9);
+          vec3 fast = vec3(0.92, 0.98, 1.0);
+          vec3 color = mix(slow, fast, smoothstep(0.24, 1.08, vSpeed));
+          float packet = smoothstep(0.0, 0.12, fract(vProgress * 5.0 - uTime * (0.5 + uWind * 0.42)))
+            * (1.0 - smoothstep(0.3, 0.82, fract(vProgress * 5.0 - uTime * (0.5 + uWind * 0.42))));
           float reveal = smoothstep(0.08, 0.5, uReveal);
-          float alpha = vFade * reveal * uOpacity * (0.34 + uIntensity * 0.66);
+          float alpha = vFade * reveal * uOpacity * (0.18 + uIntensity * 0.22 + packet * 0.42);
           if (alpha < 0.006) discard;
           gl_FragColor = vec4(color, alpha);
         }
       `,
     });
-    material.userData.baseOpacity = 1.34;
+    material.userData.baseOpacity = 0.58;
 
     const points = new THREE.LineSegments(geometry, material);
     points.frustumCulled = false;
@@ -1161,16 +1918,15 @@ import { DRACOLoader } from "./vendor/DRACOLoader.js";
   }
 
   function respawnAdvectedParticle(field, index, spread = 0) {
-    const car = field.car;
     const seed = field.seeds[index];
     const lanePhase = (index * 0.61803398875) % 1;
-    const x = spread > 0 ? lerp(WORLD_START - 0.9, WORLD_END * 0.76, spread) : WORLD_START - 1.1 - lanePhase * 0.5;
-    const y = seed.y + (lanePhase - 0.5) * car.height * 0.16;
-    const z = seed.z + (((index * 17) % 11) / 10 - 0.5) * car.width * 0.28;
+    const x = spread > 0 ? lerp(WORLD_START, WORLD_END - 0.18, seed.phase ?? spread) : WORLD_START + (seed.inletOffset ?? 0);
+    const y = seed.y + (lanePhase - 0.5) * 0.035;
+    const z = seed.z + (((index * 17) % 11) / 10 - 0.5) * 0.045;
     const offset = index * 3;
     field.positions[offset] = x;
-    field.positions[offset + 1] = clamp(y, BODY_BASE + 0.1, BODY_BASE + car.height * 1.46);
-    field.positions[offset + 2] = clamp(z, -car.width * 1.42, car.width * 1.42);
+    field.positions[offset + 1] = clamp(y, TUNNEL_Y_MIN + 0.05, TUNNEL_Y_MAX - 0.05);
+    field.positions[offset + 2] = clamp(z, -TUNNEL_Z_HALF + 0.06, TUNNEL_Z_HALF - 0.06);
     field.velocities[offset] = 1;
     field.velocities[offset + 1] = 0;
     field.velocities[offset + 2] = 0;
@@ -1191,22 +1947,21 @@ import { DRACOLoader } from "./vendor/DRACOLoader.js";
       particleVelocity.x = Math.max(0.22, particleVelocity.x);
       cursor.addScaledVector(particleVelocity, step);
       resolveAirCollision(car, cursor);
+      constrainToAeroSpace(car, cursor, particleVelocity, seeds[i]);
 
-      const outOfBounds =
-        cursor.x > WORLD_END + 0.6 ||
-        cursor.y < BODY_BASE - 0.02 ||
-        cursor.y > BODY_BASE + car.height * 1.7 ||
-        Math.abs(cursor.z) > car.width * 1.62;
+      cursor.y = clamp(cursor.y, TUNNEL_Y_MIN + 0.012, TUNNEL_Y_MAX - 0.012);
+      cursor.z = clamp(cursor.z, -TUNNEL_Z_HALF + 0.012, TUNNEL_Z_HALF - 0.012);
+      const outOfBounds = cursor.x > WORLD_END;
 
-      if (outOfBounds) {
+      if (outOfBounds || shouldSinkIntoIntake(car, cursor, seeds[i])) {
         field.respawnCount += 1;
         respawnAdvectedParticle(field, i, 0);
         seedTrailHistory(field, i);
         cursor.set(positions[offset], positions[offset + 1], positions[offset + 2]);
       }
 
-      const inletFade = smoothstep(WORLD_START - 0.7, WORLD_START + 1.4, cursor.x);
-      const exitFade = 1 - smoothstep(WORLD_END - 1.2, WORLD_END + 0.5, cursor.x);
+      const inletFade = smoothstep(WORLD_START, WORLD_START + 0.22, cursor.x);
+      const exitFade = 1 - smoothstep(WORLD_END - 0.28, WORLD_END, cursor.x);
       positions[offset] = cursor.x;
       positions[offset + 1] = cursor.y;
       positions[offset + 2] = cursor.z;
@@ -1228,7 +1983,51 @@ import { DRACOLoader } from "./vendor/DRACOLoader.js";
     field.points.geometry.attributes.position.needsUpdate = true;
     field.points.geometry.attributes.aSpeed.needsUpdate = true;
     field.points.geometry.attributes.aFade.needsUpdate = true;
+    field.points.geometry.attributes.aProgress.needsUpdate = true;
     updateParticleDebugLayer(field);
+  }
+
+  function shouldSinkIntoIntake(car, point, seed) {
+    const feature = getAeroFeatureProfile(car);
+    const t = point.x / (car.length * 0.5);
+    const front = feature.frontIntake > 0.08
+      && (seed.channel === "hood" || seed.channel === "underbody")
+      && Math.abs(t + 0.78) < 0.1
+      && Math.abs(point.y - (BODY_BASE + car.height * 0.32)) < car.height * 0.18
+      && Math.abs(point.z) < car.width * 0.23;
+    const side = feature.sideIntake > 0.08
+      && (seed.channel === "side" || seed.channel === "shoulder")
+      && Math.abs(t + 0.08) < 0.14
+      && Math.abs(point.y - (BODY_BASE + car.height * 0.46)) < car.height * 0.2
+      && Math.abs(Math.abs(point.z) - car.width * 0.48) < car.width * 0.18;
+    if (!front && !side) return false;
+    const strength = front ? feature.frontIntake : feature.sideIntake;
+    return fract(seed.phase * 17.1 + t * 3.7 + point.y * 2.3) < 0.18 + strength * 0.24;
+  }
+
+  function resetFlowGroup(group) {
+    if (!group) return;
+    group.visible = false;
+    group.userData.materials?.forEach((material) => {
+      if (material.uniforms?.uOpacity) material.uniforms.uOpacity.value = 0;
+      if (material.uniforms?.uReveal) material.uniforms.uReveal.value = 0;
+      if (material.uniforms?.uTime) material.uniforms.uTime.value = 0;
+    });
+    resetAdvectedParticles(group.userData.particleField);
+  }
+
+  function resetAdvectedParticles(field) {
+    if (!field) return;
+    field.respawnCount = 0;
+    for (let i = 0; i < field.count; i += 1) {
+      respawnAdvectedParticle(field, i, 0);
+      seedTrailHistory(field, i);
+      writeTracerTrail(field, i, 0.2, 0);
+    }
+    field.points.geometry.attributes.position.needsUpdate = true;
+    field.points.geometry.attributes.aSpeed.needsUpdate = true;
+    field.points.geometry.attributes.aFade.needsUpdate = true;
+    field.points.geometry.attributes.aProgress.needsUpdate = true;
   }
 
   function seedTrailHistory(field, index) {
@@ -1238,14 +2037,11 @@ import { DRACOLoader } from "./vendor/DRACOLoader.js";
     for (let j = 0; j < field.trailPoints; j += 1) {
       const age = field.trailPoints - j - 1;
       const h = (index * field.trailPoints + j) * 3;
-      const x = Math.max(WORLD_START - 1.0, field.positions[offset] - age * interval);
-      const t = x / (field.car.length * 0.5);
-      const body = smoothstep(-1.18, -0.82, t) * (1 - smoothstep(0.78, 1.25, t));
-      const roofLift = seed.channel === "roof" || seed.channel === "hood" ? body * field.car.height * 0.16 : 0;
-      const sidePush = seed.channel === "side" || seed.channel === "shoulder" ? body * seed.side * field.car.width * 0.22 : 0;
+      const x = Math.max(WORLD_START, field.positions[offset] - age * interval);
+      const shaped = getAeroSpacePoint(field.car, x, seed, field.positions[offset + 1], field.positions[offset + 2]);
       field.history[h] = x;
-      field.history[h + 1] = field.positions[offset + 1] + roofLift + (seed.channel === "side" ? body * field.car.height * 0.08 : 0);
-      field.history[h + 2] = field.positions[offset + 2] + sidePush;
+      field.history[h + 1] = clamp(shaped.y, TUNNEL_Y_MIN, TUNNEL_Y_MAX);
+      field.history[h + 2] = clamp(shaped.z, -TUNNEL_Z_HALF, TUNNEL_Z_HALF);
     }
   }
 
@@ -1270,13 +2066,11 @@ import { DRACOLoader } from "./vendor/DRACOLoader.js";
 
   function writeTracerTrail(field, index, speed, fade) {
     const baseHistory = index * field.trailPoints * 3;
-    const baseLine = index * field.trailSegments * 6;
-    const baseSpeed = index * field.trailSegments * 2;
+    const seed = field.seeds[index];
     for (let j = 0; j < field.trailSegments; j += 1) {
       const from = baseHistory + j * 3;
       const to = baseHistory + (j + 1) * 3;
-      const line = baseLine + j * 6;
-      const attr = baseSpeed + j * 2;
+      const vertex = (index * field.trailSegments + j) * 2;
       const amount = (j + 1) / field.trailSegments;
       const midX = (field.history[from] + field.history[to]) * 0.5;
       const midY = (field.history[from + 1] + field.history[to + 1]) * 0.5;
@@ -1285,19 +2079,23 @@ import { DRACOLoader } from "./vendor/DRACOLoader.js";
       const roofLine = sampleUpper(field.car, clamp(t, -1, 1)) + field.car.height * 0.08;
       const lowerLine = BODY_BASE + field.car.height * 0.1;
       const insideSideView = silhouette > 0.02 && midY > lowerLine && midY < roofLine;
-      const occlusion = insideSideView ? 0.08 : 1;
-      const trailFade = fade * occlusion * (0.22 + amount * 0.78) * smoothstep(0.0, 0.16, amount);
-      field.linePositions[line] = field.history[from];
-      field.linePositions[line + 1] = field.history[from + 1];
-      field.linePositions[line + 2] = field.history[from + 2];
-      field.linePositions[line + 3] = field.history[to];
-      field.linePositions[line + 4] = field.history[to + 1];
-      field.linePositions[line + 5] = field.history[to + 2];
-      field.speeds[attr] = speed;
-      field.speeds[attr + 1] = speed;
-      field.fades[attr] = trailFade * 0.72;
-      field.fades[attr + 1] = trailFade;
+      const occlusion = insideSideView ? 0.03 : 1;
+      const ageFade = smoothstep(0.0, 0.18, amount) * (1 - smoothstep(0.92, 1.0, amount) * 0.18);
+      const channelDensity = seed.channel === "wake" ? 1.18 : seed.channel === "side" || seed.channel === "shoulder" ? 1.08 : 0.92;
+      const trailFade = fade * occlusion * ageFade * channelDensity;
+      writeTraceVertex(field, vertex, from, speed, trailFade * 0.52, amount);
+      writeTraceVertex(field, vertex + 1, to, speed, trailFade, amount);
     }
+  }
+
+  function writeTraceVertex(field, vertex, historyOffset, speed, fade, progress) {
+    const p = vertex * 3;
+    field.linePositions[p] = clamp(field.history[historyOffset], WORLD_START, WORLD_END);
+    field.linePositions[p + 1] = clamp(field.history[historyOffset + 1], TUNNEL_Y_MIN, TUNNEL_Y_MAX);
+    field.linePositions[p + 2] = clamp(field.history[historyOffset + 2], -TUNNEL_Z_HALF, TUNNEL_Z_HALF);
+    field.speeds[vertex] = speed;
+    field.fades[vertex] = fade;
+    field.progress[vertex] = progress;
   }
 
   function createParticleDebugLayer(field) {
@@ -1314,6 +2112,7 @@ import { DRACOLoader } from "./vendor/DRACOLoader.js";
       opacity: 0.62,
       size: 0.035,
       sizeAttenuation: true,
+      depthTest: false,
       depthWrite: false,
     });
     group.add(new THREE.Points(pointGeometry, pointMaterial));
@@ -1324,6 +2123,7 @@ import { DRACOLoader } from "./vendor/DRACOLoader.js";
       color: 0xff8a46,
       transparent: true,
       opacity: 0.72,
+      depthTest: false,
       depthWrite: false,
     });
     group.add(new THREE.LineSegments(vectorGeometry, vectorMaterial));
@@ -1332,12 +2132,13 @@ import { DRACOLoader } from "./vendor/DRACOLoader.js";
       color: 0x111111,
       transparent: true,
       opacity: 0.42,
+      depthTest: false,
       depthWrite: false,
     });
-    const y0 = BODY_BASE - 0.05;
-    const y1 = BODY_BASE + field.car.height * 1.55;
-    const z0 = -field.car.width * 1.55;
-    const z1 = field.car.width * 1.55;
+    const y0 = TUNNEL_Y_MIN;
+    const y1 = TUNNEL_Y_MAX;
+    const z0 = -TUNNEL_Z_HALF;
+    const z1 = TUNNEL_Z_HALF;
     const boundaryPositions = new Float32Array([
       WORLD_START, y0, z0, WORLD_START, y1, z0,
       WORLD_START, y1, z0, WORLD_START, y1, z1,
@@ -1392,13 +2193,13 @@ import { DRACOLoader } from "./vendor/DRACOLoader.js";
     const aero = getAero(car);
 
     for (let i = 0; i <= segments; i += 1) {
-      const x = lerp(WORLD_START - 0.15, WORLD_END + 0.15, i / segments);
+      const x = lerp(WORLD_START, WORLD_END, i / segments);
       const t = x / (car.length * 0.5);
       const body = smoothstep(-1.28, -0.72, t) * (1 - smoothstep(0.78, 1.42, t));
       const wake = smoothstep(0.78, 1.3, t) * (1 - smoothstep(1.3, 2.8, t));
-      const upper = BODY_BASE + car.height * (1.03 + body * (0.38 + aero.roofAttachment * 0.08) + wake * 0.12);
-      const lower = BODY_BASE + car.height * (0.02 - body * 0.02 + wake * 0.02);
-      const topZ = car.width * (0.72 + body * 0.1);
+      const upper = clamp(BODY_BASE + car.height * (1.03 + body * (0.38 + aero.roofAttachment * 0.08) + wake * 0.12), TUNNEL_Y_MIN, TUNNEL_Y_MAX);
+      const lower = clamp(BODY_BASE + car.height * (0.02 - body * 0.02 + wake * 0.02), TUNNEL_Y_MIN, TUNNEL_Y_MAX);
+      const topZ = Math.min(TUNNEL_Z_HALF, car.width * (0.72 + body * 0.1));
       topPoints.push(new THREE.Vector3(x, upper, topZ));
       centerTopPoints.push(new THREE.Vector3(x, upper + car.height * 0.05, 0));
       bottomPoints.push(new THREE.Vector3(x, lower, car.width * 0.48));
@@ -1448,9 +2249,9 @@ import { DRACOLoader } from "./vendor/DRACOLoader.js";
         uniform float uWind;
 
         void main() {
-          float dash = 0.45 + 0.55 * smoothstep(0.2, 1.0, fract(vX * 1.6 - uTime * (0.32 + uWind * 0.18)));
-          float alpha = dash * uOpacity * smoothstep(0.25, 0.7, uReveal) * (0.18 + uIntensity * 0.26);
-          gl_FragColor = vec4(0.04, 0.92, 0.62, alpha);
+          float breath = 0.72 + 0.28 * sin(vX * 1.4 - uTime * (0.26 + uWind * 0.16));
+          float alpha = breath * uOpacity * smoothstep(0.25, 0.7, uReveal) * (0.06 + uIntensity * 0.12);
+          gl_FragColor = vec4(0.78, 0.88, 0.94, alpha);
         }
       `,
     });
@@ -1462,6 +2263,8 @@ import { DRACOLoader } from "./vendor/DRACOLoader.js";
     const t = x / (car.length * 0.5);
     const body = smoothstep(-1.24, -0.74, t) * (1 - smoothstep(0.76, 1.32, t));
     const wake = smoothstep(0.78, 1.24, t) * (1 - smoothstep(1.24, 2.6, t));
+    const influence = seed.influence ?? 1;
+    const bodyInfluence = body * influence;
     const top = sampleUpper(car, clamp(t, -1, 1)) + car.height * (0.16 + body * 0.16);
     const lower = BODY_BASE + car.height * 0.08;
     const side = seed.side || Math.sign(seed.lane || 1);
@@ -1469,21 +2272,21 @@ import { DRACOLoader } from "./vendor/DRACOLoader.js";
     let z = sourceZ;
 
     if (seed.channel === "roof") {
-      y = lerp(y, top + car.height * 0.34, body * 0.96);
-      z = lerp(z, seed.lane * car.width * 0.18, 0.18);
+      y = lerp(y, top + car.height * 0.34, bodyInfluence * 0.96);
+      z = lerp(z, seed.lane * car.width * 0.18, influence * 0.18);
     } else if (seed.channel === "hood" || seed.channel === "wake") {
-      y = lerp(y, top + car.height * 0.18, body * 0.9);
-      z = lerp(z, seed.lane * car.width * 0.22, 0.18);
+      y = lerp(y, top + car.height * 0.18, bodyInfluence * 0.9);
+      z = lerp(z, seed.lane * car.width * 0.22, influence * 0.18);
     } else if (seed.channel === "underbody") {
-      y = lerp(y, lower, body * 0.94);
-      z = lerp(z, seed.lane * car.width * 0.28, 0.22);
+      y = lerp(y, lower, bodyInfluence * 0.94);
+      z = lerp(z, seed.lane * car.width * 0.28, influence * 0.22);
     } else {
-      y = lerp(y, top + car.height * (0.04 + Math.abs(seed.lane || 0) * 0.08), body * 0.78);
-      z = lerp(z, side * car.width * (1.04 + Math.abs(seed.lane || 0) * 0.34), body * 0.92);
+      y = lerp(y, top + car.height * (0.04 + Math.abs(seed.lane || 0) * 0.08), bodyInfluence * 0.78);
+      z = lerp(z, side * car.width * (1.04 + Math.abs(seed.lane || 0) * 0.34), bodyInfluence * 0.92);
     }
 
-    y += Math.sin(t * 6.0 + seed.type) * wake * getAero(car).turbulence * car.height * 0.25;
-    z += side * wake * getAero(car).wakeSpread * car.width * 0.12;
+    y += Math.sin(t * 6.0 + seed.type) * wake * influence * getAero(car).turbulence * car.height * 0.25;
+    z += side * wake * influence * getAero(car).wakeSpread * car.width * 0.12;
     return { y, z };
   }
 
@@ -1491,9 +2294,10 @@ import { DRACOLoader } from "./vendor/DRACOLoader.js";
     const shaped = getAeroSpacePoint(car, point.x, seed, point.y, point.z);
     const t = point.x / (car.length * 0.5);
     const body = smoothstep(-1.25, -0.78, t) * (1 - smoothstep(0.82, 1.36, t));
+    const influence = seed.influence ?? 1;
     const pull = seed.channel === "underbody" ? 0.16 : seed.channel === "side" || seed.channel === "shoulder" ? 0.2 : 0.24;
-    point.y = lerp(point.y, shaped.y, body * pull);
-    point.z = lerp(point.z, shaped.z, body * pull);
+    point.y = lerp(point.y, shaped.y, body * pull * influence);
+    point.z = lerp(point.z, shaped.z, body * pull * influence);
 
     const field = sampleCarField(car, point);
     const inSilhouette = field.bodyWindow > 0.02 && field.distance < 1.18;
@@ -1509,8 +2313,8 @@ import { DRACOLoader } from "./vendor/DRACOLoader.js";
       }
     }
 
-    const upperBound = BODY_BASE + car.height * (1.46 + body * 0.3);
-    const lowerBound = BODY_BASE + 0.012;
+    const upperBound = TUNNEL_Y_MAX - 0.006;
+    const lowerBound = TUNNEL_Y_MIN + 0.006;
     if (point.y > upperBound) {
       point.y = lerp(point.y, upperBound, 0.4);
       velocity.y *= 0.25;
@@ -1519,6 +2323,8 @@ import { DRACOLoader } from "./vendor/DRACOLoader.js";
       point.y = lowerBound;
       velocity.y = Math.max(0, velocity.y);
     }
+    point.y = clamp(point.y, TUNNEL_Y_MIN + 0.006, TUNNEL_Y_MAX - 0.006);
+    point.z = clamp(point.z, -TUNNEL_Z_HALF + 0.006, TUNNEL_Z_HALF - 0.006);
   }
 
   function createDebugGroup(car) {
@@ -1819,78 +2625,54 @@ import { DRACOLoader } from "./vendor/DRACOLoader.js";
   }
 
   function createPhysicsSeed(car, index, total) {
-    const groups = 6;
-    const row = Math.floor(index / groups);
-    const rows = Math.max(1, Math.ceil(total / groups) - 1);
-    const ratio = rows <= 0 ? 0.5 : row / rows;
-    const lane = ratio * 2 - 1;
-    const type = index % groups;
-    const side = (row + type) % 2 === 0 ? -1 : 1;
-    const jitter = ((index * 37) % 19) / 19 - 0.5;
+    const columns = smallViewport() ? 8 : 12;
+    const rows = smallViewport() ? 6 : 9;
+    const laneCount = columns * rows;
+    const laneIndex = index % laneCount;
+    const passIndex = Math.floor(index / laneCount);
+    const passCount = Math.max(1, Math.ceil(total / laneCount));
+    const row = Math.floor(laneIndex / columns);
+    const column = laneIndex % columns;
+    const rowRatio = rows <= 1 ? 0.5 : row / (rows - 1);
+    const columnRatio = columns <= 1 ? 0.5 : column / (columns - 1);
+    const jitterY = (((laneIndex * 37 + passIndex * 11) % 23) / 23 - 0.5) * 0.026;
+    const jitterZ = (((laneIndex * 53 + passIndex * 7) % 29) / 29 - 0.5) * 0.04;
+    const y = clamp(lerp(TUNNEL_Y_MIN + 0.08, TUNNEL_Y_MAX - 0.08, rowRatio) + jitterY, TUNNEL_Y_MIN + 0.06, TUNNEL_Y_MAX - 0.06);
+    const z = clamp(lerp(-TUNNEL_Z_HALF + 0.1, TUNNEL_Z_HALF - 0.1, columnRatio) + jitterZ, -TUNNEL_Z_HALF + 0.08, TUNNEL_Z_HALF - 0.08);
+    const lane = clamp(z / Math.max(0.1, TUNNEL_Z_HALF), -1, 1);
+    const side = z < 0 ? -1 : 1;
+    const type = index % 6;
+    const phase = fract((passIndex + 0.18) / passCount + laneIndex * 0.071);
+    const carCenterY = BODY_BASE + car.height * 0.54;
+    const verticalDistance = Math.abs(y - carCenterY) / Math.max(0.1, car.height * 0.9);
+    const lateralDistance = Math.abs(z) / Math.max(0.1, car.width * 0.82);
+    const bodyInfluence = clamp(1.08 - verticalDistance * 0.54 - Math.max(0, lateralDistance - 0.22) * 0.38, 0.16, 1);
+    const normalizedBodyY = (y - BODY_BASE) / Math.max(0.1, car.height);
     const absLane = Math.abs(lane);
+    let channel = "wake";
 
-    if (type === 0) {
-      return {
-        type,
-        channel: "roof",
-        lane,
-        side: Math.sign(lane || 1),
-        y: BODY_BASE + car.height * (0.7 + jitter * 0.025),
-        z: lane * car.width * 0.18,
-      };
-    }
-
-    if (type === 1) {
-      return {
-        type,
-        channel: "hood",
-        lane,
-        side: Math.sign(lane || 1),
-        y: BODY_BASE + car.height * (0.5 + absLane * 0.06 + jitter * 0.02),
-        z: lane * car.width * 0.22,
-      };
-    }
-
-    if (type === 2) {
-      return {
-        type,
-        channel: "underbody",
-        lane,
-        side: Math.sign(lane || 1),
-        y: BODY_BASE + car.height * (0.12 + jitter * 0.012),
-        z: lane * car.width * 0.34,
-      };
-    }
-
-    if (type === 3) {
-      return {
-        type,
-        channel: "side",
-        lane: side * Math.max(0.28, absLane),
-        side,
-        y: BODY_BASE + car.height * (0.46 + absLane * 0.13 + jitter * 0.02),
-        z: side * car.width * (0.58 + absLane * 0.32),
-      };
-    }
-
-    if (type === 4) {
-      return {
-        type,
-        channel: "shoulder",
-        lane: side * Math.max(0.2, absLane),
-        side,
-        y: BODY_BASE + car.height * (0.68 + absLane * 0.12 + jitter * 0.02),
-        z: side * car.width * (0.66 + absLane * 0.22),
-      };
+    if (normalizedBodyY < 0.22) {
+      channel = "underbody";
+    } else if (absLane > 0.62) {
+      channel = normalizedBodyY > 0.64 ? "shoulder" : "side";
+    } else if (normalizedBodyY > 0.86) {
+      channel = "roof";
+    } else if (normalizedBodyY > 0.5) {
+      channel = type % 2 === 0 ? "roof" : "hood";
+    } else {
+      channel = type % 3 === 0 ? "side" : "hood";
     }
 
     return {
       type,
-      channel: "wake",
+      channel,
       lane,
-      side: Math.sign(lane || 1),
-      y: BODY_BASE + car.height * (0.62 + lane * 0.06 + jitter * 0.03),
-      z: lane * car.width * 0.28,
+      side,
+      y,
+      z,
+      influence: bodyInfluence,
+      phase,
+      inletOffset: phase * 0.05,
     };
   }
 
@@ -1918,8 +2700,8 @@ import { DRACOLoader } from "./vendor/DRACOLoader.js";
       p.y += state.velocity.y * invX * dx;
       p.z += state.velocity.z * invX * dx;
       resolveAirCollision(car, p);
-      p.y = clamp(p.y, BODY_BASE + 0.08, BODY_BASE + car.height * 1.42);
-      p.z = clamp(p.z, -car.width * 1.35, car.width * 1.35);
+      p.y = clamp(p.y, TUNNEL_Y_MIN + 0.04, TUNNEL_Y_MAX - 0.04);
+      p.z = clamp(p.z, -TUNNEL_Z_HALF + 0.06, TUNNEL_Z_HALF - 0.06);
     }
 
     return { points, speeds };
@@ -1927,6 +2709,7 @@ import { DRACOLoader } from "./vendor/DRACOLoader.js";
 
   function sampleFlowField(car, point, seed) {
     const aero = getAero(car);
+    const feature = getAeroFeatureProfile(car);
     const field = sampleCarField(car, point);
     const t = field.t;
     const channel = seed.channel || "roof";
@@ -1965,10 +2748,50 @@ import { DRACOLoader } from "./vendor/DRACOLoader.js";
     velocity.z += sideSign * field.sideBand * aero.sideChannel * (0.12 + sideIntent * 0.2);
     velocity.z += sideSign * hoodRamp * sideIntent * aero.sideChannel * 0.06;
 
+    const frontIntake = feature.frontIntake * Math.exp(-((t + 0.92) ** 2) / 0.028)
+      * smoothstep(0.92, 0.08, Math.abs(point.y - (BODY_BASE + car.height * 0.32)) / Math.max(0.12, car.height * 0.36))
+      * smoothstep(0.88, 0.08, Math.abs(point.z) / Math.max(0.18, car.width * 0.34));
+    if (frontIntake > 0.002) {
+      const target = new THREE.Vector3(-car.length * 0.38, BODY_BASE + car.height * 0.31, 0);
+      const pull = target.sub(point).normalize();
+      velocity.addScaledVector(pull, frontIntake * 0.58);
+      velocity.x += frontIntake * 0.16;
+    }
+
+    const sideIntakeCenterX = -0.08;
+    const sideIntake = feature.sideIntake * Math.exp(-((t - sideIntakeCenterX) ** 2) / 0.055)
+      * smoothstep(1.16, 0.12, Math.abs(point.y - (BODY_BASE + car.height * 0.46)) / Math.max(0.14, car.height * 0.32))
+      * smoothstep(0.58, 0.08, Math.abs(Math.abs(point.z) - car.width * 0.58) / Math.max(0.12, car.width * 0.28));
+    if (sideIntake > 0.002) {
+      const target = new THREE.Vector3(car.length * sideIntakeCenterX * 0.5, BODY_BASE + car.height * 0.45, sideSign * car.width * 0.46);
+      const pull = target.sub(point).normalize();
+      velocity.addScaledVector(pull, sideIntake * 0.72);
+      velocity.x += sideIntake * 0.22;
+    }
+
+    const channelZone = feature.channeling * field.sideBand * smoothstep(-0.72, -0.12, t) * (1 - smoothstep(0.46, 0.94, t));
+    velocity.x += channelZone * 0.28;
+    velocity.z += sideSign * channelZone * 0.08;
+
     velocity.x += field.underBand * aero.underbodyAccel * (0.2 + underIntent * 0.24);
     velocity.y -= field.underBand * underIntent * 0.1;
     velocity.y += tailRamp * field.underBand * aero.underbodyAccel * 0.16;
     velocity.z += sideSign * field.underBand * underIntent * aero.sideChannel * 0.06;
+
+    const wingX = 0.92;
+    const wingBand = feature.wing * Math.exp(-((t - wingX) ** 2) / 0.045)
+      * smoothstep(0.58, 0.04, Math.abs(point.y - (BODY_BASE + car.height * (0.86 + feature.wingHeight * 0.12))) / Math.max(0.14, car.height * 0.32));
+    if (wingBand > 0.002) {
+      const aboveWing = point.y > BODY_BASE + car.height * (0.86 + feature.wingHeight * 0.1) ? 1 : -1;
+      velocity.x += wingBand * (aboveWing > 0 ? 0.24 : -0.05);
+      velocity.y -= wingBand * feature.downforce * (aboveWing > 0 ? 0.1 : 0.24);
+      velocity.z += sideSign * wingBand * 0.035;
+    }
+
+    const diffuserZone = feature.diffuser * smoothstep(0.2, 0.94, t) * field.underBand;
+    velocity.x += diffuserZone * 0.34;
+    velocity.y += diffuserZone * 0.18;
+    velocity.z += sideSign * diffuserZone * 0.12;
 
     const mirrorX = Math.exp(-((t + 0.1) * (t + 0.1)) / 0.028);
     const mirrorY = smoothstep(0.34, 0.78, (point.y - BODY_BASE) / Math.max(0.1, car.height));
@@ -1983,7 +2806,6 @@ import { DRACOLoader } from "./vendor/DRACOLoader.js";
     const wakePhase = t * (7.0 + aero.wake * 4.0) + seed.lane * 4.6 + seed.type * 0.7;
     velocity.x -= wake * aero.wake * (0.12 + wakeCore * 0.22);
     
-    // Chaotic wake turbulence (pseudo-random noise instead of uniform sine)
     const wakeNoise1 = fract(Math.sin(wakePhase * 12.9898 + seed.lane * 78.233) * 43758.5453);
     const wakeNoise2 = fract(Math.sin(wakePhase * 17.9898 + seed.type * 37.719) * 43758.5453);
     const wakeNoise3 = fract(Math.sin(wakePhase * 23.451 + seed.side * 91.173) * 43758.5453);
@@ -2014,9 +2836,11 @@ import { DRACOLoader } from "./vendor/DRACOLoader.js";
 
     const rawSpeed = velocity.length();
     const curvatureAccel = Math.abs(field.profileSlope) * field.roofBand * aero.roofAccel * (0.6 + roofIntent * 0.4);
-    const channelAccel = field.sideBand * aero.sideChannel * (0.22 + sideIntent * 0.18);
-    const underAccel = field.underBand * aero.underbodyAccel * (0.12 + underIntent * 0.18);
-    const speed = clamp(0.12 + rawSpeed * 0.5 + curvatureAccel * 0.46 + channelAccel + underAccel - wake * aero.wake * 0.09, 0.1, 1.28);
+    const channelAccel = field.sideBand * (aero.sideChannel + feature.channeling * 0.4) * (0.22 + sideIntent * 0.18);
+    const underAccel = field.underBand * (aero.underbodyAccel + feature.diffuser * 0.25) * (0.12 + underIntent * 0.18);
+    const intakeAccel = frontIntake * 0.26 + sideIntake * 0.32;
+    const wingAccel = wingBand * 0.12;
+    const speed = clamp(0.12 + rawSpeed * 0.5 + curvatureAccel * 0.46 + channelAccel + underAccel + intakeAccel + wingAccel - wake * aero.wake * 0.09, 0.1, 1.42);
     velocity.x = Math.max(0.18, velocity.x);
     return { velocity, speed };
   }
@@ -2095,64 +2919,103 @@ import { DRACOLoader } from "./vendor/DRACOLoader.js";
     };
   }
 
+  function getAeroFeatureProfile(car) {
+    const defaults = {
+      frontIntake: 0.46,
+      sideIntake: 0.36,
+      channeling: 0.48,
+      wing: 0.34,
+      wingHeight: 0.26,
+      downforce: 0.34,
+      diffuser: 0.5,
+      blockage: 0.58,
+    };
+    const map = {
+      porsche: {
+        frontIntake: 0.28,
+        sideIntake: 0.18,
+        channeling: 0.44,
+        wing: 0.72,
+        wingHeight: 0.62,
+        downforce: 0.58,
+        diffuser: 0.52,
+        blockage: 0.46,
+      },
+      ferrari: {
+        frontIntake: 0.74,
+        sideIntake: 0.92,
+        channeling: 0.96,
+        wing: 0.48,
+        wingHeight: 0.28,
+        downforce: 0.5,
+        diffuser: 0.92,
+        blockage: 0.58,
+      },
+      lotus: {
+        frontIntake: 0.5,
+        sideIntake: 0.68,
+        channeling: 0.7,
+        wing: 0.38,
+        wingHeight: 0.25,
+        downforce: 0.34,
+        diffuser: 0.68,
+        blockage: 0.5,
+      },
+      bmw: {
+        frontIntake: 0.62,
+        sideIntake: 0.16,
+        channeling: 0.32,
+        wing: 0.24,
+        wingHeight: 0.18,
+        downforce: 0.22,
+        diffuser: 0.38,
+        blockage: 0.92,
+      },
+    };
+    return { ...defaults, ...(map[car.id] || {}) };
+  }
+
   function createPressureWake(car) {
     const group = new THREE.Group();
-    const material = new THREE.ShaderMaterial({
-      transparent: true,
-      depthWrite: false,
-      side: THREE.DoubleSide,
-      blending: THREE.NormalBlending,
-      uniforms: {
-        uTime: { value: 0 },
-        uOpacity: { value: 0 },
-        uReveal: { value: 1 },
-        uIntensity: { value: 1 },
-        uWind: { value: 1 },
-        uSeed: { value: 0.42 },
-      },
-      vertexShader: `
-        varying vec2 vUv;
-        void main() {
-          vUv = uv;
-          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-        }
-      `,
-      fragmentShader: `
-        precision highp float;
-        varying vec2 vUv;
-        uniform float uTime;
-        uniform float uOpacity;
-        uniform float uIntensity;
-        uniform float uWind;
+    const aero = getAero(car);
+    const positions = [];
+    const progress = [];
+    const speeds = [];
+    const strands = smallViewport() ? 8 : 14;
+    const steps = 56;
 
-        void main() {
-          vec2 uv = vUv * 2.0 - 1.0;
-          uv.x *= 1.65;
-          float vortex = sin((uv.x * 5.4 + uTime * (0.52 + uWind * 0.3)) + sin(uv.y * 8.0 + uTime * 0.7) * 0.7);
-          float lane = smoothstep(0.07, 0.0, abs(fract((uv.y + 1.0) * 9.0 + uv.x * 0.38 - uTime * (0.36 + uWind * 0.28)) - 0.5));
-          float swirl = smoothstep(0.2, 1.0, vortex * 0.5 + 0.5);
-          float envelope = (1.0 - smoothstep(0.66, 1.08, abs(uv.y))) * smoothstep(-0.98, -0.32, uv.x) * (1.0 - smoothstep(0.8, 1.05, uv.x));
-          float alpha = (lane * 0.72 + swirl * 0.28) * envelope * 0.55 * uOpacity * uIntensity;
-          vec3 color = mix(vec3(0.55, 0.78, 1.0), vec3(0.12, 0.95, 0.48), smoothstep(-0.2, 0.85, uv.x));
-          gl_FragColor = vec4(color, alpha);
-        }
-      `,
-    });
-    material.userData.baseOpacity = 0.56;
+    for (let strand = 0; strand < strands; strand += 1) {
+      const side = strand % 2 === 0 ? -1 : 1;
+      const lane = ((strand % 7) - 3) / 3;
+      const startY = BODY_BASE + car.height * (0.36 + ((strand * 5) % 7) * 0.07);
+      const startZ = side * car.width * (0.18 + Math.abs(lane) * 0.24);
+      const phase = strand * 0.78;
+      let last = null;
 
-    const positions = [
-      [car.length / 2 + 0.8, BODY_BASE + car.height * 0.58, 0, 1.4, 0.58],
-      [car.length / 2 + 1.55, BODY_BASE + car.height * 0.43, 0, 1.9, 0.42],
-      [car.length / 2 + 0.35, BODY_BASE + car.height * 0.9, 0, 1.05, 0.32],
-    ];
-    positions.forEach((entry, index) => {
-      const mesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1, 36, 16), material.clone());
-      mesh.material.userData.baseOpacity = 0.24 + index * 0.07;
-      mesh.position.set(entry[0], entry[1], entry[2]);
-      mesh.scale.set(entry[3], entry[4], 1);
-      mesh.userData.billboard = true;
-      group.add(mesh);
-    });
+      for (let i = 0; i <= steps; i += 1) {
+        const u = i / steps;
+        const x = lerp(car.length * 0.48, WORLD_END - 0.18, u);
+        const fade = 1 - smoothstep(0.74, 1, u);
+        const swirl = Math.sin(u * Math.PI * (2.2 + aero.wake * 1.4) + phase) * fade;
+        const y = clamp(startY + swirl * car.height * (0.12 + aero.turbulence * 0.18), TUNNEL_Y_MIN + 0.08, TUNNEL_Y_MAX - 0.12);
+        const z = clamp(startZ + side * Math.cos(u * Math.PI * (2.0 + aero.wakeSpread) + phase) * car.width * 0.13 * fade, -TUNNEL_Z_HALF + 0.12, TUNNEL_Z_HALF - 0.12);
+        const point = new THREE.Vector3(x, y, z);
+        if (last) {
+          positions.push(last.x, last.y, last.z, point.x, point.y, point.z);
+          progress.push((i - 1) / steps, u);
+          speeds.push(0.42 + aero.wake * 0.24, 0.42 + aero.wake * 0.24);
+        }
+        last = point;
+      }
+    }
+
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+    geometry.setAttribute("aProgress", new THREE.Float32BufferAttribute(progress, 1));
+    geometry.setAttribute("aSpeed", new THREE.Float32BufferAttribute(speeds, 1));
+    const wakeLines = new THREE.LineSegments(geometry, createStructuredLineMaterial(0.42, 0.37));
+    wakeLines.frustumCulled = false;
+    group.add(wakeLines);
     return group;
   }
 
@@ -2249,12 +3112,71 @@ import { DRACOLoader } from "./vendor/DRACOLoader.js";
     return (z2 - z1) / (delta * car.length);
   }
 
+  function applyIntroRevealMaterial(material) {
+    if (!material || material.userData.introRevealApplied || material.isShaderMaterial) return;
+    material.userData.introRevealApplied = true;
+    material.userData.baseTransparent = material.transparent;
+    material.transparent = true;
+    material.depthWrite = false;
+    material.onBeforeCompile = (shader) => {
+      const uniforms = {
+        uIntroCenter: { value: introState.center.clone() },
+        uIntroRadius: { value: introState.radius },
+        uIntroSoftness: { value: 0.62 },
+        uIntroActive: { value: 1 },
+      };
+      Object.assign(shader.uniforms, uniforms);
+      shader.vertexShader = shader.vertexShader
+        .replace("#include <common>", "#include <common>\nvarying vec3 vIntroWorldPosition;")
+        .replace(
+          "#include <begin_vertex>",
+          "#include <begin_vertex>\nvIntroWorldPosition = (modelMatrix * vec4(transformed, 1.0)).xyz;",
+        );
+      shader.fragmentShader = shader.fragmentShader
+        .replace(
+          "#include <common>",
+          "#include <common>\nvarying vec3 vIntroWorldPosition;\nuniform vec3 uIntroCenter;\nuniform float uIntroRadius;\nuniform float uIntroSoftness;\nuniform float uIntroActive;",
+        )
+        .replace(
+          "#include <dithering_fragment>",
+          [
+            "float introDistance = length(vIntroWorldPosition.xz - uIntroCenter.xz) + abs(vIntroWorldPosition.y - uIntroCenter.y) * 0.18;",
+            "float introMask = 1.0 - smoothstep(uIntroRadius - uIntroSoftness, uIntroRadius + uIntroSoftness, introDistance);",
+            "diffuseColor.a *= mix(1.0, introMask, uIntroActive);",
+            "#include <dithering_fragment>",
+          ].join("\n"),
+        );
+      introState.uniforms.push(uniforms);
+      material.userData.introUniforms = uniforms;
+    };
+    material.needsUpdate = true;
+  }
+
+  function setBlueprintOpacity(group, opacity) {
+    group.visible = opacity > 0.006;
+    group.traverse((node) => {
+      if (!node.material) return;
+      const materials = Array.isArray(node.material) ? node.material : [node.material];
+      materials.forEach((material) => {
+        const base = typeof material.userData.baseOpacity === "number" ? material.userData.baseOpacity : 1;
+        material.opacity = base * opacity;
+      });
+    });
+    if (group.userData.scan) {
+      const ringRadius = Math.max(0.001, introState.radius);
+      group.userData.scan.scale.setScalar(ringRadius);
+      group.userData.scan.material.opacity = group.userData.scan.userData.baseOpacity * smoothstep(0.04, 0.72, introState.progress) * (1 - smoothstep(0.88, 1, introState.progress));
+      group.userData.scan.visible = group.userData.scan.material.opacity > 0.01;
+    }
+  }
+
   function setGroupOpacity(group, opacity) {
     group.visible = opacity > 0.003;
     group.traverse((node) => {
       if (!node.material) return;
       const materials = Array.isArray(node.material) ? node.material : [node.material];
       materials.forEach((material) => {
+        applyIntroRevealMaterial(material);
         if (typeof material.userData.baseOpacity !== "number") {
           material.userData.baseOpacity = typeof material.opacity === "number" ? material.opacity : 1;
         }

@@ -37,6 +37,19 @@
         <span id="readoutCd">0.34 Cd</span>
       </div>
 
+      <label class="speed-control" for="airSpeedControl">
+        <span>Air speed</span>
+        <input
+          id="airSpeedControl"
+          type="range"
+          min="80"
+          max="500"
+          value="160"
+          step="5"
+          aria-label="Adjust airflow speed"
+        />
+      </label>
+
       <button class="debug-toggle" id="debugToggle" type="button" aria-pressed="false">
         Debug
       </button>

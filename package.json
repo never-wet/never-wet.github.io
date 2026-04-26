@@ -1,0 +1,21 @@
+{
+  "name": "never-wet.github.io",
+  "version": "1.0.0",
+  "description": "<!-- **never-wet/never-wet** is a ✨ _special_ ✨ repository because its `README.md` (this file) appears on your GitHub profile.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/never-wet/never-wet.github.io.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/never-wet/never-wet.github.io/issues"
+  },
+  "homepage": "https://github.com/never-wet/never-wet.github.io#readme"
+}
