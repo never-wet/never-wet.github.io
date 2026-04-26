@@ -3,10 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Never Wet | Interactive Project Hub</title>
+    <title>Never Wet | Immersive 3D Portfolio</title>
     <meta
       name="description"
-      content="Never Wet homepage with a live igloo scene, quick project launcher, and direct paths into games, labs, tools, and immersive worlds."
+      content="Never Wet is an immersive 3D portfolio gallery for interactive projects, games, tools, and cinematic web experiments."
     />
     <link rel="icon" type="image/x-icon" href="./favicon.ico" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -17,7 +17,7 @@
     />
     <link rel="stylesheet" href="./css/never-wet-home.css" />
     <script>
-      document.documentElement.classList.add('js-enabled');
+      document.documentElement.classList.add("js-enabled");
     </script>
     <script type="importmap">
       {
@@ -27,116 +27,155 @@
       }
     </script>
   </head>
-  <body class="home-entry">
-    <div class="home-overlay" aria-hidden="true"></div>
-    <div class="home-noise" aria-hidden="true"></div>
-
-    <!-- Smooth Loader -->
-    <div class="page-loader" id="pageLoader">
-      <div class="loader-content">
-        <div class="loader-spinner"></div>
-        <div class="loader-text">Never Wet</div>
-        <div class="loader-bar">
-          <div class="loader-progress" id="loaderProgress"></div>
-        </div>
+  <body class="portfolio-entry">
+    <div class="loader" id="pageLoader" aria-live="polite" aria-label="Loading Never Wet portfolio">
+      <div class="loader__mark">NW</div>
+      <div class="loader__copy">
+        <span>Never Wet</span>
+        <strong>Building the gallery</strong>
       </div>
+      <div class="loader__track"><span id="loaderProgress"></span></div>
     </div>
 
-    <!-- Custom Cursor -->
-    <div class="custom-cursor" id="customCursor" aria-hidden="true">
-      <div class="cursor-dot"></div>
-      <div class="cursor-ring"></div>
+    <div class="cursor" id="customCursor" aria-hidden="true">
+      <span class="cursor__dot"></span>
+      <span class="cursor__ring"></span>
+      <span class="cursor__label">Explore</span>
     </div>
 
-    <div class="home-shell">
-      <header class="home-header reveal">
-        <a class="home-brand" href="./" aria-label="Never Wet home">
-          <div class="brand-icon">N</div>
-          <div class="brand-text">
-            <span class="brand-name">Never Wet</span>
-            <span class="brand-tagline">Interactive Project Hub</span>
-          </div>
-        </a>
+    <canvas class="webgl-stage" id="portfolioStage" aria-hidden="true"></canvas>
+    <div class="atmosphere atmosphere--far" aria-hidden="true"></div>
+    <div class="atmosphere atmosphere--near" aria-hidden="true"></div>
+    <div class="grain" aria-hidden="true"></div>
 
-        <nav class="home-nav" aria-label="Primary">
-          <a href="./project-hub.html">Directory</a>
-          <a href="./car/">Car Showcase</a>
-          <a href="./games/">Games</a>
-          <a href="./loreline/">Loreline</a>
-          <a class="home-nav__button" href="./igloo-home/">Immersive Mode</a>
-        </nav>
-      </header>
+    <header class="site-header reveal" data-reveal>
+      <a class="brand magnetic" href="./" data-cursor="Home" aria-label="Never Wet home">
+        <span class="brand__mark">N</span>
+        <span>
+          <strong>Never Wet</strong>
+          <small>3D Portfolio Gallery</small>
+        </span>
+      </a>
 
-      <main>
-        <section class="hero reveal reveal-delay-1" aria-labelledby="home-title">
-          <div class="hero-eyebrow">Realtime 3D Atmosphere</div>
-          <h1 id="home-title">Launch immersive worlds with <span>cinematic atmosphere</span></h1>
-          <p class="hero-description">
-            A curated collection of interactive experiments, immersive worlds, and creative tools.
-            Browse the featured projects below or explore the complete directory — all from one
-            atmospheric launchpad.
+      <nav class="site-nav" aria-label="Primary">
+        <a href="#projects" data-cursor="Projects">Projects</a>
+        <a href="#capabilities" data-cursor="Skills">Capabilities</a>
+        <a href="#about" data-cursor="About">About</a>
+        <a class="nav-cta magnetic" href="#contact" data-cursor="Contact">Contact</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero section-panel" id="top" aria-labelledby="home-title">
+        <div class="hero__copy reveal" data-reveal>
+          <p class="eyebrow">Interactive worlds, tools, and cinematic web systems</p>
+          <h1 id="home-title">Junha builds digital spaces that feel alive.</h1>
+          <p class="hero__lead">
+            A premium 3D portfolio for experiments that move beyond flat pages:
+            WebGL showrooms, browser games, creative tools, simulations, and
+            story-driven interfaces.
           </p>
-
-          <div class="hero-actions">
-            <a class="button button--primary" href="./igloo-home/">Enter Immersive Igloo</a>
-            <a class="button button--secondary" href="./project-hub.html">Browse Full Directory</a>
+          <div class="hero__actions">
+            <a class="button button--primary magnetic" href="#projects" data-cursor="View">Explore Projects</a>
+            <a class="button button--ghost magnetic" href="./project-hub.html" data-cursor="Open">Open Directory</a>
           </div>
+        </div>
 
-          <div class="hero-metrics">
-            <article class="metric">
-              <div class="metric__value" data-live-count>18</div>
-              <div class="metric__label">Live Projects</div>
-              <div class="metric__detail">Launchable from this page</div>
-            </article>
-            <article class="metric">
-              <div class="metric__value">7</div>
-              <div class="metric__label">Effects</div>
-              <div class="metric__detail">Premium interactive animations</div>
-            </article>
-            <article class="metric">
-              <div class="metric__value">100%</div>
-              <div class="metric__label">Resilient</div>
-              <div class="metric__detail">Works even if WebGL fails</div>
-            </article>
+        <aside class="hero__console reveal" data-reveal>
+          <span>Live Gallery</span>
+          <strong data-live-count>18</strong>
+          <p>Launchable destinations arranged as interactive objects in WebGL space.</p>
+        </aside>
+      </section>
+
+      <section class="project-voyage section-panel" id="projects" aria-labelledby="projects-title">
+        <div class="section-kicker reveal" data-reveal>
+          <p class="eyebrow">Featured Projects</p>
+          <h2 id="projects-title">A 3D gallery of project objects, not a flat card wall.</h2>
+        </div>
+
+        <div class="project-focus reveal" data-reveal>
+          <div class="project-focus__meta">
+            <span id="activeProjectTag">Immersive / WebGL</span>
+            <strong id="activeProjectTitle">ARCTIS / SIGNAL</strong>
           </div>
-        </section>
+          <p id="activeProjectDescription">
+            Realtime brand world with cinematic scroll-driven 3D choreography.
+          </p>
+          <a class="button button--small magnetic" id="activeProjectLink" href="./arctis-signal/index.html" data-cursor="Open">
+            Open Project
+          </a>
+        </div>
 
-        <section class="section reveal reveal-delay-2" aria-labelledby="quick-launch-title">
-          <div class="panel__head">
-            <div class="panel__eyebrow">Quick Launch</div>
-            <h2 id="quick-launch-title">Jump into the strongest destinations</h2>
-            <p class="panel__count">Featured projects ready to explore</p>
+        <div class="project-rail" data-project-rail></div>
+      </section>
+
+      <section class="capabilities section-panel" id="capabilities" aria-labelledby="capabilities-title">
+        <div class="section-kicker reveal" data-reveal>
+          <p class="eyebrow">Capabilities</p>
+          <h2 id="capabilities-title">Systems thinking with a cinematic interface layer.</h2>
+        </div>
+
+        <div class="capability-orbit reveal" data-reveal>
+          <article data-cursor="Design">
+            <span>01</span>
+            <strong>Immersive UI</strong>
+            <p>Premium layouts, clear navigation, responsive states, and motion that guides instead of distracting.</p>
+          </article>
+          <article data-cursor="WebGL">
+            <span>02</span>
+            <strong>Realtime 3D</strong>
+            <p>Three.js scenes, raycast hover, camera choreography, object depth, and performant atmospheric effects.</p>
+          </article>
+          <article data-cursor="Tools">
+            <span>03</span>
+            <strong>Interactive Tools</strong>
+            <p>Browser labs, builders, simulators, and creative workspaces with practical UX at the center.</p>
+          </article>
+          <article data-cursor="Games">
+            <span>04</span>
+            <strong>Playable Systems</strong>
+            <p>Game loops, puzzle flows, tactile micro interactions, and interfaces that make play understandable.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="about section-panel" id="about" aria-labelledby="about-title">
+        <div class="about__text reveal" data-reveal>
+          <p class="eyebrow">About</p>
+          <h2 id="about-title">A builder of web experiences with atmosphere and intent.</h2>
+          <p>
+            Never Wet is a collection of experiments across design, code, games,
+            3D spaces, creative tooling, and learning interfaces. This homepage
+            turns that collection into a navigable digital room: clear enough to
+            use, cinematic enough to remember.
+          </p>
+        </div>
+        <div class="about__stats reveal" data-reveal>
+          <div><strong data-live-count-secondary>18</strong><span>live projects</span></div>
+          <div><strong>3D</strong><span>native gallery</span></div>
+          <div><strong>7</strong><span>polished effects</span></div>
+        </div>
+      </section>
+
+      <section class="contact section-panel" id="contact" aria-labelledby="contact-title">
+        <div class="contact__panel reveal" data-reveal>
+          <p class="eyebrow">Contact</p>
+          <h2 id="contact-title">Ready to explore the full archive?</h2>
+          <p>Start with the curated 3D objects above, or open the complete directory when you want everything in one place.</p>
+          <div class="hero__actions">
+            <a class="button button--primary magnetic" href="./project-hub.html" data-cursor="Open">Open Project Hub</a>
+            <a class="button button--ghost magnetic" href="https://junha2010.github.io/" target="_blank" rel="noreferrer" data-cursor="Visit">
+              Visit Personal Site
+            </a>
           </div>
+        </div>
+      </section>
+    </main>
 
-          <div class="quick-launch" data-home-quick-launch></div>
-
-          <div class="launcher-note">
-            <strong>Why this layout works</strong>
-            <p>
-              The scene is visual first, but the links stay visible, clickable, and resilient.
-              No redirects, no hidden navigation — just immediate access to every world.
-            </p>
-          </div>
-        </section>
-
-        <section class="section reveal reveal-delay-3" aria-labelledby="project-grid-title">
-          <div class="panel__head">
-            <div class="panel__eyebrow">Project Grid</div>
-            <h2 id="project-grid-title">Every destination, one atmospheric homepage</h2>
-            <p class="panel__count" data-project-count>18 live destinations plus the external site</p>
-          </div>
-
-          <div class="project-grid" data-home-project-grid></div>
-        </section>
-      </main>
-
-      <div class="scene-fallback" aria-live="polite">
-        <strong>Scene fallback active</strong>
-        <p>
-          The 3D background did not start, but the launcher is still fully usable. You can continue from here or open
-          the directory view.
-        </p>
-      </div>
+    <div class="scene-fallback" id="sceneFallback" role="status">
+      <strong>WebGL scene unavailable</strong>
+      <span>The portfolio links still work normally.</span>
     </div>
 
     <script type="module" src="./shared/never-wet-homepage.js"></script>
