@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="A fixed cinematic Three.js Ferrari 458 showcase driven by scroll, engine reveal, particle, and hover interactions."
+    />
+    <title>Apex Hypercar Showcase</title>
+    <link rel="stylesheet" href="./src/styles.css" />
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://cdn.jsdelivr.net/npm/three@0.171.0/build/three.module.js",
+          "three/examples/jsm/": "https://cdn.jsdelivr.net/npm/three@0.171.0/examples/jsm/",
+          "gsap": "https://esm.sh/gsap@3.12.7",
+          "gsap/ScrollTrigger": "https://esm.sh/gsap@3.12.7/ScrollTrigger"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <main class="experience" aria-label="Apex hypercar cinematic showcase">
+      <canvas id="showcase-canvas" aria-label="Interactive 3D hypercar"></canvas>
+
+      <header class="topbar" aria-label="Showcase identity">
+        <a class="brand" href="#" aria-label="Apex home">
+          <span class="brand-mark" aria-hidden="true"></span>
+          <span>Apex</span>
+        </a>
+        <div class="model-tag">Ferrari 458 Italia</div>
+        <div class="signal">Mid-engine V8</div>
+      </header>
+
+      <section class="stage-copy" aria-live="polite" aria-atomic="true">
+        <p class="stage-eyebrow" data-stage-eyebrow>01 / F142 system</p>
+        <h1 data-stage-title>Precision Surface</h1>
+        <p class="stage-body" data-stage-body>
+          A clean exterior study with the original Ferrari 458 material palette preserved.
+        </p>
+      </section>
+
+      <aside class="metric-strip" aria-label="Vehicle metrics">
+        <div>
+          <span>Output</span>
+          <strong>562 hp</strong>
+        </div>
+        <div>
+          <span>Drive</span>
+          <strong>RWD V8</strong>
+        </div>
+        <div>
+          <span>Reveal</span>
+          <strong data-reveal-state>Solid</strong>
+        </div>
+      </aside>
+
+      <nav class="stage-dots" aria-label="Showcase stages">
+        <button class="dot is-active" type="button" aria-label="Precision Surface" data-stage-dot="0"></button>
+        <button class="dot" type="button" aria-label="Liquid Inspection" data-stage-dot="1"></button>
+        <button class="dot" type="button" aria-label="Engine Architecture" data-stage-dot="2"></button>
+        <button class="dot" type="button" aria-label="Particle Assembly" data-stage-dot="3"></button>
+      </nav>
+
+      <div class="progress-rail" aria-hidden="true">
+        <span data-progress-fill></span>
+      </div>
+
+      <div class="cursor-bubble" data-cursor-bubble aria-hidden="true"></div>
+      <div class="loader" data-loader>
+        <span>Loading GLB</span>
+      </div>
+    </main>
+
+    <div id="scroll-range" aria-hidden="true"></div>
+    <script type="module" src="./src/main.js"></script>
+  </body>
+</html>
