@@ -3,562 +3,171 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Never Wet | Project Directory</title>
+    <title>Never Wet | Project Hub</title>
     <meta
       name="description"
-      content="The full directory view for Never Wet projects, with direct links into the immersive homepage, labs, games, tools, and supporting experiments."
+      content="The full Never Wet project hub, with direct links into interactive portfolio work, tools, games, simulations, and realtime 3D experiments."
     />
+    <link rel="icon" type="image/x-icon" href="./favicon.ico" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Space+Grotesk:wght@400;500;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Archivo:wght@300;400;500;600;700;800;900&family=Michroma&family=Space+Grotesk:wght@400;500;600;700&family=Syncopate:wght@400;700&display=swap"
       rel="stylesheet"
     />
-    <style>
-      :root {
-        color-scheme: dark;
-        --bg: #020712;
-        --bg-soft: #071322;
-        --panel: rgba(8, 18, 31, 0.84);
-        --line: rgba(149, 214, 255, 0.16);
-        --text: #ecf8ff;
-        --muted: #9ab0c0;
-        --accent: #99ebff;
-        --accent-strong: #d6f6ff;
-        --warm: #ffdcb5;
-      }
-
-      * {
-        box-sizing: border-box;
-      }
-
-      html,
-      body {
-        margin: 0;
-        min-height: 100%;
-        background:
-          radial-gradient(circle at top, rgba(57, 104, 139, 0.18), transparent 34%),
-          linear-gradient(180deg, #04101c 0%, #020712 100%);
-        color: var(--text);
-        font-family: "Space Grotesk", sans-serif;
-      }
-
-      body {
-        padding: 24px;
-      }
-
-      a {
-        color: inherit;
-        text-decoration: none;
-      }
-
-      .shell {
-        max-width: 1380px;
-        margin: 0 auto;
-      }
-
-      .topbar,
-      .hero,
-      .card {
-        border: 1px solid var(--line);
-        background: linear-gradient(180deg, rgba(9, 19, 33, 0.9), rgba(4, 10, 19, 0.78));
-        backdrop-filter: blur(22px);
-        box-shadow: 0 24px 70px rgba(0, 0, 0, 0.24);
-      }
-
-      .topbar {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 16px;
-        padding: 16px 20px;
-        border-radius: 999px;
-      }
-
-      .brand {
-        font-size: 0.84rem;
-        font-weight: 700;
-        letter-spacing: 0.34em;
-        text-transform: uppercase;
-        white-space: nowrap;
-      }
-
-      .nav {
-        display: flex;
-        gap: 12px;
-        flex-wrap: wrap;
-        justify-content: flex-end;
-      }
-
-      .nav a {
-        padding: 11px 14px;
-        border-radius: 999px;
-        color: var(--muted);
-      }
-
-      .nav .button {
-        border: 1px solid rgba(153, 235, 255, 0.22);
-        background: rgba(153, 235, 255, 0.08);
-        color: var(--accent-strong);
-      }
-
-      .hero {
-        display: grid;
-        grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
-        gap: 28px;
-        padding: clamp(28px, 5vw, 54px);
-        margin-top: 24px;
-        border-radius: 34px;
-      }
-
-      .eyebrow,
-      .tag {
-        letter-spacing: 0.18em;
-        text-transform: uppercase;
-      }
-
-      .eyebrow {
-        display: inline-flex;
-        align-items: center;
-        gap: 10px;
-        padding: 9px 14px;
-        border: 1px solid var(--line);
-        border-radius: 999px;
-        color: var(--accent-strong);
-        font-size: 0.7rem;
-      }
-
-      .dot {
-        width: 9px;
-        height: 9px;
-        border-radius: 50%;
-        background: var(--accent);
-        box-shadow: 0 0 24px rgba(153, 235, 255, 0.75);
-      }
-
-      h1 {
-        margin: 18px 0 14px;
-        font-family: "Instrument Serif", serif;
-        font-size: clamp(3.5rem, 7vw, 6.6rem);
-        font-weight: 400;
-        line-height: 0.92;
-        letter-spacing: -0.04em;
-      }
-
-      .lede {
-        max-width: 650px;
-        color: var(--muted);
-        font-size: 1.08rem;
-        line-height: 1.8;
-      }
-
-      .hero-actions {
-        display: flex;
-        gap: 12px;
-        flex-wrap: wrap;
-        margin-top: 28px;
-      }
-
-      .hero-actions a {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        padding: 14px 18px;
-        border-radius: 999px;
-        border: 1px solid rgba(153, 235, 255, 0.18);
-      }
-
-      .hero-actions .primary {
-        background: linear-gradient(135deg, rgba(153, 235, 255, 0.94), rgba(216, 245, 255, 0.88));
-        color: #02111d;
-      }
-
-      .hero-actions .secondary {
-        background: rgba(7, 16, 29, 0.54);
-      }
-
-      .hero-side {
-        display: grid;
-        gap: 14px;
-        align-content: start;
-      }
-
-      .hero-note,
-      .stat {
-        border: 1px solid var(--line);
-        border-radius: 24px;
-        background: rgba(6, 14, 25, 0.58);
-        padding: 18px;
-      }
-
-      .hero-note strong,
-      .stat strong {
-        display: block;
-        margin-top: 8px;
-        font-size: 1.02rem;
-      }
-
-      .hero-note p,
-      .stat p {
-        margin: 8px 0 0;
-        color: var(--muted);
-        line-height: 1.65;
-      }
-
-      .grid {
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 16px;
-        margin-top: 24px;
-      }
-
-      .card {
-        display: grid;
-        gap: 14px;
-        padding: 20px;
-        border-radius: 28px;
-        transition:
-          transform 220ms ease,
-          border-color 220ms ease,
-          background-color 220ms ease;
-      }
-
-      .card:hover,
-      .card:focus-visible {
-        transform: translateY(-3px);
-        border-color: rgba(153, 235, 255, 0.3);
-        background: linear-gradient(180deg, rgba(10, 22, 38, 0.94), rgba(5, 11, 21, 0.84));
-      }
-
-      .card.featured {
-        grid-column: span 2;
-        background:
-          radial-gradient(circle at top right, rgba(137, 225, 255, 0.14), transparent 40%),
-          linear-gradient(180deg, rgba(10, 20, 35, 0.94), rgba(5, 11, 21, 0.84));
-      }
-
-      .tag {
-        color: var(--accent-strong);
-        font-size: 0.68rem;
-      }
-
-      .card h2,
-      .card h3 {
-        margin: 0;
-      }
-
-      .card p {
-        margin: 0;
-        color: var(--muted);
-        line-height: 1.65;
-      }
-
-      .card-arrow {
-        color: var(--warm);
-        font-size: 1.08rem;
-      }
-
-      .card-head {
-        display: flex;
-        align-items: flex-start;
-        justify-content: space-between;
-        gap: 16px;
-      }
-
-      footer {
-        display: flex;
-        justify-content: space-between;
-        gap: 16px;
-        flex-wrap: wrap;
-        margin-top: 20px;
-        color: var(--muted);
-        font-size: 0.76rem;
-        letter-spacing: 0.16em;
-        text-transform: uppercase;
-      }
-
-      @media (max-width: 1100px) {
-        .hero,
-        .grid {
-          grid-template-columns: 1fr 1fr;
+    <link rel="stylesheet" href="./css/never-wet-home.css" />
+    <script>
+      document.documentElement.classList.add("js-enabled");
+    </script>
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "./threejs/three.js-master/build/three.module.js"
         }
-
-        .hero {
-          grid-template-columns: 1fr;
-        }
-      }
-
-      @media (max-width: 760px) {
-        body {
-          padding: 14px;
-        }
-
-        .topbar {
-          border-radius: 28px;
-          align-items: flex-start;
-        }
-
-        .nav {
-          width: 100%;
-          justify-content: flex-start;
-        }
-
-        .grid {
-          grid-template-columns: 1fr;
-        }
-
-        .card.featured {
-          grid-column: auto;
-        }
-
-        h1 {
-          font-size: clamp(2.9rem, 16vw, 4.5rem);
-        }
-      }
-    </style>
-  </head>
-  <body>
-    <div class="shell">
-      <header class="topbar">
-        <a class="brand" href="./">Never Wet</a>
-        <nav class="nav" aria-label="Primary">
-          <a href="./igloo-home/">Igloo Experience</a>
-          <a href="./car/">Car Showcase</a>
-          <a href="./threejs/">Three.js Lab</a>
-          <a class="button" href="./arctis-signal/out/">Launch ARCTIS / SIGNAL</a>
-        </nav>
-      </header>
-
-      <section class="hero">
-        <div>
-          <div class="eyebrow">
-            <span class="dot"></span>
-            Full directory view
-          </div>
-          <h1>Project directory, with the immersive home and every launch path in one place.</h1>
-          <p class="lede">
-            The homepage now uses the igloo scene as a real entry experience again. This page stays as the quieter
-            all-projects directory when you want everything visible in one clear grid instead of behind the cinematic
-            layer.
-          </p>
-          <div class="hero-actions">
-            <a class="primary" href="./">Open Homepage</a>
-            <a class="secondary" href="./igloo-home/">Immersive Igloo Only</a>
-          </div>
-        </div>
-
-        <div class="hero-side">
-          <div class="hero-note">
-            <span class="tag">Featured</span>
-            <strong>Igloo Experience</strong>
-            <p>
-              Full-screen Three.js homepage atmosphere with localized brick disassembly, snowfall, fog, and direct
-              routes back into the main launcher or this full directory.
-            </p>
-          </div>
-          <div class="stat">
-            <span class="tag">Status</span>
-            <strong data-directory-count>18 live destinations</strong>
-            <p>Projects stay launchable from the homepage and fully listed here for quick scanning.</p>
-          </div>
-        </div>
-      </section>
-
-      <section class="grid" id="projects">
-        <a class="card featured" href="./igloo-home/">
-          <span class="tag">New / Interactive 3D</span>
-          <div class="card-head">
-            <div>
-              <h2>Igloo Experience</h2>
-              <p>Immersive full-screen canvas homepage with reactive ice bricks and premium atmospheric motion.</p>
-            </div>
-            <span class="card-arrow">→</span>
-          </div>
-        </a>
-
-        <a class="card" href="./arctis-signal/out/">
-          <span class="tag">Immersive / WebGL</span>
-          <div class="card-head">
-            <div>
-              <h3>ARCTIS / SIGNAL</h3>
-              <p>Realtime brand world with cinematic scroll-linked 3D choreography.</p>
-            </div>
-            <span class="card-arrow">→</span>
-          </div>
-        </a>
-
-        <a class="card" href="./noema-vault/out/">
-          <span class="tag">Storyworld / Archive</span>
-          <div class="card-head">
-            <div>
-              <h3>Noema Vault</h3>
-              <p>Atmospheric scrollytelling prototype built around memory as architecture.</p>
-            </div>
-            <span class="card-arrow">→</span>
-          </div>
-        </a>
-
-        <a class="card" href="./loreline/">
-          <span class="tag">Writing / Worldbuilding</span>
-          <div class="card-head">
-            <div>
-              <h3>Loreline</h3>
-              <p>Premium drafting, character, and lore workspace for long-form fiction.</p>
-            </div>
-            <span class="card-arrow">→</span>
-          </div>
-        </a>
-
-        <a class="card" href="./ai-lab/">
-          <span class="tag">Research / Sandbox</span>
-          <div class="card-head">
-            <div>
-              <h3>AI Lab</h3>
-              <p>Browser neural-network lab with a floating 3D graph workspace.</p>
-            </div>
-            <span class="card-arrow">→</span>
-          </div>
-        </a>
-
-        <a class="card" href="./electric-circuit-lab/">
-          <span class="tag">Education / Simulation</span>
-          <div class="card-head">
-            <div>
-              <h3>Electric Circuit Lab</h3>
-              <p>Lessons, circuit building, simulation, and electronics practice in one app.</p>
-            </div>
-            <span class="card-arrow">→</span>
-          </div>
-        </a>
-
-        <a class="card" href="./freeform/">
-          <span class="tag">Workspace / Canvas</span>
-          <div class="card-head">
-            <div>
-              <h3>Freeform</h3>
-              <p>Project boards and canvas launching in a clean browser workspace.</p>
-            </div>
-            <span class="card-arrow">→</span>
-          </div>
-        </a>
-
-        <a class="card" href="./games/">
-          <span class="tag">Arcade / Experiments</span>
-          <div class="card-head">
-            <div>
-              <h3>Games</h3>
-              <p>Browser mini-games and interaction experiments collected in one hub.</p>
-            </div>
-            <span class="card-arrow">→</span>
-          </div>
-        </a>
-
-        <a class="card" href="./house-builder/">
-          <span class="tag">3D / Modular</span>
-          <div class="card-head">
-            <div>
-              <h3>House Builder</h3>
-              <p>Modular building playground for assembling houses in the browser.</p>
-            </div>
-            <span class="card-arrow">→</span>
-          </div>
-        </a>
-
-        <a class="card" href="./threejs/">
-          <span class="tag">Cinematic / Scene Lab</span>
-          <div class="card-head">
-            <div>
-              <h3>Three.js</h3>
-              <p>Local Three.js experiments and realtime visual prototypes.</p>
-            </div>
-            <span class="card-arrow">→</span>
-          </div>
-        </a>
-
-        <a class="card" href="./cinematic-portfolio/">
-          <span class="tag">Portfolio / Immersive</span>
-          <div class="card-head">
-            <div>
-              <h3>Project Atlas</h3>
-              <p>Cinematic portfolio experience with premium motion and 3D presentation.</p>
-            </div>
-            <span class="card-arrow">→</span>
-          </div>
-        </a>
-
-        <a class="card" href="./translator/">
-          <span class="tag">Tool / Interface</span>
-          <div class="card-head">
-            <div>
-              <h3>Translator</h3>
-              <p>Analog-inspired Morse translator with tactile controls.</p>
-            </div>
-            <span class="card-arrow">→</span>
-          </div>
-        </a>
-
-        <a class="card" href="https://junha2010.github.io/" rel="noreferrer" target="_blank">
-          <span class="tag">External / Personal Site</span>
-          <div class="card-head">
-            <div>
-              <h3>Junha2010.github.io</h3>
-              <p>External site link for the broader web presence.</p>
-            </div>
-            <span class="card-arrow">↗</span>
-          </div>
-        </a>
-      </section>
-
-      <footer>
-        <span>Main homepage restored as launcher</span>
-        <span>Igloo now lives in its own folder</span>
-      </footer>
-    </div>
-    <script type="module">
-      import { projects } from "./igloo-home/projects.js";
-
-      const grid = document.getElementById("projects");
-      const count = document.querySelector("[data-directory-count]");
-
-      function normalizeHref(href) {
-        if (!href) return "#";
-        if (/^(https?:|mailto:|tel:)/i.test(href)) return href;
-        if (href.startsWith("../")) return `./${href.slice(3)}`;
-        return href;
-      }
-
-      function createCard(project, index) {
-        const link = document.createElement("a");
-        link.className = `card${index < 2 ? " featured" : ""}`;
-        link.href = normalizeHref(project.href);
-        if (project.external) {
-          link.target = "_blank";
-          link.rel = "noreferrer";
-        }
-        link.innerHTML = `
-          <span class="tag"></span>
-          <div class="card-head">
-            <div>
-              <h${index < 2 ? "2" : "3"}></h${index < 2 ? "2" : "3"}>
-              <p></p>
-            </div>
-            <span class="card-arrow">${project.external ? "\u2197" : "\u2192"}</span>
-          </div>
-        `;
-        link.querySelector(".tag").textContent = project.tag;
-        link.querySelector(index < 2 ? "h2" : "h3").textContent = project.title;
-        link.querySelector("p").textContent = project.description;
-        return link;
-      }
-
-      if (grid) {
-        grid.replaceChildren(...projects.map(createCard));
-      }
-
-      if (count) {
-        const localCount = projects.filter((project) => !project.external).length;
-        count.textContent = `${localCount} live destinations`;
       }
     </script>
+  </head>
+  <body class="home-entry project-hub-entry">
+    <div class="loader" id="pageLoader" aria-live="polite" aria-label="Loading Never Wet project hub">
+      <div class="loader__panel">
+        <span class="loader__kicker">Never Wet</span>
+        <strong>Opening the project hub</strong>
+        <div class="loader__track"><span id="loaderProgress"></span></div>
+      </div>
+    </div>
+
+    <div class="cursor" id="customCursor" aria-hidden="true">
+      <span class="cursor__dot"></span>
+      <span class="cursor__ring"></span>
+      <span class="cursor__label">View</span>
+    </div>
+
+    <canvas class="motion-stage" id="portfolioStage" aria-hidden="true"></canvas>
+
+    <header class="site-header reveal" data-reveal>
+      <a class="brand magnetic" href="./" aria-label="Never Wet home" data-cursor="Home">
+        <span class="brand__mark">NW</span>
+        <span>
+          <strong>Never Wet</strong>
+          <small>Project Hub</small>
+        </span>
+      </a>
+      <nav class="site-nav" aria-label="Primary">
+        <a href="./" data-cursor="Home">Home</a>
+        <a href="#work" data-cursor="Featured">Featured</a>
+        <a href="#index" data-cursor="Index">Index</a>
+        <a class="nav-cta magnetic" href="./igloo-home/" data-cursor="Launch">Igloo</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero" id="top" aria-labelledby="hub-title">
+        <div class="hero__visual parallax-media reveal" data-reveal data-parallax-speed="-0.08">
+          <img
+            src="./assets/homepage/gallery-installation.jpg"
+            alt="Modern geometric art installation"
+            width="3840"
+            height="2560"
+            loading="eager"
+          />
+          <div class="hero__visual-label">
+            <span>Hub</span>
+            <strong>Full Project Index</strong>
+          </div>
+        </div>
+
+        <div class="hero__content">
+          <p class="eyebrow reveal" data-reveal>Directory / Launch Paths / Archive</p>
+          <h1 id="hub-title" class="reveal" data-reveal>
+            Every Never Wet project in one clean launch surface.
+          </h1>
+          <div class="hero__bottom reveal" data-reveal>
+            <p>
+              Same visual system as the homepage, tuned for fast scanning: featured paths first,
+              then the complete project index with direct links into each live experience.
+            </p>
+            <div class="hero__actions">
+              <a class="button button--dark magnetic" href="#work" data-cursor="Featured">Explore Projects</a>
+              <a class="button button--light magnetic" href="./" data-cursor="Home">Open Homepage</a>
+            </div>
+          </div>
+        </div>
+
+        <aside class="hero__stats reveal" data-reveal>
+          <div>
+            <strong data-live-count>18</strong>
+            <span>launch paths</span>
+          </div>
+          <div>
+            <strong>Hub</strong>
+            <span>single index</span>
+          </div>
+          <div>
+            <strong>Live</strong>
+            <span>direct links</span>
+          </div>
+        </aside>
+
+        <div class="scroll-cue" aria-hidden="true">
+          <span>Scroll</span>
+          <i></i>
+        </div>
+      </section>
+
+      <section class="visual-strip" aria-label="Project hub visuals">
+        <figure class="strip-card reveal" data-reveal data-tilt-card data-parallax-speed="0.06">
+          <img src="./assets/homepage/architecture-shadow.jpg" alt="Sharp architectural shadows" width="3840" height="2880" loading="lazy" />
+          <figcaption><span>Structure</span><strong>Fast scanning</strong></figcaption>
+        </figure>
+        <figure class="strip-card strip-card--tall reveal" data-reveal data-tilt-card data-parallax-speed="-0.04">
+          <img src="./assets/homepage/render-structure.jpg" alt="Abstract 3D architectural render" width="3840" height="2560" loading="lazy" />
+          <figcaption><span>Launch surface</span><strong>One shared system</strong></figcaption>
+        </figure>
+        <figure class="strip-card reveal" data-reveal data-tilt-card data-parallax-speed="0.08">
+          <img src="./assets/homepage/hero-light-abstract.jpg" alt="Abstract light and shadow texture" width="3840" height="5729" loading="lazy" />
+          <figcaption><span>Archive</span><strong>All paths visible</strong></figcaption>
+        </figure>
+      </section>
+
+      <section class="statement section-wrap" aria-labelledby="hub-statement-title">
+        <p class="eyebrow reveal" data-reveal>Project Hub</p>
+        <h2 id="hub-statement-title" class="reveal" data-reveal>
+          A directory that feels connected to the homepage.
+        </h2>
+        <p class="statement__copy reveal" data-reveal>
+          This page now shares the homepage typography, motion layer, cards, cursor feedback,
+          transitions, and generated project data instead of carrying a separate dark interface.
+        </p>
+      </section>
+
+      <section class="work section-wrap" id="work" aria-labelledby="work-title">
+        <div class="section-heading reveal" data-reveal>
+          <p class="eyebrow">Featured Work</p>
+          <h2 id="work-title">Launch first</h2>
+        </div>
+        <div class="project-grid" data-project-grid></div>
+      </section>
+
+      <section class="index section-wrap" id="index" aria-labelledby="index-title">
+        <div class="section-heading reveal" data-reveal>
+          <p class="eyebrow">Full Index</p>
+          <h2 id="index-title">Every path</h2>
+        </div>
+        <div class="archive-list reveal" data-reveal data-project-index></div>
+      </section>
+
+      <section class="contact section-wrap" id="contact" aria-labelledby="contact-title">
+        <div class="contact__panel reveal" data-reveal data-tilt-card>
+          <p class="eyebrow">Next</p>
+          <h2 id="contact-title">Return to the main homepage or enter the igloo scene.</h2>
+          <div class="hero__actions">
+            <a class="button button--dark magnetic" href="./" data-cursor="Home">Open Homepage</a>
+            <a class="button button--light magnetic" href="./igloo-home/" data-cursor="Igloo">Igloo Experience</a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script type="module" src="./shared/never-wet-homepage.js"></script>
   </body>
 </html>

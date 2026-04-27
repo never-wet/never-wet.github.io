@@ -173,7 +173,7 @@ main,
   line-height: 1.08;
   letter-spacing: 0.055em;
   text-transform: uppercase;
-  overflow-wrap: normal;
+  overflow-wrap: anywhere;
   text-wrap: balance;
 }
 
@@ -296,10 +296,13 @@ main,
 .page-transition__title {
   max-width: 9.5ch;
   font-family: var(--display-font);
-  font-size: clamp(2.2rem, 7vw, 7rem);
+  font-size: clamp(1.9rem, 7vw, 7rem);
   line-height: 0.94;
   letter-spacing: 0.055em;
   text-transform: uppercase;
+  overflow-wrap: anywhere;
+  word-break: normal;
+  text-wrap: balance;
 }
 
 .page-transition__bar {
@@ -564,6 +567,9 @@ h3 {
   font-weight: 400;
   letter-spacing: 0.055em;
   text-transform: uppercase;
+  overflow-wrap: anywhere;
+  word-break: normal;
+  text-wrap: balance;
 }
 
 h1 {
@@ -1016,6 +1022,9 @@ h3 {
 
 .archive-item strong {
   font-size: clamp(1.2rem, 2vw, 2rem);
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: normal;
 }
 
 .archive-item p {
@@ -1148,6 +1157,12 @@ h3 {
   }
 
   h3 {
+    letter-spacing: 0.02em;
+  }
+
+  .page-transition__title {
+    max-width: 100%;
+    font-size: clamp(1.65rem, 11vw, 3.7rem);
     letter-spacing: 0.02em;
   }
 
