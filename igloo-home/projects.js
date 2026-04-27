@@ -15,13 +15,13 @@ export const projects = [
     title: "ARCTIS / SIGNAL",
     tag: "Immersive / WebGL",
     description: "Realtime brand world with cinematic scroll-driven 3D choreography.",
-    href: "../arctis-signal/index.html",
+    href: "../arctis-signal/out/",
   },
   {
     title: "Noema Vault",
     tag: "Storyworld / Archive",
     description: "Atmospheric scrollytelling prototype built around memory as architecture.",
-    href: "../noema-vault/",
+    href: "../noema-vault/out/",
   },
   {
     title: "UIUXPRO",
