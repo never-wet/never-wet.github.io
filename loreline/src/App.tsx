@@ -10,6 +10,7 @@ import { StudioWorkspace } from './components/StudioWorkspace'
 import { ValueGrid } from './components/ValueGrid'
 import { WhyDifferentSection } from './components/WhyDifferentSection'
 import { WritingExperienceSection } from './components/WritingExperienceSection'
+import { useMomentumScroll } from './hooks/useMomentumScroll'
 
 const navItems = [
   { href: '#value', label: 'Overview' },
@@ -123,8 +124,11 @@ function AppShell() {
   const { locale, setLocale, t } = useLocale()
   const studioHref = `?view=studio&lang=${locale}`
   const resolveHref = (href: string) => (href === '?view=studio' ? studioHref : href)
+  const studioView = isStudioView()
 
-  if (isStudioView()) {
+  useMomentumScroll(!studioView)
+
+  if (studioView) {
     return <StudioWorkspace />
   }
 
