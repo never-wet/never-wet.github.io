@@ -1,5 +1,11 @@
 export const projects = [
   {
+    title: "Physics Engine Playground",
+    tag: "Physics / Simulator",
+    description: "Interactive physics laboratory with real Matter.js 2D experiments, Three.js/cannon-es 3D rigid bodies, debug vectors, trails, and draggable objects.",
+    href: "../physics-engine-playground/physics-engine-playground.html",
+  },
+  {
     title: "Igloo Experience",
     tag: "Homepage / Immersive",
     description: "Scene-only version of the Never Wet homepage with interactive brick disassembly and snowfall.",

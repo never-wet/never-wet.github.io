@@ -3,6 +3,7 @@ import { projects } from "../igloo-home/projects.js";
 
 const localProjects = projects.filter((project) => !project.external);
 const featuredNames = [
+  "Physics Engine Playground",
   "ARCTIS / SIGNAL",
   "Aeroform Car Showcase",
   "Noema Vault",
@@ -10,7 +11,6 @@ const featuredNames = [
   "Electric Circuit Lab",
   "AI Lab",
   "Igloo Experience",
-  "Project Atlas",
 ];
 
 const projectImages = [

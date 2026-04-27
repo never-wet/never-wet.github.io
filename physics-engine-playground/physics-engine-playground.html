@@ -1,0 +1,1713 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Physics Engine Playground</title>
+    <meta
+      name="description"
+      content="Standalone interactive physics engine playground with real Matter.js 2D physics and cannon-es 3D rigid-body simulation."
+    />
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #07111d;
+        --panel: rgba(6, 11, 24, 0.82);
+        --panel-strong: rgba(5, 9, 20, 0.94);
+        --line: rgba(176, 199, 224, 0.14);
+        --line-strong: rgba(176, 199, 224, 0.24);
+        --text: #eef6ff;
+        --muted: #8ea2ba;
+        --teal: #65d6c8;
+        --gold: #f6c85f;
+        --blue: #78a8ff;
+        --red: #ff7b8a;
+        --green: #9ee493;
+        --violet: #c39bff;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        min-height: 100%;
+      }
+
+      body {
+        background:
+          radial-gradient(circle at 18% 14%, rgba(101, 214, 200, 0.14), transparent 26rem),
+          radial-gradient(circle at 88% 10%, rgba(246, 200, 95, 0.1), transparent 24rem),
+          linear-gradient(135deg, #07111d 0%, #101820 55%, #171119 100%);
+        color: var(--text);
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      button,
+      input,
+      select {
+        font: inherit;
+      }
+
+      button {
+        cursor: pointer;
+      }
+
+      .shell {
+        display: flex;
+        height: 100vh;
+        min-height: 0;
+        flex-direction: column;
+        overflow: hidden;
+      }
+
+      .topbar {
+        display: flex;
+        min-height: 68px;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        border-bottom: 1px solid var(--line);
+        background: rgba(3, 8, 19, 0.84);
+        padding: 0.75rem 1rem;
+        backdrop-filter: blur(18px);
+      }
+
+      .brand {
+        min-width: 0;
+      }
+
+      .eyebrow,
+      .panel-title,
+      .control-label,
+      .metric-label {
+        color: var(--muted);
+        font-size: 0.68rem;
+        font-weight: 800;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+      }
+
+      .eyebrow {
+        color: #9ff5ea;
+        letter-spacing: 0.26em;
+      }
+
+      h1 {
+        margin: 0.22rem 0 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-size: 1.04rem;
+        line-height: 1.2;
+      }
+
+      .toolbar {
+        display: flex;
+        max-width: 100%;
+        gap: 0.5rem;
+        overflow-x: auto;
+      }
+
+      .icon-btn,
+      .compact-btn {
+        display: inline-grid;
+        height: 40px;
+        min-width: 40px;
+        place-items: center;
+        border: 1px solid var(--line-strong);
+        border-radius: 7px;
+        background: rgba(255, 255, 255, 0.055);
+        color: #dce9f6;
+        transition:
+          background 160ms ease,
+          border-color 160ms ease,
+          transform 160ms ease;
+      }
+
+      .compact-btn {
+        display: inline-flex;
+        min-width: auto;
+        align-items: center;
+        justify-content: center;
+        gap: 0.42rem;
+        padding: 0 0.75rem;
+        font-size: 0.8rem;
+        font-weight: 800;
+      }
+
+      .icon-btn:hover,
+      .compact-btn:hover {
+        border-color: rgba(255, 255, 255, 0.32);
+        background: rgba(255, 255, 255, 0.09);
+      }
+
+      .icon-btn.active,
+      .compact-btn.active {
+        border-color: rgba(101, 214, 200, 0.72);
+        background: rgba(101, 214, 200, 0.18);
+        color: #e5fffb;
+        box-shadow: 0 0 24px rgba(101, 214, 200, 0.16);
+      }
+
+      .main-grid {
+        display: grid;
+        min-height: 0;
+        flex: 1;
+        grid-template-columns: 300px minmax(0, 1fr) 330px;
+        overflow: hidden;
+      }
+
+      .sidebar,
+      .controls {
+        min-height: 0;
+        overflow-y: auto;
+        background: var(--panel);
+        padding: 1rem;
+        backdrop-filter: blur(18px);
+      }
+
+      .sidebar {
+        border-right: 1px solid var(--line);
+      }
+
+      .controls {
+        border-left: 1px solid var(--line);
+      }
+
+      .section {
+        display: grid;
+        gap: 0.75rem;
+        border-top: 1px solid var(--line);
+        padding-top: 1.25rem;
+      }
+
+      .section:first-child {
+        border-top: 0;
+        padding-top: 0;
+      }
+
+      .experiment-list {
+        display: grid;
+        gap: 0.55rem;
+      }
+
+      .experiment-card {
+        display: grid;
+        gap: 0.45rem;
+        width: 100%;
+        border: 1px solid var(--line-strong);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.035);
+        padding: 0.85rem;
+        color: inherit;
+        text-align: left;
+      }
+
+      .experiment-card.active {
+        border-color: rgba(101, 214, 200, 0.72);
+        background: rgba(101, 214, 200, 0.14);
+      }
+
+      .card-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.65rem;
+      }
+
+      .card-title {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-size: 0.9rem;
+        font-weight: 800;
+      }
+
+      .badge {
+        border: 1px solid var(--line-strong);
+        border-radius: 5px;
+        padding: 0.15rem 0.4rem;
+        color: #c1d1e4;
+        font-size: 0.62rem;
+        font-weight: 800;
+        letter-spacing: 0.12em;
+      }
+
+      .card-copy,
+      .hint,
+      .description {
+        margin: 0;
+        color: #a9b8cb;
+        font-size: 0.8rem;
+        line-height: 1.55;
+      }
+
+      .viewport {
+        position: relative;
+        order: 0;
+        min-height: 0;
+        min-width: 0;
+        overflow: hidden;
+        background: #07111d;
+      }
+
+      .viewport canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+        min-height: 0;
+      }
+
+      #canvas3d {
+        display: none;
+      }
+
+      .scene-label,
+      .status-pill {
+        pointer-events: none;
+        position: absolute;
+        z-index: 4;
+        border: 1px solid var(--line-strong);
+        border-radius: 7px;
+        background: rgba(4, 9, 20, 0.72);
+        backdrop-filter: blur(14px);
+      }
+
+      .scene-label {
+        left: 1rem;
+        top: 1rem;
+        display: grid;
+        gap: 0.25rem;
+        padding: 0.7rem 0.85rem;
+      }
+
+      .scene-label strong {
+        font-size: 0.9rem;
+      }
+
+      .status-pill {
+        right: 1rem;
+        top: 1rem;
+        padding: 0.65rem 0.95rem;
+        color: #dfeaff;
+        font-size: 0.76rem;
+        font-weight: 900;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+      }
+
+      .debug-panel {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.45rem;
+        border: 1px solid var(--line-strong);
+        border-radius: 8px;
+        background: rgba(5, 10, 21, 0.54);
+        padding: 0.55rem;
+      }
+
+      .metric {
+        min-width: 0;
+        border-radius: 6px;
+        background: rgba(255, 255, 255, 0.045);
+        padding: 0.55rem 0.65rem;
+      }
+
+      .metric-label {
+        display: block;
+        font-size: 0.6rem;
+      }
+
+      .metric-value {
+        display: block;
+        margin-top: 0.12rem;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        font-size: 0.78rem;
+        font-weight: 800;
+      }
+
+      .shape-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.5rem;
+      }
+
+      .spawn-btn {
+        display: flex;
+        height: 44px;
+        align-items: center;
+        justify-content: center;
+        border: 0;
+        border-radius: 7px;
+        background: var(--teal);
+        color: #041019;
+        font-weight: 900;
+      }
+
+      .control-stack {
+        display: grid;
+        gap: 1.25rem;
+      }
+
+      .experiment-summary {
+        display: grid;
+        gap: 0.65rem;
+      }
+
+      .summary-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+      }
+
+      .summary-head h2 {
+        margin: 0;
+        font-size: 1rem;
+      }
+
+      .slider-row {
+        display: grid;
+        gap: 0.45rem;
+      }
+
+      .slider-meta {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+      }
+
+      .value {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        color: #eef6ff;
+        font-size: 0.72rem;
+        font-weight: 900;
+      }
+
+      input[type="range"] {
+        width: 100%;
+        height: 8px;
+        appearance: none;
+        border-radius: 999px;
+        background: #213044;
+        accent-color: var(--teal);
+        outline: none;
+      }
+
+      input[type="range"]::-webkit-slider-thumb {
+        width: 18px;
+        height: 18px;
+        appearance: none;
+        border: 2px solid rgba(7, 17, 29, 0.92);
+        border-radius: 999px;
+        background: var(--teal);
+        box-shadow: 0 0 0 4px rgba(101, 214, 200, 0.13);
+      }
+
+      input[type="range"]::-moz-range-thumb {
+        width: 18px;
+        height: 18px;
+        border: 2px solid rgba(7, 17, 29, 0.92);
+        border-radius: 999px;
+        background: var(--teal);
+        box-shadow: 0 0 0 4px rgba(101, 214, 200, 0.13);
+      }
+
+      .preset-list {
+        display: grid;
+        gap: 0.5rem;
+      }
+
+      .preset-item {
+        display: grid;
+        gap: 0.55rem;
+        border: 1px solid var(--line-strong);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.035);
+        padding: 0.75rem;
+      }
+
+      .preset-actions {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.5rem;
+      }
+
+      @media (max-width: 1120px) {
+        .shell {
+          height: auto;
+          min-height: 100vh;
+          overflow: visible;
+        }
+
+        .main-grid {
+          grid-template-columns: 1fr;
+          overflow: visible;
+        }
+
+        .viewport {
+          order: 1;
+          height: min(68vh, 640px);
+          min-height: 520px;
+        }
+
+        .sidebar {
+          order: 2;
+          border-right: 0;
+          border-top: 1px solid var(--line);
+        }
+
+        .controls {
+          order: 3;
+          border-left: 0;
+          border-top: 1px solid var(--line);
+        }
+      }
+
+      @media (max-width: 680px) {
+        .topbar {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+
+        .viewport,
+        .viewport canvas {
+          min-height: 560px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <header class="topbar">
+        <div class="brand">
+          <div class="eyebrow">Physics Engine Playground</div>
+          <h1>Standalone Interactive Simulation Laboratory</h1>
+        </div>
+        <div class="toolbar">
+          <button class="icon-btn active" id="playBtn" title="Pause or play simulation" type="button">||</button>
+          <button class="icon-btn" id="stepBtn" title="Step one frame" type="button">>|</button>
+          <button class="icon-btn" id="resetBtn" title="Reset simulation" type="button">R</button>
+          <button class="icon-btn" id="saveBtn" title="Save current preset" type="button">S</button>
+          <button class="icon-btn active" id="vectorsBtn" title="Toggle velocity vectors" type="button">V</button>
+          <button class="icon-btn active" id="forcesBtn" title="Toggle force arrows" type="button">F</button>
+          <button class="icon-btn active" id="trailsBtn" title="Toggle trails" type="button">T</button>
+          <button class="icon-btn active" id="debugBtn" title="Toggle debug overlay" type="button">D</button>
+        </div>
+      </header>
+
+      <div class="main-grid">
+        <aside class="sidebar">
+          <section class="section">
+            <div class="panel-title">Experiments</div>
+            <div class="experiment-list" id="experimentList"></div>
+          </section>
+          <section class="section" style="margin-top: 1.25rem">
+            <div class="panel-title">Object Spawner</div>
+            <div class="shape-grid" id="shapeGrid"></div>
+            <button class="spawn-btn" id="spawnBtn" type="button">Spawn Body</button>
+          </section>
+        </aside>
+
+        <main class="viewport" id="viewport">
+          <div class="scene-label">
+            <span class="eyebrow" id="sceneMode">2D Physics World</span>
+            <strong id="sceneName">Gravity Sandbox</strong>
+          </div>
+          <div class="status-pill" id="statusPill">Running</div>
+          <canvas id="canvas2d" aria-label="2D physics simulation canvas"></canvas>
+          <canvas id="canvas3d" aria-label="3D physics simulation canvas"></canvas>
+        </main>
+
+        <aside class="controls">
+          <div class="control-stack">
+            <section class="experiment-summary">
+              <div class="summary-head">
+                <h2 id="controlTitle">Gravity Sandbox</h2>
+                <span class="badge" id="engineBadge">Matter 2D</span>
+              </div>
+              <p class="description" id="controlDescription"></p>
+            </section>
+            <section class="section">
+              <div class="panel-title">Debug Telemetry</div>
+              <div class="debug-panel" id="debugPanel">
+                <div class="metric"><span class="metric-label">FPS</span><span class="metric-value" id="mFps">0</span></div>
+                <div class="metric"><span class="metric-label">Bodies</span><span class="metric-value" id="mBodies">0</span></div>
+                <div class="metric"><span class="metric-label">Constraints</span><span class="metric-value" id="mConstraints">0</span></div>
+                <div class="metric"><span class="metric-label">Step</span><span class="metric-value" id="mStep">16.67ms</span></div>
+                <div class="metric"><span class="metric-label">Collisions</span><span class="metric-value" id="mCollisions">0</span></div>
+                <div class="metric"><span class="metric-label">Energy</span><span class="metric-value" id="mEnergy">0.0</span></div>
+              </div>
+            </section>
+            <section class="section" id="worldControls">
+              <div class="panel-title">World Forces</div>
+            </section>
+            <section class="section" id="materialControls">
+              <div class="panel-title">Material</div>
+            </section>
+            <section class="section" id="extraControls">
+              <div class="panel-title">Experiment Response</div>
+            </section>
+            <section class="section">
+              <div class="panel-title">Saved Presets</div>
+              <div class="preset-list" id="presetList"></div>
+            </section>
+          </div>
+        </aside>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/matter-js@0.20.0/build/matter.min.js"></script>
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://cdn.jsdelivr.net/npm/three@0.184.0/build/three.module.js",
+          "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.184.0/examples/jsm/"
+        }
+      }
+    </script>
+    <script type="module">
+      import * as THREE from "three";
+      import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+      import * as CANNON from "https://cdn.jsdelivr.net/npm/cannon-es@0.20.0/dist/cannon-es.js";
+
+      const { Engine, Composite, Bodies, Body, Constraint, Mouse, MouseConstraint, Events, Vector } = Matter;
+      const STEP_MS = 1000 / 60;
+      const STEP_S = 1 / 60;
+      const colors = ["#65d6c8", "#f6c85f", "#78a8ff", "#ff7b8a", "#9ee493", "#c39bff"];
+
+      const experiments = [
+        {
+          id: "gravity",
+          name: "Gravity Sandbox",
+          engine: "matter",
+          tag: "Live rigid bodies with editable gravity.",
+          description: "Spawn bodies, redirect gravity, drag objects, and inspect mass, velocity, trails, and contact flashes.",
+          defaults: { gravityX: 0, gravityY: 1, gravityZ: -9.81, wind: 0, mass: 3, friction: 0.18, bounce: 0.55, damping: 0.02, stiffness: 0.014, length: 280, field: 0.45, orbitG: 0.34, velocity: 4.5, shape: "ball" }
+        },
+        {
+          id: "collision",
+          name: "Collision Lab",
+          engine: "matter",
+          tag: "Momentum, bounce, friction, and impacts.",
+          description: "A measured collision table shows velocity vectors, collision points, restitution, and kinetic energy changes.",
+          defaults: { gravityX: 0, gravityY: 0.7, wind: 0, mass: 5, friction: 0.08, bounce: 0.82, damping: 0.01, velocity: 7, shape: "box" }
+        },
+        {
+          id: "spring",
+          name: "Pendulum / Spring Lab",
+          engine: "matter",
+          tag: "Constraints, damping, and oscillation.",
+          description: "A real Matter.js pendulum and spring oscillator react to length, mass, damping, and stiffness changes.",
+          defaults: { gravityX: 0, gravityY: 1, mass: 4, friction: 0.12, bounce: 0.25, damping: 0.03, stiffness: 0.014, length: 300, shape: "ball" }
+        },
+        {
+          id: "wind",
+          name: "Wind / Aerodynamics",
+          engine: "matter",
+          tag: "Bodies receive continuous wind force.",
+          description: "Wind pushes dynamic bodies through stream particles with simple drag and lift-like turbulence.",
+          defaults: { gravityX: 0, gravityY: 0.45, wind: 8, mass: 3, friction: 0.04, bounce: 0.35, damping: 0.01, shape: "capsule" }
+        },
+        {
+          id: "orbit",
+          name: "Orbit / Planet Gravity",
+          engine: "matter",
+          tag: "Inverse-square attraction and trails.",
+          description: "Bodies attract each other with a real force step, producing captures, flybys, and orbital decay.",
+          defaults: { gravityX: 0, gravityY: 0, mass: 10, friction: 0, bounce: 0.95, damping: 0, orbitG: 0.5, velocity: 5.4, shape: "ball" }
+        },
+        {
+          id: "field",
+          name: "Magnet / Force Field",
+          engine: "matter",
+          tag: "Attractors, repellers, and probes.",
+          description: "Charged bodies respond to invisible field points, with field lines and force arrows derived from real forces.",
+          defaults: { gravityX: 0, gravityY: 0, mass: 3, friction: 0.02, bounce: 0.72, damping: 0.012, field: 0.62, shape: "ball" }
+        },
+        {
+          id: "chain",
+          name: "Chain / Ragdoll Lab",
+          engine: "matter",
+          tag: "Linked bodies with constraints.",
+          description: "Constraint impulses propagate through a chain and ragdoll-style linked body rig when dragged or dropped.",
+          defaults: { gravityX: 0, gravityY: 1, mass: 3, friction: 0.2, bounce: 0.22, damping: 0.015, shape: "compound" }
+        },
+        {
+          id: "three",
+          name: "3D Gravity Sandbox",
+          engine: "cannon",
+          tag: "Three.js plus cannon-es rigid bodies.",
+          description: "Drop real 3D rigid bodies into a lit lab, tune gravity and materials, and inspect velocity trails.",
+          defaults: { gravityX: 0, gravityY: -9.81, gravityZ: 0, mass: 4, friction: 0.18, bounce: 0.38, damping: 0.02, velocity: 4.5, shape: "box" }
+        }
+      ];
+
+      const state = {
+        experiment: "gravity",
+        paused: false,
+        debug: true,
+        vectors: true,
+        trails: true,
+        forces: true,
+        shape: "ball",
+        gravityX: 0,
+        gravityY: 1,
+        gravityZ: -9.81,
+        mass: 3,
+        friction: 0.18,
+        bounce: 0.55,
+        wind: 0,
+        damping: 0.02,
+        stiffness: 0.014,
+        length: 280,
+        field: 0.45,
+        orbitG: 0.34,
+        velocity: 4.5,
+        saved: JSON.parse(localStorage.getItem("physics-html-presets") || "[]")
+      };
+
+      const viewport = document.getElementById("viewport");
+      const canvas2d = document.getElementById("canvas2d");
+      const canvas3d = document.getElementById("canvas3d");
+      const ctx = canvas2d.getContext("2d");
+      const ui = {
+        experimentList: document.getElementById("experimentList"),
+        shapeGrid: document.getElementById("shapeGrid"),
+        sceneMode: document.getElementById("sceneMode"),
+        sceneName: document.getElementById("sceneName"),
+        status: document.getElementById("statusPill"),
+        controlTitle: document.getElementById("controlTitle"),
+        controlDescription: document.getElementById("controlDescription"),
+        engineBadge: document.getElementById("engineBadge"),
+        worldControls: document.getElementById("worldControls"),
+        materialControls: document.getElementById("materialControls"),
+        extraControls: document.getElementById("extraControls"),
+        presetList: document.getElementById("presetList"),
+        debugPanel: document.getElementById("debugPanel"),
+        metrics: {
+          fps: document.getElementById("mFps"),
+          bodies: document.getElementById("mBodies"),
+          constraints: document.getElementById("mConstraints"),
+          step: document.getElementById("mStep"),
+          collisions: document.getElementById("mCollisions"),
+          energy: document.getElementById("mEnergy")
+        },
+        buttons: {
+          play: document.getElementById("playBtn"),
+          vectors: document.getElementById("vectorsBtn"),
+          forces: document.getElementById("forcesBtn"),
+          trails: document.getElementById("trailsBtn"),
+          debug: document.getElementById("debugBtn")
+        }
+      };
+
+      let width = 900;
+      let height = 700;
+      let dpr = 1;
+      let engine = Engine.create({ enableSleeping: true, constraintIterations: 4, positionIterations: 8, velocityIterations: 6 });
+      let mouseConstraint = null;
+      let trails = new Map();
+      let flashes = [];
+      let fields = [];
+      let streamParticles = [];
+      let collisions = 0;
+      let frame = 0;
+      let accumulator = 0;
+      let lastTime = 0;
+      let fpsFrames = 0;
+      let fpsTime = 0;
+      let stepRequest = false;
+
+      const three = {
+        scene: null,
+        camera: null,
+        renderer: null,
+        controls: null,
+        world: null,
+        bodies: [],
+        meshes: [],
+        vectors: [],
+        trails: new Map(),
+        trailLines: new Map(),
+        material: null,
+        contactMaterial: null,
+        raycaster: null,
+        pointer: new THREE.Vector2(),
+        dragPlane: new THREE.Plane(),
+        dragOffset: new THREE.Vector3(),
+        dragPoint: new THREE.Vector3(),
+        dragMarker: null,
+        drag: null
+      };
+
+      function clamp(value, min, max) {
+        return Math.min(max, Math.max(min, value));
+      }
+
+      function random(min, max) {
+        return min + Math.random() * (max - min);
+      }
+
+      function currentExperiment() {
+        return experiments.find((item) => item.id === state.experiment) || experiments[0];
+      }
+
+      function applyDefaults(id) {
+        const experiment = experiments.find((item) => item.id === id) || experiments[0];
+        Object.assign(state, experiment.defaults, { experiment: id });
+      }
+
+      function resize() {
+        const rect = viewport.getBoundingClientRect();
+        width = Math.max(360, rect.width);
+        height = Math.max(520, rect.height);
+        dpr = window.devicePixelRatio || 1;
+        canvas2d.width = Math.floor(width * dpr);
+        canvas2d.height = Math.floor(height * dpr);
+        canvas2d.style.width = `${width}px`;
+        canvas2d.style.height = `${height}px`;
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        if (three.renderer) {
+          three.renderer.setSize(width, height, false);
+          three.renderer.setPixelRatio(Math.min(dpr, 1.75));
+          three.camera.aspect = width / height;
+          three.camera.updateProjectionMatrix();
+        }
+        resetSimulation();
+      }
+
+      function bodyPlugin(body) {
+        body.plugin = body.plugin || {};
+        return body.plugin;
+      }
+
+      function makeBodyOptions(color) {
+        return {
+          friction: state.friction,
+          restitution: state.bounce,
+          frictionAir: state.damping,
+          density: 0.001,
+          plugin: { role: "dynamic", color, charge: Math.random() > 0.5 ? 1 : -1, lastForce: { x: 0, y: 0 } }
+        };
+      }
+
+      function setMass(body, mass) {
+        Body.setMass(body, clamp(mass, 0.5, 80));
+      }
+
+      function createMatterBody(shape, x, y, scale = 1) {
+        const color = colors[frame % colors.length];
+        const radius = clamp(18 + state.mass * 2.2, 18, 48) * scale;
+        const options = makeBodyOptions(color);
+        let body;
+        if (shape === "box") {
+          body = Bodies.rectangle(x, y, radius * 1.8, radius * 1.45, options);
+        } else if (shape === "capsule") {
+          body = Bodies.rectangle(x, y, radius * 2.35, radius * 1.05, { ...options, chamfer: { radius: radius * 0.5 } });
+        } else if (shape === "compound") {
+          const core = Bodies.rectangle(x, y, radius * 1.7, radius * 1.05, options);
+          const left = Bodies.circle(x - radius * 0.95, y, radius * 0.45, options);
+          const right = Bodies.circle(x + radius * 0.95, y, radius * 0.45, options);
+          body = Body.create({ parts: [core, left, right], friction: state.friction, restitution: state.bounce, frictionAir: state.damping, plugin: { role: "dynamic", color } });
+        } else {
+          body = Bodies.circle(x, y, radius, options);
+        }
+        setMass(body, state.mass);
+        return body;
+      }
+
+      function walls() {
+        const t = 64;
+        const options = { isStatic: true, friction: 0.8, restitution: 0.15, plugin: { role: "wall", color: "rgba(140,168,198,0.2)" } };
+        return [
+          Bodies.rectangle(width / 2, height + t / 2, width + t * 2, t, options),
+          Bodies.rectangle(width / 2, -t / 2, width + t * 2, t, options),
+          Bodies.rectangle(-t / 2, height / 2, t, height + t * 2, options),
+          Bodies.rectangle(width + t / 2, height / 2, t, height + t * 2, options)
+        ];
+      }
+
+      function initMouse() {
+        if (mouseConstraint) return;
+        const mouse = Mouse.create(canvas2d);
+        mouse.pixelRatio = dpr;
+        mouseConstraint = MouseConstraint.create(engine, {
+          mouse,
+          constraint: { stiffness: 0.18, damping: 0.04, render: { visible: false } }
+        });
+      }
+
+      function seedMatter() {
+        Composite.clear(engine.world, false, true);
+        Engine.clear(engine);
+        trails.clear();
+        flashes = [];
+        fields = [];
+        streamParticles = Array.from({ length: 72 }, () => ({ x: random(0, width), y: random(36, height - 36), phase: random(0, Math.PI * 2), speed: random(0.4, 1.6) }));
+        collisions = 0;
+
+        initMouse();
+        if (state.experiment !== "orbit") Composite.add(engine.world, walls());
+        Composite.add(engine.world, mouseConstraint);
+        engine.gravity.x = state.experiment === "orbit" || state.experiment === "field" ? 0 : state.gravityX;
+        engine.gravity.y = state.experiment === "orbit" || state.experiment === "field" ? 0 : state.gravityY;
+        engine.gravity.scale = state.experiment === "orbit" || state.experiment === "field" ? 0 : 0.001;
+
+        if (state.experiment === "spring") {
+          const anchorA = Bodies.circle(width * 0.28, 92, 8, { isStatic: true, plugin: { role: "anchor", color: "#eef6ff" } });
+          const bob = createMatterBody("ball", width * 0.28, 92 + state.length, 1.05);
+          const pendulum = Constraint.create({ label: "pendulum", bodyA: anchorA, bodyB: bob, length: state.length, stiffness: 0.94, damping: state.damping });
+          const anchorB = Bodies.circle(width * 0.65, height * 0.28, 8, { isStatic: true, plugin: { role: "anchor", color: "#eef6ff" } });
+          const block = createMatterBody("box", width * 0.72, height * 0.54, 1.05);
+          const spring = Constraint.create({ label: "spring", bodyA: anchorB, bodyB: block, length: 270, stiffness: state.stiffness, damping: state.damping });
+          Body.setVelocity(bob, { x: 4, y: 0 });
+          Body.setVelocity(block, { x: -3, y: 0 });
+          Composite.add(engine.world, [anchorA, bob, pendulum, anchorB, block, spring]);
+        } else if (state.experiment === "chain") {
+          const chain = [];
+          const constraints = [];
+          const anchor = Bodies.circle(width * 0.18, height * 0.18, 7, { isStatic: true, plugin: { role: "anchor", color: "#eef6ff" } });
+          for (let i = 0; i < 8; i++) {
+            const link = createMatterBody("box", width * 0.22 + i * 44, height * 0.18, 0.65);
+            chain.push(link);
+            constraints.push(Constraint.create({ label: "ragdoll-joint", bodyA: i === 0 ? anchor : chain[i - 1], bodyB: link, length: i === 0 ? 30 : 32, stiffness: 0.82, damping: state.damping }));
+          }
+          const head = createMatterBody("ball", width * 0.58, height * 0.22, 0.55);
+          const torso = createMatterBody("box", width * 0.58, height * 0.32, 0.9);
+          const armL = createMatterBody("capsule", width * 0.52, height * 0.32, 0.55);
+          const armR = createMatterBody("capsule", width * 0.64, height * 0.32, 0.55);
+          const legL = createMatterBody("capsule", width * 0.55, height * 0.46, 0.6);
+          const legR = createMatterBody("capsule", width * 0.61, height * 0.46, 0.6);
+          const joint = (a, b, pa, pb) => Constraint.create({ label: "ragdoll-joint", bodyA: a, bodyB: b, pointA: pa, pointB: pb, length: 4, stiffness: 0.78, damping: state.damping });
+          Composite.add(engine.world, [
+            anchor,
+            ...chain,
+            ...constraints,
+            head,
+            torso,
+            armL,
+            armR,
+            legL,
+            legR,
+            joint(head, torso, { x: 0, y: 22 }, { x: 0, y: -43 }),
+            joint(armL, torso, { x: 0, y: -36 }, { x: -31, y: -32 }),
+            joint(armR, torso, { x: 0, y: -36 }, { x: 31, y: -32 }),
+            joint(legL, torso, { x: 0, y: -42 }, { x: -18, y: 43 }),
+            joint(legR, torso, { x: 0, y: -42 }, { x: 18, y: 43 })
+          ]);
+        } else if (state.experiment === "collision") {
+          const left = createMatterBody("ball", width * 0.24, height * 0.45, 1.15);
+          const right = createMatterBody("box", width * 0.76, height * 0.45, 1.2);
+          setMass(right, state.mass * 1.8);
+          Body.setVelocity(left, { x: state.velocity, y: -1.2 });
+          Body.setVelocity(right, { x: -state.velocity * 0.72, y: 0.6 });
+          Composite.add(engine.world, [left, right, Bodies.rectangle(width * 0.5, height * 0.78, width * 0.54, 18, { isStatic: true, angle: -0.02, plugin: { role: "wall", color: "rgba(255,255,255,0.16)" } })]);
+        } else if (state.experiment === "wind") {
+          for (let i = 0; i < 8; i++) {
+            const body = createMatterBody(i % 2 === 0 ? "capsule" : "box", width * (0.22 + i * 0.075), height * (0.2 + (i % 3) * 0.14), 1);
+            Body.setAngle(body, random(-0.55, 0.55));
+            Composite.add(engine.world, body);
+          }
+        } else if (state.experiment === "orbit") {
+          const star = Bodies.circle(width * 0.5, height * 0.5, 42, { isStatic: true, restitution: 1, plugin: { role: "attractor", color: "#f6c85f" } });
+          const p1 = createMatterBody("ball", width * 0.5, height * 0.25, 0.78);
+          const p2 = createMatterBody("ball", width * 0.5, height * 0.76, 0.62);
+          const p3 = createMatterBody("ball", width * 0.72, height * 0.5, 0.52);
+          Body.setVelocity(p1, { x: state.velocity, y: 0 });
+          Body.setVelocity(p2, { x: -state.velocity * 0.78, y: 0 });
+          Body.setVelocity(p3, { x: 0, y: state.velocity * 0.62 });
+          Composite.add(engine.world, [star, p1, p2, p3]);
+        } else if (state.experiment === "field") {
+          fields = [
+            { x: width * 0.31, y: height * 0.42, charge: 1, label: "N" },
+            { x: width * 0.69, y: height * 0.54, charge: -1, label: "S" }
+          ];
+          for (let i = 0; i < 12; i++) {
+            const body = createMatterBody("ball", random(width * 0.2, width * 0.8), random(height * 0.18, height * 0.82), 0.42);
+            bodyPlugin(body).charge = i % 2 === 0 ? 1 : -1;
+            Composite.add(engine.world, body);
+          }
+        } else {
+          for (let i = 0; i < 10; i++) {
+            Composite.add(engine.world, createMatterBody(i % 3 === 0 ? "box" : "ball", random(width * 0.18, width * 0.82), random(80, height * 0.44), 1));
+          }
+        }
+      }
+
+      Events.on(engine, "collisionStart", (event) => {
+        for (const pair of event.pairs) {
+          const point = pair.collision.supports[0] || pair.bodyA.position;
+          const impulse = Vector.magnitude(Vector.sub(pair.bodyA.velocity, pair.bodyB.velocity));
+          flashes.push({ x: point.x, y: point.y, life: 34, impulse: clamp(impulse, 0.5, 18) });
+          collisions++;
+        }
+      });
+
+      function spawnMatter() {
+        Composite.add(engine.world, createMatterBody(state.shape, random(width * 0.35, width * 0.65), height * 0.18, 1));
+      }
+
+      function applyMatterSettings() {
+        engine.gravity.x = state.experiment === "orbit" || state.experiment === "field" ? 0 : state.gravityX;
+        engine.gravity.y = state.experiment === "orbit" || state.experiment === "field" ? 0 : state.gravityY;
+        engine.gravity.scale = state.experiment === "orbit" || state.experiment === "field" ? 0 : 0.001;
+        for (const body of Composite.allBodies(engine.world)) {
+          const role = bodyPlugin(body).role;
+          if (body.isStatic || role === "wall" || role === "anchor" || role === "attractor") continue;
+          body.friction = state.friction;
+          body.restitution = state.bounce;
+          body.frictionAir = state.damping;
+        }
+        for (const constraint of Composite.allConstraints(engine.world)) {
+          if (constraint.label === "spring") {
+            constraint.stiffness = state.stiffness;
+            constraint.damping = state.damping;
+          }
+          if (constraint.label === "pendulum") {
+            constraint.length = state.length;
+            constraint.damping = state.damping;
+          }
+        }
+      }
+
+      function normalize2(v) {
+        const m = Math.hypot(v.x, v.y) || 1;
+        return { x: v.x / m, y: v.y / m };
+      }
+
+      function applyMatterForces() {
+        const bodies = Composite.allBodies(engine.world);
+        for (const body of bodies) bodyPlugin(body).lastForce = { x: 0, y: 0 };
+        if (state.experiment === "wind") {
+          for (const body of bodies) {
+            const role = bodyPlugin(body).role;
+            if (body.isStatic || role === "wall") continue;
+            const area = Math.max(0.4, body.bounds.max.y - body.bounds.min.y) / 70;
+            const force = { x: state.wind * 0.00038 * area - body.velocity.x * 0.00028, y: Math.sin(body.position.y * 0.022) * Math.abs(state.wind) * 0.000025 };
+            Body.applyForce(body, body.position, force);
+            bodyPlugin(body).lastForce = force;
+          }
+        }
+        if (state.experiment === "orbit") {
+          const active = bodies.filter((body) => bodyPlugin(body).role !== "wall");
+          for (let i = 0; i < active.length; i++) {
+            for (let j = i + 1; j < active.length; j++) {
+              const a = active[i];
+              const b = active[j];
+              const dx = b.position.x - a.position.x;
+              const dy = b.position.y - a.position.y;
+              const d2 = clamp(dx * dx + dy * dy, 2800, 280000);
+              const dir = normalize2({ x: dx, y: dy });
+              const ma = a.isStatic ? 220 : a.mass;
+              const mb = b.isStatic ? 220 : b.mass;
+              const mag = (state.orbitG * ma * mb) / d2;
+              const f = { x: dir.x * mag, y: dir.y * mag };
+              if (!a.isStatic) Body.applyForce(a, a.position, f);
+              if (!b.isStatic) Body.applyForce(b, b.position, { x: -f.x, y: -f.y });
+              bodyPlugin(a).lastForce = Vector.add(bodyPlugin(a).lastForce || { x: 0, y: 0 }, f);
+              bodyPlugin(b).lastForce = Vector.add(bodyPlugin(b).lastForce || { x: 0, y: 0 }, { x: -f.x, y: -f.y });
+            }
+          }
+        }
+        if (state.experiment === "field") {
+          for (const body of bodies) {
+            if (body.isStatic || bodyPlugin(body).role === "wall") continue;
+            const charge = bodyPlugin(body).charge || 1;
+            let total = { x: 0, y: 0 };
+            for (const point of fields) {
+              const dx = point.x - body.position.x;
+              const dy = point.y - body.position.y;
+              const d2 = clamp(dx * dx + dy * dy, 2200, 220000);
+              const dir = normalize2({ x: dx, y: dy });
+              const sign = charge * point.charge > 0 ? -1 : 1;
+              const mag = (state.field * sign * 1.8) / d2;
+              total = Vector.add(total, { x: dir.x * mag, y: dir.y * mag });
+            }
+            Body.applyForce(body, body.position, total);
+            bodyPlugin(body).lastForce = total;
+          }
+        }
+      }
+
+      function stepMatter() {
+        applyMatterSettings();
+        applyMatterForces();
+        Engine.update(engine, STEP_MS);
+        if (state.trails) {
+          for (const body of Composite.allBodies(engine.world)) {
+            if (body.isStatic || bodyPlugin(body).role === "wall") continue;
+            const trail = trails.get(body.id) || [];
+            trail.push({ x: body.position.x, y: body.position.y });
+            if (trail.length > 96) trail.shift();
+            trails.set(body.id, trail);
+          }
+        } else {
+          trails.clear();
+        }
+      }
+
+      function arrow(context, x1, y1, x2, y2, color, width = 1.6) {
+        const angle = Math.atan2(y2 - y1, x2 - x1);
+        context.strokeStyle = color;
+        context.fillStyle = color;
+        context.lineWidth = width;
+        context.beginPath();
+        context.moveTo(x1, y1);
+        context.lineTo(x2, y2);
+        context.stroke();
+        context.beginPath();
+        context.moveTo(x2, y2);
+        context.lineTo(x2 - 9 * Math.cos(angle - Math.PI / 6), y2 - 9 * Math.sin(angle - Math.PI / 6));
+        context.lineTo(x2 - 9 * Math.cos(angle + Math.PI / 6), y2 - 9 * Math.sin(angle + Math.PI / 6));
+        context.closePath();
+        context.fill();
+      }
+
+      function drawMatter() {
+        const gradient = ctx.createLinearGradient(0, 0, width, height);
+        gradient.addColorStop(0, "#07111d");
+        gradient.addColorStop(0.48, "#0d1820");
+        gradient.addColorStop(1, "#141119");
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, width, height);
+        ctx.strokeStyle = "rgba(136,165,190,0.09)";
+        ctx.lineWidth = 1;
+        for (let x = 0; x <= width; x += 48) {
+          ctx.beginPath();
+          ctx.moveTo(x, 0);
+          ctx.lineTo(x, height);
+          ctx.stroke();
+        }
+        for (let y = 0; y <= height; y += 48) {
+          ctx.beginPath();
+          ctx.moveTo(0, y);
+          ctx.lineTo(width, y);
+          ctx.stroke();
+        }
+
+        if (state.experiment === "wind") {
+          const speed = Math.max(0.5, Math.abs(state.wind));
+          for (const particle of streamParticles) {
+            particle.x += speed * particle.speed * 0.9;
+            particle.y += Math.sin(frame * 0.03 + particle.phase) * 0.35;
+            if (particle.x > width + 40) {
+              particle.x = -40;
+              particle.y = random(36, height - 36);
+            }
+            ctx.strokeStyle = `rgba(101,214,200,${0.16 + speed * 0.018})`;
+            ctx.beginPath();
+            ctx.moveTo(particle.x - 34, particle.y);
+            ctx.lineTo(particle.x, particle.y);
+            ctx.stroke();
+          }
+        }
+
+        if (state.experiment === "field") {
+          for (const point of fields) {
+            ctx.strokeStyle = point.charge > 0 ? "rgba(255,123,138,0.42)" : "rgba(101,214,200,0.42)";
+            for (let angle = 0; angle < Math.PI * 2; angle += Math.PI / 8) {
+              ctx.beginPath();
+              ctx.moveTo(point.x + Math.cos(angle) * 32, point.y + Math.sin(angle) * 32);
+              ctx.quadraticCurveTo(point.x + Math.cos(angle + point.charge * 0.45) * 86, point.y + Math.sin(angle + point.charge * 0.45) * 86, point.x + Math.cos(angle) * 190, point.y + Math.sin(angle) * 190);
+              ctx.stroke();
+            }
+            ctx.fillStyle = point.charge > 0 ? "#ff7b8a" : "#65d6c8";
+            ctx.beginPath();
+            ctx.arc(point.x, point.y, 28, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = "#07111d";
+            ctx.font = "800 16px Inter, sans-serif";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText(point.label, point.x, point.y);
+          }
+        }
+
+        if (state.trails) {
+          for (const trail of trails.values()) {
+            for (let i = 1; i < trail.length; i++) {
+              ctx.strokeStyle = `rgba(246,200,95,${(i / trail.length) * 0.34})`;
+              ctx.beginPath();
+              ctx.moveTo(trail[i - 1].x, trail[i - 1].y);
+              ctx.lineTo(trail[i].x, trail[i].y);
+              ctx.stroke();
+            }
+          }
+        }
+
+        for (const constraint of Composite.allConstraints(engine.world)) {
+          const a = constraint.bodyA ? Vector.add(constraint.bodyA.position, constraint.pointA) : constraint.pointA;
+          const b = constraint.bodyB ? Vector.add(constraint.bodyB.position, constraint.pointB) : constraint.pointB;
+          if (!a || !b) continue;
+          ctx.strokeStyle = constraint.label === "spring" ? "rgba(101,214,200,0.72)" : "rgba(238,246,255,0.42)";
+          ctx.lineWidth = constraint.label === "spring" ? 2.2 : 1.5;
+          ctx.beginPath();
+          ctx.moveTo(a.x, a.y);
+          ctx.lineTo(b.x, b.y);
+          ctx.stroke();
+        }
+
+        for (const body of Composite.allBodies(engine.world)) {
+          const plugin = bodyPlugin(body);
+          ctx.fillStyle = plugin.color || "#65d6c8";
+          ctx.strokeStyle = "rgba(255,255,255,0.38)";
+          ctx.lineWidth = 1;
+          if (body.circleRadius) {
+            ctx.beginPath();
+            ctx.arc(body.position.x, body.position.y, body.circleRadius, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+          } else {
+            ctx.beginPath();
+            body.vertices.forEach((v, i) => (i === 0 ? ctx.moveTo(v.x, v.y) : ctx.lineTo(v.x, v.y)));
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+          }
+          if (plugin.role !== "wall") {
+            ctx.fillStyle = "rgba(238,246,255,0.86)";
+            ctx.beginPath();
+            ctx.arc(body.position.x, body.position.y, 3, 0, Math.PI * 2);
+            ctx.fill();
+          }
+          if (state.debug && !body.isStatic && plugin.role !== "wall") {
+            ctx.fillStyle = "rgba(7,17,29,0.7)";
+            ctx.font = "800 10px Inter, sans-serif";
+            ctx.textAlign = "center";
+            ctx.fillText(`${body.mass.toFixed(1)}kg`, body.position.x, body.position.y - 8);
+          }
+          if (state.vectors && !body.isStatic && plugin.role !== "wall") {
+            arrow(ctx, body.position.x, body.position.y, body.position.x + body.velocity.x * 8, body.position.y + body.velocity.y * 8, "rgba(120,168,255,0.78)");
+          }
+          if (state.forces && plugin.lastForce && !body.isStatic && plugin.role !== "wall") {
+            const scale = state.experiment === "orbit" || state.experiment === "field" ? 160000 : 18000;
+            arrow(ctx, body.position.x, body.position.y, body.position.x + plugin.lastForce.x * scale, body.position.y + plugin.lastForce.y * scale, "rgba(158,228,147,0.72)", 1.4);
+          }
+        }
+
+        flashes = flashes
+          .map((flash) => ({ ...flash, life: flash.life - 1 }))
+          .filter((flash) => flash.life > 0);
+        for (const flash of flashes) {
+          ctx.strokeStyle = `rgba(255,123,138,${flash.life / 34})`;
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(flash.x, flash.y, 8 + flash.impulse + (1 - flash.life / 34) * 24, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+      }
+
+      function initThree() {
+        if (three.renderer) return;
+        three.scene = new THREE.Scene();
+        three.scene.background = new THREE.Color("#07111d");
+        three.scene.fog = new THREE.Fog("#07111d", 14, 34);
+        three.camera = new THREE.PerspectiveCamera(48, width / height, 0.1, 100);
+        three.camera.position.set(7, 6, 9);
+        three.renderer = new THREE.WebGLRenderer({ canvas: canvas3d, antialias: true, alpha: false, preserveDrawingBuffer: true });
+        three.renderer.setSize(width, height, false);
+        three.renderer.setPixelRatio(Math.min(dpr, 1.75));
+        three.controls = new OrbitControls(three.camera, canvas3d);
+        three.controls.enableDamping = true;
+        three.controls.dampingFactor = 0.08;
+        three.controls.target.set(0, 2.4, 0);
+        three.controls.update();
+        three.raycaster = new THREE.Raycaster();
+        three.scene.add(new THREE.AmbientLight("#ffffff", 0.42));
+        const sun = new THREE.DirectionalLight("#ffffff", 2.2);
+        sun.position.set(5, 9, 5);
+        three.scene.add(sun);
+        const teal = new THREE.PointLight("#65d6c8", 4.2, 16);
+        teal.position.set(-4, 5, -4);
+        three.scene.add(teal);
+        const gold = new THREE.PointLight("#f6c85f", 1.6, 12);
+        gold.position.set(4, 3, 3);
+        three.scene.add(gold);
+        const grid = new THREE.GridHelper(16, 32, "#36556c", "#243447");
+        grid.position.y = 0.012;
+        three.scene.add(grid);
+        const floorMesh = new THREE.Mesh(new THREE.BoxGeometry(14, 0.12, 10), new THREE.MeshStandardMaterial({ color: "#15202b", roughness: 0.75, metalness: 0.08 }));
+        floorMesh.position.y = -0.08;
+        three.scene.add(floorMesh);
+        three.dragMarker = new THREE.Mesh(
+          new THREE.SphereGeometry(0.09, 16, 10),
+          new THREE.MeshBasicMaterial({ color: "#65d6c8", transparent: true, opacity: 0.82 })
+        );
+        three.dragMarker.visible = false;
+        three.scene.add(three.dragMarker);
+        canvas3d.addEventListener("pointerdown", startThreeDrag);
+        canvas3d.addEventListener("pointermove", moveThreeDrag);
+        window.addEventListener("pointerup", endThreeDrag);
+        canvas3d.addEventListener("pointercancel", endThreeDrag);
+      }
+
+      function createCannonWorld() {
+        three.world = new CANNON.World({ gravity: new CANNON.Vec3(state.gravityX, state.gravityY, state.gravityZ) });
+        three.world.broadphase = new CANNON.SAPBroadphase(three.world);
+        three.world.allowSleep = true;
+        three.material = new CANNON.Material("lab");
+        three.contactMaterial = new CANNON.ContactMaterial(three.material, three.material, { friction: state.friction, restitution: state.bounce });
+        three.world.defaultContactMaterial.friction = state.friction;
+        three.world.defaultContactMaterial.restitution = state.bounce;
+        three.world.addContactMaterial(three.contactMaterial);
+        three.world.addEventListener("beginContact", () => collisions++);
+        const floor = new CANNON.Body({ mass: 0, material: three.material, shape: new CANNON.Box(new CANNON.Vec3(7, 0.06, 5)), position: new CANNON.Vec3(0, -0.08, 0) });
+        three.world.addBody(floor);
+      }
+
+      function clearThreeBodies() {
+        endThreeDrag();
+        for (const mesh of three.meshes) three.scene.remove(mesh);
+        for (const line of three.vectors) three.scene.remove(line);
+        for (const line of three.trailLines.values()) three.scene.remove(line);
+        three.bodies = [];
+        three.meshes = [];
+        three.vectors = [];
+        three.trails.clear();
+        three.trailLines.clear();
+      }
+
+      function shapeScale() {
+        return Math.max(0.7, Math.min(1.4, 0.58 + state.mass * 0.08));
+      }
+
+      function addThreeBody(shape, position, color) {
+        const scale = shapeScale();
+        let cannonShape;
+        let geometry;
+        if (shape === "ball") {
+          cannonShape = new CANNON.Sphere(scale * 0.48);
+          geometry = new THREE.SphereGeometry(scale * 0.48, 36, 20);
+        } else if (shape === "capsule") {
+          cannonShape = new CANNON.Cylinder(scale * 0.34, scale * 0.34, scale * 1.25, 16);
+          geometry = new THREE.CapsuleGeometry(scale * 0.34, scale * 0.9, 12, 24);
+        } else {
+          cannonShape = new CANNON.Box(new CANNON.Vec3(scale * 0.5, scale * 0.5, scale * 0.5));
+          geometry = new THREE.BoxGeometry(scale, scale, scale);
+        }
+        const body = new CANNON.Body({
+          mass: state.mass,
+          material: three.material,
+          shape: cannonShape,
+          position: new CANNON.Vec3(position[0], position[1], position[2]),
+          linearDamping: 0.025,
+          angularDamping: 0.08
+        });
+        body.velocity.set(random(-0.6, 0.6), 0, random(-0.6, 0.6));
+        body.quaternion.setFromEuler(random(0, 0.6), random(0, 0.8), random(0, 0.5));
+        const mesh = new THREE.Mesh(geometry, new THREE.MeshStandardMaterial({ color, roughness: 0.38, metalness: 0.12 }));
+        three.world.addBody(body);
+        three.scene.add(mesh);
+        three.bodies.push(body);
+        three.meshes.push(mesh);
+      }
+
+      function resetThree() {
+        initThree();
+        clearThreeBodies();
+        createCannonWorld();
+        collisions = 0;
+        [
+          ["box", [-2.8, 5.8, -1.4], colors[0]],
+          ["ball", [-0.6, 7.8, 0.4], colors[1]],
+          ["box", [1.7, 9.3, -0.8], colors[2]],
+          ["ball", [3, 11.2, 1], colors[3]]
+        ].forEach((item) => addThreeBody(item[0], item[1], item[2]));
+      }
+
+      function spawnThree() {
+        addThreeBody(state.shape === "compound" ? "box" : state.shape, [random(-2.5, 2.5), random(7, 12), random(-2, 2)], colors[three.bodies.length % colors.length]);
+      }
+
+      function setPointerFromEvent(event) {
+        const rect = canvas3d.getBoundingClientRect();
+        three.pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+        three.pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+      }
+
+      function bodyAtMesh(mesh) {
+        const index = three.meshes.indexOf(mesh);
+        return index >= 0 ? { index, body: three.bodies[index], mesh } : null;
+      }
+
+      function startThreeDrag(event) {
+        if (currentExperiment().engine !== "cannon" || !three.world || event.button !== 0) return;
+        setPointerFromEvent(event);
+        three.raycaster.setFromCamera(three.pointer, three.camera);
+        const hit = three.raycaster.intersectObjects(three.meshes, false)[0];
+        if (!hit) return;
+        const picked = bodyAtMesh(hit.object);
+        if (!picked) return;
+
+        event.preventDefault();
+        canvas3d.setPointerCapture?.(event.pointerId);
+        three.controls.enabled = false;
+        const bodyPoint = new CANNON.Vec3(hit.point.x, hit.point.y, hit.point.z);
+        const localPivot = picked.body.pointToLocalFrame(bodyPoint);
+        const anchorBody = new CANNON.Body({
+          mass: 0,
+          type: CANNON.Body.KINEMATIC,
+          collisionFilterGroup: 0,
+          collisionFilterMask: 0,
+          position: new CANNON.Vec3(hit.point.x, hit.point.y, hit.point.z)
+        });
+        const constraint = new CANNON.PointToPointConstraint(
+          picked.body,
+          localPivot,
+          anchorBody,
+          new CANNON.Vec3(0, 0, 0),
+          900
+        );
+        three.world.addBody(anchorBody);
+        three.world.addConstraint(constraint);
+        three.dragPlane.setFromNormalAndCoplanarPoint(three.camera.getWorldDirection(new THREE.Vector3()).normalize(), hit.point);
+        three.dragOffset.copy(picked.mesh.position).sub(hit.point);
+        three.drag = { pointerId: event.pointerId, index: picked.index, body: picked.body, anchorBody, constraint };
+        three.dragMarker.visible = true;
+        moveThreeDrag(event);
+      }
+
+      function moveThreeDrag(event) {
+        if (!three.drag || event.pointerId !== three.drag.pointerId) return;
+        setPointerFromEvent(event);
+        three.raycaster.setFromCamera(three.pointer, three.camera);
+        if (!three.raycaster.ray.intersectPlane(three.dragPlane, three.dragPoint)) return;
+        three.drag.anchorBody.position.set(three.dragPoint.x, three.dragPoint.y, three.dragPoint.z);
+        three.drag.anchorBody.velocity.set(0, 0, 0);
+        three.drag.body.wakeUp();
+        three.dragMarker.position.copy(three.dragPoint);
+      }
+
+      function endThreeDrag(event) {
+        if (!three.drag || (event?.pointerId !== undefined && event.pointerId !== three.drag.pointerId)) return;
+        if (three.world) {
+          three.world.removeConstraint(three.drag.constraint);
+          three.world.removeBody(three.drag.anchorBody);
+        }
+        three.drag = null;
+        if (three.controls) three.controls.enabled = true;
+        if (three.dragMarker) three.dragMarker.visible = false;
+      }
+
+      function stepThree() {
+        three.world.gravity.set(state.gravityX, state.gravityY, state.gravityZ);
+        three.world.defaultContactMaterial.friction = state.friction;
+        three.world.defaultContactMaterial.restitution = state.bounce;
+        if (three.contactMaterial) {
+          three.contactMaterial.friction = state.friction;
+          three.contactMaterial.restitution = state.bounce;
+        }
+        for (const body of three.bodies) {
+          body.mass = state.mass;
+          body.updateMassProperties();
+        }
+        three.world.fixedStep(STEP_S);
+      }
+
+      function drawThree() {
+        three.controls.update();
+        for (let i = 0; i < three.bodies.length; i++) {
+          const body = three.bodies[i];
+          const mesh = three.meshes[i];
+          mesh.position.copy(body.position);
+          mesh.quaternion.copy(body.quaternion);
+          if (state.trails && frame % 4 === 0) {
+            const trail = three.trails.get(i) || [];
+            trail.push(new THREE.Vector3(body.position.x, body.position.y, body.position.z));
+            if (trail.length > 32) trail.shift();
+            three.trails.set(i, trail);
+            let line = three.trailLines.get(i);
+            if (!line) {
+              line = new THREE.Line(new THREE.BufferGeometry(), new THREE.LineBasicMaterial({ color: "#f6c85f", transparent: true, opacity: 0.42 }));
+              three.trailLines.set(i, line);
+              three.scene.add(line);
+            }
+            line.geometry.dispose();
+            line.geometry = new THREE.BufferGeometry().setFromPoints(trail);
+            line.visible = state.trails;
+          }
+        }
+        for (const line of three.vectors) three.scene.remove(line);
+        three.vectors = [];
+        if (state.vectors) {
+          for (let i = 0; i < three.bodies.length; i++) {
+            const body = three.bodies[i];
+            const points = [
+              new THREE.Vector3(body.position.x, body.position.y, body.position.z),
+              new THREE.Vector3(body.position.x + body.velocity.x * 0.18, body.position.y + body.velocity.y * 0.18, body.position.z + body.velocity.z * 0.18)
+            ];
+            const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints(points), new THREE.LineBasicMaterial({ color: "#78a8ff", transparent: true, opacity: 0.85 }));
+            three.vectors.push(line);
+            three.scene.add(line);
+          }
+        }
+        three.renderer.render(three.scene, three.camera);
+      }
+
+      function resetSimulation() {
+        if (currentExperiment().engine === "cannon") {
+          canvas2d.style.display = "none";
+          canvas3d.style.display = "block";
+          resetThree();
+        } else {
+          canvas2d.style.display = "block";
+          canvas3d.style.display = "none";
+          seedMatter();
+        }
+        syncLabels();
+      }
+
+      function spawn() {
+        if (currentExperiment().engine === "cannon") spawnThree();
+        else spawnMatter();
+      }
+
+      function savePreset() {
+        state.saved.unshift({
+          name: `${currentExperiment().name} ${state.saved.length + 1}`,
+          createdAt: new Date().toISOString(),
+          values: { ...state, saved: [] }
+        });
+        state.saved = state.saved.slice(0, 8);
+        localStorage.setItem("physics-html-presets", JSON.stringify(state.saved));
+        renderPresets();
+      }
+
+      function renderExperiments() {
+        ui.experimentList.innerHTML = "";
+        for (const experiment of experiments) {
+          const button = document.createElement("button");
+          button.type = "button";
+          button.className = `experiment-card${state.experiment === experiment.id ? " active" : ""}`;
+          button.innerHTML = `<span class="card-head"><span class="card-title">${experiment.name}</span><span class="badge">${experiment.engine === "cannon" ? "3D" : "2D"}</span></span><span class="card-copy">${experiment.tag}</span>`;
+          button.addEventListener("click", () => {
+            applyDefaults(experiment.id);
+            renderAll();
+            resetSimulation();
+          });
+          ui.experimentList.appendChild(button);
+        }
+      }
+
+      function renderShapes() {
+        const shapes = [
+          ["ball", "Ball"],
+          ["box", "Box"],
+          ["capsule", "Capsule"],
+          ["compound", "Compound"]
+        ];
+        ui.shapeGrid.innerHTML = "";
+        for (const [id, label] of shapes) {
+          const button = document.createElement("button");
+          button.type = "button";
+          button.className = `compact-btn${state.shape === id ? " active" : ""}`;
+          button.textContent = label;
+          button.addEventListener("click", () => {
+            state.shape = id;
+            renderShapes();
+          });
+          ui.shapeGrid.appendChild(button);
+        }
+      }
+
+      function slider(container, label, key, min, max, step, unit = "") {
+        const row = document.createElement("label");
+        row.className = "slider-row";
+        const value = Number(state[key]);
+        row.innerHTML = `<span class="slider-meta"><span class="control-label">${label}</span><span class="value">${value.toFixed(step < 0.1 ? 2 : step < 1 ? 1 : 0)}${unit}</span></span>`;
+        const input = document.createElement("input");
+        input.type = "range";
+        input.min = min;
+        input.max = max;
+        input.step = step;
+        input.value = value;
+        input.addEventListener("input", () => {
+          state[key] = Number(input.value);
+          row.querySelector(".value").textContent = `${state[key].toFixed(step < 0.1 ? 2 : step < 1 ? 1 : 0)}${unit}`;
+        });
+        container.appendChild(row);
+        row.appendChild(input);
+      }
+
+      function clearSection(section, title) {
+        section.innerHTML = `<div class="panel-title">${title}</div>`;
+      }
+
+      function renderControls() {
+        const experiment = currentExperiment();
+        ui.controlTitle.textContent = experiment.name;
+        ui.controlDescription.textContent = experiment.description;
+        ui.engineBadge.textContent = experiment.engine === "cannon" ? "cannon-es 3D" : "Matter 2D";
+        clearSection(ui.worldControls, "World Forces");
+        clearSection(ui.materialControls, "Material");
+        clearSection(ui.extraControls, "Experiment Response");
+        slider(ui.worldControls, "Gravity X", "gravityX", -2, 2, 0.05);
+        slider(ui.worldControls, "Gravity Y", "gravityY", experiment.engine === "cannon" ? -18 : -2, 2, 0.05);
+        if (experiment.engine === "cannon") slider(ui.worldControls, "Gravity Z", "gravityZ", -18, 2, 0.05);
+        if (state.experiment === "wind") slider(ui.worldControls, "Wind Speed", "wind", -2, 16, 0.1);
+        if (state.experiment === "orbit") slider(ui.worldControls, "Orbital G", "orbitG", 0.02, 1.2, 0.01);
+        if (state.experiment === "field") slider(ui.worldControls, "Field Strength", "field", 0.05, 1.4, 0.01);
+        slider(ui.materialControls, "Mass", "mass", 0.5, 24, 0.5, "kg");
+        slider(ui.materialControls, "Friction", "friction", 0, 1, 0.01);
+        slider(ui.materialControls, "Restitution", "bounce", 0, 1, 0.01);
+        slider(ui.materialControls, "Initial Velocity", "velocity", 0, 12, 0.1);
+        if (["spring", "chain", "field"].includes(state.experiment)) {
+          if (state.experiment === "spring") {
+            slider(ui.extraControls, "Pendulum Length", "length", 120, 460, 5);
+            slider(ui.extraControls, "Spring Stiffness", "stiffness", 0.002, 0.04, 0.001);
+          }
+          slider(ui.extraControls, "Damping", "damping", 0, 0.12, 0.002);
+          ui.extraControls.style.display = "grid";
+        } else {
+          ui.extraControls.style.display = "none";
+        }
+      }
+
+      function renderPresets() {
+        ui.presetList.innerHTML = "";
+        if (!state.saved.length) {
+          ui.presetList.innerHTML = `<p class="hint">Saved parameter sets will appear here.</p>`;
+          return;
+        }
+        for (const preset of state.saved) {
+          const item = document.createElement("div");
+          item.className = "preset-item";
+          item.innerHTML = `<strong>${preset.name}</strong><span class="hint">${new Date(preset.createdAt).toLocaleString()}</span><div class="preset-actions"><button class="compact-btn" type="button">Load</button><button class="compact-btn" type="button">Delete</button></div>`;
+          const [load, del] = item.querySelectorAll("button");
+          load.addEventListener("click", () => {
+            Object.assign(state, preset.values, { saved: state.saved });
+            renderAll();
+            resetSimulation();
+          });
+          del.addEventListener("click", () => {
+            state.saved = state.saved.filter((entry) => entry !== preset);
+            localStorage.setItem("physics-html-presets", JSON.stringify(state.saved));
+            renderPresets();
+          });
+          ui.presetList.appendChild(item);
+        }
+      }
+
+      function syncLabels() {
+        const experiment = currentExperiment();
+        ui.sceneMode.textContent = experiment.engine === "cannon" ? "3D Physics World" : "2D Physics World";
+        ui.sceneName.textContent = experiment.name;
+        ui.status.textContent = state.paused ? "Paused" : "Running";
+        ui.debugPanel.style.display = state.debug ? "grid" : "none";
+        ui.buttons.play.classList.toggle("active", !state.paused);
+        ui.buttons.play.textContent = state.paused ? ">" : "||";
+        ui.buttons.vectors.classList.toggle("active", state.vectors);
+        ui.buttons.forces.classList.toggle("active", state.forces);
+        ui.buttons.trails.classList.toggle("active", state.trails);
+        ui.buttons.debug.classList.toggle("active", state.debug);
+      }
+
+      function renderAll() {
+        renderExperiments();
+        renderShapes();
+        renderControls();
+        renderPresets();
+        syncLabels();
+      }
+
+      function updateMetrics(fps) {
+        const is3d = currentExperiment().engine === "cannon";
+        let bodyCount = 0;
+        let constraintCount = 0;
+        let energy = 0;
+        if (is3d) {
+          bodyCount = three.bodies.length + 1;
+          for (const body of three.bodies) {
+            energy += 0.5 * body.mass * body.velocity.lengthSquared();
+          }
+        } else {
+          const bodies = Composite.allBodies(engine.world);
+          bodyCount = bodies.filter((body) => bodyPlugin(body).role !== "wall").length;
+          constraintCount = Composite.allConstraints(engine.world).length;
+          for (const body of bodies) {
+            if (!body.isStatic) energy += 0.5 * body.mass * (body.velocity.x * body.velocity.x + body.velocity.y * body.velocity.y);
+          }
+        }
+        ui.metrics.fps.textContent = fps.toFixed(0);
+        ui.metrics.bodies.textContent = String(bodyCount);
+        ui.metrics.constraints.textContent = String(constraintCount);
+        ui.metrics.step.textContent = `${STEP_MS.toFixed(2)}ms`;
+        ui.metrics.collisions.textContent = String(collisions);
+        ui.metrics.energy.textContent = energy.toFixed(1);
+      }
+
+      function animate(time) {
+        frame++;
+        const delta = Math.min(50, time - (lastTime || time));
+        lastTime = time;
+        fpsFrames++;
+        fpsTime += delta;
+
+        const is3d = currentExperiment().engine === "cannon";
+        if (!state.paused || stepRequest) {
+          accumulator += stepRequest ? STEP_MS : delta;
+          stepRequest = false;
+          while (accumulator >= STEP_MS) {
+            if (is3d) stepThree();
+            else stepMatter();
+            accumulator -= STEP_MS;
+          }
+        }
+
+        if (is3d) drawThree();
+        else drawMatter();
+
+        if (fpsTime >= 350) {
+          updateMetrics((fpsFrames * 1000) / fpsTime);
+          fpsFrames = 0;
+          fpsTime = 0;
+        }
+        requestAnimationFrame(animate);
+      }
+
+      document.getElementById("playBtn").addEventListener("click", () => {
+        state.paused = !state.paused;
+        syncLabels();
+      });
+      document.getElementById("stepBtn").addEventListener("click", () => {
+        state.paused = true;
+        stepRequest = true;
+        syncLabels();
+      });
+      document.getElementById("resetBtn").addEventListener("click", resetSimulation);
+      document.getElementById("saveBtn").addEventListener("click", savePreset);
+      document.getElementById("spawnBtn").addEventListener("click", spawn);
+      document.getElementById("vectorsBtn").addEventListener("click", () => {
+        state.vectors = !state.vectors;
+        syncLabels();
+      });
+      document.getElementById("forcesBtn").addEventListener("click", () => {
+        state.forces = !state.forces;
+        syncLabels();
+      });
+      document.getElementById("trailsBtn").addEventListener("click", () => {
+        state.trails = !state.trails;
+        syncLabels();
+      });
+      document.getElementById("debugBtn").addEventListener("click", () => {
+        state.debug = !state.debug;
+        syncLabels();
+      });
+
+      window.addEventListener("resize", resize);
+      applyDefaults("gravity");
+      renderAll();
+      resize();
+      requestAnimationFrame(animate);
+    </script>
+  </body>
+</html>
