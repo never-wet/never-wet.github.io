@@ -7,6 +7,7 @@ const featuredNames = [
   "Terrain Generator",
   "Physics Engine Playground",
   "ARCTIS / SIGNAL",
+  "AeroRank Vehicle System",
   "Aeroform Car Showcase",
   "Noema Vault",
   "Loreline",

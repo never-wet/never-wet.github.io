@@ -30,6 +30,12 @@ export const projects = [
     href: "../car/",
   },
   {
+    title: "AeroRank Vehicle System",
+    tag: "Automotive / R3F System",
+    description: "Futuristic vehicle ranking interface with 3D cars, boot scans, aerodynamic airflow, pressure data, and cinematic system states.",
+    href: "../aero-rank-system/",
+  },
+  {
     title: "ARCTIS / SIGNAL",
     tag: "Immersive / WebGL",
     description: "Realtime brand world with cinematic scroll-driven 3D choreography.",
