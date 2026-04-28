@@ -83,7 +83,12 @@
       }
     </style>
     <script>
-      window.location.replace("./out/");
+      const currentPath = window.location.pathname.endsWith("/")
+        ? window.location.pathname
+        : `${window.location.pathname}/`;
+      const targetUrl = new URL(`${currentPath}out/`, window.location.origin);
+
+      window.location.replace(targetUrl.href);
     </script>
   </head>
   <body>
