@@ -76,4 +76,4 @@ Open the URL printed by Next, usually `http://127.0.0.1:3000`.
 npm run build
 ```
 
-The exported site is written to `out/`. The root `index.html` redirects to `./out/` so the project can be linked from the main homepage as `./aero-rank-system/`.
+Next.js temporarily writes the export to `out/`, then `scripts/publish-static.mjs` flattens that export into the project root and removes `out/`. That means `aero-rank-system/index.html` is the real launch file and the main homepage can link directly to `./aero-rank-system/`.
