@@ -1,0 +1,6 @@
+node_modules/
+.next/
+test-results/
+dev-server.log
+dev-server.err.log
+*.tsbuildinfo

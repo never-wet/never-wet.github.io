@@ -4,6 +4,7 @@ import { projects } from "../igloo-home/projects.js";
 const localProjects = projects.filter((project) => !project.external);
 const featuredNames = [
   "Code Workspace",
+  "Terrain Generator",
   "Physics Engine Playground",
   "ARCTIS / SIGNAL",
   "Aeroform Car Showcase",

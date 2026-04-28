@@ -12,6 +12,12 @@ export const projects = [
     href: "../physics-engine-playground/physics-engine-playground.html",
   },
   {
+    title: "Terrain Generator",
+    tag: "Procedural / WebGL Tool",
+    description: "Realtime terrain creation tool with procedural noise, erosion, brush editing, chunked Three.js rendering, and heightmap or mesh export.",
+    href: "../terrain-generator/",
+  },
+  {
     title: "Igloo Experience",
     tag: "Homepage / Immersive",
     description: "Scene-only version of the Never Wet homepage with interactive brick disassembly and snowfall.",
@@ -27,13 +33,13 @@ export const projects = [
     title: "ARCTIS / SIGNAL",
     tag: "Immersive / WebGL",
     description: "Realtime brand world with cinematic scroll-driven 3D choreography.",
-    href: "../arctis-signal/out/",
+    href: "../arctis-signal/",
   },
   {
     title: "Noema Vault",
     tag: "Storyworld / Archive",
     description: "Atmospheric scrollytelling prototype built around memory as architecture.",
-    href: "../noema-vault/out/",
+    href: "../noema-vault/",
   },
   {
     title: "UIUXPRO",
