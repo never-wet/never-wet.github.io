@@ -1,5 +1,11 @@
 export const projects = [
   {
+    title: "Code Workspace",
+    tag: "Developer Tool / Monaco",
+    description: "Browser-based VS Code-inspired workspace with Monaco editing, files, tabs, command palette, terminal, themes, and simulated extensions.",
+    href: "../code-workspace/",
+  },
+  {
     title: "Physics Engine Playground",
     tag: "Physics / Simulator",
     description: "Interactive physics laboratory with real Matter.js 2D experiments, Three.js/cannon-es 3D rigid bodies, debug vectors, trails, and draggable objects.",
