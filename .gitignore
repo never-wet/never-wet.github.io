@@ -5,8 +5,10 @@ img/í™”ë©´ ìº¡ì²˜ 2023-10-23 203224.png
 img/ì œëª© ì—†ìŒ.png
 img/gojosatoruinfinitevoid.png
 node_modules/
+.next/
 dist/
 *.tsbuildinfo
+dev-server*.log
 games/puzzle/node_modules/
 games/puzzle/dist/
 img/GitHubDesktopSetup-x64.exe

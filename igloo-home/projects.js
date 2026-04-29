@@ -6,6 +6,12 @@ export const projects = [
     href: "../code-workspace/",
   },
   {
+    title: "Entity Diagnostic System",
+    tag: "Identity / R3F State Machine",
+    description: "Controlled diagnostic interface where scroll advances system states, identity selection updates ranked entity data, and a reactive 3D core performs the analysis.",
+    href: "../entity-diagnostic-system/",
+  },
+  {
     title: "Physics Engine Playground",
     tag: "Physics / Simulator",
     description: "Interactive physics laboratory with real Matter.js 2D experiments, Three.js/cannon-es 3D rigid bodies, debug vectors, trails, and draggable objects.",
