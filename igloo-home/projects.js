@@ -1,5 +1,11 @@
 export const projects = [
   {
+    title: "Loop DAW",
+    tag: "Music / Composition Tool",
+    description: "Beginner-friendly browser DAW with a draggable piano roll, loop playback, Web Audio instruments, mixer controls, presets, and save/export.",
+    href: "../loop-daw/",
+  },
+  {
     title: "Code Workspace",
     tag: "Developer Tool / Monaco",
     description: "Browser-based VS Code-inspired workspace with Monaco editing, files, tabs, command palette, terminal, themes, and simulated extensions.",

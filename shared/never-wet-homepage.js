@@ -3,6 +3,7 @@ import { projects } from "../igloo-home/projects.js";
 
 const localProjects = projects.filter((project) => !project.external);
 const featuredNames = [
+  "Loop DAW",
   "Entity Diagnostic System",
   "Code Workspace",
   "Terrain Generator",
