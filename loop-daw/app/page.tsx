@@ -1,5 +1,5 @@
-import { DawStudio } from "./studio/DawStudio";
+import { DawWorkspace } from "../components/DawWorkspace";
 
 export default function Home() {
-  return <DawStudio />;
+  return <DawWorkspace />;
 }
