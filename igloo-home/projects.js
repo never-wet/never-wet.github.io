@@ -1,5 +1,11 @@
 export const projects = [
   {
+    title: "Market Intel AI",
+    tag: "Finance / AI Analysis",
+    description: "Real-time stock analysis terminal with live OHLC data, moving-average intelligence, RSI, sector signals, financial news, and account tracking.",
+    href: "../market-intel-ai/",
+  },
+  {
     title: "Loop DAW",
     tag: "Music / Composition Tool",
     description: "Beginner-friendly browser DAW with a draggable piano roll, loop playback, Web Audio instruments, mixer controls, presets, and save/export.",

@@ -1,0 +1,1470 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Market Intel AI | Live Stock Dashboard</title>
+    <meta
+      name="description"
+      content="A visible real-time stock dashboard with live chart data, AI trend analysis, news, signals, and account tracking."
+    />
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #080a09;
+        --panel: #101311;
+        --panel-2: #151913;
+        --line: rgba(235, 241, 235, 0.12);
+        --line-strong: rgba(235, 241, 235, 0.22);
+        --text: #edf4ec;
+        --muted: rgba(237, 244, 236, 0.62);
+        --faint: rgba(237, 244, 236, 0.38);
+        --green: #8dd6b1;
+        --red: #ff7777;
+        --amber: #ffb75c;
+        --cyan: #76d5f4;
+        --violet: #c7a4ff;
+        --shadow: 0 24px 70px rgba(0, 0, 0, 0.36);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        overflow: hidden;
+        background:
+          linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+          linear-gradient(180deg, rgba(255, 255, 255, 0.028) 1px, transparent 1px),
+          var(--bg);
+        background-size: 42px 42px;
+        color: var(--text);
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      button,
+      input {
+        font: inherit;
+      }
+
+      button {
+        color: inherit;
+        cursor: pointer;
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      .shell {
+        width: 100vw;
+        height: 100dvh;
+        display: grid;
+        grid-template-columns: 236px minmax(0, 1fr) 322px;
+        grid-template-rows: 58px minmax(0, 1fr) 164px;
+        gap: 8px;
+        padding: 8px;
+      }
+
+      body.news-collapsed .shell {
+        grid-template-rows: 58px minmax(0, 1fr) 42px;
+      }
+
+      .panel,
+      .topbar {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.018)), var(--panel);
+        box-shadow: var(--shadow);
+      }
+
+      .topbar {
+        grid-column: 1 / -1;
+        display: grid;
+        grid-template-columns: 236px minmax(300px, 1fr) auto;
+        align-items: center;
+        gap: 10px;
+        padding: 7px 8px;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-width: 0;
+      }
+
+      .brand-mark {
+        width: 34px;
+        height: 34px;
+        display: grid;
+        place-items: center;
+        border-radius: 8px;
+        background: var(--green);
+        color: #07100b;
+        font-weight: 900;
+      }
+
+      .brand strong,
+      .brand small,
+      .kicker,
+      .stat span,
+      .muted {
+        display: block;
+      }
+
+      .brand strong,
+      h1,
+      h2 {
+        margin: 0;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+
+      .brand strong,
+      h2 {
+        font-size: 0.88rem;
+      }
+
+      .brand small,
+      .kicker,
+      .muted,
+      .stat span,
+      .stock small,
+      .news small,
+      label {
+        color: var(--muted);
+        font-size: 0.72rem;
+      }
+
+      .kicker {
+        margin-bottom: 5px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      .search {
+        position: relative;
+        display: grid;
+        grid-template-columns: minmax(140px, 1fr) 78px;
+        gap: 8px;
+        min-width: 0;
+      }
+
+      .search input {
+        min-width: 0;
+        height: 38px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        outline: 0;
+        background: rgba(255, 255, 255, 0.045);
+        color: var(--text);
+        padding: 0 12px;
+      }
+
+      .search button,
+      .range button,
+      .watch-adds button {
+        min-height: 38px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.045);
+      }
+
+      .search button:hover,
+      .range button:hover,
+      .range button.active,
+      .watch-adds button:hover {
+        border-color: rgba(141, 214, 177, 0.45);
+        background: rgba(141, 214, 177, 0.1);
+        color: var(--green);
+      }
+
+      .status {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 8px;
+      }
+
+      .stat {
+        min-height: 36px;
+        display: grid;
+        align-content: center;
+        padding: 0 10px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.035);
+        white-space: nowrap;
+      }
+
+      .stat strong {
+        font-size: 0.78rem;
+      }
+
+      .watch {
+        grid-column: 1;
+        grid-row: 2;
+        display: grid;
+        grid-template-rows: auto minmax(0, 1fr) auto;
+        min-height: 0;
+        padding: 10px;
+      }
+
+      .panel-title {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .panel-title button,
+      .bottom-controls button {
+        min-height: 28px;
+        padding: 0 9px;
+        border: 1px solid var(--line);
+        border-radius: 7px;
+        background: rgba(255, 255, 255, 0.04);
+        color: var(--muted);
+        font-size: 0.72rem;
+      }
+
+      .panel-title button:hover,
+      .bottom-controls button:hover {
+        border-color: rgba(141, 214, 177, 0.42);
+        color: var(--green);
+      }
+
+      .stocks {
+        min-height: 0;
+        display: grid;
+        align-content: start;
+        gap: 5px;
+        overflow: auto;
+        padding: 10px 0;
+      }
+
+      .stock {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 8px;
+        min-height: 44px;
+        padding: 7px 9px;
+        border: 1px solid transparent;
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.035);
+        text-align: left;
+      }
+
+      .stock:hover,
+      .stock.active {
+        border-color: rgba(141, 214, 177, 0.38);
+        background: rgba(141, 214, 177, 0.08);
+      }
+
+      .watch-adds {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+
+      .watch-adds button {
+        min-height: 30px;
+        padding: 0 9px;
+        color: var(--muted);
+        font-size: 0.74rem;
+      }
+
+      .chart-panel {
+        grid-column: 2;
+        grid-row: 2;
+        display: grid;
+        grid-template-rows: auto auto minmax(0, 1fr) 116px;
+        min-width: 0;
+        min-height: 0;
+        padding: 10px;
+      }
+
+      .chart-head {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto auto;
+        align-items: start;
+        gap: 12px;
+      }
+
+      h1 {
+        font-size: clamp(1.45rem, 2.2vw, 2.45rem);
+        line-height: 1;
+      }
+
+      .price {
+        text-align: right;
+      }
+
+      .price strong {
+        display: block;
+        font-size: 1.28rem;
+      }
+
+      .range {
+        display: flex;
+        gap: 6px;
+      }
+
+      .range button {
+        min-width: 42px;
+        min-height: 32px;
+        padding: 0 9px;
+      }
+
+      .metrics {
+        display: grid;
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+        gap: 6px;
+        padding: 8px 0;
+      }
+
+      .metric {
+        min-width: 0;
+        padding: 7px 8px;
+        border: 1px solid var(--line);
+        border-radius: 7px;
+        background: rgba(255, 255, 255, 0.035);
+      }
+
+      .metric span,
+      .metric strong {
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .metric span {
+        color: var(--muted);
+        font-size: 0.7rem;
+      }
+
+      .canvas-wrap {
+        position: relative;
+        min-height: 0;
+        overflow: hidden;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: rgba(0, 0, 0, 0.12);
+      }
+
+      canvas {
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+
+      .action-zone {
+        grid-column: 3;
+        grid-row: 2;
+        display: grid;
+        grid-template-rows: auto minmax(0, 1fr) auto;
+        gap: 8px;
+        min-height: 0;
+      }
+
+      .prediction,
+      .signals,
+      .news-panel,
+      .quote-panel,
+      .data-panel {
+        min-height: 0;
+        padding: 10px;
+      }
+
+      .quote-panel,
+      .data-panel {
+        display: grid;
+        gap: 8px;
+      }
+
+      .quote-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 6px;
+      }
+
+      .intel-strip {
+        min-height: 0;
+        display: grid;
+        grid-template-columns: minmax(260px, 0.82fr) minmax(280px, 1.18fr);
+        gap: 8px;
+        padding-top: 8px;
+      }
+
+      .prediction-card,
+      .signal-card {
+        min-width: 0;
+        min-height: 0;
+        padding: 8px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.03);
+        overflow: hidden;
+      }
+
+      .callout {
+        margin-top: 0;
+        padding: 8px;
+        border: 1px solid rgba(141, 214, 177, 0.18);
+        border-radius: 8px;
+        background: rgba(141, 214, 177, 0.07);
+      }
+
+      .callout span {
+        display: block;
+        color: var(--green);
+        font-size: 0.72rem;
+        font-weight: 900;
+        letter-spacing: 0.08em;
+      }
+
+      .callout strong {
+        display: block;
+        margin-top: 4px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .prediction-grid,
+      .signal-list {
+        display: grid;
+        gap: 6px;
+        margin-top: 8px;
+      }
+
+      .prediction-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .prediction-grid div,
+      .signal-list div,
+      .quote-grid div,
+      .data-panel .field {
+        padding: 8px;
+        border: 1px solid var(--line);
+        border-radius: 7px;
+        background: rgba(255, 255, 255, 0.035);
+      }
+
+      .intel-strip .prediction-grid div,
+      .intel-strip .signal-list div {
+        padding: 6px 7px;
+      }
+
+      .intel-strip .signal-list {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+      }
+
+      .intel-strip .signal-list div {
+        grid-template-columns: 1fr;
+        gap: 1px;
+        min-width: 0;
+        font-size: 0.68rem;
+      }
+
+      .intel-strip .signal-list strong,
+      .intel-strip .signal-list span {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .prediction-grid span,
+      .quote-grid span {
+        display: block;
+        color: var(--muted);
+        font-size: 0.7rem;
+      }
+
+      .quote-grid strong,
+      .data-panel strong {
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .signal-list div {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto 42px;
+        gap: 8px;
+        font-size: 0.78rem;
+      }
+
+      .news-list {
+        min-height: 0;
+        display: flex;
+        gap: 8px;
+        overflow-x: auto;
+        overflow-y: hidden;
+        padding: 0 2px 3px 0;
+        scrollbar-color: rgba(141, 214, 177, 0.42) rgba(255, 255, 255, 0.04);
+      }
+
+      .news {
+        flex: 0 0 390px;
+        min-width: 0;
+        display: grid;
+        grid-template-rows: auto minmax(34px, auto) auto;
+        align-content: start;
+        gap: 6px;
+        min-height: 86px;
+        padding: 10px 11px;
+        border: 1px solid rgba(255, 255, 255, 0.055);
+        border-radius: 8px;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.026));
+      }
+
+      .news:hover {
+        background: rgba(255, 255, 255, 0.065);
+      }
+
+      .news strong {
+        min-width: 0;
+        overflow: hidden;
+        color: var(--text);
+        font-size: 0.86rem;
+        line-height: 1.18;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+      }
+
+      .news small {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .bottom-bar .news .muted {
+        display: none;
+      }
+
+      .impact {
+        width: fit-content;
+        padding: 3px 6px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.055);
+        color: var(--muted);
+        font-size: 0.62rem;
+        font-weight: 900;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .impact.bullish,
+      .positive {
+        color: var(--green);
+      }
+
+      .impact.bearish,
+      .negative {
+        color: var(--red);
+      }
+
+      .bottom-bar {
+        grid-column: 1 / -1;
+        grid-row: 3;
+        display: grid;
+        grid-template-rows: 52px minmax(0, 1fr);
+        gap: 6px;
+        min-height: 0;
+        padding: 8px 10px 9px;
+      }
+
+      .bottom-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        min-height: 0;
+      }
+
+      .bottom-head h2,
+      .bottom-head .kicker {
+        line-height: 1;
+      }
+
+      .tape-status {
+        display: block;
+        max-width: min(70vw, 760px);
+        margin-top: 5px;
+        overflow: hidden;
+        color: var(--muted);
+        font-size: 0.74rem;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      body.news-collapsed .tape-status {
+        color: var(--text);
+        font-size: 0.82rem;
+      }
+
+      .bottom-controls {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      body.news-collapsed .bottom-bar {
+        grid-template-rows: 1fr;
+      }
+
+      body.news-collapsed .news-list {
+        display: none;
+      }
+
+      body.news-collapsed .bottom-head .kicker,
+      body.news-collapsed .bottom-head h2 {
+        display: none;
+      }
+
+      @media (max-width: 1060px) {
+        .shell {
+          grid-template-columns: 186px minmax(0, 1fr) 284px;
+          grid-template-rows: 56px minmax(0, 1fr) 96px;
+          gap: 6px;
+          padding: 6px;
+        }
+
+        .topbar {
+          grid-template-columns: 186px minmax(220px, 1fr);
+        }
+
+        .status {
+          display: none;
+        }
+
+        .search {
+          grid-template-columns: minmax(0, 1fr) 72px;
+        }
+
+      }
+    </style>
+  </head>
+  <body>
+    <main class="shell">
+      <header class="topbar">
+        <div class="brand">
+          <span class="brand-mark">MI</span>
+          <span>
+            <strong>Market Intel AI</strong>
+            <small>Static HTML live stock terminal</small>
+          </span>
+        </div>
+        <form class="search" id="searchForm">
+          <input id="symbolInput" placeholder="Enter symbol, e.g. MSFT" autocomplete="off" />
+          <button type="submit">Load</button>
+        </form>
+        <div class="status">
+          <div class="stat">
+            <span>Feed</span>
+            <strong id="feedStatus">Connecting</strong>
+          </div>
+          <div class="stat">
+            <span>Last tick</span>
+            <strong id="lastTick">pending</strong>
+          </div>
+          <div class="stat">
+            <span>Provider</span>
+            <strong id="providerName">Yahoo Finance</strong>
+          </div>
+        </div>
+      </header>
+
+      <section class="panel watch">
+        <div class="panel-title">
+          <div>
+            <span class="kicker">Tracked stocks</span>
+            <h2>Watchlist</h2>
+          </div>
+        </div>
+        <div class="stocks" id="stocks"></div>
+        <div class="watch-adds">
+          <button data-add="MSFT">MSFT</button>
+          <button data-add="IBM">IBM</button>
+          <button data-add="AAPL">AAPL</button>
+          <button data-add="NVDA">NVDA</button>
+          <button data-add="TSLA">TSLA</button>
+        </div>
+      </section>
+
+      <section class="panel chart-panel">
+        <div class="chart-head">
+          <div>
+            <span class="kicker">Live price chart</span>
+            <h1 id="symbolTitle">MSFT</h1>
+            <span class="muted" id="symbolName">Microsoft Corporation</span>
+          </div>
+          <div class="price">
+            <strong id="livePrice">$0.00</strong>
+            <span id="liveChange" class="muted">0.00%</span>
+          </div>
+          <div class="range" id="rangeControls">
+            <button data-range="1D" class="active">1D</button>
+            <button data-range="1W">1W</button>
+            <button data-range="1M">1M</button>
+            <button data-range="1Y">1Y</button>
+          </div>
+        </div>
+        <div class="metrics">
+          <div class="metric"><span>Open</span><strong id="mOpen">--</strong></div>
+          <div class="metric"><span>High</span><strong id="mHigh">--</strong></div>
+          <div class="metric"><span>Low</span><strong id="mLow">--</strong></div>
+          <div class="metric"><span>Volume</span><strong id="mVolume">--</strong></div>
+          <div class="metric"><span>Volatility</span><strong id="mVolatility">--</strong></div>
+          <div class="metric"><span>Range</span><strong id="mRange">1D</strong></div>
+        </div>
+        <div class="canvas-wrap">
+          <canvas id="priceCanvas"></canvas>
+        </div>
+        <div class="intel-strip">
+          <section class="prediction-card">
+            <div class="panel-title">
+              <div>
+                <span class="kicker">AI prediction</span>
+                <h2 id="trendTitle">Analyzing</h2>
+              </div>
+              <strong id="confidence">--%</strong>
+            </div>
+            <div class="callout">
+              <span id="trendLabel">SYNCING</span>
+              <strong id="predictionText">Waiting for live OHLC data.</strong>
+            </div>
+          </section>
+          <section class="signal-card">
+            <div class="prediction-grid">
+              <div><span>RSI</span><strong id="pRsi">--</strong></div>
+              <div><span>Risk</span><strong id="pRisk">--</strong></div>
+              <div><span>SMA 20</span><strong id="pSma">--</strong></div>
+              <div><span>EMA 20</span><strong id="pEma">--</strong></div>
+              <div><span>Support</span><strong id="pSupport">--</strong></div>
+              <div><span>Resistance</span><strong id="pResistance">--</strong></div>
+            </div>
+            <div class="signal-list" id="signals"></div>
+          </section>
+        </div>
+      </section>
+
+      <aside class="action-zone">
+        <div class="panel quote-panel">
+          <div class="panel-title">
+            <div>
+              <span class="kicker">Market quote</span>
+              <h2 id="sideSymbol">MSFT</h2>
+            </div>
+          </div>
+          <div class="quote-grid">
+            <div><span>Last</span><strong id="sidePrice">--</strong></div>
+            <div><span>Change</span><strong id="sideChange">--</strong></div>
+            <div><span>Volume</span><strong id="sideVolume">--</strong></div>
+            <div><span>Session</span><strong id="sideRange">--</strong></div>
+          </div>
+        </div>
+
+        <div class="panel data-panel">
+          <div class="panel-title">
+            <div>
+              <span class="kicker">Risk context</span>
+              <h2>Model Snapshot</h2>
+            </div>
+          </div>
+          <div class="field"><span class="muted">Trend</span><strong id="sideTrend">Waiting for data</strong></div>
+          <div class="field"><span class="muted">Confidence</span><strong id="sideConfidence">--</strong></div>
+          <div class="field"><span class="muted">Volatility</span><strong id="sideVolatility">--</strong></div>
+          <div class="field"><span class="muted">Support / Resistance</span><strong id="sideLevels">--</strong></div>
+        </div>
+
+        <div class="panel data-panel">
+          <div class="panel-title">
+            <div>
+              <span class="kicker">Data feed</span>
+              <h2>Provider</h2>
+            </div>
+          </div>
+          <div class="field"><span class="muted">Source</span><strong id="sideSource">Yahoo Finance</strong></div>
+          <div class="field"><span class="muted">Mode</span><strong>Market analysis only</strong></div>
+        </div>
+      </aside>
+
+      <section class="panel bottom-bar">
+        <div class="bottom-head">
+          <div>
+            <span class="kicker">Financial news</span>
+            <h2>Compact Market Tape</h2>
+            <span class="tape-status" id="tapeStatus">Loading market headlines...</span>
+          </div>
+          <div class="bottom-controls">
+            <button id="refreshNews" type="button">Refresh</button>
+            <button id="toggleNews" type="button">Collapse</button>
+          </div>
+        </div>
+        <div class="news-list" id="news"></div>
+      </section>
+    </main>
+
+    <script>
+      const DEMO_KEY = "demo";
+      const WATCHLIST = ["MSFT", "IBM", "AAPL", "NVDA", "TSLA"];
+      const state = {
+        symbol: localStorage.getItem("marketIntelSymbol") || "MSFT",
+        range: "1D",
+        apiKey: DEMO_KEY,
+        points: [],
+        quote: null,
+        predictions: null,
+        watchQuotes: {},
+        dataProvider: "Yahoo Finance"
+      };
+
+      const el = {
+        stocks: document.getElementById("stocks"),
+        symbolTitle: document.getElementById("symbolTitle"),
+        symbolName: document.getElementById("symbolName"),
+        livePrice: document.getElementById("livePrice"),
+        liveChange: document.getElementById("liveChange"),
+        feedStatus: document.getElementById("feedStatus"),
+        lastTick: document.getElementById("lastTick"),
+        canvas: document.getElementById("priceCanvas"),
+        news: document.getElementById("news"),
+        signals: document.getElementById("signals"),
+        searchForm: document.getElementById("searchForm"),
+        symbolInput: document.getElementById("symbolInput")
+      };
+
+      const money = new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: "USD",
+        maximumFractionDigits: 2
+      });
+      const compact = new Intl.NumberFormat("en-US", {
+        notation: "compact",
+        maximumFractionDigits: 1
+      });
+
+      function cleanSymbol(symbol) {
+        return String(symbol || "")
+          .trim()
+          .toUpperCase()
+          .replace(/[^A-Z0-9.^-]/g, "")
+          .slice(0, 12);
+      }
+
+      function fmt(value) {
+        return Number.isFinite(value) ? money.format(value) : "--";
+      }
+
+      function pct(value) {
+        return `${value >= 0 ? "+" : ""}${value.toFixed(2)}%`;
+      }
+
+      function alphaUrl(functionName, symbol, extra = {}) {
+        const params = new URLSearchParams({
+          function: functionName,
+          symbol,
+          apikey: state.apiKey,
+          ...extra
+        });
+        return `https://www.alphavantage.co/query?${params.toString()}`;
+      }
+
+      function yahooTargetUrl(symbol, range) {
+        const config =
+          range === "1W"
+            ? { range: "5d", interval: "15m" }
+            : range === "1M"
+              ? { range: "1mo", interval: "1d" }
+              : range === "1Y"
+                ? { range: "1y", interval: "1d" }
+                : { range: "1d", interval: "1m" };
+        return `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?range=${config.range}&interval=${config.interval}&includePrePost=false`;
+      }
+
+      async function fetchJson(url) {
+        const response = await fetch(url, { cache: "no-store" });
+        if (!response.ok) throw new Error(`Request failed: ${response.status}`);
+        return response.json();
+      }
+
+      function parseYahooChart(payload, symbol) {
+        const result = payload?.chart?.result?.[0];
+        const quote = result?.indicators?.quote?.[0];
+        const timestamps = result?.timestamp || [];
+        if (!result || !quote || !timestamps.length) {
+          throw new Error(payload?.chart?.error?.description || "No Yahoo Finance chart data returned");
+        }
+
+        const points = timestamps
+          .map((time, index) => {
+            const close = quote.close?.[index];
+            if (!Number.isFinite(close)) return null;
+            const timestamp = time * 1000;
+            return {
+              time: new Date(timestamp).toISOString().replace("T", " ").slice(0, 16),
+              open: Number.isFinite(quote.open?.[index]) ? quote.open[index] : close,
+              high: Number.isFinite(quote.high?.[index]) ? quote.high[index] : close,
+              low: Number.isFinite(quote.low?.[index]) ? quote.low[index] : close,
+              close,
+              volume: Number.isFinite(quote.volume?.[index]) ? quote.volume[index] : 0
+            };
+          })
+          .filter(Boolean);
+
+        if (!points.length) throw new Error("No finite Yahoo Finance price points returned");
+
+        const meta = result.meta || {};
+        const latest = points.at(-1);
+        const price = Number.isFinite(meta.regularMarketPrice) ? meta.regularMarketPrice : latest.close;
+        const previousClose = Number.isFinite(meta.chartPreviousClose)
+          ? meta.chartPreviousClose
+          : Number.isFinite(meta.previousClose)
+            ? meta.previousClose
+            : points[0].close;
+        const change = price - previousClose;
+
+        return {
+          points,
+          quote: {
+            symbol: (meta.symbol || symbol).toUpperCase(),
+            open: latest.open,
+            high: Number.isFinite(meta.regularMarketDayHigh) ? meta.regularMarketDayHigh : Math.max(...points.map((point) => point.high)),
+            low: Number.isFinite(meta.regularMarketDayLow) ? meta.regularMarketDayLow : Math.min(...points.map((point) => point.low)),
+            price,
+            volume: Number.isFinite(meta.regularMarketVolume) ? meta.regularMarketVolume : latest.volume,
+            previousClose,
+            change,
+            changePercent: previousClose ? (change / previousClose) * 100 : 0
+          },
+          provider: "Yahoo Finance"
+        };
+      }
+
+      async function fetchYahooSnapshot(symbol, range) {
+        const target = yahooTargetUrl(symbol, range);
+        try {
+          return parseYahooChart(await fetchJson(`https://api.allorigins.win/raw?url=${encodeURIComponent(target)}`), symbol);
+        } catch {
+          const wrapped = await fetchJson(`https://api.allorigins.win/get?url=${encodeURIComponent(target)}`);
+          return parseYahooChart(JSON.parse(wrapped.contents || "{}"), symbol);
+        }
+      }
+
+      function parseSeries(payload, range) {
+        const seriesKey =
+          payload["Time Series (5min)"] && range === "1D"
+            ? "Time Series (5min)"
+            : payload["Time Series (Daily)"]
+              ? "Time Series (Daily)"
+              : "Time Series (5min)";
+        const series = payload[seriesKey];
+        if (!series) {
+          const message = payload.Information || payload["Error Message"] || "No time series returned";
+          throw new Error(message);
+        }
+
+        const limit = range === "1D" ? 78 : range === "1W" ? 7 : range === "1M" ? 30 : 252;
+        return Object.entries(series)
+          .slice(0, limit)
+          .reverse()
+          .map(([time, row]) => ({
+            time,
+            open: Number(row["1. open"]),
+            high: Number(row["2. high"]),
+            low: Number(row["3. low"]),
+            close: Number(row["4. close"]),
+            volume: Number(row["5. volume"])
+          }))
+          .filter((point) => Number.isFinite(point.close));
+      }
+
+      async function fetchSeries(symbol, range) {
+        if (range === "1D") {
+          return fetchJson(alphaUrl("TIME_SERIES_INTRADAY", symbol, { interval: "5min", outputsize: "compact" }));
+        }
+        return fetchJson(alphaUrl("TIME_SERIES_DAILY", symbol, { outputsize: range === "1Y" ? "full" : "compact" }));
+      }
+
+      async function fetchQuote(symbol) {
+        const payload = await fetchJson(alphaUrl("GLOBAL_QUOTE", symbol));
+        const quote = payload["Global Quote"];
+        if (!quote || !quote["05. price"]) {
+          throw new Error(payload.Information || payload["Error Message"] || "No quote returned");
+        }
+        return {
+          symbol: quote["01. symbol"],
+          open: Number(quote["02. open"]),
+          high: Number(quote["03. high"]),
+          low: Number(quote["04. low"]),
+          price: Number(quote["05. price"]),
+          volume: Number(quote["06. volume"]),
+          previousClose: Number(quote["08. previous close"]),
+          change: Number(quote["09. change"]),
+          changePercent: Number(String(quote["10. change percent"]).replace("%", ""))
+        };
+      }
+
+      async function fetchAlphaSnapshot(symbol, range) {
+        const [seriesPayload, quote] = await Promise.all([fetchSeries(symbol, range), fetchQuote(symbol)]);
+        return {
+          points: parseSeries(seriesPayload, range),
+          quote,
+          provider: "Alpha Vantage"
+        };
+      }
+
+      function sma(values, period = 20) {
+        return values.map((_, index) => {
+          const sample = values.slice(Math.max(0, index - period + 1), index + 1);
+          return sample.reduce((sum, value) => sum + value, 0) / sample.length;
+        });
+      }
+
+      function ema(values, period = 20) {
+        const multiplier = 2 / (period + 1);
+        return values.reduce((output, value, index) => {
+          output.push(index ? value * multiplier + output[index - 1] * (1 - multiplier) : value);
+          return output;
+        }, []);
+      }
+
+      function rsi(values, period = 14) {
+        if (values.length < 2) return 50;
+        let gains = 0;
+        let losses = 0;
+        const start = Math.max(1, values.length - period);
+        for (let index = start; index < values.length; index += 1) {
+          const change = values[index] - values[index - 1];
+          if (change >= 0) gains += change;
+          else losses += Math.abs(change);
+        }
+        if (losses === 0) return 100;
+        const strength = gains / period / (losses / period);
+        return 100 - 100 / (1 + strength);
+      }
+
+      function volatility(values) {
+        const returns = values.slice(1).map((value, index) => {
+          const previous = values[index];
+          return previous ? (value - previous) / previous : 0;
+        });
+        if (!returns.length) return 0;
+        const mean = returns.reduce((sum, value) => sum + value, 0) / returns.length;
+        const variance = returns.reduce((sum, value) => sum + (value - mean) ** 2, 0) / returns.length;
+        return Math.sqrt(variance) * Math.sqrt(252) * 100;
+      }
+
+      function slope(values) {
+        const n = values.length;
+        if (n < 2) return 0;
+        const xMean = (n - 1) / 2;
+        const yMean = values.reduce((sum, value) => sum + value, 0) / n;
+        let numerator = 0;
+        let denominator = 0;
+        values.forEach((value, index) => {
+          numerator += (index - xMean) * (value - yMean);
+          denominator += (index - xMean) ** 2;
+        });
+        return denominator ? numerator / denominator : 0;
+      }
+
+      function analyze(points) {
+        const closes = points.map((point) => point.close);
+        const smaSeries = sma(closes);
+        const emaSeries = ema(closes);
+        const latest = closes.at(-1) || 0;
+        const smaValue = smaSeries.at(-1) || latest;
+        const emaValue = emaSeries.at(-1) || latest;
+        const rsiValue = rsi(closes);
+        const vol = volatility(closes);
+        const recentSlope = slope(closes.slice(-Math.min(36, closes.length)));
+        const earlier = closes.at(-Math.min(24, closes.length)) || closes[0] || latest;
+        const momentum = earlier ? ((latest - earlier) / earlier) * 100 : 0;
+        const lows = points.map((point) => point.low).sort((a, b) => a - b);
+        const highs = points.map((point) => point.high).sort((a, b) => a - b);
+        const support = lows[Math.floor(lows.length * 0.12)] || latest;
+        const resistance = highs[Math.floor(highs.length * 0.88)] || latest;
+        let score = 0;
+        if (emaValue > smaValue) score += 1.2;
+        if (emaValue < smaValue) score -= 1.2;
+        if (recentSlope > 0) score += 1;
+        if (recentSlope < 0) score -= 1;
+        if (momentum > 0.35) score += 0.8;
+        if (momentum < -0.35) score -= 0.8;
+        if (rsiValue > 68) score -= 0.45;
+        if (rsiValue < 32) score += 0.45;
+        const confidence = Math.round(Math.min(Math.max(52 + Math.abs(score) * 14 - vol * 0.18, 42), 92));
+        const probabilityUp = Math.round(Math.min(Math.max(50 + score * 12, 8), 92));
+        const trend = score > 0.65 ? "UP TREND" : score < -0.65 ? "DOWN TREND" : "SIDEWAYS";
+        const risk = vol > 36 ? "HIGH" : vol > 20 ? "MEDIUM" : "LOW";
+        return {
+          smaSeries,
+          emaSeries,
+          sma: smaValue,
+          ema: emaValue,
+          rsi: rsiValue,
+          volatility: vol,
+          support,
+          resistance,
+          confidence,
+          probabilityUp,
+          trend,
+          risk,
+          forecastSlope: recentSlope
+        };
+      }
+
+      function drawChart() {
+        const canvas = el.canvas;
+        const wrap = canvas.parentElement;
+        const rect = wrap.getBoundingClientRect();
+        const ratio = window.devicePixelRatio || 1;
+        canvas.width = Math.max(320, Math.floor(rect.width * ratio));
+        canvas.height = Math.max(240, Math.floor(rect.height * ratio));
+        const ctx = canvas.getContext("2d");
+        ctx.scale(ratio, ratio);
+        const w = rect.width;
+        const h = rect.height;
+        ctx.clearRect(0, 0, w, h);
+
+        const points = state.points;
+        if (!points.length) {
+          ctx.fillStyle = "rgba(237,244,236,0.62)";
+          ctx.font = "14px system-ui";
+          ctx.fillText("Loading live OHLC data...", 24, 34);
+          return;
+        }
+
+        const prediction = state.predictions;
+        const pad = { left: 52, right: 58, top: 22, bottom: 38 };
+        const closes = points.map((point) => point.close);
+        const forecast = Array.from({ length: 8 }, (_, index) => closes.at(-1) + prediction.forecastSlope * (index + 1));
+        const values = closes.concat(prediction.smaSeries, prediction.emaSeries, forecast);
+        const min = Math.min(...values, prediction.support) * 0.997;
+        const max = Math.max(...values, prediction.resistance) * 1.003;
+        const plotW = w - pad.left - pad.right;
+        const plotH = h - pad.top - pad.bottom;
+        const total = points.length + forecast.length;
+        const x = (index) => pad.left + (index / Math.max(total - 1, 1)) * plotW;
+        const y = (value) => pad.top + (1 - (value - min) / Math.max(max - min, 0.01)) * plotH;
+
+        ctx.strokeStyle = "rgba(255,255,255,0.08)";
+        ctx.lineWidth = 1;
+        for (let row = 0; row <= 4; row += 1) {
+          const yy = pad.top + (row / 4) * plotH;
+          ctx.beginPath();
+          ctx.moveTo(pad.left, yy);
+          ctx.lineTo(w - pad.right, yy);
+          ctx.stroke();
+        }
+
+        function drawLine(data, color, width = 2, dash = []) {
+          ctx.save();
+          ctx.strokeStyle = color;
+          ctx.lineWidth = width;
+          ctx.setLineDash(dash);
+          ctx.beginPath();
+          data.forEach((value, index) => {
+            const xx = x(index);
+            const yy = y(value);
+            if (index === 0) ctx.moveTo(xx, yy);
+            else ctx.lineTo(xx, yy);
+          });
+          ctx.stroke();
+          ctx.restore();
+        }
+
+        ctx.fillStyle = "rgba(141,214,177,0.12)";
+        points.forEach((point, index) => {
+          const barH = Math.min(plotH * 0.25, (point.volume / Math.max(...points.map((item) => item.volume))) * plotH * 0.22);
+          ctx.fillRect(x(index) - 1, pad.top + plotH - barH, 2, barH);
+        });
+
+        drawLine(closes, "rgba(141,214,177,0.96)", 2.5);
+        drawLine(prediction.smaSeries, "rgba(255,183,92,0.9)", 1.35);
+        drawLine(prediction.emaSeries, "rgba(118,213,244,0.9)", 1.35);
+
+        ctx.save();
+        ctx.strokeStyle = "rgba(199,164,255,0.9)";
+        ctx.lineWidth = 2;
+        ctx.setLineDash([6, 6]);
+        ctx.beginPath();
+        const startIndex = points.length - 1;
+        ctx.moveTo(x(startIndex), y(closes.at(-1)));
+        forecast.forEach((value, index) => ctx.lineTo(x(startIndex + index + 1), y(value)));
+        ctx.stroke();
+        ctx.restore();
+
+        ctx.strokeStyle = "rgba(141,214,177,0.35)";
+        ctx.setLineDash([4, 5]);
+        ctx.beginPath();
+        ctx.moveTo(pad.left, y(prediction.support));
+        ctx.lineTo(w - pad.right, y(prediction.support));
+        ctx.stroke();
+        ctx.strokeStyle = "rgba(255,183,92,0.35)";
+        ctx.beginPath();
+        ctx.moveTo(pad.left, y(prediction.resistance));
+        ctx.lineTo(w - pad.right, y(prediction.resistance));
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        ctx.fillStyle = "rgba(237,244,236,0.56)";
+        ctx.font = "11px system-ui";
+        for (let row = 0; row <= 4; row += 1) {
+          const value = max - ((max - min) * row) / 4;
+          ctx.fillText(`$${value.toFixed(2)}`, w - pad.right + 10, pad.top + (row / 4) * plotH + 4);
+        }
+        ctx.fillText(points[0].time.slice(5, 16), pad.left, h - 14);
+        ctx.fillText(points.at(-1).time.slice(5, 16), w - pad.right - 86, h - 14);
+      }
+
+      async function loadMarket(symbol = state.symbol) {
+        state.symbol = cleanSymbol(symbol) || "MSFT";
+        localStorage.setItem("marketIntelSymbol", state.symbol);
+        el.feedStatus.textContent = "Syncing";
+        renderShell();
+
+        try {
+          let snapshot;
+          try {
+            snapshot = await fetchYahooSnapshot(state.symbol, state.range);
+          } catch {
+            snapshot = await fetchAlphaSnapshot(state.symbol, state.range);
+          }
+          state.points = snapshot.points;
+          state.quote = snapshot.quote;
+          state.dataProvider = snapshot.provider;
+          state.predictions = analyze(state.points);
+          state.watchQuotes[state.symbol] = snapshot.quote;
+          el.feedStatus.textContent = "LIVE";
+          el.lastTick.textContent = new Date().toLocaleTimeString();
+          renderAll();
+          loadNews(state.symbol);
+          loadWatchQuotes();
+        } catch (error) {
+          el.feedStatus.textContent = "Data unavailable";
+          renderError(error.message);
+        }
+      }
+
+      async function loadWatchQuotes() {
+        const symbols = WATCHLIST.filter((symbol) => symbol !== state.symbol);
+        for (const symbol of symbols) {
+          try {
+            state.watchQuotes[symbol] = (await fetchYahooSnapshot(symbol, "1D")).quote;
+            renderWatch();
+          } catch {
+            state.watchQuotes[symbol] = { symbol, unavailable: true };
+            renderWatch();
+          }
+        }
+      }
+
+      function impactForText(text) {
+        const lower = text.toLowerCase();
+        const bullish = ["gain", "beats", "beat", "upgrade", "surge", "rally", "growth", "record", "profit", "buy"].some((word) =>
+          lower.includes(word)
+        );
+        const bearish = ["fall", "falls", "miss", "cuts", "downgrade", "drop", "crash", "loss", "probe", "sell"].some((word) =>
+          lower.includes(word)
+        );
+        if (bullish && !bearish) return "bullish";
+        if (bearish && !bullish) return "bearish";
+        return "neutral";
+      }
+
+      async function loadNews(symbol) {
+        const rss = encodeURIComponent(`https://feeds.finance.yahoo.com/rss/2.0/headline?s=${symbol}&region=US&lang=en-US`);
+        try {
+          let items = [];
+          try {
+            const payload = await fetchJson(`https://api.rss2json.com/v1/api.json?rss_url=${rss}`);
+            items = (payload.items || []).slice(0, 10);
+          } catch {
+            const payload = await fetchJson(`https://api.allorigins.win/get?url=${rss}`);
+            const xml = new DOMParser().parseFromString(payload.contents || "", "application/xml");
+            items = Array.from(xml.querySelectorAll("item"))
+              .slice(0, 10)
+              .map((item) => ({
+                title: item.querySelector("title")?.textContent || "Market headline",
+                description: item.querySelector("description")?.textContent || "",
+                pubDate: item.querySelector("pubDate")?.textContent || new Date().toISOString(),
+                link: item.querySelector("link")?.textContent || "https://finance.yahoo.com/"
+              }));
+          }
+          el.news.innerHTML = items
+            .map((item) => {
+              const impact = impactForText(`${item.title} ${item.description}`);
+              return `<a class="news" href="${item.link}" target="_blank" rel="noreferrer">
+                <span class="impact ${impact}">${impact}</span>
+                <strong>${escapeHtml(item.title)}</strong>
+                <small>${new Date(item.pubDate).toLocaleString()}</small>
+                <span class="muted">${escapeHtml((item.description || "").replace(/<[^>]+>/g, "").slice(0, 120))}</span>
+              </a>`;
+            })
+            .join("");
+          document.getElementById("tapeStatus").textContent = items.length
+            ? `${items.length} headlines / ${items[0].title}`
+            : "No current headlines returned.";
+        } catch {
+          el.news.innerHTML = `<div class="news"><strong>News feed unavailable</strong><span class="muted">Price and prediction systems are still live.</span></div>`;
+          document.getElementById("tapeStatus").textContent = "News feed unavailable.";
+        }
+      }
+
+      function escapeHtml(value) {
+        return String(value).replace(/[&<>"']/g, (char) => ({
+          "&": "&amp;",
+          "<": "&lt;",
+          ">": "&gt;",
+          '"': "&quot;",
+          "'": "&#039;"
+        })[char]);
+      }
+
+      function renderError(message) {
+        document.getElementById("predictionText").textContent = message;
+        document.getElementById("trendLabel").textContent = "DATA WARNING";
+        drawChart();
+      }
+
+      function renderShell() {
+        el.symbolTitle.textContent = state.symbol;
+        document.getElementById("sideSymbol").textContent = state.symbol;
+        el.symbolName.textContent = `${state.dataProvider} market data`;
+        document.querySelectorAll("[data-range]").forEach((button) => {
+          button.classList.toggle("active", button.dataset.range === state.range);
+        });
+        renderWatch();
+      }
+
+      function renderWatch() {
+        el.stocks.innerHTML = WATCHLIST.map((symbol) => {
+          const quote = state.watchQuotes[symbol];
+          const active = symbol === state.symbol ? "active" : "";
+          const unavailable = quote && quote.unavailable;
+          const changeClass = quote && !unavailable ? (quote.change >= 0 ? "positive" : "negative") : "";
+          return `<button class="stock ${active}" data-symbol="${symbol}">
+            <span><strong>${symbol}</strong><small>${unavailable ? "Sync unavailable" : "NASDAQ / NYSE"}</small></span>
+            <span><strong>${quote && !unavailable ? fmt(quote.price) : "--"}</strong><small class="${changeClass}">${
+              quote && !unavailable ? pct(quote.changePercent) : "sync"
+            }</small></span>
+          </button>`;
+        }).join("");
+      }
+
+      function renderMarket() {
+        const quote = state.quote;
+        if (!quote) return;
+        const changeClass = quote.change >= 0 ? "positive" : "negative";
+        el.livePrice.textContent = fmt(quote.price);
+        el.liveChange.textContent = `${quote.change >= 0 ? "+" : ""}${quote.change.toFixed(2)} (${pct(quote.changePercent)})`;
+        el.liveChange.className = changeClass;
+        document.getElementById("mOpen").textContent = fmt(quote.open);
+        document.getElementById("mHigh").textContent = fmt(quote.high);
+        document.getElementById("mLow").textContent = fmt(quote.low);
+        document.getElementById("mVolume").textContent = compact.format(quote.volume);
+        document.getElementById("mVolatility").textContent = `${state.predictions.volatility.toFixed(1)}%`;
+        document.getElementById("mRange").textContent = state.range;
+        document.getElementById("sidePrice").textContent = fmt(quote.price);
+        document.getElementById("sideChange").textContent = `${quote.change >= 0 ? "+" : ""}${quote.change.toFixed(2)} (${pct(quote.changePercent)})`;
+        document.getElementById("sideChange").className = changeClass;
+        document.getElementById("sideVolume").textContent = compact.format(quote.volume);
+        document.getElementById("sideRange").textContent = `${fmt(quote.low)} - ${fmt(quote.high)}`;
+        document.getElementById("providerName").textContent = state.dataProvider;
+        document.getElementById("sideSource").textContent = state.dataProvider;
+      }
+
+      function renderPrediction() {
+        const p = state.predictions;
+        if (!p) return;
+        const sentiment = p.trend === "UP TREND" ? "Bullish" : p.trend === "DOWN TREND" ? "Bearish" : "Neutral";
+        document.getElementById("trendTitle").textContent = sentiment;
+        document.getElementById("confidence").textContent = `${p.confidence}%`;
+        document.getElementById("trendLabel").textContent = p.trend;
+        document.getElementById("predictionText").textContent = `Prediction: ${sentiment} (${p.probabilityUp}% up probability)`;
+        document.getElementById("pRsi").textContent = p.rsi.toFixed(1);
+        document.getElementById("pRisk").textContent = p.risk;
+        document.getElementById("pSma").textContent = fmt(p.sma);
+        document.getElementById("pEma").textContent = fmt(p.ema);
+        document.getElementById("pSupport").textContent = fmt(p.support);
+        document.getElementById("pResistance").textContent = fmt(p.resistance);
+        document.getElementById("sideTrend").textContent = `${p.trend} / ${sentiment}`;
+        document.getElementById("sideConfidence").textContent = `${p.confidence}%`;
+        document.getElementById("sideVolatility").textContent = `${p.volatility.toFixed(1)}% / ${p.risk}`;
+        document.getElementById("sideLevels").textContent = `${fmt(p.support)} / ${fmt(p.resistance)}`;
+      }
+
+      function renderSignals() {
+        const p = state.predictions;
+        const quote = state.quote;
+        const signals = [
+          ["Selected stock", p.trend, p.confidence],
+          ["Market sentiment", quote.changePercent >= 0 ? "RISK ON" : "RISK OFF", Math.round(Math.abs(quote.changePercent) * 8 + 54)],
+          ["Volatility", p.volatility > 28 ? "HIGH VOLATILITY" : "NORMAL", Math.round(Math.min(p.volatility, 100))],
+          ["Momentum", quote.change >= 0 ? "BID STRENGTH" : "SELL PRESSURE", p.probabilityUp]
+        ];
+        el.signals.innerHTML = signals
+          .map(([name, value, score]) => `<div><span>${name}</span><strong>${value}</strong><span>${score}%</span></div>`)
+          .join("");
+      }
+
+      function renderAll() {
+        renderShell();
+        renderMarket();
+        renderPrediction();
+        renderSignals();
+        drawChart();
+      }
+
+      el.searchForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+        loadMarket(cleanSymbol(el.symbolInput.value) || state.symbol);
+      });
+
+      document.getElementById("rangeControls").addEventListener("click", (event) => {
+        const button = event.target.closest("[data-range]");
+        if (!button) return;
+        state.range = button.dataset.range;
+        loadMarket(state.symbol);
+      });
+
+      el.stocks.addEventListener("click", (event) => {
+        const button = event.target.closest("[data-symbol]");
+        if (button) loadMarket(button.dataset.symbol);
+      });
+
+      document.querySelectorAll("[data-add]").forEach((button) => {
+        button.addEventListener("click", () => loadMarket(button.dataset.add));
+      });
+
+      document.getElementById("refreshNews").addEventListener("click", () => loadNews(state.symbol));
+      document.getElementById("toggleNews").addEventListener("click", () => {
+        document.body.classList.toggle("news-collapsed");
+        document.getElementById("toggleNews").textContent = document.body.classList.contains("news-collapsed") ? "Expand" : "Collapse";
+        drawChart();
+      });
+      window.addEventListener("resize", drawChart);
+
+      renderShell();
+      loadMarket(state.symbol);
+      window.setInterval(() => loadMarket(state.symbol), 30000);
+    </script>
+  </body>
+</html>
