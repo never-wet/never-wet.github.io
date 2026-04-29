@@ -817,6 +817,11 @@ body.page-transition-out::after {
   --cabinet-warm: #ffd6e0;
 }
 
+.cabinet--market {
+  --cabinet-accent: #6be19b;
+  --cabinet-warm: #ffe082;
+}
+
 .cabinet--coming {
   --cabinet-accent: #8ea0bb;
   --cabinet-warm: #c7d2e7;
