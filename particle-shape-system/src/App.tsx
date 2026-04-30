@@ -1,11 +1,20 @@
-import { ChangeEvent, useEffect, useRef, useState } from "react";
+import { type CSSProperties, ChangeEvent, useEffect, useRef, useState } from "react";
 import { RotateCcw, Upload } from "lucide-react";
 import { ParticleEngine, ParticleMode } from "./particleEngine";
 
 const DEFAULT_TEXT = "NEVER WET";
-const DEFAULT_DENSITY = 9000;
+const DEFAULT_DENSITY = 8000;
 const DEFAULT_RADIUS = 130;
+const DENSITY_MIN = 2000;
+const DENSITY_MAX = 14000;
+const RADIUS_MIN = 40;
+const RADIUS_MAX = 260;
 const modes: ParticleMode[] = ["image", "text", "idle"];
+
+function rangeStyle(value: number, min: number, max: number): CSSProperties {
+  const progress = ((value - min) / (max - min)) * 100;
+  return { "--range-progress": `${progress}%` } as CSSProperties;
+}
 
 function App() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -125,10 +134,11 @@ function App() {
           <span>Density</span>
           <input
             type="range"
-            min="2500"
-            max="16000"
+            min={DENSITY_MIN}
+            max={DENSITY_MAX}
             step="500"
             value={density}
+            style={rangeStyle(density, DENSITY_MIN, DENSITY_MAX)}
             onChange={(event) => setDensity(Number(event.target.value))}
             aria-label="Particle density"
           />
@@ -138,10 +148,11 @@ function App() {
           <span>Radius</span>
           <input
             type="range"
-            min="40"
-            max="260"
+            min={RADIUS_MIN}
+            max={RADIUS_MAX}
             step="5"
             value={radius}
+            style={rangeStyle(radius, RADIUS_MIN, RADIUS_MAX)}
             onChange={(event) => setRadius(Number(event.target.value))}
             aria-label="Cursor radius"
           />

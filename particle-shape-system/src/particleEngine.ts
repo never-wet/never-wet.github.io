@@ -7,6 +7,7 @@ type TargetPoint = {
   g: number;
   b: number;
   a: number;
+  group: number;
 };
 
 type LoadedImage = {
@@ -16,7 +17,18 @@ type LoadedImage = {
   cleanup: () => void;
 };
 
-const DEFAULT_PARTICLE_COUNT = 9000;
+type TextGlyph = {
+  char: string;
+  index: number;
+  width: number;
+};
+
+type TextLine = {
+  glyphs: TextGlyph[];
+  width: number;
+};
+
+const DEFAULT_PARTICLE_COUNT = 8000;
 const DEFAULT_RADIUS = 130;
 const GOLDEN_RATIO = 0.618033988749895;
 
@@ -37,10 +49,18 @@ function makeCanvas(width = 1, height = 1) {
 
 export class ParticleEngine {
   private readonly canvas: HTMLCanvasElement;
-  private readonly ctx: CanvasRenderingContext2D;
+  private readonly gl: WebGLRenderingContext;
   private readonly sampleCanvas = makeCanvas();
   private readonly sampleCtx: CanvasRenderingContext2D;
-  private readonly glowSprite = makeCanvas(44, 44);
+  private readonly program: WebGLProgram;
+  private readonly positionBuffer: WebGLBuffer;
+  private readonly colorBuffer: WebGLBuffer;
+  private readonly sizeBuffer: WebGLBuffer;
+  private readonly aPosition: number;
+  private readonly aColor: number;
+  private readonly aSize: number;
+  private readonly uResolution: WebGLUniformLocation;
+  private readonly uDpr: WebGLUniformLocation;
 
   private width = 1;
   private height = 1;
@@ -80,20 +100,49 @@ export class ParticleEngine {
   private targetAlpha = new Float32Array(0);
   private size = new Float32Array(0);
   private drift = new Float32Array(0);
+  private pop = new Float32Array(0);
   private state = new Uint8Array(0);
+  private assignedGroup = new Int32Array(0);
+  private renderPositions = new Float32Array(0);
+  private renderColors = new Float32Array(0);
+  private renderSizes = new Float32Array(0);
 
   constructor(canvas: HTMLCanvasElement) {
-    const ctx = canvas.getContext("2d", { alpha: false });
+    const gl = canvas.getContext("webgl", {
+      alpha: false,
+      antialias: false,
+      depth: false,
+      stencil: false,
+      powerPreference: "high-performance",
+      preserveDrawingBuffer: false,
+    });
     const sampleCtx = this.sampleCanvas.getContext("2d", { willReadFrequently: true });
 
-    if (!ctx || !sampleCtx) {
-      throw new Error("Canvas 2D is not available.");
+    if (!gl || !sampleCtx) {
+      throw new Error("WebGL and Canvas 2D are required for the particle system.");
     }
 
     this.canvas = canvas;
-    this.ctx = ctx;
+    this.gl = gl;
     this.sampleCtx = sampleCtx;
-    this.buildGlowSprite();
+    this.program = this.createProgram();
+    this.positionBuffer = this.createBuffer();
+    this.colorBuffer = this.createBuffer();
+    this.sizeBuffer = this.createBuffer();
+    this.aPosition = gl.getAttribLocation(this.program, "a_position");
+    this.aColor = gl.getAttribLocation(this.program, "a_color");
+    this.aSize = gl.getAttribLocation(this.program, "a_size");
+
+    const resolution = gl.getUniformLocation(this.program, "u_resolution");
+    const dpr = gl.getUniformLocation(this.program, "u_dpr");
+
+    if (!resolution || !dpr) {
+      throw new Error("Particle shader uniforms could not be created.");
+    }
+
+    this.uResolution = resolution;
+    this.uDpr = dpr;
+    this.configureWebGL();
     this.resize();
     this.allocateParticles(this.count);
     this.setText(this.textValue);
@@ -108,7 +157,6 @@ export class ParticleEngine {
   start() {
     if (this.frameId) return;
     this.previousTime = performance.now();
-    this.paintBackground(true);
     this.frameId = window.requestAnimationFrame(this.animate);
   }
 
@@ -131,7 +179,7 @@ export class ParticleEngine {
   }
 
   setParticleCount(count: number) {
-    const nextCount = Math.round(clamp(count, 2500, 16000));
+    const nextCount = Math.round(clamp(count, 2000, 14000));
     if (nextCount === this.count) return;
 
     this.count = nextCount;
@@ -144,10 +192,16 @@ export class ParticleEngine {
   }
 
   setText(value: string) {
+    const previousText = this.textValue;
+    const previousLength = Array.from(previousText).length;
+    const nextLength = Array.from(value).length;
+    const appendedStart = value.startsWith(previousText) && nextLength > previousLength ? previousLength : null;
+
     this.textValue = value;
     this.textTargets = this.buildTextTargets(value);
+
     if (this.mode === "text") {
-      this.applyTargetPoints(this.textTargets);
+      this.applyTextTargets(this.textTargets, appendedStart);
     }
   }
 
@@ -160,7 +214,7 @@ export class ParticleEngine {
 
     this.imageTargets = targets;
     if (this.mode === "image") {
-      this.applyTargetPoints(targets);
+      this.applyImageTargets(targets);
     }
   }
 
@@ -196,6 +250,15 @@ export class ParticleEngine {
     this.pointerActive = false;
   };
 
+  private configureWebGL() {
+    const gl = this.gl;
+    gl.useProgram(this.program);
+    gl.disable(gl.DEPTH_TEST);
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
+    gl.clearColor(0.031, 0.031, 0.031, 1);
+  }
+
   private resize() {
     const rect = this.canvas.getBoundingClientRect();
     const nextWidth = Math.max(1, Math.round(rect.width || window.innerWidth));
@@ -209,8 +272,10 @@ export class ParticleEngine {
     this.dpr = nextDpr;
     this.canvas.width = Math.round(nextWidth * nextDpr);
     this.canvas.height = Math.round(nextHeight * nextDpr);
-    this.ctx.setTransform(nextDpr, 0, 0, nextDpr, 0, 0);
-    this.paintBackground(true);
+    this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
+    this.gl.useProgram(this.program);
+    this.gl.uniform2f(this.uResolution, this.width, this.height);
+    this.gl.uniform1f(this.uDpr, this.dpr);
   }
 
   private allocateParticles(nextCount: number) {
@@ -224,6 +289,7 @@ export class ParticleEngine {
       cg: this.cg,
       cb: this.cb,
       alpha: this.alpha,
+      assignedGroup: this.assignedGroup,
     };
 
     this.x = new Float32Array(nextCount);
@@ -242,7 +308,13 @@ export class ParticleEngine {
     this.targetAlpha = new Float32Array(nextCount);
     this.size = new Float32Array(nextCount);
     this.drift = new Float32Array(nextCount);
+    this.pop = new Float32Array(nextCount);
     this.state = new Uint8Array(nextCount);
+    this.assignedGroup = new Int32Array(nextCount);
+    this.assignedGroup.fill(-1);
+    this.renderPositions = new Float32Array(nextCount * 2);
+    this.renderColors = new Float32Array(nextCount * 4);
+    this.renderSizes = new Float32Array(nextCount);
 
     for (let i = 0; i < nextCount; i += 1) {
       if (i < oldCount) {
@@ -254,6 +326,7 @@ export class ParticleEngine {
         this.cg[i] = old.cg[i];
         this.cb[i] = old.cb[i];
         this.alpha[i] = old.alpha[i];
+        this.assignedGroup[i] = old.assignedGroup[i] ?? -1;
       } else {
         this.x[i] = randomRange(0, this.width);
         this.y[i] = randomRange(0, this.height);
@@ -262,34 +335,47 @@ export class ParticleEngine {
         this.cr[i] = randomRange(180, 245);
         this.cg[i] = randomRange(205, 245);
         this.cb[i] = randomRange(220, 255);
-        this.alpha[i] = randomRange(0.42, 0.95);
+        this.alpha[i] = randomRange(0.34, 0.82);
       }
 
       this.tr[i] = this.cr[i];
       this.tg[i] = this.cg[i];
       this.tb[i] = this.cb[i];
-      this.targetAlpha[i] = randomRange(0.42, 0.95);
-      this.size[i] = randomRange(0.55, 1.45);
+      this.targetAlpha[i] = randomRange(0.36, 0.88);
+      this.size[i] = randomRange(0.68, 1.32);
       this.drift[i] = randomRange(0, Math.PI * 2);
+      this.pop[i] = 0;
       this.state[i] = 0;
     }
+
+    this.allocateGpuBuffers();
+  }
+
+  private allocateGpuBuffers() {
+    const gl = this.gl;
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, this.renderPositions.byteLength, gl.DYNAMIC_DRAW);
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.colorBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, this.renderColors.byteLength, gl.DYNAMIC_DRAW);
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.sizeBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, this.renderSizes.byteLength, gl.DYNAMIC_DRAW);
   }
 
   private refreshTargets() {
     if (this.mode === "text") {
-      this.applyTargetPoints(this.textTargets);
+      this.applyTextTargets(this.textTargets, null);
       return;
     }
 
     if (this.mode === "image") {
-      this.applyTargetPoints(this.imageTargets);
+      this.applyImageTargets(this.imageTargets);
       return;
     }
 
     this.scatterIdleTargets();
   }
 
-  private applyTargetPoints(points: TargetPoint[]) {
+  private applyImageTargets(points: TargetPoint[]) {
     this.activeTargets = points;
 
     if (!points.length) {
@@ -299,21 +385,62 @@ export class ParticleEngine {
 
     this.assignmentSeed = (this.assignmentSeed + 0.137) % 1;
     const pointCount = points.length;
-    const spread = pointCount < this.count ? 0.85 : 0.45;
 
     for (let i = 0; i < this.count; i += 1) {
       const normalized = (i * GOLDEN_RATIO + this.assignmentSeed) % 1;
       const point = points[Math.floor(normalized * pointCount)];
-      const jitterX = randomRange(-spread, spread);
-      const jitterY = randomRange(-spread, spread);
+      const spread = pointCount < this.count ? 0.8 : 0.35;
 
-      this.tx[i] = point.x + jitterX;
-      this.ty[i] = point.y + jitterY;
+      this.tx[i] = point.x + randomRange(-spread, spread);
+      this.ty[i] = point.y + randomRange(-spread, spread);
       this.tr[i] = point.r;
       this.tg[i] = point.g;
       this.tb[i] = point.b;
-      this.targetAlpha[i] = clamp(point.a / 255, 0.42, 1);
+      this.targetAlpha[i] = clamp(point.a / 255, 0.36, 1);
+      this.assignedGroup[i] = -1;
+      this.pop[i] *= 0.4;
       this.state[i] = 1;
+    }
+  }
+
+  private applyTextTargets(points: TargetPoint[], appendedStart: number | null) {
+    this.activeTargets = points;
+
+    if (!points.length) {
+      this.scatterIdleTargets();
+      return;
+    }
+
+    const pointCount = points.length;
+    const groupCount = Math.max(1, Array.from(this.textValue).length);
+
+    for (let i = 0; i < this.count; i += 1) {
+      const targetIndex = Math.min(pointCount - 1, Math.floor(((i + 0.5) / this.count) * pointCount));
+      const point = points[targetIndex];
+      const previousGroup = this.assignedGroup[i];
+      const isFreshGlyph =
+        appendedStart !== null && point.group >= appendedStart && previousGroup !== point.group;
+      const groupMix = groupCount <= 1 ? 0 : point.group / Math.max(1, groupCount - 1);
+
+      this.tx[i] = point.x;
+      this.ty[i] = point.y;
+      this.tr[i] = 218 + groupMix * 26;
+      this.tg[i] = 235 - groupMix * 12;
+      this.tb[i] = 244 - groupMix * 22;
+      this.targetAlpha[i] = clamp(point.a / 255, 0.4, 1);
+      this.assignedGroup[i] = point.group;
+      this.state[i] = 1;
+
+      if (isFreshGlyph) {
+        const angle = randomRange(0, Math.PI * 2);
+        const lift = randomRange(22, 74);
+        this.x[i] = point.x + Math.cos(angle) * randomRange(4, 18);
+        this.y[i] = point.y + lift + Math.sin(angle) * randomRange(3, 12);
+        this.vx[i] = randomRange(-0.8, 0.8);
+        this.vy[i] = randomRange(-1.8, -0.35);
+        this.alpha[i] = 0;
+        this.pop[i] = randomRange(0.82, 1.18);
+      }
     }
   }
 
@@ -326,83 +453,133 @@ export class ParticleEngine {
       this.tr[i] = randomRange(198, 255);
       this.tg[i] = randomRange(218, 252);
       this.tb[i] = randomRange(218, 255);
-      this.targetAlpha[i] = randomRange(0.32, 0.78);
+      this.targetAlpha[i] = randomRange(0.24, 0.62);
+      this.assignedGroup[i] = -1;
       this.state[i] = 0;
     }
   }
 
   private buildTextTargets(value: string): TargetPoint[] {
-    const text = value.trim();
-    if (!text) return [];
+    const chars = Array.from(value);
+    if (!chars.some((char) => char.trim())) return [];
 
-    const maxWidth = clamp(Math.round(this.width * 0.78), 360, 1320);
-    const maxHeight = clamp(Math.round(this.height * 0.52), 220, 680);
+    const maxWidth = clamp(Math.round(this.width * 0.78), 340, 1320);
+    const maxHeight = clamp(Math.round(this.height * 0.54), 220, 700);
+    const visibleLength = Math.max(1, chars.filter((char) => char.trim()).length);
+    let fontSize = clamp(maxWidth / Math.max(4, Math.min(visibleLength * 0.52, 12)), 54, 210);
+    let lineHeight = fontSize * 1.06;
+    let lines: TextLine[] = [];
+
     this.sampleCanvas.width = maxWidth;
     this.sampleCanvas.height = maxHeight;
     this.sampleCtx.setTransform(1, 0, 0, 1, 0, 0);
-    this.sampleCtx.clearRect(0, 0, maxWidth, maxHeight);
 
-    let fontSize = clamp(maxWidth / Math.max(4, Math.min(text.length * 0.52, 12)), 62, 220);
-    let lines: string[] = [text];
-    let lineHeight = fontSize * 1.04;
-
-    for (let attempt = 0; attempt < 28; attempt += 1) {
+    for (let attempt = 0; attempt < 32; attempt += 1) {
       this.sampleCtx.font = `800 ${fontSize}px "Space Grotesk", "Inter", system-ui, sans-serif`;
-      lines = this.wrapText(text, maxWidth * 0.9, 4);
-      lineHeight = fontSize * 1.04;
-      const widest = lines.reduce((max, line) => Math.max(max, this.sampleCtx.measureText(line).width), 0);
+      lines = this.layoutText(chars, maxWidth * 0.9, 4);
+      lineHeight = fontSize * 1.06;
+      const widest = lines.reduce((max, line) => Math.max(max, line.width), 0);
       const totalHeight = lines.length * lineHeight;
 
-      if (widest <= maxWidth * 0.92 && totalHeight <= maxHeight * 0.78) {
+      if (widest <= maxWidth * 0.92 && totalHeight <= maxHeight * 0.82) {
         break;
       }
 
       fontSize *= 0.9;
     }
 
-    this.sampleCtx.clearRect(0, 0, maxWidth, maxHeight);
-    this.sampleCtx.textAlign = "center";
-    this.sampleCtx.textBaseline = "middle";
     this.sampleCtx.font = `800 ${fontSize}px "Space Grotesk", "Inter", system-ui, sans-serif`;
+    this.sampleCtx.textAlign = "left";
+    this.sampleCtx.textBaseline = "middle";
     this.sampleCtx.fillStyle = "rgba(255, 255, 255, 1)";
-
-    const totalHeight = (lines.length - 1) * lineHeight;
-    const centerY = maxHeight / 2;
-    lines.forEach((line, index) => {
-      const y = centerY - totalHeight / 2 + index * lineHeight;
-      this.sampleCtx.fillText(line, maxWidth / 2, y);
-    });
 
     const originX = (this.width - maxWidth) / 2;
     const originY = this.height * 0.52 - maxHeight / 2;
-    return this.extractTargets(maxWidth, maxHeight, originX, originY, "text");
+    const totalHeight = (lines.length - 1) * lineHeight;
+    const desiredTargets = clamp(this.count * 1.45, 5000, 24000);
+    const step = Math.max(1, Math.floor(Math.sqrt((maxWidth * maxHeight) / desiredTargets)));
+    const points: TargetPoint[] = [];
+
+    lines.forEach((line, lineIndex) => {
+      let cursorX = maxWidth / 2 - line.width / 2;
+      const y = maxHeight / 2 - totalHeight / 2 + lineIndex * lineHeight;
+
+      for (const glyph of line.glyphs) {
+        if (!glyph.char.trim()) {
+          cursorX += glyph.width;
+          continue;
+        }
+
+        this.sampleCtx.clearRect(0, 0, maxWidth, maxHeight);
+        this.sampleCtx.fillText(glyph.char, cursorX, y);
+
+        const padding = fontSize * 0.12;
+        const boxLeft = Math.max(0, Math.floor(cursorX - padding));
+        const boxTop = Math.max(0, Math.floor(y - fontSize * 0.72));
+        const boxRight = Math.min(maxWidth, Math.ceil(cursorX + glyph.width + padding));
+        const boxBottom = Math.min(maxHeight, Math.ceil(y + fontSize * 0.72));
+        const boxWidth = Math.max(1, boxRight - boxLeft);
+        const boxHeight = Math.max(1, boxBottom - boxTop);
+        const data = this.sampleCtx.getImageData(boxLeft, boxTop, boxWidth, boxHeight).data;
+
+        for (let py = 0; py < boxHeight; py += step) {
+          for (let px = 0; px < boxWidth; px += step) {
+            const index = (py * boxWidth + px) * 4;
+            const alpha = data[index + 3];
+            if (alpha < 42) continue;
+
+            points.push({
+              x: originX + boxLeft + px,
+              y: originY + boxTop + py,
+              r: 230,
+              g: 236,
+              b: 242,
+              a: clamp(alpha * 0.94, 120, 255),
+              group: glyph.index,
+            });
+          }
+        }
+
+        cursorX += glyph.width;
+      }
+    });
+
+    return points;
   }
 
-  private wrapText(text: string, maxWidth: number, maxLines: number) {
-    const words = text.split(/\s+/).filter(Boolean);
-    const lines: string[] = [];
-    let current = "";
+  private layoutText(chars: string[], maxWidth: number, maxLines: number): TextLine[] {
+    const lines: TextLine[] = [];
+    let glyphs: TextGlyph[] = [];
+    let width = 0;
 
-    for (const word of words) {
-      const next = current ? `${current} ${word}` : word;
-      if (this.sampleCtx.measureText(next).width <= maxWidth || !current) {
-        current = next;
-        continue;
+    const pushLine = () => {
+      lines.push({ glyphs, width });
+      glyphs = [];
+      width = 0;
+    };
+
+    chars.forEach((char, index) => {
+      if (char === "\n") {
+        pushLine();
+        return;
       }
 
-      lines.push(current);
-      current = word;
+      const measured = this.sampleCtx.measureText(char).width;
+      const glyphWidth = char.trim() ? Math.max(1, measured) : Math.max(measured, this.sampleCtx.measureText("n").width * 0.42);
 
-      if (lines.length === maxLines - 1) {
-        break;
+      if (glyphs.length && width + glyphWidth > maxWidth && lines.length < maxLines - 1) {
+        pushLine();
       }
+
+      glyphs.push({ char, index, width: glyphWidth });
+      width += glyphWidth;
+    });
+
+    if (glyphs.length || !lines.length) {
+      pushLine();
     }
 
-    if (current && lines.length < maxLines) {
-      lines.push(current);
-    }
-
-    return lines.length ? lines : [text];
+    return lines;
   }
 
   private async buildImageTargets(file: File): Promise<TargetPoint[]> {
@@ -422,7 +599,7 @@ export class ParticleEngine {
 
     const originX = (this.width - drawWidth) / 2;
     const originY = this.height * 0.52 - drawHeight / 2;
-    return this.extractTargets(drawWidth, drawHeight, originX, originY, "image");
+    return this.extractImageTargets(drawWidth, drawHeight, originX, originY);
   }
 
   private async loadImage(file: File): Promise<LoadedImage> {
@@ -450,15 +627,9 @@ export class ParticleEngine {
     };
   }
 
-  private extractTargets(
-    sourceWidth: number,
-    sourceHeight: number,
-    originX: number,
-    originY: number,
-    source: "image" | "text",
-  ): TargetPoint[] {
+  private extractImageTargets(sourceWidth: number, sourceHeight: number, originX: number, originY: number): TargetPoint[] {
     const data = this.sampleCtx.getImageData(0, 0, sourceWidth, sourceHeight).data;
-    const desiredTargets = clamp(this.count * 2.1, 9000, 30000);
+    const desiredTargets = clamp(this.count * 1.75, 7000, 26000);
     const step = Math.max(1, Math.floor(Math.sqrt((sourceWidth * sourceHeight) / desiredTargets)));
     const points: TargetPoint[] = [];
 
@@ -468,42 +639,29 @@ export class ParticleEngine {
         const alpha = data[index + 3];
         if (alpha < 36) continue;
 
-        if (source === "image") {
-          const r = data[index];
-          const g = data[index + 1];
-          const b = data[index + 2];
-          const luminance = (r * 0.2126 + g * 0.7152 + b * 0.0722) / 255;
+        const r = data[index];
+        const g = data[index + 1];
+        const b = data[index + 2];
+        const luminance = (r * 0.2126 + g * 0.7152 + b * 0.0722) / 255;
 
-          points.push({
-            x: originX + x,
-            y: originY + y,
-            r: clamp(r * 0.82 + 44, 36, 255),
-            g: clamp(g * 0.84 + 38, 36, 255),
-            b: clamp(b * 0.9 + 36, 36, 255),
-            a: clamp(alpha * (0.58 + luminance * 0.42), 110, 255),
-          });
-        } else {
-          const mixX = x / Math.max(1, sourceWidth);
-          const mixY = y / Math.max(1, sourceHeight);
-
-          points.push({
-            x: originX + x,
-            y: originY + y,
-            r: 220 + mixX * 25,
-            g: 232 - mixY * 18,
-            b: 242 - mixX * 22,
-            a: clamp(alpha * 0.9, 120, 255),
-          });
-        }
+        points.push({
+          x: originX + x,
+          y: originY + y,
+          r: clamp(r * 0.82 + 44, 36, 255),
+          g: clamp(g * 0.84 + 38, 36, 255),
+          b: clamp(b * 0.9 + 36, 36, 255),
+          a: clamp(alpha * (0.58 + luminance * 0.42), 100, 255),
+          group: -1,
+        });
       }
     }
 
-    if (points.length <= this.count * 1.4) {
+    if (points.length <= this.count * 1.35) {
       return points;
     }
 
     const sampled: TargetPoint[] = [];
-    const stride = points.length / Math.min(points.length, Math.round(this.count * 1.4));
+    const stride = points.length / Math.min(points.length, Math.round(this.count * 1.35));
     for (let i = 0; i < points.length; i += stride) {
       sampled.push(points[Math.floor(i)]);
     }
@@ -517,7 +675,7 @@ export class ParticleEngine {
     const step = clamp(delta / 16.67, 0.45, 2.1);
     const hasShape = this.mode !== "idle" && this.activeTargets.length > 0;
 
-    if (!hasShape && now - this.lastIdleRetarget > 1050) {
+    if (!hasShape && now - this.lastIdleRetarget > 1150) {
       this.lastIdleRetarget = now;
       this.scatterIdleTargets();
     }
@@ -528,23 +686,33 @@ export class ParticleEngine {
   };
 
   private updateParticles(step: number, now: number, hasShape: boolean) {
-    const attraction = hasShape ? 0.026 : 0.0065;
+    const attraction = hasShape ? 0.028 : 0.0062;
     const damping = hasShape ? 0.865 : 0.93;
     const radius = this.cursorRadius;
     const radiusSq = radius * radius;
     const pointerActive = this.pointerActive;
     const px = this.pointerX;
     const py = this.pointerY;
-    const colorEase = hasShape ? 0.055 : 0.025;
+    const colorEase = hasShape ? 0.065 : 0.025;
 
     for (let i = 0; i < this.count; i += 1) {
       let vx = this.vx[i];
       let vy = this.vy[i];
       const x = this.x[i];
       const y = this.y[i];
+      let targetX = this.tx[i];
+      let targetY = this.ty[i];
+      const pop = this.pop[i];
 
-      vx += (this.tx[i] - x) * attraction * step;
-      vy += (this.ty[i] - y) * attraction * step;
+      if (pop > 0.001) {
+        const phase = this.drift[i] + now * 0.018;
+        targetX += Math.sin(phase) * pop * 7.5;
+        targetY += Math.cos(phase * 1.16) * pop * 5.5 - Math.sin(pop * Math.PI) * 7.5;
+        this.pop[i] = Math.max(0, pop - 0.022 * step);
+      }
+
+      vx += (targetX - x) * attraction * step;
+      vy += (targetY - y) * attraction * step;
 
       if (!hasShape) {
         const wave = Math.sin(now * 0.00042 + this.drift[i]) * 0.012;
@@ -560,7 +728,7 @@ export class ParticleEngine {
         if (distSq > 0.01 && distSq < radiusSq) {
           const dist = Math.sqrt(distSq);
           const force = (1 - dist / radius) ** 2;
-          const push = hasShape ? 3.7 : 2.6;
+          const push = hasShape ? 3.85 : 2.5;
           vx += (dx / dist) * force * push * step;
           vy += (dy / dist) * force * push * step;
           this.state[i] = 2;
@@ -581,69 +749,145 @@ export class ParticleEngine {
       this.cr[i] += (this.tr[i] - this.cr[i]) * colorEase * step;
       this.cg[i] += (this.tg[i] - this.cg[i]) * colorEase * step;
       this.cb[i] += (this.tb[i] - this.cb[i]) * colorEase * step;
-      this.alpha[i] += (this.targetAlpha[i] - this.alpha[i]) * 0.04 * step;
+      this.alpha[i] += (this.targetAlpha[i] - this.alpha[i]) * 0.05 * step;
     }
   }
 
   private renderParticles(hasShape: boolean) {
-    this.paintBackground(false);
-    const ctx = this.ctx;
-    const glowCadence = this.count > 12000 ? 4 : this.count > 8000 ? 3 : 2;
-
-    ctx.globalCompositeOperation = "lighter";
-    ctx.imageSmoothingEnabled = true;
+    const gl = this.gl;
+    gl.clear(gl.COLOR_BUFFER_BIT);
 
     for (let i = 0; i < this.count; i += 1) {
-      const x = this.x[i];
-      const y = this.y[i];
-
-      if (x < -24 || x > this.width + 24 || y < -24 || y > this.height + 24) {
-        continue;
-      }
-
+      const positionIndex = i * 2;
+      const colorIndex = i * 4;
       const interacting = this.state[i] === 2;
-      const baseSize = this.size[i] * (interacting ? 1.55 : hasShape ? 1.08 : 0.9);
-      const alpha = clamp(this.alpha[i] * (interacting ? 1 : 0.82), 0.08, 1);
-      const r = Math.round(this.cr[i]);
-      const g = Math.round(this.cg[i]);
-      const b = Math.round(this.cb[i]);
+      const pop = this.pop[i];
+      const alpha = clamp(this.alpha[i] * (interacting ? 1 : hasShape ? 0.82 : 0.62) + pop * 0.12, 0.04, 1);
+      const baseSize = this.size[i] * (hasShape ? 6.4 : 5.2);
 
-      if (i % glowCadence === 0) {
-        const glowSize = baseSize * (interacting ? 12 : 8);
-        ctx.globalAlpha = alpha * (interacting ? 0.32 : 0.18);
-        ctx.drawImage(this.glowSprite, x - glowSize / 2, y - glowSize / 2, glowSize, glowSize);
-      }
-
-      ctx.globalAlpha = alpha;
-      ctx.fillStyle = `rgb(${r} ${g} ${b})`;
-      ctx.beginPath();
-      ctx.arc(x, y, baseSize, 0, Math.PI * 2);
-      ctx.fill();
+      this.renderPositions[positionIndex] = this.x[i];
+      this.renderPositions[positionIndex + 1] = this.y[i];
+      this.renderColors[colorIndex] = this.cr[i] / 255;
+      this.renderColors[colorIndex + 1] = this.cg[i] / 255;
+      this.renderColors[colorIndex + 2] = this.cb[i] / 255;
+      this.renderColors[colorIndex + 3] = alpha;
+      this.renderSizes[i] = baseSize + (interacting ? 5.2 : 0) + pop * 12;
     }
 
-    ctx.globalAlpha = 1;
-    ctx.globalCompositeOperation = "source-over";
+    gl.useProgram(this.program);
+    gl.uniform2f(this.uResolution, this.width, this.height);
+    gl.uniform1f(this.uDpr, this.dpr);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
+    gl.bufferSubData(gl.ARRAY_BUFFER, 0, this.renderPositions);
+    gl.enableVertexAttribArray(this.aPosition);
+    gl.vertexAttribPointer(this.aPosition, 2, gl.FLOAT, false, 0, 0);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.colorBuffer);
+    gl.bufferSubData(gl.ARRAY_BUFFER, 0, this.renderColors);
+    gl.enableVertexAttribArray(this.aColor);
+    gl.vertexAttribPointer(this.aColor, 4, gl.FLOAT, false, 0, 0);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.sizeBuffer);
+    gl.bufferSubData(gl.ARRAY_BUFFER, 0, this.renderSizes);
+    gl.enableVertexAttribArray(this.aSize);
+    gl.vertexAttribPointer(this.aSize, 1, gl.FLOAT, false, 0, 0);
+
+    gl.drawArrays(gl.POINTS, 0, this.count);
   }
 
-  private paintBackground(clear: boolean) {
-    const ctx = this.ctx;
-    ctx.globalCompositeOperation = "source-over";
-    ctx.globalAlpha = 1;
-    ctx.fillStyle = clear ? "#080808" : "rgba(8, 8, 8, 0.28)";
-    ctx.fillRect(0, 0, this.width, this.height);
+  private createProgram() {
+    const gl = this.gl;
+    const vertexShader = this.createShader(
+      gl.VERTEX_SHADER,
+      `
+        attribute vec2 a_position;
+        attribute vec4 a_color;
+        attribute float a_size;
+        uniform vec2 u_resolution;
+        uniform float u_dpr;
+        varying vec4 v_color;
+
+        void main() {
+          vec2 zeroToOne = a_position / u_resolution;
+          vec2 clipSpace = zeroToOne * 2.0 - 1.0;
+          gl_Position = vec4(clipSpace.x, -clipSpace.y, 0.0, 1.0);
+          gl_PointSize = max(1.0, a_size * u_dpr);
+          v_color = a_color;
+        }
+      `,
+    );
+    const fragmentShader = this.createShader(
+      gl.FRAGMENT_SHADER,
+      `
+        precision mediump float;
+        varying vec4 v_color;
+
+        void main() {
+          vec2 uv = gl_PointCoord - vec2(0.5);
+          float distanceFromCenter = length(uv);
+
+          if (distanceFromCenter > 0.5) {
+            discard;
+          }
+
+          float core = 1.0 - smoothstep(0.025, 0.15, distanceFromCenter);
+          float glow = 1.0 - smoothstep(0.08, 0.5, distanceFromCenter);
+          float alpha = v_color.a * (glow * 0.42 + core * 0.72);
+          vec3 color = mix(v_color.rgb * 0.42, v_color.rgb, max(core, 0.18));
+
+          gl_FragColor = vec4(color, alpha);
+        }
+      `,
+    );
+    const program = gl.createProgram();
+
+    if (!program) {
+      throw new Error("Particle shader program could not be created.");
+    }
+
+    gl.attachShader(program, vertexShader);
+    gl.attachShader(program, fragmentShader);
+    gl.linkProgram(program);
+
+    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+      const info = gl.getProgramInfoLog(program) || "Unknown program link error.";
+      gl.deleteProgram(program);
+      throw new Error(info);
+    }
+
+    gl.deleteShader(vertexShader);
+    gl.deleteShader(fragmentShader);
+    return program;
   }
 
-  private buildGlowSprite() {
-    const ctx = this.glowSprite.getContext("2d");
-    if (!ctx) return;
+  private createShader(type: number, source: string) {
+    const gl = this.gl;
+    const shader = gl.createShader(type);
 
-    const center = this.glowSprite.width / 2;
-    const gradient = ctx.createRadialGradient(center, center, 0, center, center, center);
-    gradient.addColorStop(0, "rgba(255,255,255,0.95)");
-    gradient.addColorStop(0.22, "rgba(210,236,255,0.42)");
-    gradient.addColorStop(0.62, "rgba(255,188,154,0.12)");
-    gradient.addColorStop(1, "rgba(255,255,255,0)");
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, this.glowSprite.width, this.glowSprite.height);
+    if (!shader) {
+      throw new Error("Particle shader could not be created.");
+    }
+
+    gl.shaderSource(shader, source);
+    gl.compileShader(shader);
+
+    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+      const info = gl.getShaderInfoLog(shader) || "Unknown shader compile error.";
+      gl.deleteShader(shader);
+      throw new Error(info);
+    }
+
+    return shader;
+  }
+
+  private createBuffer() {
+    const buffer = this.gl.createBuffer();
+
+    if (!buffer) {
+      throw new Error("Particle buffer could not be created.");
+    }
+
+    return buffer;
   }
 }

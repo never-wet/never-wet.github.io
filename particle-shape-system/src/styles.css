@@ -168,12 +168,12 @@ button {
 
 .range-control {
   display: grid;
-  grid-template-columns: auto 96px;
+  grid-template-columns: auto 118px;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   flex: 0 0 auto;
   min-height: 38px;
-  padding: 0 10px;
+  padding: 0 12px;
   border-radius: 8px;
   color: var(--muted);
   font-size: 0.78rem;
@@ -181,8 +181,75 @@ button {
 }
 
 .range-control input {
-  width: 96px;
-  accent-color: var(--accent);
+  --range-progress: 50%;
+  width: 118px;
+  height: 18px;
+  margin: 0;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  cursor: pointer;
+  outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.range-control input::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 999px;
+  background:
+    linear-gradient(90deg, var(--accent) 0%, var(--warm) var(--range-progress), rgba(255, 255, 255, 0.14) var(--range-progress), rgba(255, 255, 255, 0.14) 100%);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+
+.range-control input::-webkit-slider-thumb {
+  width: 16px;
+  height: 16px;
+  margin-top: -5px;
+  border: 2px solid rgba(8, 8, 8, 0.92);
+  border-radius: 999px;
+  background: var(--ink);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.22), 0 0 18px rgba(199, 240, 232, 0.3);
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.range-control input::-moz-range-track {
+  height: 6px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.range-control input::-moz-range-progress {
+  height: 6px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--accent), var(--warm));
+}
+
+.range-control input::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(8, 8, 8, 0.92);
+  border-radius: 999px;
+  background: var(--ink);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.22), 0 0 18px rgba(199, 240, 232, 0.3);
+}
+
+.range-control input:hover::-webkit-slider-runnable-track,
+.range-control input:focus-visible::-webkit-slider-runnable-track {
+  background:
+    linear-gradient(90deg, var(--accent) 0%, var(--warm) var(--range-progress), rgba(255, 255, 255, 0.22) var(--range-progress), rgba(255, 255, 255, 0.22) 100%);
+}
+
+.range-control input:hover::-webkit-slider-thumb,
+.range-control input:focus-visible::-webkit-slider-thumb {
+  transform: scale(1.08);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.32), 0 0 24px rgba(240, 194, 166, 0.38);
+}
+
+.range-control input:focus-visible::-moz-range-thumb {
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.32), 0 0 24px rgba(240, 194, 166, 0.38);
 }
 
 .sr-only {
@@ -230,10 +297,10 @@ button {
   }
 
   .range-control {
-    grid-template-columns: auto 82px;
+    grid-template-columns: auto 92px;
   }
 
   .range-control input {
-    width: 82px;
+    width: 92px;
   }
 }
