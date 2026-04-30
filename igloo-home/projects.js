@@ -1,5 +1,11 @@
 export const projects = [
   {
+    title: "Particle Shape System",
+    tag: "Canvas / Particle Simulation",
+    description: "Realtime dust-pixel field where thousands of particles form uploaded images or typed text, repel from the cursor, and transition smoothly between modes.",
+    href: "../particle-shape-system/",
+  },
+  {
     title: "Wheel of Fortune",
     tag: "Decision Tool / Canvas",
     description: "Polished spinning wheel with editable options, fair random selection, physics-style slowdown, pointer landing, sounds, and preset lists.",
