@@ -28,21 +28,23 @@ Every accepted sample stores its screen position, camera pixel color, confidence
 
 ## Room Scan
 
-Room Scan adds a lightweight spatial tracking pipeline:
+Room Scan adds a denser pseudo-SLAM spatial tracking pipeline:
 
 - detects corner-like feature points from each downsampled frame
 - matches points frame-to-frame to simulate optical flow
-- estimates rough camera panning, tilt, and motion magnitude
-- stores a camera path and coverage heatmap
-- classifies sampled pixels as floor, wall, or object hints
-- projects colored samples into a room-scale point cloud
+- estimates rough camera panning, tilt, forward motion, and motion magnitude
+- stores a continuous camera path, current camera marker, and coverage heatmap
+- classifies sampled pixels as floor, wall, ceiling, or object hints
+- expands sampled pixels into dense surface support points for readable walls, floor, ceiling, furniture, and corners
+- projects colored samples into a global room / house-scale point cloud
+- updates a live Three.js mini-preview while scanning
 - offloads final room point-cloud reconstruction to a Web Worker when available
 
-The live overlay shows grid alignment, feature points, tracking indicators, a virtual scan boundary, coverage heatmap, and movement guidance. The reconstruction is an approximate spatial map, not a measured CAD model.
+The live overlay shows grid alignment, feature points, tracking indicators, a virtual scan boundary, coverage heatmap, point count, tracking quality, path distance, and movement guidance. The 3D preview draws the point cloud, voxel accents, camera path line, current device marker, and direction arrow. The reconstruction is an approximate spatial map, not a measured CAD model.
 
 ## Point Cloud Generation
 
-When the user clicks `Done`, the captured samples are converted into a colored 3D point cloud. Object Scan uses frame sweep to bend samples into object volume. Room Scan uses estimated camera pose, surface classification, and feature coverage to build a larger room point cloud with floor, wall, object, and camera path hints.
+When the user clicks `Done`, the captured samples are converted into a colored 3D point cloud. Object Scan uses frame sweep to bend samples into object volume. Room Scan uses estimated camera pose, surface classification, dense surface samples, and feature coverage to build a larger room or house point cloud with floor, wall, ceiling, object, and camera path hints.
 
 Both previews keep the original camera pixel colors as per-point RGB attributes. The 3D preview renders `BufferGeometry` points and a lighter voxel skin for a radar reconstruction feel.
 

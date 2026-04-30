@@ -1,7 +1,7 @@
 import { MotionTracker, type CameraPose, type CoverageCell, type MotionEstimate, type TrackedFeaturePoint } from "./MotionTracker";
 
 export type RoomScanMode = "quick" | "full";
-export type RoomSurfaceKind = "floor" | "wall" | "object";
+export type RoomSurfaceKind = "floor" | "wall" | "ceiling" | "object";
 
 export type RoomScanPoint = {
   x: number;
@@ -27,6 +27,8 @@ export type RoomFrameQuality = {
 export type RoomProcessedFrame = {
   frameIndex: number;
   timestamp: number;
+  width: number;
+  height: number;
   points: RoomScanPoint[];
   features: TrackedFeaturePoint[];
   trackedFeatureCount: number;
@@ -46,18 +48,18 @@ type RoomModeSettings = {
 
 const SETTINGS: Record<RoomScanMode, RoomModeSettings> = {
   quick: {
-    width: 160,
-    height: 120,
-    step: 7,
-    maxFeatures: 84,
-    maxPoints: 560,
+    width: 192,
+    height: 144,
+    step: 5,
+    maxFeatures: 120,
+    maxPoints: 1400,
   },
   full: {
-    width: 216,
-    height: 162,
-    step: 5,
-    maxFeatures: 150,
-    maxPoints: 1100,
+    width: 256,
+    height: 192,
+    step: 4,
+    maxFeatures: 220,
+    maxPoints: 3000,
   },
 };
 
@@ -85,6 +87,7 @@ function sampleLuma(data: Uint8ClampedArray, width: number, height: number, x: n
 function classifySurface(x: number, y: number, width: number, height: number, texture: number, sat: number): RoomSurfaceKind {
   const nx = x / width - 0.5;
   const ny = y / height;
+  if (ny < 0.18) return "ceiling";
   if (ny > 0.68) return "floor";
   if (Math.abs(nx) > 0.34 || ny < 0.38) return "wall";
   if (texture > 0.38 || sat > 0.28) return "object";
@@ -102,9 +105,21 @@ function projectRoomPoint(
 ) {
   const nx = (x / width - 0.5) * 2;
   const ny = y / height;
-  const viewDepth = surface === "floor" ? 1.2 + ny * 3 : surface === "wall" ? 2.4 + Math.abs(nx) * 1.7 : 1.3 + confidence * 1.2;
-  const localX = nx * (surface === "wall" ? 2.5 : 1.1 + viewDepth * 0.26);
-  const localY = surface === "floor" ? -1.22 + (1 - ny) * 0.16 : -1.08 + (1 - ny) * 2.4;
+  const viewDepth =
+    surface === "floor"
+      ? 1.2 + ny * 3
+      : surface === "ceiling"
+        ? 2.3 + Math.abs(nx) * 1.15
+        : surface === "wall"
+          ? 2.4 + Math.abs(nx) * 1.7
+          : 1.3 + confidence * 1.2;
+  const localX = nx * (surface === "wall" || surface === "ceiling" ? 2.5 : 1.1 + viewDepth * 0.26);
+  const localY =
+    surface === "floor"
+      ? -1.22 + (1 - ny) * 0.16
+      : surface === "ceiling"
+        ? 1.32 - ny * 0.25
+        : -1.08 + (1 - ny) * 2.4;
   const localZ = -viewDepth;
   const cos = Math.cos(pose.yaw);
   const sin = Math.sin(pose.yaw);
@@ -169,9 +184,11 @@ export class RoomFrameProcessor {
           Math.abs(light - sampleLuma(data, settings.width, settings.height, x, y + settings.step));
         const centerWeight = 1 - Math.min(1, Math.hypot(x / settings.width - 0.5, y / settings.height - 0.5) * 1.45);
         const texture = clamp(edge * 3.4 + sat * 0.7 + Math.abs(light - 0.5) * 0.22);
-        const fallbackSurface = y > settings.height * 0.68 || x < settings.width * 0.16 || x > settings.width * 0.84;
-        const patternedSample = ((x * 3 + y * 5 + frameIndex * 11) / settings.step) % 5 < 1;
-        const include = texture > 0.22 || fallbackSurface || (centerWeight > 0.5 && patternedSample);
+        const fallbackSurface =
+          y > settings.height * 0.66 || y < settings.height * 0.2 || x < settings.width * 0.18 || x > settings.width * 0.82;
+        const patternedSample = ((x * 3 + y * 5 + frameIndex * 11) / settings.step) % 4 < 1;
+        const broadSurfaceSweep = ((x + frameIndex * 9) % (settings.step * 3) === 0 || (y + frameIndex * 5) % (settings.step * 4) === 0) && y > settings.height * 0.18;
+        const include = texture > 0.16 || fallbackSurface || broadSurfaceSweep || (centerWeight > 0.38 && patternedSample);
 
         sampleCount += 1;
         brightnessTotal += light;
@@ -208,6 +225,8 @@ export class RoomFrameProcessor {
     return {
       frameIndex,
       timestamp: performance.now(),
+      width: settings.width,
+      height: settings.height,
       points: limitedPoints,
       features: tracking.features,
       trackedFeatureCount: tracking.trackedFeatureCount,
@@ -228,6 +247,8 @@ export class RoomFrameProcessor {
     return {
       frameIndex,
       timestamp: performance.now(),
+      width: 1,
+      height: 1,
       points: [],
       features: [],
       trackedFeatureCount: 0,

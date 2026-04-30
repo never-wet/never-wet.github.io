@@ -1,5 +1,7 @@
 import type { CameraPose } from "./MotionTracker";
-import type { RoomProcessedFrame, RoomScanMode, RoomScanPoint, RoomSurfaceKind } from "./RoomFrameProcessor";
+import { createDenseRoomPoints, surfaceToId } from "./DensePointCloudBuilder";
+import type { DenseRoomPoint } from "./DensePointCloudBuilder";
+import type { RoomProcessedFrame, RoomScanMode } from "./RoomFrameProcessor";
 
 export type RoomPointCloud = {
   positions: Float32Array;
@@ -18,24 +20,18 @@ export type RoomPointCloud = {
 };
 
 const MAX_POINTS: Record<RoomScanMode, number> = {
-  quick: 16000,
-  full: 32000,
+  quick: 42000,
+  full: 82000,
 };
 
 function clamp(value: number, min = 0, max = 1) {
   return Math.max(min, Math.min(max, value));
 }
 
-function surfaceId(surface: RoomSurfaceKind) {
-  if (surface === "floor") return 0;
-  if (surface === "wall") return 1;
-  return 2;
-}
-
-function selectPoints(points: RoomScanPoint[], maxPoints: number) {
+function selectPoints(points: DenseRoomPoint[], maxPoints: number) {
   if (points.length <= maxPoints) return points;
   const stride = points.length / maxPoints;
-  const selected: RoomScanPoint[] = [];
+  const selected: DenseRoomPoint[] = [];
   for (let index = 0; index < maxPoints; index += 1) {
     selected.push(points[Math.floor(index * stride)]);
   }
@@ -62,7 +58,7 @@ function createFallbackPointCloud(mode: RoomScanMode): RoomPointCloud {
 
 export function buildRoomPointCloud(frames: RoomProcessedFrame[], mode: RoomScanMode): RoomPointCloud {
   const usefulFrames = frames.filter((frame) => frame.points.length > 0);
-  const selected = selectPoints(usefulFrames.flatMap((frame) => frame.points), MAX_POINTS[mode]);
+  const selected = selectPoints(usefulFrames.flatMap((frame) => createDenseRoomPoints(frame, mode)), MAX_POINTS[mode]);
 
   if (selected.length === 0) {
     return createFallbackPointCloud(mode);
@@ -91,7 +87,7 @@ export function buildRoomPointCloud(frames: RoomProcessedFrame[], mode: RoomScan
     colors[offset + 1] = clamp((point.g / 255) * 1.08);
     colors[offset + 2] = clamp((point.b / 255) * 1.08);
     sizes[index] = point.size;
-    surfaceIds[index] = surfaceId(point.surface);
+    surfaceIds[index] = surfaceToId(point.surface);
 
     minX = Math.min(minX, point.x);
     minY = Math.min(minY, point.y);

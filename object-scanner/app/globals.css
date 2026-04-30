@@ -513,6 +513,99 @@ h1 {
   min-height: 46px;
 }
 
+.live-room-preview {
+  position: absolute;
+  left: 18px;
+  bottom: 76px;
+  z-index: 7;
+  width: min(390px, calc(100% - 310px));
+  height: min(268px, 38vh);
+  overflow: hidden;
+  border: 1px solid rgba(55, 248, 255, 0.26);
+  border-radius: 8px;
+  background: rgba(3, 7, 7, 0.76);
+  box-shadow: 0 18px 46px rgba(0, 0, 0, 0.36);
+  backdrop-filter: blur(16px);
+}
+
+.live-room-preview::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(55, 248, 255, 0.09) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(55, 248, 255, 0.07) 1px, transparent 1px);
+  background-size: 26px 26px;
+  opacity: 0.3;
+}
+
+.live-room-preview canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.live-preview-hud,
+.live-preview-controls {
+  position: absolute;
+  z-index: 2;
+  border: 1px solid rgba(55, 248, 255, 0.22);
+  border-radius: 8px;
+  background: rgba(5, 9, 10, 0.72);
+  backdrop-filter: blur(12px);
+}
+
+.live-preview-hud {
+  left: 10px;
+  top: 10px;
+  display: grid;
+  gap: 2px;
+  padding: 8px 10px;
+}
+
+.live-preview-hud span,
+.live-preview-hud small {
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.live-preview-hud strong {
+  color: var(--cyan);
+  font-size: 0.88rem;
+  line-height: 1;
+}
+
+.live-preview-controls {
+  right: 10px;
+  bottom: 10px;
+  display: grid;
+  grid-template-columns: repeat(5, 30px);
+  gap: 4px;
+  padding: 5px;
+}
+
+.live-preview-controls button {
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  background: rgba(55, 248, 255, 0.12);
+  color: var(--cyan);
+  transition: transform 0.22s var(--ease), border-color 0.22s ease, background 0.22s ease;
+}
+
+.live-preview-controls button:hover,
+.live-preview-controls button:focus-visible {
+  transform: translateY(-1px);
+  border-color: var(--line-strong);
+  background: rgba(55, 248, 255, 0.2);
+}
+
 .overlay-grid {
   position: absolute;
   inset: 0;
@@ -912,6 +1005,12 @@ h1 {
   color: var(--ink);
 }
 
+.secondary-action.is-active {
+  border-color: rgba(55, 248, 255, 0.36);
+  background: rgba(55, 248, 255, 0.13);
+  color: var(--cyan);
+}
+
 .primary-action {
   border-color: rgba(55, 248, 255, 0.64);
   background: var(--cyan);
@@ -1210,6 +1309,24 @@ h1 {
     right: 10px;
     bottom: 68px;
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .live-room-preview {
+    left: 10px;
+    right: 10px;
+    top: 58px;
+    bottom: auto;
+    width: auto;
+    height: min(230px, 34vh);
+  }
+
+  .live-preview-controls {
+    grid-template-columns: repeat(5, 28px);
+  }
+
+  .live-preview-controls button {
+    width: 28px;
+    height: 28px;
   }
 
   .tracking-indicator {

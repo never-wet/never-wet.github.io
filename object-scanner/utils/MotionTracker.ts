@@ -1,3 +1,5 @@
+import { estimateMotionFromFeatures, integrateCameraPose, type EstimatedMotion } from "./MotionEstimator";
+
 export type CameraPose = {
   x: number;
   y: number;
@@ -27,13 +29,7 @@ export type CoverageCell = {
   intensity: number;
 };
 
-export type MotionEstimate = {
-  dx: number;
-  dy: number;
-  rotation: number;
-  magnitude: number;
-  directionLabel: string;
-};
+export type MotionEstimate = EstimatedMotion;
 
 export type MotionTrackResult = {
   features: TrackedFeaturePoint[];
@@ -70,15 +66,9 @@ function clamp(value: number, min = 0, max = 1) {
 
 function lumaAt(data: Uint8ClampedArray, width: number, x: number, y: number) {
   const safeX = Math.max(0, Math.min(width - 1, x));
-  const safeY = Math.max(0, y);
+  const safeY = Math.max(0, Math.min(Math.floor(data.length / 4 / width) - 1, y));
   const index = (safeY * width + safeX) * 4;
   return (0.2126 * data[index] + 0.7152 * data[index + 1] + 0.0722 * data[index + 2]) / 255;
-}
-
-function getDirectionLabel(dx: number, dy: number, magnitude: number) {
-  if (magnitude < 0.4) return "Hold steady";
-  if (Math.abs(dx) > Math.abs(dy) * 1.25) return dx > 0 ? "Panning right" : "Panning left";
-  return dy > 0 ? "Tilting down" : "Tilting up";
 }
 
 export class MotionTracker {
@@ -114,24 +104,13 @@ export class MotionTracker {
     const detected = this.detectFeatures(data, width, height, maxFeatures, frameIndex);
     const tracked = this.matchFeatures(detected, width, height);
     const trackedMatches = tracked.filter((feature) => feature.age > 1);
-    const avgDx = trackedMatches.reduce((sum, feature) => sum + feature.dx, 0) / Math.max(1, trackedMatches.length);
-    const avgDy = trackedMatches.reduce((sum, feature) => sum + feature.dy, 0) / Math.max(1, trackedMatches.length);
-    const rotation =
-      trackedMatches.reduce((sum, feature) => {
-        const horizontalOffset = feature.x / width - 0.5;
-        return sum + horizontalOffset * feature.dy * 0.003 - feature.dx * 0.0007;
-      }, 0) / Math.max(1, trackedMatches.length);
-    const magnitude = Math.hypot(avgDx, avgDy);
+    const motion = estimateMotionFromFeatures(trackedMatches, width, height);
     const trackingScore = clamp(trackedMatches.length / Math.max(20, maxFeatures * 0.52));
 
-    this.pose.x += clamp(-avgDx / width, -0.035, 0.035) * 2.1;
-    this.pose.z += clamp(avgDy / height, -0.03, 0.045) * 1.8 + clamp(magnitude / 260, 0, 0.014);
-    this.pose.yaw += clamp(-avgDx / width, -0.02, 0.02) + rotation;
-    this.pose.pitch = this.pose.pitch * 0.78 + clamp(avgDy / height, -0.22, 0.22);
-    this.pose.roll = this.pose.roll * 0.82 + clamp(rotation * 2.4, -0.18, 0.18);
+    this.pose = integrateCameraPose(this.pose, motion, width, height);
     this.pose.confidence = trackingScore;
 
-    this.updateCoverage(tracked, width, height, frameIndex, magnitude);
+    this.updateCoverage(tracked, width, height, frameIndex, motion.magnitude);
     this.previousFeatures = tracked.map((feature) => ({
       id: feature.id,
       x: feature.x,
@@ -154,13 +133,7 @@ export class MotionTracker {
       features: tracked,
       trackedFeatureCount: trackedMatches.length,
       pose: { ...this.pose },
-      motion: {
-        dx: avgDx,
-        dy: avgDy,
-        rotation,
-        magnitude,
-        directionLabel: getDirectionLabel(avgDx, avgDy, magnitude),
-      },
+      motion,
       coverage: coverageCells,
       coverageScore: clamp(coverageScore),
       trackingScore,

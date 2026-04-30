@@ -5,23 +5,31 @@ import {
   AlertTriangle,
   Box,
   Camera,
+  Eye,
+  EyeOff,
   Gauge,
   Home,
   Map,
   Maximize2,
   Minus,
+  Pause,
+  Play,
   Plus,
   Radar,
   RefreshCcw,
+  Route,
   RotateCcw,
   RotateCw,
   ScanLine,
 } from "lucide-react";
+import { Live3DScanPreview } from "@/components/Live3DScanPreview";
 import { ScanUIOverlay } from "@/components/ScanUIOverlay";
 import { RoomPreview3D, type RoomViewCommand } from "@/components/RoomPreview3D";
 import { type CameraState, type ScannerPhase, type ViewCommandType } from "@/components/ScanControls";
 import { RoomFrameProcessor, type RoomFrameQuality, type RoomProcessedFrame, type RoomScanMode } from "@/utils/RoomFrameProcessor";
 import { buildRoomPointCloud, type RoomPointCloud } from "@/utils/RoomPointCloudBuilder";
+import { createEmptyDenseSnapshot } from "@/utils/DensePointCloudBuilder";
+import { ScanSessionStore, type ScanSessionStats } from "@/utils/ScanSessionStore";
 import type { CoverageCell, TrackedFeaturePoint } from "@/utils/MotionTracker";
 
 type RoomScannerProps = {
@@ -42,14 +50,22 @@ const EMPTY_COVERAGE: CoverageCell[] = Array.from({ length: 48 }, (_, id) => ({
   intensity: 0,
 }));
 
+const DEFAULT_SESSION_STATS: ScanSessionStats = {
+  frameCount: 0,
+  pointCount: 0,
+  coverage: 0,
+  trackingQuality: 0,
+  pathDistance: 0,
+};
+
 const MODE_TARGET_FRAMES: Record<RoomScanMode, number> = {
-  quick: 30,
-  full: 66,
+  quick: 36,
+  full: 96,
 };
 
 const MODE_CAPTURE_INTERVAL: Record<RoomScanMode, number> = {
-  quick: 180,
-  full: 230,
+  quick: 150,
+  full: 210,
 };
 
 function getCameraMessage(cameraState: CameraState) {
@@ -105,14 +121,19 @@ export function RoomScanner({ onObjectScanSelect }: RoomScannerProps) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const processorRef = useRef<RoomFrameProcessor | null>(null);
+  const sessionRef = useRef(new ScanSessionStore("quick"));
   const framesRef = useRef<RoomProcessedFrame[]>([]);
   const animationRef = useRef<number | null>(null);
   const lastCaptureRef = useRef(0);
+  const lastLiveUpdateRef = useRef(0);
   const frameIndexRef = useRef(0);
 
   const [cameraState, setCameraState] = useState<CameraState>("checking");
   const [phase, setPhase] = useState<ScannerPhase>("scanning");
   const [mode, setMode] = useState<RoomScanMode>("quick");
+  const [isScanning, setIsScanning] = useState(false);
+  const [showLive3D, setShowLive3D] = useState(true);
+  const [showPath, setShowPath] = useState(true);
   const [progress, setProgress] = useState(0);
   const [capturedFrames, setCapturedFrames] = useState(0);
   const [featureCount, setFeatureCount] = useState(0);
@@ -123,10 +144,12 @@ export function RoomScanner({ onObjectScanSelect }: RoomScannerProps) {
   const [roomCloud, setRoomCloud] = useState<RoomPointCloud | null>(null);
   const [autoRotate, setAutoRotate] = useState(false);
   const [viewCommand, setViewCommand] = useState<RoomViewCommand | null>(null);
+  const [liveSnapshot, setLiveSnapshot] = useState(() => createEmptyDenseSnapshot("quick"));
+  const [sessionStats, setSessionStats] = useState<ScanSessionStats>(DEFAULT_SESSION_STATS);
 
   const targetFrames = MODE_TARGET_FRAMES[mode];
   const warning = quality.warning;
-  const pointCount = roomCloud?.count ?? 0;
+  const pointCount = roomCloud?.count ?? sessionStats.pointCount;
 
   const stopCamera = useCallback(() => {
     streamRef.current?.getTracks().forEach((track) => track.stop());
@@ -191,11 +214,14 @@ export function RoomScanner({ onObjectScanSelect }: RoomScannerProps) {
     }
   }, [stopCamera]);
 
-  const resetCapture = useCallback(() => {
+  const resetCapture = useCallback((nextMode = mode) => {
     framesRef.current = [];
     frameIndexRef.current = 0;
     lastCaptureRef.current = 0;
+    lastLiveUpdateRef.current = 0;
     processorRef.current?.reset();
+    sessionRef.current.reset(nextMode);
+    setIsScanning(false);
     setProgress(0);
     setCapturedFrames(0);
     setFeatureCount(0);
@@ -204,7 +230,9 @@ export function RoomScanner({ onObjectScanSelect }: RoomScannerProps) {
     setCoverage(EMPTY_COVERAGE);
     setMotionLabel("Hold steady");
     setRoomCloud(null);
-  }, []);
+    setSessionStats(DEFAULT_SESSION_STATS);
+    setLiveSnapshot(sessionRef.current.getLiveSnapshot());
+  }, [mode]);
 
   const handleRetake = useCallback(() => {
     resetCapture();
@@ -214,9 +242,11 @@ export function RoomScanner({ onObjectScanSelect }: RoomScannerProps) {
   }, [requestCamera, resetCapture]);
 
   const handleDone = useCallback(async () => {
-    if (framesRef.current.length === 0) return;
+    const frames = sessionRef.current.getFrames();
+    if (frames.length === 0) return;
 
-    const cloud = await buildRoomPointCloudInWorker(framesRef.current, mode);
+    setIsScanning(false);
+    const cloud = await buildRoomPointCloudInWorker(frames, mode);
     setRoomCloud(cloud);
     setPhase("preview");
     setProgress(100);
@@ -226,10 +256,20 @@ export function RoomScanner({ onObjectScanSelect }: RoomScannerProps) {
   const handleModeChange = useCallback(
     (nextMode: RoomScanMode) => {
       setMode(nextMode);
-      resetCapture();
+      resetCapture(nextMode);
     },
     [resetCapture],
   );
+
+  const handleScanToggle = useCallback(() => {
+    if (cameraState !== "ready") {
+      void requestCamera();
+      return;
+    }
+
+    lastCaptureRef.current = 0;
+    setIsScanning((current) => !current);
+  }, [cameraState, requestCamera]);
 
   const sendViewCommand = useCallback((type: ViewCommandType) => {
     setViewCommand({ id: performance.now(), type });
@@ -257,23 +297,32 @@ export function RoomScanner({ onObjectScanSelect }: RoomScannerProps) {
       const video = videoRef.current;
       const processor = processorRef.current;
 
-      if (video && processor && (lastCaptureRef.current === 0 || time - lastCaptureRef.current >= captureInterval)) {
+      if (isScanning && video && processor && (lastCaptureRef.current === 0 || time - lastCaptureRef.current >= captureInterval)) {
         lastCaptureRef.current = time;
         const frame = processor.processFrame(video, mode, frameIndexRef.current);
         frameIndexRef.current += 1;
+        sessionRef.current.addFrame(frame);
+        framesRef.current = sessionRef.current.getFrames();
+        const nextStats = sessionRef.current.getStats();
 
         if (frame.points.length > 0) {
-          framesRef.current = [...framesRef.current, frame].slice(-96);
-          const nextFrameCount = framesRef.current.length;
-          const frameProgress = (nextFrameCount / targetFrames) * 58;
-          const coverageProgress = frame.quality.coverageScore * 42;
-          setCapturedFrames(nextFrameCount);
-          setProgress(Math.min(99, Math.max(frameProgress + coverageProgress, (nextFrameCount / targetFrames) * 100)));
+          const frameProgress = (nextStats.frameCount / targetFrames) * 42;
+          const coverageProgress = nextStats.coverage * 38;
+          const pathTarget = mode === "full" ? 5.8 : 2.4;
+          const pathProgress = Math.min(1, nextStats.pathDistance / pathTarget) * 20;
+          setCapturedFrames(nextStats.frameCount);
+          setProgress(Math.min(99, Math.max(frameProgress + coverageProgress + pathProgress, (nextStats.frameCount / targetFrames) * 62)));
+        }
+
+        if (time - lastLiveUpdateRef.current > 240 || frame.frameIndex % 3 === 0) {
+          lastLiveUpdateRef.current = time;
+          setSessionStats(nextStats);
+          setLiveSnapshot(sessionRef.current.getLiveSnapshot());
         }
 
         setQuality(frame.quality);
         setFeatureCount(frame.trackedFeatureCount);
-        setFeatures(normalizeFeatures(frame.features, mode === "full" ? 216 : 160, mode === "full" ? 162 : 120));
+        setFeatures(normalizeFeatures(frame.features, frame.width, frame.height));
         setCoverage(frame.coverage.length ? frame.coverage : EMPTY_COVERAGE);
         setMotionLabel(frame.motion.directionLabel);
       }
@@ -289,17 +338,22 @@ export function RoomScanner({ onObjectScanSelect }: RoomScannerProps) {
         animationRef.current = null;
       }
     };
-  }, [cameraState, mode, phase, targetFrames]);
+  }, [cameraState, isScanning, mode, phase, targetFrames]);
 
   const statusLabel = useMemo(() => {
     if (phase === "preview") return "Room Preview";
-    if (cameraState === "ready") return "Mapping";
+    if (cameraState === "ready" && isScanning) return "Mapping";
+    if (cameraState === "ready") return "Ready";
     if (cameraState === "requesting") return "Camera";
     return "Standby";
-  }, [cameraState, phase]);
+  }, [cameraState, isScanning, phase]);
 
   const showCameraProblem = cameraState === "denied" || cameraState === "missing" || cameraState === "unsupported";
   const canFinish = cameraState === "ready" && capturedFrames >= 5;
+  const scanHint =
+    cameraState === "ready" && !isScanning
+      ? "Press Start Scan"
+      : warning || (sessionStats.pointCount < 2200 ? "Scan more area" : "Move device slowly");
 
   return (
     <main className="scanner-shell">
@@ -386,18 +440,27 @@ export function RoomScanner({ onObjectScanSelect }: RoomScannerProps) {
           <div className="camera-stage">
             <video ref={videoRef} className="camera-feed camera-feed--room" muted playsInline autoPlay />
             <ScanUIOverlay
-              active={cameraState === "ready"}
+              active={cameraState === "ready" && isScanning}
               progress={progress}
               features={features}
               coverage={coverage}
               motionLabel={motionLabel}
-              warning={warning}
+              warning={scanHint}
             />
 
+            {showLive3D && cameraState === "ready" && (
+              <Live3DScanPreview
+                snapshot={liveSnapshot}
+                showPath={showPath}
+                command={viewCommand}
+                onCommand={sendViewCommand}
+              />
+            )}
+
             <div className="room-floating-actions" aria-label="Room scan quick actions">
-              <button type="button" className="secondary-action" onClick={handleRetake}>
-                <RefreshCcw size={17} />
-                Retake
+              <button type="button" className="secondary-action" onClick={handleScanToggle} disabled={cameraState === "requesting"}>
+                {isScanning ? <Pause size={17} /> : <Play size={17} />}
+                {isScanning ? "Pause" : "Start"}
               </button>
               <button type="button" className="primary-action" onClick={handleDone} disabled={!canFinish}>
                 <Map size={18} />
@@ -432,7 +495,7 @@ export function RoomScanner({ onObjectScanSelect }: RoomScannerProps) {
                 <Radar size={15} />
                 Room scan
               </span>
-              <strong>Live spatial mapping</strong>
+              <strong>Dense live mapping</strong>
             </div>
             <div className="mode-toggle" aria-label="Room scan detail mode">
               <button
@@ -459,7 +522,7 @@ export function RoomScanner({ onObjectScanSelect }: RoomScannerProps) {
             </div>
             <div className="progress-block">
               <div className="progress-block__top">
-                <span>{cameraState === "ready" ? "Mapping coverage" : "Camera paused"}</span>
+                <span>{cameraState === "ready" ? (isScanning ? "Mapping coverage" : "Ready to map") : "Camera paused"}</span>
                 <strong>{Math.round(progress)}%</strong>
               </div>
               <div className="progress-track" aria-hidden="true">
@@ -472,16 +535,56 @@ export function RoomScanner({ onObjectScanSelect }: RoomScannerProps) {
                 <strong>{capturedFrames}</strong>
               </div>
               <div>
-                <span>Features</span>
-                <strong>{featureCount}</strong>
+                <span>Points</span>
+                <strong>{pointCount.toLocaleString()}</strong>
+              </div>
+              <div>
+                <span>Path</span>
+                <strong>{sessionStats.pathDistance.toFixed(1)}m</strong>
               </div>
               <div>
                 <span>Track</span>
                 <strong>{Math.round(quality.trackingScore * 100)}%</strong>
               </div>
+              <div>
+                <span>Coverage</span>
+                <strong>{Math.round(sessionStats.coverage * 100)}%</strong>
+              </div>
+              <div>
+                <span>Features</span>
+                <strong>{featureCount}</strong>
+              </div>
             </div>
-            <div className={`quality-note${warning ? " is-warning" : ""}`}>{warning || "Move device slowly"}</div>
-            <div className="boundary-note">Stay inside the virtual scan volume and sweep across every wall.</div>
+            <div className={`quality-note${warning || !isScanning ? " is-warning" : ""}`}>{scanHint}</div>
+            <div className="boundary-note">Approx camera map. Sweep through rooms, hallways, walls, floor, and large objects to extend the global point cloud.</div>
+            <div className="control-row">
+              <button type="button" className="primary-action" onClick={handleScanToggle} disabled={cameraState === "requesting"}>
+                {isScanning ? <Pause size={17} /> : <Play size={17} />}
+                {isScanning ? "Pause" : "Start Scan"}
+              </button>
+              <button type="button" className="secondary-action" onClick={() => resetCapture()}>
+                <RefreshCcw size={17} />
+                Reset
+              </button>
+            </div>
+            <div className="control-row">
+              <button
+                type="button"
+                className={`secondary-action${showLive3D ? " is-active" : ""}`}
+                onClick={() => setShowLive3D((current) => !current)}
+              >
+                {showLive3D ? <EyeOff size={17} /> : <Eye size={17} />}
+                Toggle 3D View
+              </button>
+              <button
+                type="button"
+                className={`secondary-action${showPath ? " is-active" : ""}`}
+                onClick={() => setShowPath((current) => !current)}
+              >
+                <Route size={17} />
+                Toggle Path
+              </button>
+            </div>
             <div className="control-row">
               <button type="button" className="secondary-action" onClick={handleRetake}>
                 <RefreshCcw size={17} />
