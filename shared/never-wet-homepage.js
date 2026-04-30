@@ -3,6 +3,7 @@ import { projects } from "../igloo-home/projects.js";
 
 const localProjects = projects.filter((project) => !project.external);
 const featuredNames = [
+  "Gemini AI Chat",
   "Particle Shape System",
   "Wheel of Fortune",
   "Hand Draw Studio",

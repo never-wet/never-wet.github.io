@@ -1,5 +1,11 @@
 export const projects = [
   {
+    title: "Gemini AI Chat",
+    tag: "AI / Server Route",
+    description: "Secure Next.js chat assistant where the browser sends messages to a backend API route and Gemini replies without exposing the API key.",
+    href: "../gemini-ai-chat/",
+  },
+  {
     title: "Particle Shape System",
     tag: "Canvas / Particle Simulation",
     description: "Realtime dust-pixel field where thousands of particles form uploaded images or typed text, repel from the cursor, and transition smoothly between modes.",
