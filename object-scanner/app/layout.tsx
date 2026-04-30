@@ -2,9 +2,9 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Object Scanner | Never Wet",
+  title: "Object + Room Scanner | Never Wet",
   description:
-    "A realtime camera-based object scanner that reconstructs sampled camera frames into a colored 3D point-cloud preview.",
+    "A realtime camera-based object and room scanner that reconstructs sampled camera frames into colored 3D point-cloud previews.",
 };
 
 export const viewport: Viewport = {

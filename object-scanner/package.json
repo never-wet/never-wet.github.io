@@ -7,7 +7,7 @@
     "dev": "next dev --hostname 127.0.0.1",
     "build": "next build",
     "start": "next start --hostname 127.0.0.1",
-    "lint": "eslint app components utils scripts next.config.ts",
+    "lint": "eslint app components utils workers scripts next.config.ts",
     "publish": "npm run build && node scripts/publish-static.mjs"
   },
   "dependencies": {

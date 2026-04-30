@@ -2,7 +2,7 @@ export const projects = [
   {
     title: "Object Scanner",
     tag: "Camera / 3D Reconstruction",
-    description: "Realtime radar-style webcam scanner that captures object colors and reconstructs them into an interactive Three.js point-cloud preview.",
+    description: "Realtime radar-style webcam scanner with object capture and room mapping, preserving camera colors in interactive Three.js point-cloud previews.",
     href: "../object-scanner/",
   },
   {

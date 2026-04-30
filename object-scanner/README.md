@@ -1,18 +1,22 @@
 # Object Scanner
 
-A real-time camera-based object scanner for the Never Wet project hub. It asks for camera access, prefers the front camera, shows a radar-style scanner overlay, captures object samples from live frames, and reconstructs the result as a colored interactive Three.js point cloud.
+A real-time camera-based scanner for the Never Wet project hub. It supports `Object Scan` for close-up object reconstruction and `Room Scan` for a spatial room-mapping experience where the user moves around and captures walls, floor, and major objects.
 
 This web scanner uses camera-based approximation and point-cloud reconstruction. It is not true LiDAR scanning.
 
+This system uses camera-based spatial reconstruction and is not true LiDAR scanning.
+
 ## Camera Permission
 
-Open the app from a secure origin such as `https://`, `localhost`, or `127.0.0.1`. Browsers block `getUserMedia()` on insecure origins. The app requests the front camera with `facingMode: { ideal: "user" }` and falls back to any available camera when the front camera constraint is unavailable.
+Open the app from a secure origin such as `https://`, `localhost`, or `127.0.0.1`. Browsers block `getUserMedia()` on insecure origins.
+
+Object Scan requests the front camera with `facingMode: { ideal: "user" }`. Room Scan requests the rear camera with `facingMode: { ideal: "environment" }`, which is better for walking around a room on mobile. Both modes fall back to any available camera when the preferred camera is unavailable.
 
 The UI handles denied permission, missing cameras, and unsupported browsers with an inline retry state.
 
-## How The Pseudo-3D Scan Works
+## Object Scan
 
-The scanner processes downsampled video frames with an HTML canvas. Each capture estimates an object mask from:
+Object Scan processes downsampled video frames with an HTML canvas. Each capture estimates an object mask from:
 
 - central guide area sampling
 - background subtraction
@@ -22,9 +26,25 @@ The scanner processes downsampled video frames with an HTML canvas. Each capture
 
 Every accepted sample stores its screen position, camera pixel color, confidence, frame index, and an estimated depth value. The depth is approximate, built from edge density, brightness, mask strength, and small temporal motion cues.
 
+## Room Scan
+
+Room Scan adds a lightweight spatial tracking pipeline:
+
+- detects corner-like feature points from each downsampled frame
+- matches points frame-to-frame to simulate optical flow
+- estimates rough camera panning, tilt, and motion magnitude
+- stores a camera path and coverage heatmap
+- classifies sampled pixels as floor, wall, or object hints
+- projects colored samples into a room-scale point cloud
+- offloads final room point-cloud reconstruction to a Web Worker when available
+
+The live overlay shows grid alignment, feature points, tracking indicators, a virtual scan boundary, coverage heatmap, and movement guidance. The reconstruction is an approximate spatial map, not a measured CAD model.
+
 ## Point Cloud Generation
 
-When the user clicks `Done`, the captured samples are converted into a colored 3D point cloud. The builder uses the frame index as a small sweep angle, bends the samples into volume, normalizes the bounds, and keeps the original camera pixel colors as per-point RGB attributes. The 3D preview renders both a dense `BufferGeometry` point cloud and a lighter voxel skin for a radar reconstruction feel.
+When the user clicks `Done`, the captured samples are converted into a colored 3D point cloud. Object Scan uses frame sweep to bend samples into object volume. Room Scan uses estimated camera pose, surface classification, and feature coverage to build a larger room point cloud with floor, wall, object, and camera path hints.
+
+Both previews keep the original camera pixel colors as per-point RGB attributes. The 3D preview renders `BufferGeometry` points and a lighter voxel skin for a radar reconstruction feel.
 
 ## Run Locally
 
