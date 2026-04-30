@@ -1,5 +1,11 @@
 export const projects = [
   {
+    title: "Wheel of Fortune",
+    tag: "Decision Tool / Canvas",
+    description: "Polished spinning wheel with editable options, fair random selection, physics-style slowdown, pointer landing, sounds, and preset lists.",
+    href: "../wheel-of-fortune/",
+  },
+  {
     title: "Hand Draw Studio",
     tag: "Camera / Drawing Tool",
     description: "Webcam hand-tracking canvas where the cursor follows your index fingertip and an index-plus-thumb pinch draws smooth lines.",
