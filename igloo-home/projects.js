@@ -1,5 +1,11 @@
 export const projects = [
   {
+    title: "Hand Draw Studio",
+    tag: "Camera / Drawing Tool",
+    description: "Webcam hand-tracking canvas where the cursor follows your index fingertip and an index-plus-thumb pinch draws smooth lines.",
+    href: "../hand-draw-studio/",
+  },
+  {
     title: "Market Intel AI",
     tag: "Finance / AI Analysis",
     description: "Real-time stock analysis terminal with live OHLC data, moving-average intelligence, RSI, sector signals, financial news, and account tracking.",

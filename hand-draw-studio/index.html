@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charSet="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="./_next/static/chunks/0tt8xhdz4iwyn.css" data-precedence="next" />
+    <link rel="preload" as="script" fetchPriority="low" href="./_next/static/chunks/0ht900cau6_ur.js" />
+    <script src="./_next/static/chunks/00l-yd3t8dvwz.js" async=""></script>
+    <script src="./_next/static/chunks/0n~dq4kpx9xxx.js" async=""></script>
+    <script src="./_next/static/chunks/turbopack-0r848-3.xu_hp.js" async=""></script>
+    <script src="./_next/static/chunks/0dbhjjzl8qfwv.js" async=""></script>
+    <script src="./_next/static/chunks/06q9yta~dk5hj.js" async=""></script>
+    <title>Hand Draw Studio | Never Wet</title>
+    <meta name="description"
+        content="A webcam hand-tracking drawing app where pinching index finger and thumb draws on canvas." />
+    <script src="./_next/static/chunks/03~yq9q893hmn.js" noModule=""></script>
+</head>
+
+<body>
+    <div hidden=""><!--$--><!--/$--></div>
+    <main class="studio-shell">
+        <header class="studio-header"><a class="home-link" href="../" aria-label="Back to Never Wet homepage"
+                data-tooltip="Home"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                    class="lucide lucide-house" aria-hidden="true">
+                    <path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"></path>
+                    <path
+                        d="M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z">
+                    </path>
+                </svg></a>
+            <div class="title-block">
+                <p>Webcam Canvas</p>
+                <h1>Hand Draw Studio</h1>
+            </div>
+            <div class="status-pill "><span aria-hidden="true"></span><strong>Idle</strong></div>
+        </header>
+        <section class="workspace" aria-label="Hand tracking drawing workspace">
+            <aside class="toolbar" aria-label="Drawing tools">
+                <div class="tool-group"><span class="tool-label">Color</span>
+                    <div class="swatch-grid"><button aria-label="Black brush" class="swatch-button is-selected"
+                            data-tooltip="Black" style="--swatch:#111111" type="button"></button><button
+                            aria-label="Red brush" class="swatch-button " data-tooltip="Red" style="--swatch:#e03131"
+                            type="button"></button><button aria-label="Blue brush" class="swatch-button "
+                            data-tooltip="Blue" style="--swatch:#2563eb" type="button"></button><button
+                            aria-label="Green brush" class="swatch-button " data-tooltip="Green"
+                            style="--swatch:#138a55" type="button"></button><button aria-label="Purple brush"
+                            class="swatch-button " data-tooltip="Purple" style="--swatch:#7c3aed"
+                            type="button"></button><button aria-label="Yellow brush" class="swatch-button "
+                            data-tooltip="Yellow" style="--swatch:#f6c945" type="button"></button></div>
+                </div>
+                <div class="tool-group"><span class="tool-label">Size</span>
+                    <div class="segmented-control"><button class="" type="button">Small</button><button
+                            class="is-selected" type="button">Medium</button><button class=""
+                            type="button">Large</button></div>
+                </div>
+                <div class="tool-row"><button aria-pressed="false" class="icon-button " data-tooltip="Eraser"
+                        type="button"><svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24"
+                            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                            stroke-linejoin="round" class="lucide lucide-eraser" aria-hidden="true">
+                            <path
+                                d="M21 21H8a2 2 0 0 1-1.42-.587l-3.994-3.999a2 2 0 0 1 0-2.828l10-10a2 2 0 0 1 2.829 0l5.999 6a2 2 0 0 1 0 2.828L12.834 21">
+                            </path>
+                            <path d="m5.082 11.09 8.828 8.828"></path>
+                        </svg></button><button class="icon-button" data-tooltip="Undo" disabled="" type="button"><svg
+                            xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            class="lucide lucide-undo2 lucide-undo-2" aria-hidden="true">
+                            <path d="M9 14 4 9l5-5"></path>
+                            <path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5a5.5 5.5 0 0 1-5.5 5.5H11"></path>
+                        </svg></button><button class="icon-button" data-tooltip="Clear" type="button"><svg
+                            xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            class="lucide lucide-trash2 lucide-trash-2" aria-hidden="true">
+                            <path d="M10 11v6"></path>
+                            <path d="M14 11v6"></path>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path>
+                            <path d="M3 6h18"></path>
+                            <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                        </svg></button><button class="icon-button camera-button " data-tooltip="Camera on"
+                        type="button"><svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24"
+                            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                            stroke-linejoin="round" class="lucide lucide-camera" aria-hidden="true">
+                            <path
+                                d="M13.997 4a2 2 0 0 1 1.76 1.05l.486.9A2 2 0 0 0 18.003 7H20a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h1.997a2 2 0 0 0 1.759-1.048l.489-.904A2 2 0 0 1 10.004 4z">
+                            </path>
+                            <circle cx="12" cy="13" r="3"></circle>
+                        </svg></button></div>
+            </aside>
+            <section class="canvas-shell">
+                <div class="canvas-stage"><canvas class="drawing-canvas"></canvas><canvas
+                        class="cursor-canvas"></canvas><video aria-hidden="true" class="camera-preview " muted=""
+                        playsInline=""></video>
+                    <div class="canvas-message " aria-live="polite"><svg xmlns="http://www.w3.org/2000/svg" width="10"
+                            height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle"
+                            aria-hidden="true">
+                            <circle cx="12" cy="12" r="10"></circle>
+                        </svg><span>Camera access needed</span></div>
+                </div>
+            </section>
+            <aside class="info-panel" aria-label="Current drawing state">
+                <div class="info-card"><span>Gesture</span><strong>Waiting</strong>
+                    <p>Camera access needed</p>
+                </div>
+                <div class="info-grid">
+                    <div><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            class="lucide lucide-brush" aria-hidden="true">
+                            <path d="m11 10 3 3"></path>
+                            <path d="M6.5 21A3.5 3.5 0 1 0 3 17.5a2.62 2.62 0 0 1-.708 1.792A1 1 0 0 0 3 21z"></path>
+                            <path d="M9.969 17.031 21.378 5.624a1 1 0 0 0-3.002-3.002L6.967 14.031"></path>
+                        </svg><span>Black</span></div>
+                    <div><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            class="lucide lucide-rotate-ccw" aria-hidden="true">
+                            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+                            <path d="M3 3v5h5"></path>
+                        </svg><span>Medium</span></div>
+                </div>
+            </aside>
+        </section>
+    </main><!--$--><!--/$-->
+    <script src="./_next/static/chunks/0ht900cau6_ur.js" id="_R_" async=""></script>
+    <script>(self.__next_f = self.__next_f || []).push([0])</script>
+    <script>self.__next_f.push([1, "1:\"$Sreact.fragment\"\n2:I[39756,[\"./_next/static/chunks/0dbhjjzl8qfwv.js\"],\"default\"]\n3:I[37457,[\"./_next/static/chunks/0dbhjjzl8qfwv.js\"],\"default\"]\n4:I[52928,[\"./_next/static/chunks/0dbhjjzl8qfwv.js\",\"./_next/static/chunks/06q9yta~dk5hj.js\"],\"HandDrawingStudio\"]\n5:I[97367,[\"./_next/static/chunks/0dbhjjzl8qfwv.js\"],\"OutletBoundary\"]\n6:\"$Sreact.suspense\"\n8:I[97367,[\"./_next/static/chunks/0dbhjjzl8qfwv.js\"],\"ViewportBoundary\"]\na:I[97367,[\"./_next/static/chunks/0dbhjjzl8qfwv.js\"],\"MetadataBoundary\"]\nc:I[68027,[\"./_next/static/chunks/0dbhjjzl8qfwv.js\"],\"default\",1]\n:HL[\"./_next/static/chunks/0tt8xhdz4iwyn.css\",\"style\"]\n"])</script>
+    <script>self.__next_f.push([1, "0:{\"P\":null,\"c\":[\"\",\"\"],\"q\":\"\",\"i\":false,\"f\":[[[\"\",{\"children\":[\"__PAGE__\",{}]},\"$undefined\",\"$undefined\",16],[[\"$\",\"$1\",\"c\",{\"children\":[[[\"$\",\"link\",\"0\",{\"rel\":\"stylesheet\",\"href\":\"./_next/static/chunks/0tt8xhdz4iwyn.css\",\"precedence\":\"next\",\"crossOrigin\":\"$undefined\",\"nonce\":\"$undefined\"}],[\"$\",\"script\",\"script-0\",{\"src\":\"./_next/static/chunks/0dbhjjzl8qfwv.js\",\"async\":true,\"nonce\":\"$undefined\"}]],[\"$\",\"html\",null,{\"lang\":\"en\",\"children\":[\"$\",\"body\",null,{\"children\":[\"$\",\"$L2\",null,{\"parallelRouterKey\":\"children\",\"error\":\"$undefined\",\"errorStyles\":\"$undefined\",\"errorScripts\":\"$undefined\",\"template\":[\"$\",\"$L3\",null,{}],\"templateStyles\":\"$undefined\",\"templateScripts\":\"$undefined\",\"notFound\":[[[\"$\",\"title\",null,{\"children\":\"404: This page could not be found.\"}],[\"$\",\"div\",null,{\"style\":{\"fontFamily\":\"system-ui,\\\"Segoe UI\\\",Roboto,Helvetica,Arial,sans-serif,\\\"Apple Color Emoji\\\",\\\"Segoe UI Emoji\\\"\",\"height\":\"100vh\",\"textAlign\":\"center\",\"display\":\"flex\",\"flexDirection\":\"column\",\"alignItems\":\"center\",\"justifyContent\":\"center\"},\"children\":[\"$\",\"div\",null,{\"children\":[[\"$\",\"style\",null,{\"dangerouslySetInnerHTML\":{\"__html\":\"body{color:#000;background:#fff;margin:0}.next-error-h1{border-right:1px solid rgba(0,0,0,.3)}@media (prefers-color-scheme:dark){body{color:#fff;background:#000}.next-error-h1{border-right:1px solid rgba(255,255,255,.3)}}\"}}],[\"$\",\"h1\",null,{\"className\":\"next-error-h1\",\"style\":{\"display\":\"inline-block\",\"margin\":\"0 20px 0 0\",\"padding\":\"0 23px 0 0\",\"fontSize\":24,\"fontWeight\":500,\"verticalAlign\":\"top\",\"lineHeight\":\"49px\"},\"children\":404}],[\"$\",\"div\",null,{\"style\":{\"display\":\"inline-block\"},\"children\":[\"$\",\"h2\",null,{\"style\":{\"fontSize\":14,\"fontWeight\":400,\"lineHeight\":\"49px\",\"margin\":0},\"children\":\"This page could not be found.\"}]}]]}]}]],[]],\"forbidden\":\"$undefined\",\"unauthorized\":\"$undefined\"}]}]}]]}],{\"children\":[[\"$\",\"$1\",\"c\",{\"children\":[[\"$\",\"$L4\",null,{}],[[\"$\",\"script\",\"script-0\",{\"src\":\"./_next/static/chunks/06q9yta~dk5hj.js\",\"async\":true,\"nonce\":\"$undefined\"}]],[\"$\",\"$L5\",null,{\"children\":[\"$\",\"$6\",null,{\"name\":\"Next.MetadataOutlet\",\"children\":\"$@7\"}]}]]}],{},null,false,null]},null,false,null],[\"$\",\"$1\",\"h\",{\"children\":[null,[\"$\",\"$L8\",null,{\"children\":\"$L9\"}],[\"$\",\"div\",null,{\"hidden\":true,\"children\":[\"$\",\"$La\",null,{\"children\":[\"$\",\"$6\",null,{\"name\":\"Next.Metadata\",\"children\":\"$Lb\"}]}]}],null]}],false]],\"m\":\"$undefined\",\"G\":[\"$c\",[[\"$\",\"link\",\"0\",{\"rel\":\"stylesheet\",\"href\":\"./_next/static/chunks/0tt8xhdz4iwyn.css\",\"precedence\":\"next\",\"crossOrigin\":\"$undefined\",\"nonce\":\"$undefined\"}]]],\"S\":true,\"h\":null,\"s\":\"$undefined\",\"l\":\"$undefined\",\"p\":\"$undefined\",\"d\":\"$undefined\",\"b\":\"9qxF7VBzV_tidrMZcexTf\"}\n"])</script>
+    <script>self.__next_f.push([1, "9:[[\"$\",\"meta\",\"0\",{\"charSet\":\"utf-8\"}],[\"$\",\"meta\",\"1\",{\"name\":\"viewport\",\"content\":\"width=device-width, initial-scale=1\"}]]\n"])</script>
+    <script>self.__next_f.push([1, "7:null\nb:[[\"$\",\"title\",\"0\",{\"children\":\"Hand Draw Studio | Never Wet\"}],[\"$\",\"meta\",\"1\",{\"name\":\"description\",\"content\":\"A webcam hand-tracking drawing app where pinching index finger and thumb draws on canvas.\"}]]\n"])</script>
+</body>
+
+</html>
