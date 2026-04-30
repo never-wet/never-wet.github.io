@@ -3,11 +3,24 @@ import type { MarketPoint } from "./api";
 export type TrendDirection = "UP TREND" | "DOWN TREND" | "SIDEWAYS";
 export type RiskLevel = "LOW" | "MEDIUM" | "HIGH";
 
+export type PredictionCalibration = {
+  accuracy: number;
+  samples: number;
+  wins: number;
+  losses: number;
+  horizonSteps: number;
+  confidenceAdjustment: number;
+  probabilityScale: number;
+  lastOutcome: "HIT" | "MISS" | "PENDING";
+};
+
 export type PredictionResult = {
   trend: TrendDirection;
   sentiment: "Bullish" | "Bearish" | "Neutral";
   confidence: number;
+  rawConfidence: number;
   probabilityUp: number;
+  rawProbabilityUp: number;
   riskLevel: RiskLevel;
   volatilityLabel: "NORMAL" | "HIGH VOLATILITY";
   sma: number;
@@ -19,9 +32,11 @@ export type PredictionResult = {
   volatility: number;
   forecast: { time: number; predicted: number }[];
   reasons: string[];
+  calibration: PredictionCalibration;
 };
 
 const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
+const adaptiveCache = new WeakMap<MarketPoint[], PredictionResult>();
 
 function lastFinite(values: number[]) {
   for (let index = values.length - 1; index >= 0; index -= 1) {
@@ -150,6 +165,78 @@ function buildForecast(points: MarketPoint[], slope: number, confidence: number)
   }));
 }
 
+const neutralCalibration: PredictionCalibration = {
+  accuracy: 50,
+  samples: 0,
+  wins: 0,
+  losses: 0,
+  horizonSteps: 5,
+  confidenceAdjustment: 0,
+  probabilityScale: 1,
+  lastOutcome: "PENDING"
+};
+
+function expectedDirection(trend: TrendDirection) {
+  if (trend === "UP TREND") return 1;
+  if (trend === "DOWN TREND") return -1;
+  return 0;
+}
+
+function actualDirection(from: number, to: number) {
+  const threshold = Math.max(Math.abs(from) * 0.0008, 0.01);
+  const move = to - from;
+  if (move > threshold) return 1;
+  if (move < -threshold) return -1;
+  return 0;
+}
+
+export function backtestPredictionAccuracy(points: MarketPoint[], horizonSteps = 5): PredictionCalibration {
+  const clean = points.filter((point) => Number.isFinite(point.close));
+  const horizon = Math.round(clamp(horizonSteps, 2, 8));
+  if (clean.length < 48 + horizon) {
+    return { ...neutralCalibration, horizonSteps: horizon };
+  }
+
+  const start = Math.max(36, clean.length - 96);
+  const end = clean.length - horizon - 1;
+  let wins = 0;
+  let samples = 0;
+  let lastOutcome: PredictionCalibration["lastOutcome"] = "PENDING";
+
+  for (let index = start; index <= end; index += 1) {
+    const window = clean.slice(Math.max(0, index - 90), index + 1);
+    if (window.length < 36) continue;
+
+    const prediction = analyzeMarket(window);
+    const expected = expectedDirection(prediction.trend);
+    const base = window.at(-1)?.close;
+    const actual = clean[index + horizon]?.close;
+    if (typeof base !== "number" || typeof actual !== "number" || !Number.isFinite(base) || !Number.isFinite(actual)) {
+      continue;
+    }
+
+    const observed = actualDirection(base, actual);
+    const hit = expected === observed;
+    wins += hit ? 1 : 0;
+    samples += 1;
+    lastOutcome = hit ? "HIT" : "MISS";
+  }
+
+  if (!samples) return { ...neutralCalibration, horizonSteps: horizon };
+
+  const accuracy = Math.round((wins / samples) * 100);
+  return {
+    accuracy,
+    samples,
+    wins,
+    losses: samples - wins,
+    horizonSteps: horizon,
+    confidenceAdjustment: Math.round(clamp((accuracy - 50) * 0.34, -14, 14)),
+    probabilityScale: clamp(0.72 + accuracy / 100 * 0.52, 0.7, 1.18),
+    lastOutcome
+  };
+}
+
 export function analyzeMarket(points: MarketPoint[]): PredictionResult {
   const closes = points.map((point) => point.close).filter(Number.isFinite);
   const latest = lastFinite(closes);
@@ -216,7 +303,9 @@ export function analyzeMarket(points: MarketPoint[]): PredictionResult {
     trend,
     sentiment: trend === "UP TREND" ? "Bullish" : trend === "DOWN TREND" ? "Bearish" : "Neutral",
     confidence,
+    rawConfidence: confidence,
     probabilityUp,
+    rawProbabilityUp: probabilityUp,
     riskLevel,
     volatilityLabel: volatility > 28 ? "HIGH VOLATILITY" : "NORMAL",
     sma,
@@ -227,6 +316,38 @@ export function analyzeMarket(points: MarketPoint[]): PredictionResult {
     momentum,
     volatility,
     forecast: buildForecast(points, slope, confidence),
-    reasons: reasons.slice(0, 4)
+    reasons: reasons.slice(0, 4),
+    calibration: neutralCalibration
   };
+}
+
+export function analyzeAdaptiveMarket(points: MarketPoint[]): PredictionResult {
+  const cached = adaptiveCache.get(points);
+  if (cached) return cached;
+
+  const base = analyzeMarket(points);
+  const calibration = backtestPredictionAccuracy(points);
+  if (!calibration.samples) {
+    adaptiveCache.set(points, base);
+    return base;
+  }
+
+  const confidence = Math.round(clamp(base.confidence + calibration.confidenceAdjustment, 35, 94));
+  const probabilityUp = Math.round(
+    clamp(50 + (base.probabilityUp - 50) * calibration.probabilityScale, 8, 92)
+  );
+
+  const result = {
+    ...base,
+    confidence,
+    probabilityUp,
+    forecast: buildForecast(points, regressionSlope(points.map((point) => point.close).slice(-48)), confidence),
+    reasons: [
+      `model backtest accuracy is ${calibration.accuracy}% over ${calibration.samples} recent checks`,
+      ...base.reasons
+    ].slice(0, 4),
+    calibration
+  };
+  adaptiveCache.set(points, result);
+  return result;
 }

@@ -6,11 +6,17 @@ import {
   fetchMarketNews,
   searchMarketSymbols,
   type NewsItem,
+  type MarketProvider,
   type SearchResult,
   type StockQuote,
   type TimeRange
 } from "@/lib/api";
-import { analyzeMarket, type RiskLevel, type TrendDirection } from "@/lib/prediction";
+import {
+  applyJournalLearning,
+  recordPredictionLearning,
+  type PredictionJournalStats
+} from "@/lib/learning";
+import { analyzeAdaptiveMarket, type RiskLevel, type TrendDirection } from "@/lib/prediction";
 
 export type SectorSignal = {
   sector: string;
@@ -32,18 +38,25 @@ type MarketState = {
   watchlist: string[];
   selectedSymbol: string;
   range: TimeRange;
+  provider: MarketProvider;
+  alphaApiKey: string;
   quotes: Record<string, StockQuote>;
   news: NewsItem[];
   searchResults: SearchResult[];
   searchQuery: string;
   sectorSignals: SectorSignal[];
+  learningStats: Record<string, PredictionJournalStats>;
   indicators: IndicatorState;
   loading: boolean;
   newsLoading: boolean;
   error: string | null;
+  providerWarning: string | null;
   lastUpdated: number | null;
   pollingMs: number;
   setRange: (range: TimeRange) => void;
+  setProvider: (provider: MarketProvider) => Promise<void>;
+  setAlphaApiKey: (apiKey: string) => void;
+  applyAlphaApiKey: (apiKey: string) => Promise<void>;
   setSelectedSymbol: (symbol: string) => Promise<void>;
   addSymbol: (symbol: string) => Promise<void>;
   removeSymbol: (symbol: string) => void;
@@ -54,18 +67,45 @@ type MarketState = {
   loadNews: () => Promise<void>;
 };
 
-const DEFAULT_WATCHLIST = ["AAPL", "MSFT", "NVDA", "TSLA", "AMZN", "GOOGL", "JPM", "XOM"];
+const DEFAULT_WATCHLIST = [
+  "^GSPC",
+  "^IXIC",
+  "^DJI",
+  "SPY",
+  "QQQ",
+  "AAPL",
+  "MSFT",
+  "NVDA",
+  "TSLA",
+  "BTC-USD",
+  "ETH-USD",
+  "GC=F",
+  "CL=F",
+  "EURUSD=X"
+];
 
 const SECTOR_ETFS = [
   { sector: "Technology", symbol: "XLK" },
   { sector: "Energy", symbol: "XLE" },
   { sector: "Finance", symbol: "XLF" },
-  { sector: "Market Sentiment", symbol: "SPY" }
+  { sector: "US 500", symbol: "^GSPC" },
+  { sector: "Nasdaq", symbol: "^IXIC" },
+  { sector: "Crypto", symbol: "BTC-USD" },
+  { sector: "Gold", symbol: "GC=F" },
+  { sector: "Crude Oil", symbol: "CL=F" }
 ];
 
 const unique = (symbols: string[]) => [...new Set(symbols.map((symbol) => symbol.toUpperCase()))];
 
-function buildSectorSignals(quotes: Record<string, StockQuote>): SectorSignal[] {
+function savedAlphaApiKey() {
+  if (typeof window === "undefined") return "";
+  return window.localStorage.getItem("marketIntelAlphaApiKey") || "";
+}
+
+function buildSectorSignals(
+  quotes: Record<string, StockQuote>,
+  learningStats: Record<string, PredictionJournalStats>
+): SectorSignal[] {
   return SECTOR_ETFS.map(({ sector, symbol }) => {
     const quote = quotes[symbol];
     if (!quote) {
@@ -79,7 +119,7 @@ function buildSectorSignals(quotes: Record<string, StockQuote>): SectorSignal[] 
       };
     }
 
-    const prediction = analyzeMarket(quote.points);
+    const prediction = applyJournalLearning(analyzeAdaptiveMarket(quote.points), learningStats[symbol]);
     return {
       sector,
       symbol,
@@ -95,11 +135,14 @@ export const useMarketStore = create<MarketState>((set, get) => ({
   watchlist: DEFAULT_WATCHLIST,
   selectedSymbol: "AAPL",
   range: "1D",
+  provider: "yahoo",
+  alphaApiKey: savedAlphaApiKey(),
   quotes: {},
   news: [],
   searchResults: [],
   searchQuery: "",
   sectorSignals: [],
+  learningStats: {},
   indicators: {
     sma: true,
     ema: true,
@@ -109,11 +152,33 @@ export const useMarketStore = create<MarketState>((set, get) => ({
   loading: false,
   newsLoading: false,
   error: null,
+  providerWarning: null,
   lastUpdated: null,
-  pollingMs: 6500,
+  pollingMs: 5000,
 
   setRange: (range) => {
     set({ range });
+  },
+
+  setProvider: async (provider) => {
+    set({ provider, providerWarning: null });
+    await get().loadMarketData();
+  },
+
+  setAlphaApiKey: (apiKey) => {
+    const normalized = apiKey.trim();
+    if (typeof window !== "undefined") {
+      if (normalized) window.localStorage.setItem("marketIntelAlphaApiKey", normalized);
+      else window.localStorage.removeItem("marketIntelAlphaApiKey");
+    }
+    set({ alphaApiKey: normalized, providerWarning: null });
+  },
+
+  applyAlphaApiKey: async (apiKey) => {
+    get().setAlphaApiKey(apiKey);
+    if (get().provider !== "yahoo") {
+      await get().loadMarketData();
+    }
   },
 
   setSelectedSymbol: async (symbol) => {
@@ -161,7 +226,7 @@ export const useMarketStore = create<MarketState>((set, get) => ({
   },
 
   loadMarketData: async () => {
-    const { watchlist, selectedSymbol, range } = get();
+    const { watchlist, selectedSymbol, range, provider, alphaApiKey } = get();
     const symbols = unique([
       selectedSymbol,
       ...watchlist,
@@ -171,7 +236,7 @@ export const useMarketStore = create<MarketState>((set, get) => ({
     set({ loading: true, error: null });
 
     try {
-      const response = await fetchMarketData(symbols, range);
+      const response = await fetchMarketData(symbols, range, provider, selectedSymbol, alphaApiKey);
       const nextQuotes = response.quotes.reduce<Record<string, StockQuote>>((accumulator, quote) => {
         accumulator[quote.symbol] = quote;
         return accumulator;
@@ -179,17 +244,35 @@ export const useMarketStore = create<MarketState>((set, get) => ({
 
       set((state) => {
         const quotes = { ...state.quotes, ...nextQuotes };
+        const learningStats = { ...state.learningStats };
+        response.quotes.forEach((quote) => {
+          const prediction = analyzeAdaptiveMarket(quote.points);
+          learningStats[quote.symbol] = recordPredictionLearning(quote.symbol, quote, prediction);
+        });
+
+        const selectedQuote = quotes[selectedSymbol];
+        const providerError = response.errors.find((item) => item.symbol === selectedSymbol && /alpha vantage/i.test(item.message));
+        const providerWarning =
+          provider === "alpha" && selectedQuote?.source !== "Alpha Vantage"
+            ? providerError?.message || "Alpha Vantage unavailable. Add a key from https://www.alphavantage.co/support/#api-key."
+            : provider === "compare" && selectedQuote && !selectedQuote.comparison
+              ? providerError?.message || "Alpha Vantage comparison unavailable. Add a key from https://www.alphavantage.co/support/#api-key."
+              : null;
+
         return {
           quotes,
-          sectorSignals: buildSectorSignals(quotes),
+          learningStats,
+          sectorSignals: buildSectorSignals(quotes, learningStats),
           lastUpdated: response.updatedAt,
           loading: false,
+          providerWarning,
           error: response.quotes.length ? null : response.errors[0]?.message || "No market data returned"
         };
       });
     } catch (error) {
       set({
         loading: false,
+        providerWarning: null,
         error: error instanceof Error ? error.message : "Unable to load market data"
       });
     }

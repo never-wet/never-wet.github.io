@@ -1,6 +1,6 @@
 "use client";
 
-import { Minus, Plus, RadioTower } from "lucide-react";
+import { ChevronsLeft, ChevronsRight, Minus } from "lucide-react";
 import { useMarketStore } from "@/store/useMarketStore";
 
 const formatPrice = new Intl.NumberFormat("en-US", {
@@ -9,24 +9,55 @@ const formatPrice = new Intl.NumberFormat("en-US", {
   maximumFractionDigits: 2
 });
 
-const quickAdds = ["META", "AMD", "NFLX", "BA", "COST", "DIS"];
+const displayNames: Record<string, string> = {
+  "^GSPC": "S&P 500",
+  "^IXIC": "Nasdaq Composite",
+  "^DJI": "Dow Jones",
+  SPY: "SPDR S&P 500 ETF",
+  QQQ: "Invesco QQQ ETF",
+  AAPL: "Apple",
+  MSFT: "Microsoft",
+  NVDA: "NVIDIA",
+  TSLA: "Tesla",
+  "BTC-USD": "Bitcoin",
+  "ETH-USD": "Ethereum",
+  "GC=F": "Gold Futures",
+  "CL=F": "Crude Oil Futures",
+  "EURUSD=X": "EUR/USD"
+};
 
-export default function StockList() {
+function displayName(symbol: string, quoteName?: string) {
+  if (quoteName && quoteName !== symbol) return quoteName;
+  return displayNames[symbol] || "Market";
+}
+
+type StockListProps = {
+  collapsed?: boolean;
+  onToggleCollapsed?: () => void;
+};
+
+export default function StockList({ collapsed = false, onToggleCollapsed }: StockListProps) {
   const watchlist = useMarketStore((state) => state.watchlist);
   const quotes = useMarketStore((state) => state.quotes);
   const selectedSymbol = useMarketStore((state) => state.selectedSymbol);
   const setSelectedSymbol = useMarketStore((state) => state.setSelectedSymbol);
-  const addSymbol = useMarketStore((state) => state.addSymbol);
   const removeSymbol = useMarketStore((state) => state.removeSymbol);
 
   return (
-    <section className="panel stock-list">
+    <section className={`panel stock-list${collapsed ? " is-collapsed" : ""}`}>
       <div className="panel-title">
         <div>
-          <span className="panel-kicker">Tracked stocks</span>
-          <h2>Watchlist</h2>
+          <span className="panel-kicker">Tracked markets</span>
+          <h2>Markets</h2>
         </div>
-        <RadioTower size={18} />
+        <button
+          type="button"
+          className="icon-button rail-toggle"
+          onClick={onToggleCollapsed}
+          aria-label={collapsed ? "Expand watchlist" : "Collapse watchlist"}
+        >
+          {collapsed ? <ChevronsRight size={15} /> : <ChevronsLeft size={15} />}
+        </button>
       </div>
 
       <div className="stock-rows">
@@ -42,7 +73,7 @@ export default function StockList() {
               <button type="button" className="stock-row-main" onClick={() => void setSelectedSymbol(symbol)}>
                 <span>
                   <strong>{symbol}</strong>
-                  <small>{quote?.exchange || "Loading"}</small>
+                  <small>{displayName(symbol, quote?.name)}</small>
                 </span>
                 <span>
                   <strong>{quote ? formatPrice.format(quote.price) : "--"}</strong>
@@ -62,18 +93,6 @@ export default function StockList() {
             </div>
           );
         })}
-      </div>
-
-      <div className="quick-adds" aria-label="Quick add symbols">
-        {quickAdds
-          .filter((symbol) => !watchlist.includes(symbol))
-          .slice(0, 4)
-          .map((symbol) => (
-            <button key={symbol} type="button" onClick={() => void addSymbol(symbol)}>
-              <Plus size={13} />
-              {symbol}
-            </button>
-          ))}
       </div>
     </section>
   );

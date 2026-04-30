@@ -1,8 +1,9 @@
 "use client";
 
-import { AlertTriangle, ArrowDownRight, ArrowUpRight, Gauge, ShieldCheck } from "lucide-react";
+import { AlertTriangle, ArrowDownRight, ArrowUpRight, Download, Gauge, ShieldCheck } from "lucide-react";
 import { useMemo } from "react";
-import { analyzeMarket } from "@/lib/prediction";
+import { applyJournalLearning, downloadPredictionJournalReport } from "@/lib/learning";
+import { analyzeAdaptiveMarket } from "@/lib/prediction";
 import { useMarketStore } from "@/store/useMarketStore";
 
 const formatPrice = new Intl.NumberFormat("en-US", {
@@ -14,10 +15,11 @@ const formatPrice = new Intl.NumberFormat("en-US", {
 export default function PredictionPanel() {
   const selectedSymbol = useMarketStore((state) => state.selectedSymbol);
   const quote = useMarketStore((state) => state.quotes[selectedSymbol]);
+  const learningStats = useMarketStore((state) => state.learningStats[selectedSymbol]);
 
   const prediction = useMemo(
-    () => (quote?.points.length ? analyzeMarket(quote.points) : null),
-    [quote]
+    () => (quote?.points.length ? applyJournalLearning(analyzeAdaptiveMarket(quote.points), learningStats) : null),
+    [learningStats, quote]
   );
 
   if (!prediction) {
@@ -38,9 +40,21 @@ export default function PredictionPanel() {
           <span className="panel-kicker">AI prediction</span>
           <h2>{prediction.sentiment}</h2>
         </div>
-        <div className={`trend-badge ${positive ? "positive" : negative ? "negative" : ""}`}>
-          {positive ? <ArrowUpRight size={18} /> : negative ? <ArrowDownRight size={18} /> : <Gauge size={18} />}
-          {prediction.confidence}%
+        <div className="prediction-actions">
+          <div className={`trend-badge ${positive ? "positive" : negative ? "negative" : ""}`}>
+            {positive ? <ArrowUpRight size={18} /> : negative ? <ArrowDownRight size={18} /> : <Gauge size={18} />}
+            {prediction.confidence}%
+          </div>
+          <button
+            type="button"
+            className="icon-button"
+            aria-label="Download prediction accuracy report"
+            title="Download prediction accuracy report"
+            onClick={() => downloadPredictionJournalReport(selectedSymbol)}
+          >
+            <Download size={14} />
+            TXT
+          </button>
         </div>
       </div>
 
@@ -52,6 +66,30 @@ export default function PredictionPanel() {
       </div>
 
       <div className="metric-grid">
+        <div>
+          <span>Backtest Hit Rate</span>
+          <strong>
+            {prediction.calibration.samples
+              ? `${prediction.calibration.accuracy}% / ${prediction.calibration.samples}`
+              : "Warming up"}
+          </strong>
+        </div>
+        <div>
+          <span>Recorded Hit Rate</span>
+          <strong>{learningStats?.samples ? `${learningStats.accuracy}% / ${learningStats.samples}` : "Recording"}</strong>
+        </div>
+        <div>
+          <span>Saved Pending</span>
+          <strong>{learningStats ? `${learningStats.pending} open` : "--"}</strong>
+        </div>
+        <div>
+          <span>Calibration</span>
+          <strong>
+            {prediction.calibration.samples
+              ? `${prediction.calibration.confidenceAdjustment >= 0 ? "+" : ""}${prediction.calibration.confidenceAdjustment} pts`
+              : "--"}
+          </strong>
+        </div>
         <div>
           <span>Risk</span>
           <strong>{prediction.riskLevel}</strong>

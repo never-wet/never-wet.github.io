@@ -6,7 +6,7 @@
     <title>Market Intel AI | Live Stock Dashboard</title>
     <meta
       name="description"
-      content="A visible real-time stock dashboard with live chart data, AI trend analysis, news, signals, and account tracking."
+      content="A visible real-time stock prediction dashboard with live chart data, AI trend analysis, news, and market signals."
     />
     <style>
       :root {
@@ -29,6 +29,14 @@
 
       * {
         box-sizing: border-box;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+      }
+
+      *::-webkit-scrollbar {
+        width: 0;
+        height: 0;
+        display: none;
       }
 
       html,
@@ -66,14 +74,14 @@
         width: 100vw;
         height: 100dvh;
         display: grid;
-        grid-template-columns: 236px minmax(0, 1fr) 322px;
-        grid-template-rows: 58px minmax(0, 1fr) 164px;
+        grid-template-columns: 218px minmax(0, 1fr) 380px;
+        grid-template-rows: 54px minmax(0, 1fr);
         gap: 8px;
         padding: 8px;
       }
 
-      body.news-collapsed .shell {
-        grid-template-rows: 58px minmax(0, 1fr) 42px;
+      .shell.watch-collapsed {
+        grid-template-columns: 76px minmax(0, 1fr) 380px;
       }
 
       .panel,
@@ -86,14 +94,19 @@
 
       .topbar {
         grid-column: 1 / -1;
-        display: grid;
-        grid-template-columns: 236px minmax(300px, 1fr) auto;
+        display: flex;
         align-items: center;
-        gap: 10px;
-        padding: 7px 8px;
+        gap: 6px;
+        padding: 6px 8px;
+        overflow: hidden;
+      }
+
+      .shell.watch-collapsed .topbar {
+        gap: 6px;
       }
 
       .brand {
+        flex: 0 0 196px;
         display: flex;
         align-items: center;
         gap: 10px;
@@ -101,8 +114,8 @@
       }
 
       .brand-mark {
-        width: 34px;
-        height: 34px;
+        width: 32px;
+        height: 32px;
         display: grid;
         place-items: center;
         border-radius: 8px;
@@ -151,6 +164,7 @@
 
       .search {
         position: relative;
+        flex: 1 1 300px;
         display: grid;
         grid-template-columns: minmax(140px, 1fr) 78px;
         gap: 8px;
@@ -159,7 +173,7 @@
 
       .search input {
         min-width: 0;
-        height: 38px;
+        height: 36px;
         border: 1px solid var(--line);
         border-radius: 8px;
         outline: 0;
@@ -169,9 +183,8 @@
       }
 
       .search button,
-      .range button,
-      .watch-adds button {
-        min-height: 38px;
+      .range button {
+        min-height: 34px;
         border: 1px solid var(--line);
         border-radius: 8px;
         background: rgba(255, 255, 255, 0.045);
@@ -179,25 +192,75 @@
 
       .search button:hover,
       .range button:hover,
-      .range button.active,
-      .watch-adds button:hover {
+      .range button.active {
         border-color: rgba(141, 214, 177, 0.45);
         background: rgba(141, 214, 177, 0.1);
         color: var(--green);
       }
 
+      .source-switch {
+        flex: 0 0 184px;
+        display: grid;
+        grid-template-columns: repeat(3, 60px);
+        gap: 4px;
+      }
+
+      .source-switch button {
+        min-height: 34px;
+        padding: 0 5px;
+        border: 1px solid var(--line);
+        border-radius: 7px;
+        background: rgba(255, 255, 255, 0.04);
+        color: var(--muted);
+        overflow: hidden;
+        font-size: 0.66rem;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-weight: 900;
+      }
+
+      .source-switch button.active,
+      .source-switch button:hover {
+        border-color: rgba(118, 213, 244, 0.46);
+        background: rgba(118, 213, 244, 0.1);
+        color: var(--cyan);
+      }
+
+      .api-key-input {
+        flex: 0 1 260px;
+        width: 260px;
+        min-width: 0;
+        height: 34px;
+        border: 1px solid var(--line);
+        border-radius: 7px;
+        background: rgba(255, 255, 255, 0.045);
+        color: var(--text);
+        padding: 0 10px;
+        outline: 0;
+        font-size: 0.78rem;
+      }
+
+      .api-key-input:focus {
+        border-color: rgba(118, 213, 244, 0.5);
+        background: rgba(118, 213, 244, 0.08);
+      }
+
       .status {
+        flex: 0 0 auto;
         display: flex;
         align-items: center;
         justify-content: flex-end;
-        gap: 8px;
+        gap: 5px;
+        min-width: 0;
+        overflow: hidden;
       }
 
       .stat {
+        min-width: 0;
         min-height: 36px;
         display: grid;
         align-content: center;
-        padding: 0 10px;
+        padding: 0 8px;
         border: 1px solid var(--line);
         border-radius: 8px;
         background: rgba(255, 255, 255, 0.035);
@@ -205,16 +268,48 @@
       }
 
       .stat strong {
+        max-width: 118px;
+        overflow: hidden;
         font-size: 0.78rem;
+        text-overflow: ellipsis;
+      }
+
+      .stat:nth-child(1),
+      .stat:nth-child(2) {
+        min-width: 100px;
+      }
+
+      .stat:nth-child(3) {
+        min-width: 128px;
+      }
+
+      .stat:nth-child(4) {
+        min-width: 150px;
       }
 
       .watch {
         grid-column: 1;
         grid-row: 2;
         display: grid;
-        grid-template-rows: auto minmax(0, 1fr) auto;
+        grid-template-rows: auto minmax(0, 1fr);
         min-height: 0;
         padding: 10px;
+      }
+
+      .watch-toggle {
+        min-width: 30px;
+      }
+
+      .shell.watch-collapsed .watch {
+        padding: 8px;
+      }
+
+      .shell.watch-collapsed .watch .panel-title div {
+        display: none;
+      }
+
+      .shell.watch-collapsed .stocks {
+        padding-top: 8px;
       }
 
       .panel-title {
@@ -224,8 +319,7 @@
         gap: 12px;
       }
 
-      .panel-title button,
-      .bottom-controls button {
+      .panel-title button {
         min-height: 28px;
         padding: 0 9px;
         border: 1px solid var(--line);
@@ -235,8 +329,7 @@
         font-size: 0.72rem;
       }
 
-      .panel-title button:hover,
-      .bottom-controls button:hover {
+      .panel-title button:hover {
         border-color: rgba(141, 214, 177, 0.42);
         color: var(--green);
       }
@@ -252,15 +345,57 @@
 
       .stock {
         display: grid;
-        grid-template-columns: minmax(0, 1fr) auto;
+        grid-template-columns: minmax(0, 1fr) minmax(88px, auto);
         align-items: center;
-        gap: 8px;
-        min-height: 44px;
-        padding: 7px 9px;
+        gap: 10px;
+        min-height: 54px;
+        padding: 8px 10px;
         border: 1px solid transparent;
         border-radius: 8px;
         background: rgba(255, 255, 255, 0.035);
         text-align: left;
+      }
+
+      .stock span,
+      .stock strong,
+      .stock small {
+        min-width: 0;
+        display: block;
+      }
+
+      .stock span:first-child {
+        overflow: hidden;
+      }
+
+      .stock span:last-child {
+        text-align: right;
+      }
+
+      .stock strong {
+        overflow: hidden;
+        line-height: 1.1;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .stock small {
+        margin-top: 3px;
+        overflow: hidden;
+        line-height: 1.1;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .shell.watch-collapsed .stock {
+        grid-template-columns: 1fr;
+        justify-items: center;
+        min-height: 38px;
+        padding: 6px 4px;
+      }
+
+      .shell.watch-collapsed .stock span:last-child,
+      .shell.watch-collapsed .stock small {
+        display: none;
       }
 
       .stock:hover,
@@ -269,27 +404,14 @@
         background: rgba(141, 214, 177, 0.08);
       }
 
-      .watch-adds {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 6px;
-      }
-
-      .watch-adds button {
-        min-height: 30px;
-        padding: 0 9px;
-        color: var(--muted);
-        font-size: 0.74rem;
-      }
-
       .chart-panel {
         grid-column: 2;
         grid-row: 2;
         display: grid;
-        grid-template-rows: auto auto minmax(0, 1fr) 116px;
+        grid-template-rows: auto auto minmax(0, 1fr);
         min-width: 0;
         min-height: 0;
-        padding: 10px;
+        padding: 8px;
       }
 
       .chart-head {
@@ -313,9 +435,128 @@
         font-size: 1.28rem;
       }
 
+      .extended-quote {
+        display: block;
+        margin-top: 2px;
+        color: var(--amber);
+        font-size: 0.74rem;
+        font-weight: 800;
+        white-space: nowrap;
+      }
+
+      .compare-spread {
+        display: block;
+        margin-top: 3px;
+        color: var(--violet);
+        font-size: 0.72rem;
+        font-weight: 900;
+        white-space: nowrap;
+      }
+
       .range {
         display: flex;
         gap: 6px;
+      }
+
+      .chart-toolbar {
+        display: grid;
+        grid-template-columns: auto minmax(180px, 1fr) auto;
+        align-items: center;
+        gap: 10px;
+        padding: 7px 0 8px;
+      }
+
+      .chart-readout {
+        min-width: 0;
+        flex: 1;
+        overflow: hidden;
+        color: var(--muted);
+        font-size: 0.72rem;
+        font-weight: 800;
+        text-align: center;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .indicator-controls {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        min-width: 0;
+      }
+
+      .indicator-controls button {
+        min-height: 30px;
+        padding: 0 9px;
+        border: 1px solid var(--line);
+        border-radius: 7px;
+        background: rgba(255, 255, 255, 0.04);
+        color: var(--muted);
+        font-size: 0.72rem;
+        font-weight: 800;
+      }
+
+      .indicator-controls button.active,
+      .indicator-controls button:hover {
+        border-color: rgba(141, 214, 177, 0.42);
+        background: rgba(141, 214, 177, 0.1);
+        color: var(--green);
+      }
+
+      .compare-legend {
+        min-height: 30px;
+        min-width: 136px;
+        flex: 0 0 auto;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 0 10px;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        background: rgba(255, 255, 255, 0.025);
+        overflow: hidden;
+        font-size: 0.7rem;
+        font-weight: 900;
+        white-space: nowrap;
+        pointer-events: none;
+      }
+
+      .compare-legend[hidden] {
+        display: none;
+      }
+
+      .source-legend {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+      }
+
+      .source-legend::before {
+        content: "";
+        width: 8px;
+        height: 8px;
+        flex: 0 0 8px;
+        border-radius: 999px;
+        background: currentColor;
+      }
+
+      .source-yahoo {
+        color: var(--violet);
+      }
+
+      .source-alpha {
+        color: var(--red);
+      }
+
+      .compare-legend.waiting {
+        border-color: rgba(255, 183, 92, 0.34);
+        background: rgba(255, 183, 92, 0.08);
+        color: var(--amber);
+      }
+
+      .source-waiting {
+        color: var(--amber);
       }
 
       .range button {
@@ -359,6 +600,44 @@
         border: 1px solid var(--line);
         border-radius: 8px;
         background: rgba(0, 0, 0, 0.12);
+        cursor: grab;
+        touch-action: none;
+      }
+
+      .canvas-wrap.is-panning {
+        cursor: grabbing;
+      }
+
+      .canvas-wrap:fullscreen {
+        width: 100vw;
+        height: 100vh;
+        border: 0;
+        border-radius: 0;
+        background: #050806;
+      }
+
+      .chart-fullscreen-button {
+        position: absolute;
+        z-index: 4;
+        top: 10px;
+        right: 10px;
+        min-width: 48px;
+        min-height: 30px;
+        padding: 0 10px;
+        border: 1px solid var(--line);
+        border-radius: 7px;
+        background: rgba(8, 10, 9, 0.86);
+        color: var(--text);
+        font-size: 0.72rem;
+        font-weight: 800;
+        backdrop-filter: blur(8px);
+        cursor: pointer;
+      }
+
+      .chart-fullscreen-button:hover {
+        border-color: rgba(141, 214, 177, 0.46);
+        background: rgba(141, 214, 177, 0.12);
+        color: var(--green);
       }
 
       canvas {
@@ -367,27 +646,56 @@
         display: block;
       }
 
-      .action-zone {
+      .inspector {
         grid-column: 3;
         grid-row: 2;
         display: grid;
-        grid-template-rows: auto minmax(0, 1fr) auto;
-        gap: 8px;
+        grid-template-rows: auto minmax(0, 1fr);
         min-height: 0;
+        padding: 8px;
       }
 
-      .prediction,
-      .signals,
-      .news-panel,
-      .quote-panel,
-      .data-panel {
-        min-height: 0;
-        padding: 10px;
-      }
-
-      .quote-panel,
-      .data-panel {
+      .inspector-tabs {
         display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 4px;
+        padding-bottom: 8px;
+      }
+
+      .inspector-tabs button {
+        min-width: 0;
+        min-height: 32px;
+        border: 1px solid transparent;
+        border-radius: 7px;
+        background: rgba(255, 255, 255, 0.035);
+        color: var(--muted);
+        font-size: 0.68rem;
+        font-weight: 800;
+      }
+
+      .inspector-tabs button.active,
+      .inspector-tabs button:hover {
+        border-color: rgba(141, 214, 177, 0.42);
+        background: rgba(141, 214, 177, 0.1);
+        color: var(--green);
+      }
+
+      .inspector-body {
+        min-height: 0;
+        overflow: hidden;
+      }
+
+      .inspector-pane {
+        height: 100%;
+        display: none;
+        min-height: 0;
+        overflow: auto;
+        padding-right: 4px;
+      }
+
+      .inspector-pane.active {
+        display: grid;
+        align-content: start;
         gap: 8px;
       }
 
@@ -395,6 +703,51 @@
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 6px;
+      }
+
+      .comparison-panel {
+        display: grid;
+        gap: 5px;
+        padding: 8px;
+        border: 1px solid rgba(199, 164, 255, 0.26);
+        border-radius: 7px;
+        background: rgba(199, 164, 255, 0.06);
+      }
+
+      .comparison-panel[hidden] {
+        display: none;
+      }
+
+      .comparison-row,
+      .comparison-gap {
+        display: grid;
+        grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr) 62px;
+        align-items: center;
+        gap: 8px;
+        min-width: 0;
+        font-size: 0.74rem;
+      }
+
+      .comparison-head {
+        color: var(--faint);
+        font-size: 0.64rem;
+        font-weight: 900;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .comparison-row > *,
+      .comparison-gap > * {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .comparison-gap {
+        grid-template-columns: minmax(0, 1fr) auto;
+        padding-top: 5px;
+        border-top: 1px solid rgba(235, 241, 235, 0.1);
       }
 
       .intel-strip {
@@ -435,9 +788,47 @@
       .callout strong {
         display: block;
         margin-top: 4px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
+        line-height: 1.25;
+        overflow-wrap: anywhere;
+      }
+
+      .learning-line {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr);
+        align-items: start;
+        gap: 8px;
+        margin-top: 7px;
+        color: var(--muted);
+        font-size: 0.72rem;
+      }
+
+      .learning-line strong {
+        color: var(--cyan);
+        line-height: 1.25;
+        text-align: right;
+        overflow-wrap: anywhere;
+      }
+
+      .prediction-tools {
+        display: grid;
+        justify-items: end;
+        gap: 6px;
+      }
+
+      .download-accuracy {
+        min-height: 26px;
+        padding: 0 8px;
+        border: 1px solid var(--line);
+        border-radius: 7px;
+        background: rgba(255, 255, 255, 0.04);
+        color: var(--muted);
+        font-size: 0.68rem;
+        font-weight: 800;
+      }
+
+      .download-accuracy:hover {
+        border-color: rgba(118, 213, 244, 0.46);
+        color: var(--cyan);
       }
 
       .prediction-grid,
@@ -448,13 +839,14 @@
       }
 
       .prediction-grid {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(148px, 1fr));
       }
 
       .prediction-grid div,
       .signal-list div,
       .quote-grid div,
       .data-panel .field {
+        min-width: 0;
         padding: 8px;
         border: 1px solid var(--line);
         border-radius: 7px;
@@ -492,19 +884,31 @@
         font-size: 0.7rem;
       }
 
+      .prediction-grid strong {
+        display: block;
+        line-height: 1.15;
+        overflow-wrap: anywhere;
+      }
+
       .quote-grid strong,
       .data-panel strong {
         display: block;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
+        line-height: 1.15;
+        overflow-wrap: anywhere;
       }
 
       .signal-list div {
         display: grid;
-        grid-template-columns: minmax(0, 1fr) auto 42px;
+        grid-template-columns: minmax(0, 1fr) minmax(92px, auto) 42px;
         gap: 8px;
+        align-items: center;
         font-size: 0.78rem;
+      }
+
+      .signal-list strong,
+      .signal-list span {
+        min-width: 0;
+        overflow-wrap: anywhere;
       }
 
       .news-list {
@@ -514,21 +918,20 @@
         overflow-x: auto;
         overflow-y: hidden;
         padding: 0 2px 3px 0;
-        scrollbar-color: rgba(141, 214, 177, 0.42) rgba(255, 255, 255, 0.04);
       }
 
       .news {
         flex: 0 0 390px;
         min-width: 0;
         display: grid;
-        grid-template-rows: auto minmax(34px, auto) auto;
         align-content: start;
-        gap: 6px;
-        min-height: 86px;
-        padding: 10px 11px;
+        gap: 7px;
+        min-height: 150px;
+        padding: 12px 12px 13px;
         border: 1px solid rgba(255, 255, 255, 0.055);
         border-radius: 8px;
         background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.026));
+        overflow: hidden;
       }
 
       .news:hover {
@@ -539,11 +942,12 @@
         min-width: 0;
         overflow: hidden;
         color: var(--text);
-        font-size: 0.86rem;
-        line-height: 1.18;
+        font-size: 0.82rem;
+        line-height: 1.35;
+        overflow-wrap: anywhere;
         display: -webkit-box;
         -webkit-box-orient: vertical;
-        -webkit-line-clamp: 2;
+        -webkit-line-clamp: 3;
       }
 
       .news small {
@@ -552,8 +956,34 @@
         white-space: nowrap;
       }
 
-      .bottom-bar .news .muted {
-        display: none;
+      .news .muted {
+        display: -webkit-box;
+        overflow: hidden;
+        line-height: 1.25;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+      }
+
+      .inspector .news-list {
+        display: grid;
+        align-content: start;
+        gap: 10px;
+        overflow-x: hidden;
+        overflow-y: auto;
+        padding-top: 8px;
+      }
+
+      .inspector .news {
+        flex: initial;
+        width: 100%;
+        min-height: 166px;
+      }
+
+      .inspector .news strong {
+        display: block;
+        overflow: visible;
+        white-space: normal;
+        -webkit-line-clamp: unset;
       }
 
       .impact {
@@ -578,27 +1008,16 @@
         color: var(--red);
       }
 
-      .bottom-bar {
-        grid-column: 1 / -1;
-        grid-row: 3;
-        display: grid;
-        grid-template-rows: 52px minmax(0, 1fr);
-        gap: 6px;
-        min-height: 0;
-        padding: 8px 10px 9px;
+      .session-open {
+        color: var(--green);
       }
 
-      .bottom-head {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-        min-height: 0;
+      .session-extended {
+        color: var(--amber);
       }
 
-      .bottom-head h2,
-      .bottom-head .kicker {
-        line-height: 1;
+      .session-closed {
+        color: var(--red);
       }
 
       .tape-status {
@@ -612,43 +1031,19 @@
         white-space: nowrap;
       }
 
-      body.news-collapsed .tape-status {
-        color: var(--text);
-        font-size: 0.82rem;
-      }
-
-      .bottom-controls {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-      }
-
-      body.news-collapsed .bottom-bar {
-        grid-template-rows: 1fr;
-      }
-
-      body.news-collapsed .news-list {
-        display: none;
-      }
-
-      body.news-collapsed .bottom-head .kicker,
-      body.news-collapsed .bottom-head h2 {
-        display: none;
-      }
-
       @media (max-width: 1060px) {
         .shell {
-          grid-template-columns: 186px minmax(0, 1fr) 284px;
-          grid-template-rows: 56px minmax(0, 1fr) 96px;
+          grid-template-columns: 186px minmax(0, 1fr) 340px;
+          grid-template-rows: 56px minmax(0, 1fr);
           gap: 6px;
           padding: 6px;
         }
 
         .topbar {
-          grid-template-columns: 186px minmax(220px, 1fr);
+          grid-template-columns: 186px minmax(200px, 1fr) auto minmax(150px, 200px);
         }
 
-        .status {
+        .status .stat:nth-child(4) {
           display: none;
         }
 
@@ -666,13 +1061,27 @@
           <span class="brand-mark">MI</span>
           <span>
             <strong>Market Intel AI</strong>
-            <small>Static HTML live stock terminal</small>
+            <small>Static HTML live market terminal</small>
           </span>
         </div>
         <form class="search" id="searchForm">
           <input id="symbolInput" placeholder="Enter symbol, e.g. MSFT" autocomplete="off" />
           <button type="submit">Load</button>
         </form>
+        <div class="source-switch" id="sourceSwitch" aria-label="Market data source">
+          <button data-provider="yahoo" class="active" type="button">Yahoo</button>
+          <button data-provider="alpha" type="button">Alpha</button>
+          <button data-provider="compare" type="button">Compare</button>
+        </div>
+        <input
+          class="api-key-input"
+          id="alphaKeyInput"
+          type="password"
+          placeholder="Alpha Vantage API key"
+          title="Get a free key at https://www.alphavantage.co/support/#api-key"
+          autocomplete="off"
+          hidden
+        />
         <div class="status">
           <div class="stat">
             <span>Feed</span>
@@ -681,6 +1090,10 @@
           <div class="stat">
             <span>Last tick</span>
             <strong id="lastTick">pending</strong>
+          </div>
+          <div class="stat">
+            <span>Market</span>
+            <strong id="marketSession">Checking</strong>
           </div>
           <div class="stat">
             <span>Provider</span>
@@ -692,18 +1105,12 @@
       <section class="panel watch">
         <div class="panel-title">
           <div>
-            <span class="kicker">Tracked stocks</span>
-            <h2>Watchlist</h2>
+            <span class="kicker">Tracked markets</span>
+            <h2>Markets</h2>
           </div>
+          <button class="watch-toggle" id="toggleWatch" type="button" title="Collapse watchlist">&lt;</button>
         </div>
         <div class="stocks" id="stocks"></div>
-        <div class="watch-adds">
-          <button data-add="MSFT">MSFT</button>
-          <button data-add="IBM">IBM</button>
-          <button data-add="AAPL">AAPL</button>
-          <button data-add="NVDA">NVDA</button>
-          <button data-add="TSLA">TSLA</button>
-        </div>
       </section>
 
       <section class="panel chart-panel">
@@ -716,120 +1123,185 @@
           <div class="price">
             <strong id="livePrice">$0.00</strong>
             <span id="liveChange" class="muted">0.00%</span>
+            <span id="extendedQuote" class="extended-quote"></span>
+            <span id="compareSpread" class="compare-spread"></span>
           </div>
+        </div>
+        <div class="chart-toolbar">
           <div class="range" id="rangeControls">
             <button data-range="1D" class="active">1D</button>
             <button data-range="1W">1W</button>
             <button data-range="1M">1M</button>
             <button data-range="1Y">1Y</button>
           </div>
-        </div>
-        <div class="metrics">
-          <div class="metric"><span>Open</span><strong id="mOpen">--</strong></div>
-          <div class="metric"><span>High</span><strong id="mHigh">--</strong></div>
-          <div class="metric"><span>Low</span><strong id="mLow">--</strong></div>
-          <div class="metric"><span>Volume</span><strong id="mVolume">--</strong></div>
-          <div class="metric"><span>Volatility</span><strong id="mVolatility">--</strong></div>
-          <div class="metric"><span>Range</span><strong id="mRange">1D</strong></div>
+          <div class="chart-readout" id="chartReadout">Move over chart for time, price, and OHLC.</div>
+          <div class="indicator-controls" id="indicatorControls">
+            <button data-indicator="sma" class="active" type="button">SMA</button>
+            <button data-indicator="ema" class="active" type="button">EMA</button>
+            <button data-indicator="forecast" class="active" type="button">AI</button>
+            <span class="compare-legend" id="compareChip" hidden></span>
+          </div>
         </div>
         <div class="canvas-wrap">
+          <button class="chart-fullscreen-button" id="chartFullscreen" type="button" title="Full screen chart">Full</button>
           <canvas id="priceCanvas"></canvas>
         </div>
-        <div class="intel-strip">
-          <section class="prediction-card">
+      </section>
+
+      <aside class="panel inspector">
+        <div class="inspector-tabs" id="inspectorTabs" role="tablist">
+          <button data-tab="quote" class="active" type="button">Quote</button>
+          <button data-tab="ai" type="button">AI</button>
+          <button data-tab="news" type="button">News</button>
+        </div>
+
+        <div class="inspector-body">
+          <section class="inspector-pane active" data-pane="quote">
+            <div class="panel-title">
+              <div>
+                <span class="kicker">Market quote</span>
+                <h2 id="sideSymbol">MSFT</h2>
+              </div>
+            </div>
+            <div class="quote-grid">
+              <div><span id="sidePriceLabel">Last</span><strong id="sidePrice">--</strong></div>
+              <div><span>Change</span><strong id="sideChange">--</strong></div>
+              <div><span id="sideExtendedLabel">Extended</span><strong id="sideExtendedPrice">--</strong></div>
+              <div><span>Ext. change</span><strong id="sideExtendedChange">--</strong></div>
+              <div><span>Open</span><strong id="mOpen">--</strong></div>
+              <div><span>High</span><strong id="mHigh">--</strong></div>
+              <div><span>Low</span><strong id="mLow">--</strong></div>
+              <div><span>Close</span><strong id="sideRange">--</strong></div>
+              <div><span>Volume</span><strong id="mVolume">--</strong></div>
+              <div><span>Volatility</span><strong id="mVolatility">--</strong></div>
+              <div><span>Range</span><strong id="mRange">1D</strong></div>
+              <div><span>Provider</span><strong id="quoteProvider">Yahoo Finance</strong></div>
+            </div>
+            <div class="comparison-panel" id="comparisonPanel" hidden>
+              <div class="comparison-row comparison-head">
+                <span>Source</span>
+                <span>Price</span>
+                <span>Candles</span>
+              </div>
+              <div class="comparison-row">
+                <strong id="comparePrimarySource">--</strong>
+                <strong id="comparePrimaryPrice">--</strong>
+                <span id="comparePrimaryPoints">--</span>
+              </div>
+              <div class="comparison-row">
+                <strong id="compareSecondarySource">--</strong>
+                <strong id="compareSecondaryPrice">--</strong>
+                <span id="compareSecondaryPoints">--</span>
+              </div>
+              <div class="comparison-gap">
+                <span>Source gap</span>
+                <strong id="compareGap">--</strong>
+              </div>
+            </div>
+          </section>
+
+          <section class="inspector-pane" data-pane="ai">
             <div class="panel-title">
               <div>
                 <span class="kicker">AI prediction</span>
                 <h2 id="trendTitle">Analyzing</h2>
               </div>
-              <strong id="confidence">--%</strong>
+              <div class="prediction-tools">
+                <strong id="confidence">--%</strong>
+                <button class="download-accuracy" id="downloadAccuracy" type="button">TXT</button>
+              </div>
             </div>
             <div class="callout">
               <span id="trendLabel">SYNCING</span>
               <strong id="predictionText">Waiting for live OHLC data.</strong>
             </div>
-          </section>
-          <section class="signal-card">
+            <div class="learning-line">
+              <span>Backtest</span>
+              <strong id="modelAccuracy">Warming up</strong>
+            </div>
             <div class="prediction-grid">
+              <div><span>Trend</span><strong id="sideTrend">Waiting</strong></div>
+              <div><span>Confidence</span><strong id="sideConfidence">--</strong></div>
+              <div><span>Volatility</span><strong id="sideVolatility">--</strong></div>
               <div><span>RSI</span><strong id="pRsi">--</strong></div>
               <div><span>Risk</span><strong id="pRisk">--</strong></div>
               <div><span>SMA 20</span><strong id="pSma">--</strong></div>
               <div><span>EMA 20</span><strong id="pEma">--</strong></div>
               <div><span>Support</span><strong id="pSupport">--</strong></div>
               <div><span>Resistance</span><strong id="pResistance">--</strong></div>
+              <div><span>Levels</span><strong id="sideLevels">--</strong></div>
             </div>
             <div class="signal-list" id="signals"></div>
           </section>
-        </div>
-      </section>
 
-      <aside class="action-zone">
-        <div class="panel quote-panel">
-          <div class="panel-title">
-            <div>
-              <span class="kicker">Market quote</span>
-              <h2 id="sideSymbol">MSFT</h2>
+          <section class="inspector-pane" data-pane="news">
+            <div class="panel-title">
+              <div>
+                <span class="kicker">Financial news</span>
+                <h2>Live Brief</h2>
+              </div>
+              <button id="refreshNews" type="button">Refresh</button>
             </div>
-          </div>
-          <div class="quote-grid">
-            <div><span>Last</span><strong id="sidePrice">--</strong></div>
-            <div><span>Change</span><strong id="sideChange">--</strong></div>
-            <div><span>Volume</span><strong id="sideVolume">--</strong></div>
-            <div><span>Session</span><strong id="sideRange">--</strong></div>
-          </div>
-        </div>
-
-        <div class="panel data-panel">
-          <div class="panel-title">
-            <div>
-              <span class="kicker">Risk context</span>
-              <h2>Model Snapshot</h2>
-            </div>
-          </div>
-          <div class="field"><span class="muted">Trend</span><strong id="sideTrend">Waiting for data</strong></div>
-          <div class="field"><span class="muted">Confidence</span><strong id="sideConfidence">--</strong></div>
-          <div class="field"><span class="muted">Volatility</span><strong id="sideVolatility">--</strong></div>
-          <div class="field"><span class="muted">Support / Resistance</span><strong id="sideLevels">--</strong></div>
-        </div>
-
-        <div class="panel data-panel">
-          <div class="panel-title">
-            <div>
-              <span class="kicker">Data feed</span>
-              <h2>Provider</h2>
-            </div>
-          </div>
-          <div class="field"><span class="muted">Source</span><strong id="sideSource">Yahoo Finance</strong></div>
-          <div class="field"><span class="muted">Mode</span><strong>Market analysis only</strong></div>
+            <span class="tape-status" id="tapeStatus">Loading market headlines...</span>
+            <div class="news-list" id="news"></div>
+          </section>
         </div>
       </aside>
-
-      <section class="panel bottom-bar">
-        <div class="bottom-head">
-          <div>
-            <span class="kicker">Financial news</span>
-            <h2>Compact Market Tape</h2>
-            <span class="tape-status" id="tapeStatus">Loading market headlines...</span>
-          </div>
-          <div class="bottom-controls">
-            <button id="refreshNews" type="button">Refresh</button>
-            <button id="toggleNews" type="button">Collapse</button>
-          </div>
-        </div>
-        <div class="news-list" id="news"></div>
-      </section>
     </main>
 
     <script>
       const DEMO_KEY = "demo";
-      const WATCHLIST = ["MSFT", "IBM", "AAPL", "NVDA", "TSLA"];
+      const ALPHA_KEY_URL = "https://www.alphavantage.co/support/#api-key";
+      const WATCHLIST = ["^GSPC", "^IXIC", "^DJI", "SPY", "QQQ", "AAPL", "MSFT", "NVDA", "TSLA", "BTC-USD", "ETH-USD", "GC=F", "CL=F", "EURUSD=X"];
+      const MARKET_LABELS = {
+        "^GSPC": "S&P 500",
+        "^IXIC": "Nasdaq Composite",
+        "^DJI": "Dow Jones",
+        SPY: "SPDR S&P 500 ETF",
+        QQQ: "Invesco QQQ ETF",
+        AAPL: "Apple",
+        MSFT: "Microsoft",
+        NVDA: "NVIDIA",
+        TSLA: "Tesla",
+        "BTC-USD": "Bitcoin",
+        "ETH-USD": "Ethereum",
+        "GC=F": "Gold futures",
+        "CL=F": "Crude oil futures",
+        "EURUSD=X": "EUR/USD"
+      };
+      const MARKET_POLL_MS = 5000;
+      const WATCHLIST_POLL_MS = 20000;
+      const NEWS_POLL_MS = 60000;
+      const LEARNING_KEY = "marketIntelPredictionJournal.v1";
+      const MIN_VISIBLE_POINTS = 24;
+      const DEFAULT_VIEW_SPAN = 0.8;
+      const WHEEL_ZOOM_IN = 0.82;
+      const WHEEL_ZOOM_OUT = 1.22;
+      const CHART_PAD = { left: 52, right: 58, top: 22, bottom: 38 };
+      const LOCAL_MARKET_ENDPOINTS = ["http://localhost:3000/api/market", "http://127.0.0.1:3000/api/market"];
+      let marketRequestId = 0;
+      let marketRefreshInFlight = false;
+
       const state = {
         symbol: localStorage.getItem("marketIntelSymbol") || "MSFT",
         range: "1D",
-        apiKey: DEMO_KEY,
+        visibleStartIndex: 0,
+        visibleEndIndex: 0,
+        cursorIndex: null,
+        pan: null,
+        activeTab: "quote",
+        providerMode: "yahoo",
+        indicators: {
+          sma: true,
+          ema: true,
+          forecast: true
+        },
+        apiKey: localStorage.getItem("marketIntelAlphaApiKey") || DEMO_KEY,
         points: [],
         quote: null,
         predictions: null,
+        learningStats: null,
+        sourceWarning: null,
         watchQuotes: {},
         dataProvider: "Yahoo Finance"
       };
@@ -840,14 +1312,24 @@
         symbolName: document.getElementById("symbolName"),
         livePrice: document.getElementById("livePrice"),
         liveChange: document.getElementById("liveChange"),
+        extendedQuote: document.getElementById("extendedQuote"),
+        compareSpread: document.getElementById("compareSpread"),
+        compareChip: document.getElementById("compareChip"),
         feedStatus: document.getElementById("feedStatus"),
         lastTick: document.getElementById("lastTick"),
+        marketSession: document.getElementById("marketSession"),
         canvas: document.getElementById("priceCanvas"),
+        chartFullscreen: document.getElementById("chartFullscreen"),
+        chartReadout: document.getElementById("chartReadout"),
         news: document.getElementById("news"),
         signals: document.getElementById("signals"),
         searchForm: document.getElementById("searchForm"),
-        symbolInput: document.getElementById("symbolInput")
+        symbolInput: document.getElementById("symbolInput"),
+        sourceSwitch: document.getElementById("sourceSwitch"),
+        alphaKeyInput: document.getElementById("alphaKeyInput"),
+        inspectorTabs: document.getElementById("inspectorTabs")
       };
+      el.alphaKeyInput.value = state.apiKey === DEMO_KEY ? "" : state.apiKey;
 
       const money = new Intl.NumberFormat("en-US", {
         style: "currency",
@@ -863,8 +1345,12 @@
         return String(symbol || "")
           .trim()
           .toUpperCase()
-          .replace(/[^A-Z0-9.^-]/g, "")
-          .slice(0, 12);
+          .replace(/[^A-Z0-9.^=-]/g, "")
+          .slice(0, 18);
+      }
+
+      function isAlphaComparableSymbol(symbol) {
+        return !/[\^=]/.test(symbol) && !/-USD$/.test(symbol) && !/=X$/.test(symbol);
       }
 
       function fmt(value) {
@@ -873,6 +1359,180 @@
 
       function pct(value) {
         return `${value >= 0 ? "+" : ""}${value.toFixed(2)}%`;
+      }
+
+      function signedMoney(value) {
+        return `${value >= 0 ? "+" : ""}${fmt(value)}`;
+      }
+
+      function primaryPriceLabel(session) {
+        if (session?.state === "regular") return "Last";
+        if (session?.state === "pre") return "Prev close";
+        return "Close";
+      }
+
+      function marketDisplayName(symbol, name) {
+        if (name && name !== symbol) return name;
+        return MARKET_LABELS[symbol] || "Market";
+      }
+
+      function sessionClass(session) {
+        if (session?.state === "regular") return "session-open";
+        if (session?.state === "pre" || session?.state === "post") return "session-extended";
+        if (session?.state === "closed") return "session-closed";
+        return "";
+      }
+
+      function formatSessionTime(seconds, timeZone = "America/New_York") {
+        if (!seconds) return "";
+        try {
+          return new Intl.DateTimeFormat("en-US", {
+            hour: "numeric",
+            minute: "2-digit",
+            timeZone
+          }).format(seconds * 1000);
+        } catch {
+          return new Date(seconds * 1000).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+        }
+      }
+
+      function pointDateLabel(point) {
+        if (!point?.time) return "--";
+        const date = new Date(typeof point.time === "number" ? point.time : point.time.replace(" ", "T"));
+        if (Number.isNaN(date.getTime())) return String(point.time);
+        const options =
+          state.range === "1D" || state.range === "1W"
+            ? { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }
+            : { month: "short", day: "numeric", year: "numeric" };
+        return new Intl.DateTimeFormat("en-US", options).format(date);
+      }
+
+      function pointTimeMs(point) {
+        if (!point?.time) return NaN;
+        const date = new Date(typeof point.time === "number" ? point.time : point.time.replace(" ", "T"));
+        return date.getTime();
+      }
+
+      function comparisonTolerance() {
+        if (state.range === "1D") return 7 * 60 * 1000;
+        if (state.range === "1W") return 35 * 60 * 1000;
+        if (state.range === "1M") return 36 * 60 * 60 * 1000;
+        return 7 * 24 * 60 * 60 * 1000;
+      }
+
+      function nearestComparisonPrice(points, targetPoint) {
+        if (!points?.length || !targetPoint) return undefined;
+        const targetTime = pointTimeMs(targetPoint);
+        if (!Number.isFinite(targetTime)) return undefined;
+        const tolerance = comparisonTolerance();
+        let bestPrice;
+        let bestDelta = Number.POSITIVE_INFINITY;
+
+        for (const point of points) {
+          const pointTime = pointTimeMs(point);
+          if (!Number.isFinite(pointTime)) continue;
+          const delta = Math.abs(pointTime - targetTime);
+          if (delta < bestDelta) {
+            bestDelta = delta;
+            bestPrice = point.close;
+          }
+          if (pointTime > targetTime && delta > bestDelta) break;
+        }
+
+        return bestDelta <= tolerance && isValidPrice(bestPrice) ? bestPrice : undefined;
+      }
+
+      function updateChartReadout(point, view) {
+        if (!el.chartReadout) return;
+        if (point) {
+          const comparisonPrice = state.providerMode === "compare"
+            ? nearestComparisonPrice(state.quote?.comparison?.secondaryPoints, point)
+            : undefined;
+          el.chartReadout.textContent = `${pointDateLabel(point)}  ${
+            comparisonPrice
+              ? `Yahoo ${fmt(point.close)}  Alpha ${fmt(comparisonPrice)}`
+              : `Close ${fmt(point.close)}`
+          }  O ${fmt(point.open)}  H ${fmt(point.high)}  L ${fmt(point.low)}  Vol ${compact.format(point.volume || 0)}`;
+          return;
+        }
+        if (view?.points?.length) {
+          const first = view.points[0];
+          const last = view.points.at(-1);
+          el.chartReadout.textContent = `${pointDateLabel(first)} - ${pointDateLabel(last)}  ${view.points.length} candles`;
+          return;
+        }
+        el.chartReadout.textContent = "Move over chart for time, price, and OHLC.";
+      }
+
+      function clockSession() {
+        const parts = new Intl.DateTimeFormat("en-US", {
+          timeZone: "America/New_York",
+          weekday: "short",
+          hour: "2-digit",
+          minute: "2-digit",
+          hourCycle: "h23"
+        }).formatToParts(new Date());
+        const value = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+        const weekday = value.weekday;
+        const minutes = Number(value.hour) * 60 + Number(value.minute);
+        const isWeekday = !["Sat", "Sun"].includes(weekday);
+
+        if (!isWeekday) {
+          return { state: "closed", label: "Market closed", detail: "Weekend session", isOpen: false };
+        }
+        if (minutes >= 570 && minutes < 960) {
+          return { state: "regular", label: "Regular hours", detail: "Open until 4:00 PM ET", isOpen: true };
+        }
+        if (minutes >= 240 && minutes < 570) {
+          return { state: "pre", label: "Pre-market", detail: "Regular market closed; opens 9:30 AM ET", isOpen: true };
+        }
+        if (minutes >= 960 && minutes < 1200) {
+          return { state: "post", label: "After hours", detail: "Regular market closed; post-market until 8:00 PM ET", isOpen: true };
+        }
+        return { state: "closed", label: "Market closed", detail: "Regular session not active", isOpen: false };
+      }
+
+      function sessionFromMeta(meta = {}) {
+        const periods = meta.currentTradingPeriod || {};
+        const now = Math.floor(Date.now() / 1000);
+        const timeZone = meta.exchangeTimezoneName || "America/New_York";
+        const inPeriod = (period) => period?.start && period?.end && now >= period.start && now < period.end;
+
+        if (inPeriod(periods.regular)) {
+          return {
+            state: "regular",
+            label: "Regular hours",
+            detail: `Open until ${formatSessionTime(periods.regular.end, timeZone)}`,
+            isOpen: true
+          };
+        }
+        if (inPeriod(periods.pre)) {
+          return {
+            state: "pre",
+            label: "Pre-market",
+            detail: `Regular market closed; opens ${formatSessionTime(periods.regular?.start, timeZone)}`,
+            isOpen: true
+          };
+        }
+        if (inPeriod(periods.post)) {
+          return {
+            state: "post",
+            label: "After hours",
+            detail: `Regular market closed; post-market until ${formatSessionTime(periods.post.end, timeZone)}`,
+            isOpen: true
+          };
+        }
+
+        const nextPeriod = [periods.pre, periods.regular, periods.post]
+          .filter((period) => period?.start && period.start > now)
+          .sort((a, b) => a.start - b.start)[0];
+
+        return {
+          state: "closed",
+          label: "Market closed",
+          detail: nextPeriod ? `Next session ${formatSessionTime(nextPeriod.start, timeZone)}` : "Regular session not active",
+          isOpen: false
+        };
       }
 
       function alphaUrl(functionName, symbol, extra = {}) {
@@ -894,13 +1554,26 @@
               : range === "1Y"
                 ? { range: "1y", interval: "1d" }
                 : { range: "1d", interval: "1m" };
-        return `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?range=${config.range}&interval=${config.interval}&includePrePost=false`;
+        const params = new URLSearchParams({
+          range: config.range,
+          interval: config.interval,
+          includePrePost: "true",
+          events: "div|split",
+          _: String(Date.now())
+        });
+        return `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?${params.toString()}`;
       }
 
-      async function fetchJson(url) {
-        const response = await fetch(url, { cache: "no-store" });
-        if (!response.ok) throw new Error(`Request failed: ${response.status}`);
-        return response.json();
+      async function fetchJson(url, timeoutMs = 7000) {
+        const controller = new AbortController();
+        const timeout = window.setTimeout(() => controller.abort(), timeoutMs);
+        try {
+          const response = await fetch(url, { cache: "no-store", signal: controller.signal });
+          if (!response.ok) throw new Error(`Request failed: ${response.status}`);
+          return response.json();
+        } finally {
+          window.clearTimeout(timeout);
+        }
       }
 
       function parseYahooChart(payload, symbol) {
@@ -914,14 +1587,12 @@
         const points = timestamps
           .map((time, index) => {
             const close = quote.close?.[index];
-            if (!Number.isFinite(close)) return null;
+            if (!isValidPrice(close)) return null;
             const timestamp = time * 1000;
+            const ohlc = normalizeOhlc(quote.open?.[index], quote.high?.[index], quote.low?.[index], close);
             return {
               time: new Date(timestamp).toISOString().replace("T", " ").slice(0, 16),
-              open: Number.isFinite(quote.open?.[index]) ? quote.open[index] : close,
-              high: Number.isFinite(quote.high?.[index]) ? quote.high[index] : close,
-              low: Number.isFinite(quote.low?.[index]) ? quote.low[index] : close,
-              close,
+              ...ohlc,
               volume: Number.isFinite(quote.volume?.[index]) ? quote.volume[index] : 0
             };
           })
@@ -931,10 +1602,30 @@
 
         const meta = result.meta || {};
         const latest = points.at(-1);
-        const price = Number.isFinite(meta.regularMarketPrice) ? meta.regularMarketPrice : latest.close;
-        const previousClose = Number.isFinite(meta.chartPreviousClose)
+        const session = sessionFromMeta(meta);
+        const price = isValidPrice(meta.regularMarketPrice) ? meta.regularMarketPrice : latest.close;
+        const extendedPrice = latest.close;
+        const extended =
+          session.state === "pre" || session.state === "post"
+            ? {
+                label: session.state === "pre" ? "Pre-market" : "After hours",
+                price: extendedPrice,
+                change: extendedPrice - price,
+                changePercent: price ? ((extendedPrice - price) / price) * 100 : 0,
+                time: latest.time
+              }
+            : null;
+        const officialHigh = isValidPrice(meta.regularMarketDayHigh)
+          ? meta.regularMarketDayHigh
+          : Math.max(...points.map((point) => point.high));
+        const officialLow = isValidPrice(meta.regularMarketDayLow)
+          ? meta.regularMarketDayLow
+          : Math.min(...points.map((point) => point.low));
+        const dayHigh = Math.max(officialHigh, officialLow, price);
+        const dayLow = Math.min(officialHigh, officialLow, price);
+        const previousClose = isValidPrice(meta.chartPreviousClose)
           ? meta.chartPreviousClose
-          : Number.isFinite(meta.previousClose)
+          : isValidPrice(meta.previousClose)
             ? meta.previousClose
             : points[0].close;
         const change = price - previousClose;
@@ -943,14 +1634,19 @@
           points,
           quote: {
             symbol: (meta.symbol || symbol).toUpperCase(),
+            name: meta.longName || meta.shortName || MARKET_LABELS[(meta.symbol || symbol).toUpperCase()] || symbol.toUpperCase(),
             open: latest.open,
-            high: Number.isFinite(meta.regularMarketDayHigh) ? meta.regularMarketDayHigh : Math.max(...points.map((point) => point.high)),
-            low: Number.isFinite(meta.regularMarketDayLow) ? meta.regularMarketDayLow : Math.min(...points.map((point) => point.low)),
+            high: dayHigh,
+            low: dayLow,
             price,
             volume: Number.isFinite(meta.regularMarketVolume) ? meta.regularMarketVolume : latest.volume,
             previousClose,
             change,
-            changePercent: previousClose ? (change / previousClose) * 100 : 0
+            changePercent: previousClose ? (change / previousClose) * 100 : 0,
+            session,
+            extended,
+            source: "Yahoo Finance",
+            exchange: meta.fullExchangeName || meta.exchangeName || MARKET_LABELS[(meta.symbol || symbol).toUpperCase()] || "Yahoo Finance"
           },
           provider: "Yahoo Finance"
         };
@@ -964,6 +1660,89 @@
           const wrapped = await fetchJson(`https://api.allorigins.win/get?url=${encodeURIComponent(target)}`);
           return parseYahooChart(JSON.parse(wrapped.contents || "{}"), symbol);
         }
+      }
+
+      function localMarketEndpoints() {
+        const endpoints = [];
+        if (/^https?:$/.test(window.location.protocol) && window.location.origin !== "null") {
+          endpoints.push(`${window.location.origin}/api/market`);
+        }
+        endpoints.push(...LOCAL_MARKET_ENDPOINTS);
+        return [...new Set(endpoints)];
+      }
+
+      function parseLocalMarketPayload(payload, symbol) {
+        const quote = payload?.quotes?.find((item) => item.symbol === symbol) || payload?.quotes?.[0];
+        if (!quote?.points?.length) throw new Error("No local market quote returned");
+        const alphaError = payload?.errors?.find((item) => item.symbol === symbol && /alpha vantage/i.test(item.message || ""));
+        const normalizeLocalPoint = (point) => {
+          if (!isValidPrice(point.close)) return null;
+          return {
+            time: new Date(point.time).toISOString().replace("T", " ").slice(0, 16),
+            ...normalizeOhlc(point.open, point.high, point.low, point.close),
+            volume: Number.isFinite(point.volume) ? point.volume : 0
+          };
+        };
+        const points = quote.points.map(normalizeLocalPoint).filter(Boolean);
+        const comparison = quote.comparison
+          ? {
+              ...quote.comparison,
+              secondaryPoints: (quote.comparison.secondaryPoints || []).map(normalizeLocalPoint).filter(Boolean)
+            }
+          : null;
+        if (!points.length) throw new Error("Local market quote had no finite positive points");
+        const latest = points.at(-1);
+        const price = isValidPrice(quote.price) ? quote.price : latest.close;
+        const previousClose = isValidPrice(quote.previousClose) ? quote.previousClose : points[0].close;
+        const officialHigh = isValidPrice(quote.dayHigh) ? quote.dayHigh : Math.max(...points.map((point) => point.high));
+        const officialLow = isValidPrice(quote.dayLow) ? quote.dayLow : Math.min(...points.map((point) => point.low));
+        return {
+          points,
+          quote: {
+            symbol: quote.symbol,
+            name: quote.name || MARKET_LABELS[quote.symbol] || quote.symbol,
+            open: latest.open,
+            high: Math.max(officialHigh, officialLow, price),
+            low: Math.min(officialHigh, officialLow, price),
+            price,
+            volume: quote.volume,
+            previousClose,
+            change: price - previousClose,
+            changePercent: previousClose ? ((price - previousClose) / previousClose) * 100 : 0,
+            session: quote.session || clockSession(),
+            extended: quote.extended || null,
+            comparison,
+            source: quote.source || "Yahoo Finance",
+            exchange: quote.exchange || MARKET_LABELS[quote.symbol] || "Yahoo Finance"
+          },
+          provider: quote.source || payload.source || "Yahoo Finance",
+          sourceWarning:
+            state.providerMode === "alpha" && quote.source !== "Alpha Vantage"
+              ? alphaError?.message || "Alpha Vantage unavailable. Get a free key at https://www.alphavantage.co/support/#api-key."
+              : state.providerMode === "compare" && !quote.comparison
+                ? alphaError?.message || "Alpha Vantage comparison unavailable. Get a free key at https://www.alphavantage.co/support/#api-key."
+                : null
+        };
+      }
+
+      async function fetchLocalSnapshot(symbol, range) {
+        let lastError;
+        for (const endpoint of localMarketEndpoints()) {
+          try {
+            const params = new URLSearchParams({
+              symbols: symbol,
+              range,
+              provider: state.providerMode,
+              primary: symbol,
+              _: String(Date.now())
+            });
+            if (state.apiKey && state.apiKey !== DEMO_KEY) params.set("alphaKey", state.apiKey);
+            return parseLocalMarketPayload(await fetchJson(`${endpoint}?${params.toString()}`, 2500), symbol);
+          } catch (error) {
+            lastError = error;
+          }
+        }
+        throw lastError || new Error("Local market API unavailable");
       }
 
       function parseSeries(payload, range) {
@@ -983,15 +1762,16 @@
         return Object.entries(series)
           .slice(0, limit)
           .reverse()
-          .map(([time, row]) => ({
-            time,
-            open: Number(row["1. open"]),
-            high: Number(row["2. high"]),
-            low: Number(row["3. low"]),
-            close: Number(row["4. close"]),
-            volume: Number(row["5. volume"])
-          }))
-          .filter((point) => Number.isFinite(point.close));
+          .map(([time, row]) => {
+            const close = Number(row["4. close"]);
+            if (!isValidPrice(close)) return null;
+            return {
+              time,
+              ...normalizeOhlc(Number(row["1. open"]), Number(row["2. high"]), Number(row["3. low"]), close),
+              volume: Number.isFinite(Number(row["5. volume"])) ? Number(row["5. volume"]) : 0
+            };
+          })
+          .filter(Boolean);
       }
 
       async function fetchSeries(symbol, range) {
@@ -1007,26 +1787,97 @@
         if (!quote || !quote["05. price"]) {
           throw new Error(payload.Information || payload["Error Message"] || "No quote returned");
         }
+        const price = isValidPrice(Number(quote["05. price"])) ? Number(quote["05. price"]) : Number(quote["08. previous close"]);
+        const previousClose = isValidPrice(Number(quote["08. previous close"])) ? Number(quote["08. previous close"]) : price;
         return {
           symbol: quote["01. symbol"],
-          open: Number(quote["02. open"]),
-          high: Number(quote["03. high"]),
-          low: Number(quote["04. low"]),
-          price: Number(quote["05. price"]),
+          name: MARKET_LABELS[symbol] || symbol,
+          ...normalizeOhlc(Number(quote["02. open"]), Number(quote["03. high"]), Number(quote["04. low"]), price),
+          price,
           volume: Number(quote["06. volume"]),
-          previousClose: Number(quote["08. previous close"]),
-          change: Number(quote["09. change"]),
-          changePercent: Number(String(quote["10. change percent"]).replace("%", ""))
+          previousClose,
+          change: price - previousClose,
+          changePercent: previousClose ? ((price - previousClose) / previousClose) * 100 : 0,
+          session: clockSession(),
+          extended: null,
+          source: "Alpha Vantage",
+          exchange: MARKET_LABELS[symbol] || "Market"
         };
       }
 
       async function fetchAlphaSnapshot(symbol, range) {
+        if (!isAlphaComparableSymbol(symbol)) {
+          throw new Error("Yahoo-only symbol for Alpha comparison. Alpha Vantage compare supports standard stock and ETF tickers such as AAPL, MSFT, NVDA, SPY, and QQQ.");
+        }
         const [seriesPayload, quote] = await Promise.all([fetchSeries(symbol, range), fetchQuote(symbol)]);
         return {
           points: parseSeries(seriesPayload, range),
           quote,
           provider: "Alpha Vantage"
         };
+      }
+
+      function withSourceComparison(primary, secondary) {
+        if (!primary?.quote || !secondary?.quote) return primary;
+        const comparison = {
+          primarySource: primary.quote.source || primary.provider,
+          secondarySource: secondary.quote.source || secondary.provider,
+          primaryPrice: primary.quote.price,
+          secondaryPrice: secondary.quote.price,
+          priceDifference: primary.quote.price - secondary.quote.price,
+          priceDifferencePercent: secondary.quote.price ? ((primary.quote.price - secondary.quote.price) / secondary.quote.price) * 100 : 0,
+          primaryLastUpdated: primary.quote.lastUpdated || Date.now(),
+          secondaryLastUpdated: Date.now(),
+          primaryPointCount: primary.points?.length || 0,
+          secondaryPointCount: secondary.points?.length || 0,
+          secondaryPoints: secondary.points || []
+        };
+        return {
+          ...primary,
+          quote: {
+            ...primary.quote,
+            comparison
+          }
+        };
+      }
+
+      async function fetchMarketSnapshot(symbol, range) {
+        try {
+          return await fetchLocalSnapshot(symbol, range);
+        } catch {
+          if (state.providerMode === "alpha") {
+            try {
+              const alpha = await fetchAlphaSnapshot(symbol, range);
+              try {
+                return withSourceComparison(alpha, await fetchYahooSnapshot(symbol, range));
+              } catch {
+                return alpha;
+              }
+            } catch (error) {
+              const yahoo = await fetchYahooSnapshot(symbol, range);
+              return {
+                ...yahoo,
+                sourceWarning: `Alpha Vantage: ${error instanceof Error ? error.message : "Fetch failed"}. Get a free key at https://www.alphavantage.co/support/#api-key.`
+              };
+            }
+          }
+          if (state.providerMode === "compare") {
+            const yahoo = await fetchYahooSnapshot(symbol, range);
+            try {
+              return withSourceComparison(yahoo, await fetchAlphaSnapshot(symbol, range));
+            } catch (error) {
+              return {
+                ...yahoo,
+                sourceWarning: `Alpha Vantage: ${error instanceof Error ? error.message : "Fetch failed"}. Get a free key at https://www.alphavantage.co/support/#api-key.`
+              };
+            }
+          }
+          try {
+            return await fetchYahooSnapshot(symbol, range);
+          } catch {
+            return fetchAlphaSnapshot(symbol, range);
+          }
+        }
       }
 
       function sma(values, period = 20) {
@@ -1084,7 +1935,7 @@
         return denominator ? numerator / denominator : 0;
       }
 
-      function analyze(points) {
+      function rawAnalyze(points) {
         const closes = points.map((point) => point.close);
         const smaSeries = sma(closes);
         const emaSeries = ema(closes);
@@ -1096,8 +1947,8 @@
         const recentSlope = slope(closes.slice(-Math.min(36, closes.length)));
         const earlier = closes.at(-Math.min(24, closes.length)) || closes[0] || latest;
         const momentum = earlier ? ((latest - earlier) / earlier) * 100 : 0;
-        const lows = points.map((point) => point.low).sort((a, b) => a - b);
-        const highs = points.map((point) => point.high).sort((a, b) => a - b);
+        const lows = points.map((point) => (isValidPrice(point.low) ? point.low : point.close)).sort((a, b) => a - b);
+        const highs = points.map((point) => (isValidPrice(point.high) ? point.high : point.close)).sort((a, b) => a - b);
         const support = lows[Math.floor(lows.length * 0.12)] || latest;
         const resistance = highs[Math.floor(highs.length * 0.88)] || latest;
         let score = 0;
@@ -1123,11 +1974,472 @@
           support,
           resistance,
           confidence,
+          rawConfidence: confidence,
           probabilityUp,
+          rawProbabilityUp: probabilityUp,
           trend,
           risk,
-          forecastSlope: recentSlope
+          forecastSlope: recentSlope,
+          calibration: {
+            accuracy: 50,
+            samples: 0,
+            wins: 0,
+            losses: 0,
+            horizonSteps: 5,
+            confidenceAdjustment: 0,
+            probabilityScale: 1,
+            lastOutcome: "PENDING"
+          }
         };
+      }
+
+      function expectedDirection(trend) {
+        if (trend === "UP TREND") return 1;
+        if (trend === "DOWN TREND") return -1;
+        return 0;
+      }
+
+      function actualDirection(from, to) {
+        const threshold = Math.max(Math.abs(from) * 0.0008, 0.01);
+        const move = to - from;
+        if (move > threshold) return 1;
+        if (move < -threshold) return -1;
+        return 0;
+      }
+
+      function backtestCalibration(points, horizonSteps = 5) {
+        const clean = points.filter((point) => Number.isFinite(point.close));
+        const horizon = Math.min(Math.max(Math.round(horizonSteps), 2), 8);
+        if (clean.length < 48 + horizon) {
+          return {
+            accuracy: 50,
+            samples: 0,
+            wins: 0,
+            losses: 0,
+            horizonSteps: horizon,
+            confidenceAdjustment: 0,
+            probabilityScale: 1,
+            lastOutcome: "PENDING"
+          };
+        }
+
+        let wins = 0;
+        let samples = 0;
+        let lastOutcome = "PENDING";
+        const start = Math.max(36, clean.length - 96);
+        const end = clean.length - horizon - 1;
+
+        for (let index = start; index <= end; index += 1) {
+          const window = clean.slice(Math.max(0, index - 90), index + 1);
+          if (window.length < 36) continue;
+          const prediction = rawAnalyze(window);
+          const expected = expectedDirection(prediction.trend);
+          const base = window.at(-1)?.close;
+          const actual = clean[index + horizon]?.close;
+          if (!Number.isFinite(base) || !Number.isFinite(actual)) continue;
+          const hit = expected === actualDirection(base, actual);
+          wins += hit ? 1 : 0;
+          samples += 1;
+          lastOutcome = hit ? "HIT" : "MISS";
+        }
+
+        if (!samples) {
+          return {
+            accuracy: 50,
+            samples: 0,
+            wins: 0,
+            losses: 0,
+            horizonSteps: horizon,
+            confidenceAdjustment: 0,
+            probabilityScale: 1,
+            lastOutcome: "PENDING"
+          };
+        }
+        const accuracy = Math.round((wins / samples) * 100);
+        return {
+          accuracy,
+          samples,
+          wins,
+          losses: samples - wins,
+          horizonSteps: horizon,
+          confidenceAdjustment: Math.round(Math.min(Math.max((accuracy - 50) * 0.34, -14), 14)),
+          probabilityScale: Math.min(Math.max(0.72 + (accuracy / 100) * 0.52, 0.7), 1.18),
+          lastOutcome
+        };
+      }
+
+      function analyze(points) {
+        const base = rawAnalyze(points);
+        const calibration = backtestCalibration(points);
+        if (!calibration.samples) return base;
+        const confidence = Math.round(Math.min(Math.max(base.confidence + calibration.confidenceAdjustment, 35), 94));
+        const probabilityUp = Math.round(
+          Math.min(Math.max(50 + (base.probabilityUp - 50) * calibration.probabilityScale, 8), 92)
+        );
+        return {
+          ...base,
+          confidence,
+          probabilityUp,
+          calibration
+        };
+      }
+
+      function emptyJournalStats() {
+        return {
+          accuracy: 50,
+          samples: 0,
+          wins: 0,
+          losses: 0,
+          pending: 0,
+          total: 0,
+          confidenceAdjustment: 0,
+          probabilityScale: 1,
+          storageKey: LEARNING_KEY,
+          lastRecordedAt: null
+        };
+      }
+
+      function readLearningJournal() {
+        try {
+          const raw = localStorage.getItem(LEARNING_KEY);
+          if (!raw) return [];
+          const parsed = JSON.parse(raw);
+          return Array.isArray(parsed) ? parsed : [];
+        } catch {
+          return [];
+        }
+      }
+
+      function writeLearningJournal(entries) {
+        localStorage.setItem(
+          LEARNING_KEY,
+          JSON.stringify(entries.sort((a, b) => a.createdAt - b.createdAt).slice(-900))
+        );
+      }
+
+      function journalStats(symbol, entries) {
+        const scoped = entries.filter((entry) => entry.symbol === symbol);
+        const resolved = scoped.filter((entry) => entry.status === "hit" || entry.status === "miss");
+        const wins = resolved.filter((entry) => entry.status === "hit").length;
+        const samples = resolved.length;
+        const accuracy = samples ? Math.round((wins / samples) * 100) : 50;
+        return {
+          accuracy,
+          samples,
+          wins,
+          losses: samples - wins,
+          pending: scoped.filter((entry) => entry.status === "pending").length,
+          total: scoped.length,
+          confidenceAdjustment: samples >= 5 ? Math.round(Math.min(Math.max((accuracy - 50) * 0.25, -12), 12)) : 0,
+          probabilityScale: samples >= 5 ? Math.min(Math.max(0.78 + (accuracy / 100) * 0.42, 0.72), 1.16) : 1,
+          storageKey: LEARNING_KEY,
+          lastRecordedAt: scoped.at(-1)?.createdAt || null
+        };
+      }
+
+      function directionLabel(direction) {
+        if (direction > 0) return "up";
+        if (direction < 0) return "down";
+        return "flat";
+      }
+
+      function accuracyReportText(symbol = state.symbol) {
+        const normalized = cleanSymbol(symbol) || state.symbol;
+        const entries = readLearningJournal();
+        const stats = journalStats(normalized, entries);
+        const scoped = entries.filter((entry) => entry.symbol === normalized);
+        const generated = new Date().toLocaleString();
+        const lines = [
+          "Market Intel AI - Prediction Accuracy Report",
+          `Generated: ${generated}`,
+          `Symbol: ${normalized}`,
+          `Storage key: ${LEARNING_KEY}`,
+          "",
+          "Summary",
+          `Total records: ${stats.total}`,
+          `Resolved records: ${stats.samples}`,
+          `Hit rate: ${stats.samples ? `${stats.accuracy}%` : "not enough resolved predictions"}`,
+          `Wins: ${stats.wins}`,
+          `Losses: ${stats.losses}`,
+          `Pending: ${stats.pending}`,
+          `Confidence adjustment: ${stats.confidenceAdjustment >= 0 ? "+" : ""}${stats.confidenceAdjustment} pts`,
+          "",
+          "Records",
+          "status | created | target | predicted | base price | actual price | actual direction | confidence | probability up"
+        ];
+
+        scoped
+          .slice()
+          .reverse()
+          .forEach((entry) => {
+            lines.push(
+              [
+                entry.status,
+                new Date(entry.createdAt).toLocaleString(),
+                new Date(entry.targetTime).toLocaleString(),
+                entry.predictedTrend,
+                Number.isFinite(entry.basePrice) ? entry.basePrice.toFixed(4) : "--",
+                Number.isFinite(entry.actualPrice) ? entry.actualPrice.toFixed(4) : "--",
+                entry.actualDirection === undefined ? "--" : directionLabel(entry.actualDirection),
+                `${entry.confidence}%`,
+                `${entry.probabilityUp}%`
+              ].join(" | ")
+            );
+          });
+
+        return `${lines.join("\n")}\n`;
+      }
+
+      function downloadAccuracyReport() {
+        const blob = new Blob([accuracyReportText()], { type: "text/plain;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+        link.href = url;
+        link.download = `market-intel-${state.symbol}-accuracy-${stamp}.txt`;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(url);
+      }
+
+      function recordPredictionLearning(symbol, points, prediction) {
+        const normalized = symbol.toUpperCase();
+        const latest = points.at(-1);
+        if (!latest) return emptyJournalStats();
+
+        const pointMs = (point) => {
+          const value = Date.parse(point?.time || "");
+          return Number.isFinite(value) ? value : Date.now();
+        };
+        const now = Date.now();
+        const latestTime = pointMs(latest);
+        const interval = points.length > 1 ? Math.max(latestTime - pointMs(points.at(-2)), 30000) : 60000;
+        const targetTime = latestTime + interval * (prediction.calibration?.horizonSteps || 5);
+        const expected = expectedDirection(prediction.trend);
+        const journal = readLearningJournal();
+
+        const scored = journal.map((entry) => {
+          if (entry.symbol !== normalized || entry.status !== "pending" || latestTime < entry.targetTime) return entry;
+          const actualPoint =
+            points.find((point) => pointMs(point) >= entry.targetTime) || latest;
+          const observed = actualDirection(entry.basePrice, actualPoint.close);
+          const hit = observed === entry.expectedDirection;
+          return {
+            ...entry,
+            status: hit ? "hit" : "miss",
+            resolvedAt: now,
+            actualTime: pointMs(actualPoint),
+            actualPrice: actualPoint.close,
+            actualDirection: observed
+          };
+        });
+
+        const duplicate = scored.some(
+          (entry) =>
+            entry.symbol === normalized &&
+            entry.baseTime === latestTime &&
+            entry.predictedTrend === prediction.trend
+        );
+
+        if (!duplicate) {
+          scored.push({
+            id: `${normalized}-${latestTime}-${prediction.trend}`,
+            symbol: normalized,
+            createdAt: now,
+            baseTime: latestTime,
+            targetTime,
+            basePrice: latest.close,
+            predictedTrend: prediction.trend,
+            expectedDirection: expected,
+            probabilityUp: prediction.probabilityUp,
+            confidence: prediction.confidence,
+            status: "pending"
+          });
+        }
+
+        writeLearningJournal(scored);
+        return journalStats(normalized, scored);
+      }
+
+      function applyJournalLearning(prediction, stats) {
+        if (!stats || stats.samples < 5) return { ...prediction, learningStats: stats };
+        return {
+          ...prediction,
+          confidence: Math.round(Math.min(Math.max(prediction.confidence + stats.confidenceAdjustment, 35), 95)),
+          probabilityUp: Math.round(
+            Math.min(Math.max(50 + (prediction.probabilityUp - 50) * stats.probabilityScale, 8), 92)
+          ),
+          learningStats: stats
+        };
+      }
+
+      function clamp(value, min, max) {
+        return Math.min(Math.max(value, min), max);
+      }
+
+      function isValidPrice(value) {
+        return Number.isFinite(value) && value > 0;
+      }
+
+      function normalizeOhlc(open, high, low, close) {
+        const closePrice = isValidPrice(close) ? close : 0;
+        const openPrice = isValidPrice(open) ? open : closePrice;
+        const highPrice = isValidPrice(high) ? high : Math.max(openPrice, closePrice);
+        const lowPrice = isValidPrice(low) ? low : Math.min(openPrice, closePrice);
+        return {
+          open: openPrice,
+          high: Math.max(highPrice, openPrice, closePrice),
+          low: Math.min(lowPrice, openPrice, closePrice),
+          close: closePrice
+        };
+      }
+
+      function minVisibleCount(total) {
+        return Math.min(total, MIN_VISIBLE_POINTS);
+      }
+
+      function defaultVisibleCount(total) {
+        return Math.min(total, Math.max(minVisibleCount(total), Math.ceil(total * DEFAULT_VIEW_SPAN)));
+      }
+
+      function normalizeVisibleWindow(startIndex, endIndex, total) {
+        if (!total) return { visibleStartIndex: 0, visibleEndIndex: 0 };
+        const minCount = minVisibleCount(total);
+        const span = clamp(Math.round(endIndex - startIndex), minCount, total);
+        const start = clamp(Math.round(startIndex), 0, Math.max(0, total - span));
+        return {
+          visibleStartIndex: start,
+          visibleEndIndex: start + span
+        };
+      }
+
+      function setVisibleWindow(startIndex, endIndex, total = state.points.length) {
+        const next = normalizeVisibleWindow(startIndex, endIndex, total);
+        state.visibleStartIndex = next.visibleStartIndex;
+        state.visibleEndIndex = next.visibleEndIndex;
+        return next;
+      }
+
+      function resetChartView(total = state.points.length) {
+        const count = defaultVisibleCount(total);
+        setVisibleWindow(total - count, total, total);
+      }
+
+      function chartWindow(points) {
+        const total = points.length;
+        if (!total) return { points: [], visibleStartIndex: 0, visibleEndIndex: 0 };
+        if (state.visibleEndIndex <= state.visibleStartIndex || state.visibleEndIndex > total) resetChartView(total);
+        const window = setVisibleWindow(state.visibleStartIndex, state.visibleEndIndex, total);
+
+        return {
+          points: points.slice(window.visibleStartIndex, window.visibleEndIndex),
+          visibleStartIndex: window.visibleStartIndex,
+          visibleEndIndex: window.visibleEndIndex
+        };
+      }
+
+      function visiblePrediction(prediction, visibleStartIndex, visibleEndIndex) {
+        if (!prediction) return null;
+        return {
+          ...prediction,
+          smaSeries: prediction.smaSeries.slice(visibleStartIndex, visibleEndIndex),
+          emaSeries: prediction.emaSeries.slice(visibleStartIndex, visibleEndIndex)
+        };
+      }
+
+      function handleChartWheel(event) {
+        if (state.points.length <= MIN_VISIBLE_POINTS) return;
+        event.preventDefault();
+
+        const total = state.points.length;
+        const view = chartWindow(state.points);
+        const rect = el.canvas.getBoundingClientRect();
+        const plotWidth = Math.max(rect.width - CHART_PAD.left - CHART_PAD.right, 1);
+        const focus = clamp((event.clientX - rect.left - CHART_PAD.left) / plotWidth, 0, 1);
+        const span = view.visibleEndIndex - view.visibleStartIndex;
+        const nextSpan = clamp(Math.round(span * (event.deltaY > 0 ? WHEEL_ZOOM_OUT : WHEEL_ZOOM_IN)), minVisibleCount(total), total);
+        const anchor = view.visibleStartIndex + span * focus;
+        setVisibleWindow(anchor - nextSpan * focus, anchor + nextSpan * (1 - focus), total);
+        drawChart();
+      }
+
+      function handleChartPointerDown(event) {
+        if (event.button !== 0 || state.points.length <= MIN_VISIBLE_POINTS) return;
+        const view = chartWindow(state.points);
+        state.pan = {
+          pointerId: event.pointerId,
+          startX: event.clientX,
+          visibleStartIndex: view.visibleStartIndex,
+          visibleEndIndex: view.visibleEndIndex
+        };
+        event.currentTarget.setPointerCapture(event.pointerId);
+        event.currentTarget.classList.add("is-panning");
+      }
+
+      function handleChartPointerMove(event) {
+        if (state.pan && state.pan.pointerId === event.pointerId) {
+          event.preventDefault();
+          const total = state.points.length;
+          const rect = el.canvas.getBoundingClientRect();
+          const plotWidth = Math.max(rect.width - CHART_PAD.left - CHART_PAD.right, 1);
+          const span = state.pan.visibleEndIndex - state.pan.visibleStartIndex;
+          const deltaPoints = Math.round(((state.pan.startX - event.clientX) / plotWidth) * span);
+          setVisibleWindow(
+            state.pan.visibleStartIndex + deltaPoints,
+            state.pan.visibleEndIndex + deltaPoints,
+            total
+          );
+          drawChart();
+          return;
+        }
+        updateChartCursor(event);
+      }
+
+      function updateChartCursor(event) {
+        if (!state.points.length) return;
+        const view = chartWindow(state.points);
+        if (!view.points.length) return;
+        const rect = el.canvas.getBoundingClientRect();
+        const plotWidth = Math.max(rect.width - CHART_PAD.left - CHART_PAD.right, 1);
+        const focus = clamp((event.clientX - rect.left - CHART_PAD.left) / plotWidth, 0, 1);
+        const localIndex = clamp(Math.round(focus * (view.points.length - 1)), 0, view.points.length - 1);
+        state.cursorIndex = view.visibleStartIndex + localIndex;
+        updateChartReadout(view.points[localIndex], view);
+        drawChart();
+      }
+
+      function clearChartCursor() {
+        if (state.pan) return;
+        state.cursorIndex = null;
+        drawChart();
+      }
+
+      function handleChartPointerUp(event) {
+        if (!state.pan || state.pan.pointerId !== event.pointerId) return;
+        state.pan = null;
+        if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
+        event.currentTarget.classList.remove("is-panning");
+      }
+
+      async function toggleChartFullscreen(event) {
+        event.preventDefault();
+        event.stopPropagation();
+
+        const chartStage = el.canvas.parentElement;
+        if (document.fullscreenElement === chartStage) {
+          await document.exitFullscreen();
+        } else if (chartStage.requestFullscreen) {
+          await chartStage.requestFullscreen();
+        }
+      }
+
+      function renderFullscreenControl() {
+        const isFullscreen = document.fullscreenElement === el.canvas.parentElement;
+        el.chartFullscreen.textContent = isFullscreen ? "Exit" : "Full";
+        el.chartFullscreen.title = isFullscreen ? "Exit full screen chart" : "Full screen chart";
+        el.chartFullscreen.setAttribute("aria-label", el.chartFullscreen.title);
+        window.requestAnimationFrame(drawChart);
       }
 
       function drawChart() {
@@ -1147,22 +2459,56 @@
         if (!points.length) {
           ctx.fillStyle = "rgba(237,244,236,0.62)";
           ctx.font = "14px system-ui";
-          ctx.fillText("Loading live OHLC data...", 24, 34);
+          ctx.fillText("Loading live OHLC data...", 24, 62);
           return;
         }
 
-        const prediction = state.predictions;
-        const pad = { left: 52, right: 58, top: 22, bottom: 38 };
-        const closes = points.map((point) => point.close);
-        const forecast = Array.from({ length: 8 }, (_, index) => closes.at(-1) + prediction.forecastSlope * (index + 1));
-        const values = closes.concat(prediction.smaSeries, prediction.emaSeries, forecast);
-        const min = Math.min(...values, prediction.support) * 0.997;
-        const max = Math.max(...values, prediction.resistance) * 1.003;
+        const view = chartWindow(points);
+        const visiblePoints = view.points;
+        const cursorLocalIndex =
+          state.cursorIndex === null
+            ? null
+            : clamp(state.cursorIndex - view.visibleStartIndex, 0, Math.max(visiblePoints.length - 1, 0));
+        updateChartReadout(cursorLocalIndex === null ? null : visiblePoints[cursorLocalIndex], view);
+        const prediction = visiblePrediction(state.predictions, view.visibleStartIndex, view.visibleEndIndex);
+        if (!prediction) return;
+        const pad = CHART_PAD;
+        const closes = visiblePoints.map((point) => point.close);
+        const lows = visiblePoints.map((point) => isValidPrice(point.low) ? point.low : point.close);
+        const highs = visiblePoints.map((point) => isValidPrice(point.high) ? point.high : point.close);
+        const visibleSupport = Math.min(...lows);
+        const visibleResistance = Math.max(...highs);
+        const comparisonPoints = state.providerMode === "compare" ? state.quote?.comparison?.secondaryPoints : null;
+        const comparisonSeries = comparisonPoints?.length
+          ? visiblePoints.map((point) => nearestComparisonPrice(comparisonPoints, point))
+          : [];
+        const showForecast = state.indicators.forecast && view.visibleEndIndex >= points.length;
+        const forecast = showForecast
+          ? Array.from({ length: 8 }, (_, index) => closes.at(-1) + prediction.forecastSlope * (index + 1))
+          : [];
+        const values = closes
+          .concat(prediction.smaSeries, prediction.emaSeries, comparisonSeries, forecast, [visibleSupport, visibleResistance])
+          .filter(isValidPrice);
+        if (!values.length) return;
+        const minValue = Math.min(...values);
+        const maxValue = Math.max(...values);
+        const yPadding = Math.max((maxValue - minValue) * 0.08, Math.abs(maxValue) * 0.002, 0.01);
+        const min = minValue - yPadding;
+        const max = maxValue + yPadding;
         const plotW = w - pad.left - pad.right;
         const plotH = h - pad.top - pad.bottom;
-        const total = points.length + forecast.length;
+        const total = visiblePoints.length + forecast.length;
         const x = (index) => pad.left + (index / Math.max(total - 1, 1)) * plotW;
         const y = (value) => pad.top + (1 - (value - min) / Math.max(max - min, 0.01)) * plotH;
+        const primaryLineColor = state.providerMode === "compare"
+          ? "rgba(199,164,255,0.96)"
+          : "rgba(141,214,177,0.96)";
+        const volumeColor = state.providerMode === "compare"
+          ? "rgba(199,164,255,0.14)"
+          : "rgba(141,214,177,0.12)";
+        const forecastLineColor = state.providerMode === "compare"
+          ? "rgba(118,213,244,0.9)"
+          : "rgba(199,164,255,0.9)";
 
         ctx.strokeStyle = "rgba(255,255,255,0.08)";
         ctx.lineWidth = 1;
@@ -1180,47 +2526,61 @@
           ctx.lineWidth = width;
           ctx.setLineDash(dash);
           ctx.beginPath();
+          let started = false;
           data.forEach((value, index) => {
+            if (!isValidPrice(value)) {
+              started = false;
+              return;
+            }
             const xx = x(index);
             const yy = y(value);
-            if (index === 0) ctx.moveTo(xx, yy);
+            if (!started) {
+              ctx.moveTo(xx, yy);
+              started = true;
+            }
             else ctx.lineTo(xx, yy);
           });
           ctx.stroke();
           ctx.restore();
         }
 
-        ctx.fillStyle = "rgba(141,214,177,0.12)";
-        points.forEach((point, index) => {
-          const barH = Math.min(plotH * 0.25, (point.volume / Math.max(...points.map((item) => item.volume))) * plotH * 0.22);
+        ctx.fillStyle = volumeColor;
+        const maxVolume = Math.max(...visiblePoints.map((item) => item.volume), 1);
+        visiblePoints.forEach((point, index) => {
+          const barH = Math.min(plotH * 0.25, (point.volume / maxVolume) * plotH * 0.22);
           ctx.fillRect(x(index) - 1, pad.top + plotH - barH, 2, barH);
         });
 
-        drawLine(closes, "rgba(141,214,177,0.96)", 2.5);
-        drawLine(prediction.smaSeries, "rgba(255,183,92,0.9)", 1.35);
-        drawLine(prediction.emaSeries, "rgba(118,213,244,0.9)", 1.35);
+        drawLine(closes, primaryLineColor, 2.5);
+        if (state.indicators.sma) drawLine(prediction.smaSeries, "rgba(255,183,92,0.9)", 1.35);
+        if (state.indicators.ema) drawLine(prediction.emaSeries, "rgba(118,213,244,0.9)", 1.35);
+        if (comparisonSeries.some(isValidPrice)) {
+          drawLine(comparisonSeries, "rgba(255,119,119,0.95)", 2, [4, 4]);
+        }
 
-        ctx.save();
-        ctx.strokeStyle = "rgba(199,164,255,0.9)";
-        ctx.lineWidth = 2;
-        ctx.setLineDash([6, 6]);
-        ctx.beginPath();
-        const startIndex = points.length - 1;
-        ctx.moveTo(x(startIndex), y(closes.at(-1)));
-        forecast.forEach((value, index) => ctx.lineTo(x(startIndex + index + 1), y(value)));
-        ctx.stroke();
-        ctx.restore();
+        if (showForecast) {
+          ctx.save();
+          ctx.strokeStyle = forecastLineColor;
+          ctx.lineWidth = 2;
+          ctx.setLineDash([6, 6]);
+          ctx.beginPath();
+          const startIndex = visiblePoints.length - 1;
+          ctx.moveTo(x(startIndex), y(closes.at(-1)));
+          forecast.forEach((value, index) => ctx.lineTo(x(startIndex + index + 1), y(value)));
+          ctx.stroke();
+          ctx.restore();
+        }
 
         ctx.strokeStyle = "rgba(141,214,177,0.35)";
         ctx.setLineDash([4, 5]);
         ctx.beginPath();
-        ctx.moveTo(pad.left, y(prediction.support));
-        ctx.lineTo(w - pad.right, y(prediction.support));
+        ctx.moveTo(pad.left, y(visibleSupport));
+        ctx.lineTo(w - pad.right, y(visibleSupport));
         ctx.stroke();
         ctx.strokeStyle = "rgba(255,183,92,0.35)";
         ctx.beginPath();
-        ctx.moveTo(pad.left, y(prediction.resistance));
-        ctx.lineTo(w - pad.right, y(prediction.resistance));
+        ctx.moveTo(pad.left, y(visibleResistance));
+        ctx.lineTo(w - pad.right, y(visibleResistance));
         ctx.stroke();
         ctx.setLineDash([]);
 
@@ -1230,36 +2590,118 @@
           const value = max - ((max - min) * row) / 4;
           ctx.fillText(`$${value.toFixed(2)}`, w - pad.right + 10, pad.top + (row / 4) * plotH + 4);
         }
-        ctx.fillText(points[0].time.slice(5, 16), pad.left, h - 14);
-        ctx.fillText(points.at(-1).time.slice(5, 16), w - pad.right - 86, h - 14);
+        ctx.fillText(visiblePoints[0].time.slice(5, 16), pad.left, h - 14);
+        ctx.fillText(visiblePoints.at(-1).time.slice(5, 16), w - pad.right - 86, h - 14);
+
+        if (cursorLocalIndex !== null && visiblePoints[cursorLocalIndex]) {
+          const point = visiblePoints[cursorLocalIndex];
+          const xx = x(cursorLocalIndex);
+          const yy = y(point.close);
+          ctx.save();
+          ctx.strokeStyle = "rgba(237,244,236,0.34)";
+          ctx.lineWidth = 1;
+          ctx.setLineDash([3, 5]);
+          ctx.beginPath();
+          ctx.moveTo(xx, pad.top);
+          ctx.lineTo(xx, pad.top + plotH);
+          ctx.stroke();
+          ctx.setLineDash([]);
+          ctx.fillStyle = "rgba(8,10,9,0.92)";
+          ctx.strokeStyle = primaryLineColor;
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.arc(xx, yy, 4.5, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.stroke();
+          ctx.fillStyle = primaryLineColor;
+          ctx.beginPath();
+          ctx.arc(xx, yy, 2, 0, Math.PI * 2);
+          ctx.fill();
+
+          const comparisonPrice = state.providerMode === "compare"
+            ? nearestComparisonPrice(comparisonPoints, point)
+            : undefined;
+          const dateLabel = pointDateLabel(point);
+          const yahooLabel = `Yahoo ${fmt(point.close)}`;
+          const alphaLabel = comparisonPrice ? `Alpha ${fmt(comparisonPrice)}` : "";
+          const closeLabel = `${dateLabel}  ${fmt(point.close)}`;
+          ctx.font = "12px system-ui";
+          const labelWidth = comparisonPrice
+            ? Math.max(ctx.measureText(dateLabel).width, ctx.measureText(yahooLabel).width, ctx.measureText(alphaLabel).width) + 24
+            : ctx.measureText(closeLabel).width + 18;
+          const boxW = Math.min(Math.max(labelWidth, comparisonPrice ? 142 : 132), plotW);
+          const boxH = comparisonPrice ? 64 : 28;
+          const boxX = clamp(xx + 10, pad.left, w - pad.right - boxW);
+          const boxY = Math.max(pad.top + 8, yy - (comparisonPrice ? 78 : 42));
+          ctx.fillStyle = "rgba(12,14,13,0.94)";
+          ctx.strokeStyle = "rgba(255,255,255,0.14)";
+          ctx.beginPath();
+          ctx.roundRect(boxX, boxY, boxW, boxH, 7);
+          ctx.fill();
+          ctx.stroke();
+          if (comparisonPrice) {
+            ctx.fillStyle = "rgba(237,244,236,0.72)";
+            ctx.fillText(dateLabel, boxX + 10, boxY + 17);
+            ctx.fillStyle = "rgba(199,164,255,0.96)";
+            ctx.fillText(yahooLabel, boxX + 10, boxY + 36);
+            ctx.fillStyle = "rgba(255,119,119,0.96)";
+            ctx.fillText(alphaLabel, boxX + 10, boxY + 54);
+          } else {
+            ctx.fillStyle = "rgba(237,244,236,0.9)";
+            ctx.fillText(closeLabel, boxX + 9, boxY + 18);
+          }
+          ctx.restore();
+        }
       }
 
-      async function loadMarket(symbol = state.symbol) {
-        state.symbol = cleanSymbol(symbol) || "MSFT";
+      async function loadMarket(symbol = state.symbol, options = {}) {
+        const nextSymbol = cleanSymbol(symbol) || "MSFT";
+        if (marketRefreshInFlight && nextSymbol === state.symbol && !options.force) return;
+
+        const requestId = ++marketRequestId;
+        marketRefreshInFlight = true;
+        if (nextSymbol !== state.symbol || options.force) state.cursorIndex = null;
+        state.symbol = nextSymbol;
         localStorage.setItem("marketIntelSymbol", state.symbol);
-        el.feedStatus.textContent = "Syncing";
-        renderShell();
+        el.feedStatus.textContent = options.silent ? "Updating" : "Syncing";
+        if (!options.silent) renderShell();
 
         try {
-          let snapshot;
-          try {
-            snapshot = await fetchYahooSnapshot(state.symbol, state.range);
-          } catch {
-            snapshot = await fetchAlphaSnapshot(state.symbol, state.range);
-          }
+          const previousTotal = state.points.length;
+          const previousSpan = state.visibleEndIndex > state.visibleStartIndex
+            ? state.visibleEndIndex - state.visibleStartIndex
+            : 0;
+          const wasPinnedToLatest = state.visibleEndIndex >= previousTotal - 1;
+          const snapshot = await fetchMarketSnapshot(state.symbol, state.range);
+          if (requestId !== marketRequestId) return;
           state.points = snapshot.points;
           state.quote = snapshot.quote;
           state.dataProvider = snapshot.provider;
+          state.sourceWarning = snapshot.sourceWarning || null;
+          if (!options.silent || !previousSpan) {
+            resetChartView(state.points.length);
+          } else if (wasPinnedToLatest) {
+            setVisibleWindow(state.points.length - previousSpan, state.points.length, state.points.length);
+          } else {
+            setVisibleWindow(state.visibleStartIndex, state.visibleEndIndex, state.points.length);
+          }
           state.predictions = analyze(state.points);
+          state.learningStats = recordPredictionLearning(state.symbol, state.points, state.predictions);
+          state.predictions = applyJournalLearning(state.predictions, state.learningStats);
           state.watchQuotes[state.symbol] = snapshot.quote;
-          el.feedStatus.textContent = "LIVE";
+          el.feedStatus.textContent = `LIVE ${Math.round(MARKET_POLL_MS / 1000)}s`;
           el.lastTick.textContent = new Date().toLocaleTimeString();
           renderAll();
-          loadNews(state.symbol);
-          loadWatchQuotes();
+          if (options.refreshContext !== false) {
+            loadNews(state.symbol);
+            loadWatchQuotes();
+          }
         } catch (error) {
+          if (requestId !== marketRequestId) return;
           el.feedStatus.textContent = "Data unavailable";
           renderError(error.message);
+        } finally {
+          if (requestId === marketRequestId) marketRefreshInFlight = false;
         }
       }
 
@@ -1267,7 +2709,7 @@
         const symbols = WATCHLIST.filter((symbol) => symbol !== state.symbol);
         for (const symbol of symbols) {
           try {
-            state.watchQuotes[symbol] = (await fetchYahooSnapshot(symbol, "1D")).quote;
+            state.watchQuotes[symbol] = (await fetchMarketSnapshot(symbol, "1D")).quote;
             renderWatch();
           } catch {
             state.watchQuotes[symbol] = { symbol, unavailable: true };
@@ -1278,10 +2720,10 @@
 
       function impactForText(text) {
         const lower = text.toLowerCase();
-        const bullish = ["gain", "beats", "beat", "upgrade", "surge", "rally", "growth", "record", "profit", "buy"].some((word) =>
+        const bullish = ["gain", "beats", "beat", "upgrade", "surge", "rally", "growth", "record", "profit"].some((word) =>
           lower.includes(word)
         );
-        const bearish = ["fall", "falls", "miss", "cuts", "downgrade", "drop", "crash", "loss", "probe", "sell"].some((word) =>
+        const bearish = ["fall", "falls", "miss", "cuts", "downgrade", "drop", "crash", "loss", "probe"].some((word) =>
           lower.includes(word)
         );
         if (bullish && !bearish) return "bullish";
@@ -1338,6 +2780,85 @@
         })[char]);
       }
 
+      function setText(id, value) {
+        const node = document.getElementById(id);
+        if (node) node.textContent = value;
+        return node;
+      }
+
+      function setClass(id, value) {
+        const node = document.getElementById(id);
+        if (node) node.className = value;
+        return node;
+      }
+
+      function renderInspectorTabs() {
+        document.querySelectorAll("[data-tab]").forEach((button) => {
+          button.classList.toggle("active", button.dataset.tab === state.activeTab);
+        });
+        document.querySelectorAll("[data-pane]").forEach((pane) => {
+          pane.classList.toggle("active", pane.dataset.pane === state.activeTab);
+        });
+      }
+
+      function renderIndicatorControls() {
+        document.querySelectorAll("[data-indicator]").forEach((button) => {
+          button.classList.toggle("active", Boolean(state.indicators[button.dataset.indicator]));
+        });
+      }
+
+      function renderSourceSwitch() {
+        document.querySelectorAll("[data-provider]").forEach((button) => {
+          button.classList.toggle("active", button.dataset.provider === state.providerMode);
+        });
+        el.alphaKeyInput.hidden = state.providerMode === "yahoo";
+      }
+
+      function alphaStatusLabel(warning) {
+        const text = String(warning || "").toLowerCase();
+        if (!text) return null;
+        if (text.includes("demo")) return "Alpha key needed";
+        if (text.includes("rate") || text.includes("frequency") || text.includes("limit")) return "Alpha rate limit";
+        if (text.includes("yahoo-only") || text.includes("standard stock")) return "Yahoo-only symbol";
+        if (text.includes("not supported") || text.includes("invalid api call")) return "Alpha unsupported";
+        if (text.includes("api key") || text.includes("apikey")) return "Alpha key issue";
+        if (text.includes("time-series") || text.includes("no finite")) return "Alpha no data";
+        return "Alpha unavailable";
+      }
+
+      function alphaStatusMessage(warning) {
+        const text = String(warning || "").toLowerCase();
+        if (text.includes("yahoo-only") || text.includes("standard stock")) {
+          return "This selected market is Yahoo-only here. Alpha Vantage comparison works with stocks/ETFs like AAPL, MSFT, NVDA, SPY, and QQQ.";
+        }
+        return warning || null;
+      }
+
+      function applyAlphaKey() {
+        const nextKey = el.alphaKeyInput.value.trim() || DEMO_KEY;
+        const changed = nextKey !== state.apiKey;
+        state.apiKey = nextKey;
+        state.sourceWarning = null;
+
+        if (state.apiKey === DEMO_KEY) {
+          localStorage.removeItem("marketIntelAlphaApiKey");
+        } else {
+          localStorage.setItem("marketIntelAlphaApiKey", state.apiKey);
+        }
+
+        if (state.providerMode !== "yahoo") {
+          document.getElementById("providerName").textContent =
+            state.apiKey === DEMO_KEY ? "Demo Alpha key" : "Checking Alpha";
+          setText(
+            "quoteProvider",
+            state.apiKey === DEMO_KEY
+              ? `Using Alpha Vantage demo access. Get a free API key at ${ALPHA_KEY_URL}, then press Enter.`
+              : "Checking Alpha Vantage with your saved API key..."
+          );
+          if (changed) loadMarket(state.symbol, { force: true });
+        }
+      }
+
       function renderError(message) {
         document.getElementById("predictionText").textContent = message;
         document.getElementById("trendLabel").textContent = "DATA WARNING";
@@ -1346,11 +2867,14 @@
 
       function renderShell() {
         el.symbolTitle.textContent = state.symbol;
-        document.getElementById("sideSymbol").textContent = state.symbol;
+        setText("sideSymbol", state.symbol);
         el.symbolName.textContent = `${state.dataProvider} market data`;
         document.querySelectorAll("[data-range]").forEach((button) => {
           button.classList.toggle("active", button.dataset.range === state.range);
         });
+        renderInspectorTabs();
+        renderIndicatorControls();
+        renderSourceSwitch();
         renderWatch();
       }
 
@@ -1360,8 +2884,9 @@
           const active = symbol === state.symbol ? "active" : "";
           const unavailable = quote && quote.unavailable;
           const changeClass = quote && !unavailable ? (quote.change >= 0 ? "positive" : "negative") : "";
+          const label = quote && !unavailable ? marketDisplayName(symbol, quote.name) : marketDisplayName(symbol);
           return `<button class="stock ${active}" data-symbol="${symbol}">
-            <span><strong>${symbol}</strong><small>${unavailable ? "Sync unavailable" : "NASDAQ / NYSE"}</small></span>
+            <span><strong>${symbol}</strong><small>${escapeHtml(label)}</small></span>
             <span><strong>${quote && !unavailable ? fmt(quote.price) : "--"}</strong><small class="${changeClass}">${
               quote && !unavailable ? pct(quote.changePercent) : "sync"
             }</small></span>
@@ -1373,22 +2898,99 @@
         const quote = state.quote;
         if (!quote) return;
         const changeClass = quote.change >= 0 ? "positive" : "negative";
+        const session = quote.session || clockSession();
+        const extended = quote.extended;
+        const comparison = quote.comparison;
+        const extendedClass = extended ? (extended.change >= 0 ? "positive" : "negative") : "";
         el.livePrice.textContent = fmt(quote.price);
         el.liveChange.textContent = `${quote.change >= 0 ? "+" : ""}${quote.change.toFixed(2)} (${pct(quote.changePercent)})`;
         el.liveChange.className = changeClass;
-        document.getElementById("mOpen").textContent = fmt(quote.open);
-        document.getElementById("mHigh").textContent = fmt(quote.high);
-        document.getElementById("mLow").textContent = fmt(quote.low);
-        document.getElementById("mVolume").textContent = compact.format(quote.volume);
-        document.getElementById("mVolatility").textContent = `${state.predictions.volatility.toFixed(1)}%`;
-        document.getElementById("mRange").textContent = state.range;
-        document.getElementById("sidePrice").textContent = fmt(quote.price);
-        document.getElementById("sideChange").textContent = `${quote.change >= 0 ? "+" : ""}${quote.change.toFixed(2)} (${pct(quote.changePercent)})`;
-        document.getElementById("sideChange").className = changeClass;
-        document.getElementById("sideVolume").textContent = compact.format(quote.volume);
-        document.getElementById("sideRange").textContent = `${fmt(quote.low)} - ${fmt(quote.high)}`;
-        document.getElementById("providerName").textContent = state.dataProvider;
-        document.getElementById("sideSource").textContent = state.dataProvider;
+        el.extendedQuote.textContent = extended
+          ? `${extended.label} ${fmt(extended.price)} ${signedMoney(extended.change)} (${pct(extended.changePercent)})`
+          : "";
+        el.extendedQuote.className = `extended-quote ${extendedClass}`.trim();
+        el.compareSpread.textContent = state.providerMode === "compare" && comparison
+          ? `Gap ${signedMoney(comparison.priceDifference)} (${pct(comparison.priceDifferencePercent)})`
+          : "";
+        el.compareChip.hidden = state.providerMode !== "compare";
+        if (state.providerMode === "compare") {
+          el.compareChip.className = `compare-legend${comparison ? "" : " waiting"}`;
+          el.compareChip.title = comparison
+            ? "Compare legend: Yahoo is purple, Alpha is red"
+            : "Waiting for Alpha comparison data";
+          el.compareChip.setAttribute(
+            "aria-label",
+            comparison ? "Yahoo purple line and Alpha red line" : "Waiting for Alpha comparison data"
+          );
+          if (comparison) {
+            el.compareChip.innerHTML = `
+              <span class="source-legend source-yahoo">Yahoo</span>
+              <span class="source-legend source-alpha">Alpha</span>
+            `;
+          } else {
+            el.compareChip.innerHTML = `<span class="source-legend source-waiting">Alpha pending</span>`;
+          }
+        }
+        setText("mOpen", fmt(quote.open));
+        setText("mHigh", fmt(quote.high));
+        setText("mLow", fmt(quote.low));
+        setText("mVolume", compact.format(quote.volume));
+        setText("mVolatility", `${state.predictions.volatility.toFixed(1)}%`);
+        setText("mRange", state.range);
+        setText("sidePriceLabel", primaryPriceLabel(session));
+        setText("sidePrice", fmt(quote.price));
+        setText("sideChange", `${quote.change >= 0 ? "+" : ""}${quote.change.toFixed(2)} (${pct(quote.changePercent)})`);
+        setClass("sideChange", changeClass);
+        setText("sideExtendedLabel", extended?.label || "Extended");
+        setText("sideExtendedPrice", extended ? fmt(extended.price) : "--");
+        setClass("sideExtendedPrice", extendedClass);
+        setText("sideExtendedChange", extended
+          ? `${signedMoney(extended.change)} (${pct(extended.changePercent)})`
+          : "--");
+        setClass("sideExtendedChange", extendedClass);
+        setText("sideRange", `${fmt(quote.low)} - ${fmt(quote.high)}`);
+        setClass("sideRange", "");
+        el.marketSession.textContent = session.label;
+        el.marketSession.className = sessionClass(session);
+        const alphaLabel = alphaStatusLabel(state.sourceWarning);
+        document.getElementById("providerName").textContent =
+          state.providerMode === "yahoo"
+            ? state.dataProvider
+            : alphaLabel ||
+              (comparison
+                ? `${quote.source || state.dataProvider} vs ${comparison.secondarySource}`
+                : quote.source === "Alpha Vantage"
+                  ? state.apiKey === DEMO_KEY
+                    ? "Alpha demo"
+                    : "Alpha key active"
+                  : state.apiKey === DEMO_KEY
+                    ? "Alpha key needed"
+                    : "Checking Alpha");
+        setText("quoteProvider", state.dataProvider);
+        if (state.sourceWarning) {
+          setText("quoteProvider", alphaStatusMessage(state.sourceWarning));
+        } else if (comparison) {
+          setText("quoteProvider", `${quote.source || state.dataProvider} | ${comparison.secondarySource} ${fmt(comparison.secondaryPrice)} | Gap ${signedMoney(comparison.priceDifference)} (${pct(comparison.priceDifferencePercent)})`);
+        } else if (state.providerMode !== "yahoo" && state.apiKey === DEMO_KEY) {
+          setText("quoteProvider", `Using Alpha Vantage demo access. Get a free API key at ${ALPHA_KEY_URL}, then press Enter.`);
+        } else if (state.providerMode !== "yahoo" && quote.source === "Alpha Vantage") {
+          setText("quoteProvider", "Alpha Vantage feed active with your saved API key.");
+        } else if (state.providerMode !== "yahoo" && state.apiKey !== DEMO_KEY) {
+          setText("quoteProvider", "Saved Alpha Vantage key applied. Waiting for the next source response.");
+        }
+
+        const comparisonPanel = document.getElementById("comparisonPanel");
+        comparisonPanel.hidden = !(state.providerMode === "compare" && comparison);
+        if (state.providerMode === "compare" && comparison) {
+          setText("comparePrimarySource", comparison.primarySource);
+          setText("comparePrimaryPrice", fmt(comparison.primaryPrice));
+          setText("comparePrimaryPoints", comparison.primaryPointCount || state.points.length);
+          setText("compareSecondarySource", comparison.secondarySource);
+          setText("compareSecondaryPrice", fmt(comparison.secondaryPrice));
+          setText("compareSecondaryPoints", comparison.secondaryPointCount || comparison.secondaryPoints?.length || "--");
+          setText("compareGap", `${signedMoney(comparison.priceDifference)} / ${pct(comparison.priceDifferencePercent)}`);
+          setClass("compareGap", comparison.priceDifference >= 0 ? "positive" : "negative");
+        }
       }
 
       function renderPrediction() {
@@ -1399,6 +3001,14 @@
         document.getElementById("confidence").textContent = `${p.confidence}%`;
         document.getElementById("trendLabel").textContent = p.trend;
         document.getElementById("predictionText").textContent = `Prediction: ${sentiment} (${p.probabilityUp}% up probability)`;
+        const journal = p.learningStats;
+        const backtestText = p.calibration?.samples
+          ? `Backtest ${p.calibration.accuracy}% / ${p.calibration.samples}`
+          : "Backtest warming";
+        const journalText = journal?.samples
+          ? `Saved ${journal.accuracy}% / ${journal.samples} (${journal.pending} open)`
+          : `Saved recording${journal?.pending ? ` (${journal.pending} open)` : ""}`;
+        document.getElementById("modelAccuracy").textContent = `${backtestText} | ${journalText}`;
         document.getElementById("pRsi").textContent = p.rsi.toFixed(1);
         document.getElementById("pRisk").textContent = p.risk;
         document.getElementById("pSma").textContent = fmt(p.sma);
@@ -1418,7 +3028,7 @@
           ["Selected stock", p.trend, p.confidence],
           ["Market sentiment", quote.changePercent >= 0 ? "RISK ON" : "RISK OFF", Math.round(Math.abs(quote.changePercent) * 8 + 54)],
           ["Volatility", p.volatility > 28 ? "HIGH VOLATILITY" : "NORMAL", Math.round(Math.min(p.volatility, 100))],
-          ["Momentum", quote.change >= 0 ? "BID STRENGTH" : "SELL PRESSURE", p.probabilityUp]
+          ["Momentum", quote.change >= 0 ? "BID STRENGTH" : "OFFER PRESSURE", p.probabilityUp]
         ];
         el.signals.innerHTML = signals
           .map(([name, value, score]) => `<div><span>${name}</span><strong>${value}</strong><span>${score}%</span></div>`)
@@ -1435,36 +3045,89 @@
 
       el.searchForm.addEventListener("submit", (event) => {
         event.preventDefault();
-        loadMarket(cleanSymbol(el.symbolInput.value) || state.symbol);
+        loadMarket(cleanSymbol(el.symbolInput.value) || state.symbol, { force: true });
       });
 
       document.getElementById("rangeControls").addEventListener("click", (event) => {
         const button = event.target.closest("[data-range]");
         if (!button) return;
         state.range = button.dataset.range;
-        loadMarket(state.symbol);
+        state.cursorIndex = null;
+        loadMarket(state.symbol, { force: true });
       });
+
+      document.getElementById("indicatorControls").addEventListener("click", (event) => {
+        const button = event.target.closest("[data-indicator]");
+        if (!button) return;
+        state.indicators[button.dataset.indicator] = !state.indicators[button.dataset.indicator];
+        renderIndicatorControls();
+        drawChart();
+      });
+
+      el.sourceSwitch.addEventListener("click", (event) => {
+        const button = event.target.closest("[data-provider]");
+        if (!button) return;
+        state.providerMode = button.dataset.provider;
+        state.cursorIndex = null;
+        renderSourceSwitch();
+        loadMarket(state.symbol, { force: true });
+      });
+
+      el.alphaKeyInput.addEventListener("input", () => {
+        if (state.providerMode !== "yahoo") {
+          document.getElementById("providerName").textContent = el.alphaKeyInput.value.trim()
+            ? "Press Enter"
+            : "Demo Alpha key";
+        }
+      });
+      el.alphaKeyInput.addEventListener("change", applyAlphaKey);
+      el.alphaKeyInput.addEventListener("blur", applyAlphaKey);
+      el.alphaKeyInput.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          el.alphaKeyInput.blur();
+        }
+      });
+
+      const chartStage = el.canvas.parentElement;
+      chartStage.addEventListener("wheel", handleChartWheel, { passive: false });
+      chartStage.addEventListener("pointerdown", handleChartPointerDown);
+      chartStage.addEventListener("pointermove", handleChartPointerMove);
+      chartStage.addEventListener("pointerup", handleChartPointerUp);
+      chartStage.addEventListener("pointercancel", handleChartPointerUp);
+      chartStage.addEventListener("pointerleave", clearChartCursor);
+      el.chartFullscreen.addEventListener("pointerdown", (event) => event.stopPropagation());
+      el.chartFullscreen.addEventListener("click", toggleChartFullscreen);
+      document.addEventListener("fullscreenchange", renderFullscreenControl);
 
       el.stocks.addEventListener("click", (event) => {
         const button = event.target.closest("[data-symbol]");
-        if (button) loadMarket(button.dataset.symbol);
+        if (button) loadMarket(button.dataset.symbol, { force: true });
       });
 
-      document.querySelectorAll("[data-add]").forEach((button) => {
-        button.addEventListener("click", () => loadMarket(button.dataset.add));
+      document.getElementById("toggleWatch").addEventListener("click", () => {
+        document.querySelector(".shell").classList.toggle("watch-collapsed");
+        const collapsed = document.querySelector(".shell").classList.contains("watch-collapsed");
+        document.getElementById("toggleWatch").textContent = collapsed ? ">" : "<";
+        window.requestAnimationFrame(drawChart);
       });
 
+      el.inspectorTabs.addEventListener("click", (event) => {
+        const button = event.target.closest("[data-tab]");
+        if (!button) return;
+        state.activeTab = button.dataset.tab;
+        renderInspectorTabs();
+      });
+
+      document.getElementById("downloadAccuracy").addEventListener("click", downloadAccuracyReport);
       document.getElementById("refreshNews").addEventListener("click", () => loadNews(state.symbol));
-      document.getElementById("toggleNews").addEventListener("click", () => {
-        document.body.classList.toggle("news-collapsed");
-        document.getElementById("toggleNews").textContent = document.body.classList.contains("news-collapsed") ? "Expand" : "Collapse";
-        drawChart();
-      });
       window.addEventListener("resize", drawChart);
 
       renderShell();
       loadMarket(state.symbol);
-      window.setInterval(() => loadMarket(state.symbol), 30000);
+      window.setInterval(() => loadMarket(state.symbol, { silent: true, refreshContext: false }), MARKET_POLL_MS);
+      window.setInterval(() => loadWatchQuotes(), WATCHLIST_POLL_MS);
+      window.setInterval(() => loadNews(state.symbol), NEWS_POLL_MS);
     </script>
   </body>
 </html>

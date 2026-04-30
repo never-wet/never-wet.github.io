@@ -44,7 +44,12 @@ export async function GET(request: NextRequest) {
 
   const payload = (await response.json()) as YahooSearchResponse;
   const results: SearchResult[] = (payload.quotes || [])
-    .filter((quote) => quote.symbol && ["EQUITY", "ETF", "INDEX"].includes(quote.quoteType || ""))
+    .filter((quote) =>
+      Boolean(
+        quote.symbol &&
+          ["EQUITY", "ETF", "INDEX", "CRYPTOCURRENCY", "CURRENCY", "FUTURE"].includes(quote.quoteType || "")
+      )
+    )
     .slice(0, 8)
     .map((quote) => ({
       symbol: quote.symbol!.toUpperCase(),

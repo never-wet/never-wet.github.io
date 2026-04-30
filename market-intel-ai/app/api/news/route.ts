@@ -26,8 +26,7 @@ const bullishWords = [
   "rally",
   "growth",
   "record",
-  "profit",
-  "buy"
+  "profit"
 ];
 
 const bearishWords = [
@@ -40,8 +39,7 @@ const bearishWords = [
   "drop",
   "crash",
   "loss",
-  "probe",
-  "sell"
+  "probe"
 ];
 
 function impactForTitle(title: string): NewsItem["impact"] {
@@ -55,12 +53,12 @@ function impactForTitle(title: string): NewsItem["impact"] {
 }
 
 function sanitizeSymbols(value: string | null) {
-  const symbols = (value || "AAPL,MSFT,NVDA,SPY")
+  const symbols = (value || "^GSPC,SPY,NVDA,BTC-USD,GC=F")
     .split(",")
     .map((symbol) => symbol.trim().toUpperCase())
-    .filter((symbol) => /^[A-Z0-9.^-]{1,12}$/.test(symbol));
+    .filter((symbol) => /^[A-Z0-9.^=-]{1,18}$/.test(symbol));
 
-  return [...new Set(symbols)].slice(0, 6);
+  return [...new Set(symbols)].slice(0, 8);
 }
 
 export async function GET(request: NextRequest) {

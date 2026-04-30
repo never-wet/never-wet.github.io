@@ -1,4 +1,5 @@
 export type TimeRange = "1D" | "1W" | "1M" | "1Y";
+export type MarketProvider = "yahoo" | "alpha" | "compare";
 
 export type MarketPoint = {
   time: number;
@@ -10,10 +11,26 @@ export type MarketPoint = {
   volume: number;
 };
 
+export type MarketSession = {
+  state: "regular" | "pre" | "post" | "closed" | "unknown";
+  label: string;
+  detail: string;
+  isOpen: boolean;
+};
+
+export type ExtendedQuote = {
+  label: "Pre-market" | "After hours";
+  price: number;
+  change: number;
+  changePercent: number;
+  time: number;
+};
+
 export type StockQuote = {
   symbol: string;
   name: string;
   exchange: string;
+  source: "Yahoo Finance" | "Alpha Vantage";
   currency: string;
   price: number;
   change: number;
@@ -24,11 +41,29 @@ export type StockQuote = {
   previousClose: number;
   volatility: number;
   lastUpdated: number;
+  session: MarketSession;
+  extended: ExtendedQuote | null;
+  comparison?: SourceComparison;
   points: MarketPoint[];
+};
+
+export type SourceComparison = {
+  primarySource: "Yahoo Finance" | "Alpha Vantage";
+  secondarySource: "Yahoo Finance" | "Alpha Vantage";
+  primaryPrice: number;
+  secondaryPrice: number;
+  priceDifference: number;
+  priceDifferencePercent: number;
+  primaryLastUpdated: number;
+  secondaryLastUpdated: number;
+  primaryPointCount: number;
+  secondaryPointCount: number;
+  secondaryPoints?: MarketPoint[];
 };
 
 export type MarketApiResponse = {
   source: string;
+  provider: MarketProvider;
   updatedAt: number;
   range: TimeRange;
   quotes: StockQuote[];
@@ -66,12 +101,18 @@ async function getJson<T>(url: string): Promise<T> {
 
 export async function fetchMarketData(
   symbols: string[],
-  range: TimeRange
+  range: TimeRange,
+  provider: MarketProvider = "yahoo",
+  primarySymbol?: string,
+  alphaApiKey?: string
 ): Promise<MarketApiResponse> {
   const params = new URLSearchParams({
     symbols: symbols.join(","),
-    range
+    range,
+    provider
   });
+  if (primarySymbol) params.set("primary", primarySymbol);
+  if (alphaApiKey?.trim()) params.set("alphaKey", alphaApiKey.trim());
 
   return getJson<MarketApiResponse>(`/api/market?${params.toString()}`);
 }
