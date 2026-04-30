@@ -47,9 +47,12 @@ const WASM_URL = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.35/w
 const MODEL_URL =
   "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task";
 
-const PINCH_START_THRESHOLD = 0.045;
-const PINCH_STOP_THRESHOLD = 0.065;
-const REFERENCE_HAND_SPAN = 0.32;
+const PINCH_START_THRESHOLD = 0.052;
+const PINCH_STOP_THRESHOLD = 0.078;
+const PINCH_RELEASE_CONFIRM_FRAMES = 5;
+const HAND_LOST_RELEASE_FRAMES = 8;
+const REFERENCE_PALM_SPAN = 0.18;
+const CURSOR_JITTER_FLOOR = 0.55;
 const MAX_HISTORY = 18;
 
 const INITIAL_MESSAGE = "Camera access needed";
@@ -76,8 +79,12 @@ export function HandDrawingStudio() {
     drawing: false,
   });
   const trackingRef = useRef({
-    smoothedPinch: 0.08,
+    smoothedPinch: 0.1,
     noHandFrames: 0,
+    pinchOpenFrames: 0,
+    filteredX: 0,
+    filteredY: 0,
+    hasFilteredTarget: false,
   });
   const strokeRef = useRef<{
     active: boolean;
@@ -119,9 +126,11 @@ export function HandDrawingStudio() {
   const updateDrawingAndCursor = useCallback(() => {
     const { width, height } = canvasSizeRef.current;
     const cursor = cursorRef.current;
+    const cursorDistance = Math.hypot(cursor.targetX - cursor.x, cursor.targetY - cursor.y);
+    const cursorAlpha = getCursorFollowAlpha(cursorDistance, cursor.drawing);
 
-    cursor.x += (cursor.targetX - cursor.x) * 0.32;
-    cursor.y += (cursor.targetY - cursor.y) * 0.32;
+    cursor.x += (cursor.targetX - cursor.x) * cursorAlpha;
+    cursor.y += (cursor.targetY - cursor.y) * cursorAlpha;
     cursor.x = clamp(cursor.x, 0, width);
     cursor.y = clamp(cursor.y, 0, height);
 
@@ -289,6 +298,8 @@ export function HandDrawingStudio() {
     landmarkerRef.current?.close();
     landmarkerRef.current = null;
     trackingRef.current.noHandFrames = 0;
+    trackingRef.current.pinchOpenFrames = 0;
+    trackingRef.current.hasFilteredTarget = false;
     cursorRef.current.visible = false;
 
     const video = videoRef.current;
@@ -587,6 +598,8 @@ function readHandFrame(
     video: HTMLVideoElement | null;
     landmarker: HandLandmarker | null;
     cursor: {
+      x: number;
+      y: number;
       targetX: number;
       targetY: number;
       visible: boolean;
@@ -595,6 +608,10 @@ function readHandFrame(
     tracking: {
       smoothedPinch: number;
       noHandFrames: number;
+      pinchOpenFrames: number;
+      filteredX: number;
+      filteredY: number;
+      hasFilteredTarget: boolean;
     };
     canvasSize: {
       width: number;
@@ -622,6 +639,7 @@ function readHandFrame(
     landmarks = result.landmarks[0];
   } catch {
     refs.releaseStroke();
+    refs.tracking.hasFilteredTarget = false;
     refs.cursor.visible = false;
     refs.commitUi({
       handDetected: false,
@@ -633,9 +651,20 @@ function readHandFrame(
 
   if (!landmarks) {
     refs.tracking.noHandFrames += 1;
+    refs.tracking.hasFilteredTarget = false;
+    if (refs.cursor.drawing && refs.tracking.noHandFrames <= HAND_LOST_RELEASE_FRAMES) {
+      refs.commitUi({
+        handDetected: true,
+        isDrawing: true,
+        message: "Drawing",
+      });
+      return;
+    }
+
     refs.cursor.visible = false;
+    refs.tracking.pinchOpenFrames = 0;
     refs.releaseStroke();
-    if (refs.tracking.noHandFrames > 5) {
+    if (refs.tracking.noHandFrames > HAND_LOST_RELEASE_FRAMES) {
       refs.commitUi({
         handDetected: false,
         isDrawing: false,
@@ -650,18 +679,29 @@ function readHandFrame(
   const thumbTip = landmarks[4];
   if (!indexTip || !thumbTip) return;
 
-  const target = mapLandmarkToCanvas(indexTip, refs.canvasSize.width, refs.canvasSize.height);
+  const target = stabilizeCursorTarget(
+    mapLandmarkToCanvas(indexTip, refs.canvasSize.width, refs.canvasSize.height),
+    refs.tracking,
+    refs.canvasSize,
+  );
+  if (!refs.cursor.visible) {
+    refs.cursor.x = target.x;
+    refs.cursor.y = target.y;
+  }
   refs.cursor.targetX = target.x;
   refs.cursor.targetY = target.y;
   refs.cursor.visible = true;
 
   const pinchDistance = getNormalizedPinchDistance(indexTip, thumbTip, landmarks);
-  refs.tracking.smoothedPinch = refs.tracking.smoothedPinch * 0.62 + pinchDistance * 0.38;
+  refs.tracking.smoothedPinch = refs.tracking.smoothedPinch * 0.52 + pinchDistance * 0.48;
 
-  const shouldStart = refs.tracking.smoothedPinch < PINCH_START_THRESHOLD;
+  const shouldStart =
+    refs.tracking.smoothedPinch < PINCH_START_THRESHOLD ||
+    pinchDistance < PINCH_START_THRESHOLD * 0.9;
   const shouldStop = refs.tracking.smoothedPinch > PINCH_STOP_THRESHOLD;
 
   if (!refs.cursor.drawing && shouldStart) {
+    refs.tracking.pinchOpenFrames = 0;
     refs.beginStroke();
     refs.commitUi({
       handDetected: true,
@@ -672,6 +712,13 @@ function readHandFrame(
   }
 
   if (refs.cursor.drawing && shouldStop) {
+    refs.tracking.pinchOpenFrames += 1;
+  } else {
+    refs.tracking.pinchOpenFrames = 0;
+  }
+
+  if (refs.cursor.drawing && refs.tracking.pinchOpenFrames >= PINCH_RELEASE_CONFIRM_FRAMES) {
+    refs.tracking.pinchOpenFrames = 0;
     refs.releaseStroke();
     refs.commitUi({
       handDetected: true,
@@ -812,30 +859,83 @@ function mapLandmarkToCanvas(landmark: NormalizedLandmark, width: number, height
   };
 }
 
+function stabilizeCursorTarget(
+  target: Point,
+  tracking: {
+    filteredX: number;
+    filteredY: number;
+    hasFilteredTarget: boolean;
+  },
+  canvasSize: {
+    width: number;
+    height: number;
+  },
+) {
+  if (!tracking.hasFilteredTarget) {
+    tracking.filteredX = target.x;
+    tracking.filteredY = target.y;
+    tracking.hasFilteredTarget = true;
+    return target;
+  }
+
+  const distance = Math.hypot(target.x - tracking.filteredX, target.y - tracking.filteredY);
+  const jitterFloor = Math.max(CURSOR_JITTER_FLOOR, Math.min(canvasSize.width, canvasSize.height) * 0.0012);
+
+  if (distance < jitterFloor) {
+    return {
+      x: tracking.filteredX,
+      y: tracking.filteredY,
+    };
+  }
+
+  const alpha = distance > 42 ? 0.9 : distance > 18 ? 0.76 : 0.58;
+  tracking.filteredX += (target.x - tracking.filteredX) * alpha;
+  tracking.filteredY += (target.y - tracking.filteredY) * alpha;
+
+  return {
+    x: tracking.filteredX,
+    y: tracking.filteredY,
+  };
+}
+
+function getCursorFollowAlpha(distance: number, drawing: boolean) {
+  if (drawing) {
+    if (distance > 28) return 0.94;
+    if (distance > 10) return 0.84;
+    return 0.68;
+  }
+
+  if (distance > 36) return 0.86;
+  if (distance > 12) return 0.72;
+  return 0.56;
+}
+
 function getNormalizedPinchDistance(
   indexTip: NormalizedLandmark,
   thumbTip: NormalizedLandmark,
   landmarks: NormalizedLandmark[],
 ) {
   const rawDistance = Math.hypot(indexTip.x - thumbTip.x, indexTip.y - thumbTip.y);
-  const handSpan = getHandSpan(landmarks);
-  return rawDistance * (REFERENCE_HAND_SPAN / handSpan);
+  const palmSpan = getPalmSpan(landmarks);
+  return rawDistance * (REFERENCE_PALM_SPAN / palmSpan);
 }
 
-function getHandSpan(landmarks: NormalizedLandmark[]) {
-  let minX = 1;
-  let minY = 1;
-  let maxX = 0;
-  let maxY = 0;
+function getPalmSpan(landmarks: NormalizedLandmark[]) {
+  const wrist = landmarks[0];
+  const indexBase = landmarks[5];
+  const middleBase = landmarks[9];
+  const ringBase = landmarks[13];
+  const pinkyBase = landmarks[17];
 
-  for (const landmark of landmarks) {
-    minX = Math.min(minX, landmark.x);
-    minY = Math.min(minY, landmark.y);
-    maxX = Math.max(maxX, landmark.x);
-    maxY = Math.max(maxY, landmark.y);
+  if (!wrist || !indexBase || !middleBase || !ringBase || !pinkyBase) {
+    return REFERENCE_PALM_SPAN;
   }
 
-  return Math.max(0.16, Math.hypot(maxX - minX, maxY - minY));
+  const palmWidth = Math.hypot(indexBase.x - pinkyBase.x, indexBase.y - pinkyBase.y);
+  const palmLength = Math.hypot(wrist.x - middleBase.x, wrist.y - middleBase.y);
+  const knuckleSpan = Math.hypot(indexBase.x - ringBase.x, indexBase.y - ringBase.y);
+
+  return Math.max(0.12, palmWidth * 0.58 + palmLength * 0.32 + knuckleSpan * 0.1);
 }
 
 function getFriendlyError(caught: unknown) {
