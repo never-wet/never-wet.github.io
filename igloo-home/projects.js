@@ -1,5 +1,11 @@
 export const projects = [
   {
+    title: "Object Scanner",
+    tag: "Camera / 3D Reconstruction",
+    description: "Realtime radar-style webcam scanner that captures object colors and reconstructs them into an interactive Three.js point-cloud preview.",
+    href: "../object-scanner/",
+  },
+  {
     title: "Gemini AI Chat",
     tag: "AI / Server Route",
     description: "Secure Next.js chat assistant where the browser sends messages to a backend API route and Gemini replies without exposing the API key.",
