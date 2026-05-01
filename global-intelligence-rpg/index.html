@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Global Intelligence World | Never Wet</title>
+    <meta
+      name="description"
+      content="An RPG-style 3D control hub for global intelligence, market analytics, infrastructure telemetry, and project navigation."
+    />
+    <link rel="icon" type="image/x-icon" href="../favicon.ico" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./app.css" />
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "../threejs/three.js-master/build/three.module.js"
+        }
+      }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js" defer></script>
+  </head>
+  <body>
+    <div class="app-shell" id="appShell">
+      <canvas id="worldCanvas" class="world-canvas" aria-label="Interactive global intelligence world"></canvas>
+
+      <div class="scanlines" aria-hidden="true"></div>
+      <div class="world-labels" id="worldLabels" aria-hidden="true"></div>
+
+      <header class="system-bar">
+        <a class="brand-link" href="../" aria-label="Never Wet home">
+          <span class="brand-mark">NW</span>
+          <span>
+            <strong>Global Intelligence World</strong>
+            <small>RPG control hub</small>
+          </span>
+        </a>
+        <nav class="system-nav" aria-label="World locations">
+          <button type="button" data-jump="intelligence">Intel</button>
+          <button type="button" data-jump="market">Market</button>
+          <button type="button" data-jump="infrastructure">Infra</button>
+          <button type="button" data-jump="projects">Projects</button>
+          <button type="button" data-jump="command">Home</button>
+        </nav>
+      </header>
+
+      <aside class="hud hud-left" aria-label="World state">
+        <p class="hud-kicker">World State</p>
+        <h1>Command Field</h1>
+        <div class="state-grid">
+          <span>
+            <small>Mode</small>
+            <strong id="modeReadout">World</strong>
+          </span>
+          <span>
+            <small>Focus</small>
+            <strong id="focusReadout">Command Center</strong>
+          </span>
+          <span>
+            <small>Feed</small>
+            <strong id="feedReadout">Standby</strong>
+          </span>
+          <span>
+            <small>FPS</small>
+            <strong id="fpsReadout">60</strong>
+          </span>
+        </div>
+      </aside>
+
+      <aside class="hud hud-right" aria-label="Location dossier">
+        <p class="hud-kicker" id="dossierKicker">Selected location</p>
+        <h2 id="dossierTitle">Command Center</h2>
+        <p id="dossierText">
+          Central control UI, state routing, and launch access for every system in the world.
+        </p>
+        <div class="dossier-actions">
+          <button class="primary-action" type="button" id="enterButton">Enter</button>
+          <button class="ghost-action" type="button" id="orbitButton">Orbit</button>
+        </div>
+      </aside>
+
+      <div class="key-strip" aria-label="Movement keys">
+        <span>W</span>
+        <span>A</span>
+        <span>S</span>
+        <span>D</span>
+      </div>
+
+      <main class="dashboard-shell" id="dashboardShell" aria-live="polite" aria-label="Building dashboard">
+        <div class="dashboard-window">
+          <div class="dashboard-topline">
+            <button class="ghost-action" type="button" id="exitButton">World</button>
+            <div>
+              <span id="dashboardKicker">System</span>
+              <strong id="dashboardTitle">Dashboard</strong>
+            </div>
+          </div>
+          <div class="dashboard-content" id="dashboardContent"></div>
+        </div>
+      </main>
+
+      <div class="transition-curtain" id="transitionCurtain" aria-hidden="true">
+        <span id="transitionLabel">Entering</span>
+      </div>
+    </div>
+
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>

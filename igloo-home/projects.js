@@ -1,5 +1,17 @@
 export const projects = [
   {
+    title: "Global Intelligence World",
+    tag: "RPG / AI Intelligence Dashboard",
+    description: "Interactive 3D control hub where buildings open live intelligence, market analytics, infrastructure telemetry, and project dashboards.",
+    href: "../global-intelligence-rpg/",
+  },
+  {
+    title: "Global Intelligence Dashboard",
+    tag: "Live Intel / Situational Awareness",
+    description: "Full-screen world monitoring platform with live news, seismic and hazard feeds, market signals, AI risk insights, filters, and a real-time map.",
+    href: "../global-intelligence-dashboard/",
+  },
+  {
     title: "Object Scanner",
     tag: "Camera / 3D Reconstruction",
     description: "Realtime radar-style webcam scanner with object capture and room mapping, preserving camera colors in interactive Three.js point-cloud previews.",
