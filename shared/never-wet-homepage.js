@@ -5,6 +5,7 @@ const localProjects = projects.filter((project) => !project.external);
 const featuredNames = [
   "Global Intelligence World",
   "Global Intelligence Dashboard",
+  "Global Route Intelligence Map",
   "Object Scanner",
   "Privacy Face Recognition",
   "Gemini AI Chat",

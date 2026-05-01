@@ -12,6 +12,12 @@ export const projects = [
     href: "../global-intelligence-dashboard/",
   },
   {
+    title: "Global Route Intelligence Map",
+    tag: "Geospatial / Route Intelligence",
+    description: "Real-world MapLibre and Deck.gl dashboard showing flight arcs, shipping lanes, the Silk Road, trade routes, aviation corridors, and strategic chokepoints.",
+    href: "../global-route-intelligence-map/",
+  },
+  {
     title: "Object Scanner",
     tag: "Camera / 3D Reconstruction",
     description: "Realtime radar-style webcam scanner with object capture and room mapping, preserving camera colors in interactive Three.js point-cloud previews.",
