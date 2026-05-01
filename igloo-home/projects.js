@@ -18,6 +18,12 @@ export const projects = [
     href: "../object-scanner/",
   },
   {
+    title: "Privacy Face Recognition",
+    tag: "Camera / Local AI",
+    description: "Consent-based face login demo with local webcam detection, face descriptor registration, one-click recognition, and browser-only privacy controls.",
+    href: "../privacy-face-recognition/",
+  },
+  {
     title: "Gemini AI Chat",
     tag: "AI / Server Route",
     description: "Secure Next.js chat assistant where the browser sends messages to a backend API route and Gemini replies without exposing the API key.",

@@ -6,6 +6,7 @@ const featuredNames = [
   "Global Intelligence World",
   "Global Intelligence Dashboard",
   "Object Scanner",
+  "Privacy Face Recognition",
   "Gemini AI Chat",
   "Particle Shape System",
   "Wheel of Fortune",

@@ -1,0 +1,28 @@
+{
+  "name": "privacy-face-recognition",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1 --open /dev.html",
+    "build": "tsc --noEmit && vite build && node ./scripts/publish-static.mjs",
+    "preview": "vite preview --host 127.0.0.1 --open /dev.html"
+  },
+  "dependencies": {
+    "face-api.js": "^0.22.2",
+    "lucide-react": "^1.11.0",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4"
+  },
+  "overrides": {
+    "node-fetch": "^2.7.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.12.2",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.1",
+    "typescript": "~6.0.2",
+    "vite": "^8.0.4"
+  }
+}
