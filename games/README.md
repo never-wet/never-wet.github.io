@@ -18,6 +18,8 @@ This folder holds the web game section for `never-wet.github.io`.
   A TypeScript + Vite open-world retro action RPG with real-time combat, jobs, dialogue, local saves, and generated pixel art/audio.
 - `soccer-idle/`
   A playable soccer idle game with upgrades, passive income, multiple screens, and browser save data.
+- `flight-simulator/`
+  A Cesium-powered 3D flight exploration simulator with user-location navigation, safe recovery collisions, and interactive OSM building metadata.
 - `stitch_soccer_clicker_tycoon/`
   A concept bundle / prototype set for a larger soccer clicker tycoon project.
 
@@ -31,6 +33,7 @@ From the site:
 - `/games/puzzle/`
 - `/games/lantern-oath/`
 - `/games/soccer-idle/`
+- `/games/flight-simulator/`
 
 If you are testing locally, serve the repo as a static site and open the same paths in your browser.
 

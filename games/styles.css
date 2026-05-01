@@ -822,6 +822,11 @@ body.page-transition-out::after {
   --cabinet-warm: #ffe082;
 }
 
+.cabinet--aero {
+  --cabinet-accent: #75d7ff;
+  --cabinet-warm: #8ef4c2;
+}
+
 .cabinet--coming {
   --cabinet-accent: #8ea0bb;
   --cabinet-warm: #c7d2e7;
