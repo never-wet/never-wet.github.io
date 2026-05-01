@@ -1,6 +1,8 @@
 # Global Route Intelligence Map
 
-Interactive global route dashboard built with Next.js, React, TypeScript, MapLibre GL, Deck.gl, and Zustand.
+Interactive global route dashboard built with Next.js, React, TypeScript, MapLibre GL, and Zustand.
+
+The saved UI/UX and feature baseline is documented in `memory.md`.
 
 ## Run Locally
 
