@@ -1057,22 +1057,22 @@ h3 {
   margin-top: 32px;
 }
 
-.js-enabled .reveal {
+.js-enabled.reveal-armed .reveal {
   opacity: 0;
   transform: translateY(26px);
   transition: opacity 0.78s var(--ease), transform 0.78s var(--ease);
 }
 
-.js-enabled .reveal.is-visible {
+.js-enabled.reveal-armed .reveal.is-visible {
   opacity: 1;
   transform: translateY(0);
 }
 
-.js-enabled .site-header.reveal {
+.js-enabled.reveal-armed .site-header.reveal {
   transform: translateX(-50%) translateY(-10px);
 }
 
-.js-enabled .site-header.reveal.is-visible {
+.js-enabled.reveal-armed .site-header.reveal.is-visible {
   transform: translateX(-50%) translateY(0);
 }
 
@@ -1241,8 +1241,8 @@ h3 {
     transition-duration: 0.001ms !important;
   }
 
-  .js-enabled .reveal,
-  .js-enabled .reveal.is-visible {
+  .js-enabled.reveal-armed .reveal,
+  .js-enabled.reveal-armed .reveal.is-visible {
     opacity: 1;
     transform: none;
   }

@@ -12,15 +12,25 @@ const featuredNames = [
   "Particle Shape System",
   "Wheel of Fortune",
   "Sorting Algorithm Visualizer",
+  "Market Pulse Trader",
   "Hand Draw Studio",
   "Market Intel AI",
   "Loop DAW",
+  "RPG Homepage Hub",
+  "Standalone Interface Test",
+  "POLAR//SEED",
+  "Project Hub Prototype",
+  "3D Preview",
+  "Meridian Fullstack Export",
+  "AeroLab Car Showcase Export",
+  "Aerodynamica Car Showcase Variant",
   "Entity Diagnostic System",
   "Code Workspace",
   "Terrain Generator",
   "Physics Engine Playground",
   "ARCTIS / SIGNAL",
   "AeroRank Vehicle System",
+  "Apex Hypercar Showcase",
   "Aeroform Car Showcase",
   "Noema Vault",
   "Loreline",
@@ -166,7 +176,14 @@ function initReveals() {
   const reveals = document.querySelectorAll("[data-reveal]");
   if (!reveals.length) return;
 
+  document.documentElement.classList.add("reveal-armed");
+
+  const revealAllFallback = window.setTimeout(() => {
+    reveals.forEach((element) => element.classList.add("is-visible"));
+  }, 1400);
+
   if (!("IntersectionObserver" in window)) {
+    window.clearTimeout(revealAllFallback);
     reveals.forEach((element) => element.classList.add("is-visible"));
     return;
   }
@@ -177,6 +194,10 @@ function initReveals() {
         if (!entry.isIntersecting) return;
         entry.target.classList.add("is-visible");
         observer.unobserve(entry.target);
+
+        if (document.querySelectorAll("[data-reveal]:not(.is-visible)").length === 0) {
+          window.clearTimeout(revealAllFallback);
+        }
       });
     },
     { threshold: 0.16, rootMargin: "0px 0px -8% 0px" }
