@@ -23,6 +23,7 @@
 - Average price updates on buys.
 - Realized P/L updates when shares are sold.
 - Portfolio net worth = cash + current holding value.
+- The active run auto-saves to browser `localStorage` at `marketPulseTrader.save.v1` and hydrates on reload. Resetting the game writes a fresh saved run.
 
 ## UI Rules
 

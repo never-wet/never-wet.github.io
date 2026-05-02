@@ -21,6 +21,7 @@ An interactive browser stock trading simulation built with React, TypeScript, Zu
 - Sell orders require owned shares.
 - Holdings track shares, average entry price, current value, unrealized profit/loss, and realized profit/loss after sells.
 - Net worth is cash plus current market value of holdings.
+- The current run auto-saves in browser `localStorage` and restores when the page reopens.
 
 ## How Events Affect Stocks
 
@@ -43,3 +44,7 @@ npm run build
 ```
 
 The build copies the generated `dist/dev.html` to `index.html` and publishes Vite assets into `assets/`, matching the existing games site pattern.
+
+## Local Save
+
+Market Pulse Trader saves the serializable game state under `marketPulseTrader.save.v1`, including the current tick, stocks, holdings, trades, news, selected stock, speed, and difficulty. Pressing reset starts a fresh run and overwrites the saved run.

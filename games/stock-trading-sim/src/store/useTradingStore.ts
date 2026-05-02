@@ -7,6 +7,9 @@ import type { Difficulty, Holding, MarketEvent, NewsItem, OrderSide, Stock, Trad
 
 type Speed = "slow" | "live" | "fast";
 
+const STORAGE_KEY = "marketPulseTrader.save.v1";
+const STORAGE_VERSION = 1;
+
 interface TradingState {
   initialCash: number;
   cash: number;
@@ -49,6 +52,32 @@ export const SPEED_TO_MS: Record<Speed, number> = {
   fast: 650,
 };
 
+interface SavedTradingState {
+  version: typeof STORAGE_VERSION;
+  savedAt: number;
+  state: TradingState;
+}
+
+function canUseLocalStorage(): boolean {
+  return typeof window !== "undefined" && Boolean(window.localStorage);
+}
+
+function isDifficulty(value: unknown): value is Difficulty {
+  return value === "normal" || value === "volatile" || value === "strategic";
+}
+
+function isSpeed(value: unknown): value is Speed {
+  return value === "slow" || value === "live" || value === "fast";
+}
+
+function isOrderSide(value: unknown): value is OrderSide {
+  return value === "buy" || value === "sell";
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
 function buildInitialState(difficulty: Difficulty = "normal"): TradingState {
   const stocks = createInitialStocks();
   const initialCash = DIFFICULTY_CONFIG[difficulty].startingCash;
@@ -73,6 +102,105 @@ function buildInitialState(difficulty: Difficulty = "normal"): TradingState {
     difficulty,
     milestones: [],
   };
+}
+
+function pickState(state: TradingStore): TradingState {
+  return {
+    initialCash: state.initialCash,
+    cash: state.cash,
+    closedRealizedPnl: state.closedRealizedPnl,
+    stocks: state.stocks,
+    holdings: state.holdings,
+    selectedSymbol: state.selectedSymbol,
+    orderSide: state.orderSide,
+    tradeQuantity: state.tradeQuantity,
+    tradeMessage: state.tradeMessage,
+    tradeError: state.tradeError,
+    trades: state.trades,
+    news: state.news,
+    events: state.events,
+    tick: state.tick,
+    running: state.running,
+    speed: state.speed,
+    difficulty: state.difficulty,
+    milestones: state.milestones,
+  };
+}
+
+function sanitizeSavedState(candidate: unknown): TradingState | null {
+  if (!isRecord(candidate)) {
+    return null;
+  }
+
+  const difficulty = isDifficulty(candidate.difficulty) ? candidate.difficulty : "normal";
+  const fallback = buildInitialState(difficulty);
+  const stocks = Array.isArray(candidate.stocks) && candidate.stocks.length ? candidate.stocks as Stock[] : fallback.stocks;
+  const selectedSymbol =
+    typeof candidate.selectedSymbol === "string" && stocks.some((stock) => stock.symbol === candidate.selectedSymbol)
+      ? candidate.selectedSymbol
+      : stocks[0]?.symbol ?? fallback.selectedSymbol;
+
+  return {
+    initialCash: typeof candidate.initialCash === "number" ? candidate.initialCash : fallback.initialCash,
+    cash: typeof candidate.cash === "number" ? candidate.cash : fallback.cash,
+    closedRealizedPnl:
+      typeof candidate.closedRealizedPnl === "number" ? candidate.closedRealizedPnl : fallback.closedRealizedPnl,
+    stocks,
+    holdings: isRecord(candidate.holdings) ? candidate.holdings as Record<string, Holding> : fallback.holdings,
+    selectedSymbol,
+    orderSide: isOrderSide(candidate.orderSide) ? candidate.orderSide : fallback.orderSide,
+    tradeQuantity: typeof candidate.tradeQuantity === "number" ? Math.max(1, Math.floor(candidate.tradeQuantity)) : fallback.tradeQuantity,
+    tradeMessage: typeof candidate.tradeMessage === "string" ? candidate.tradeMessage : "",
+    tradeError: typeof candidate.tradeError === "string" ? candidate.tradeError : "",
+    trades: Array.isArray(candidate.trades) ? candidate.trades.slice(0, 18) as TradeRecord[] : fallback.trades,
+    news: Array.isArray(candidate.news) ? candidate.news.slice(0, 12) as NewsItem[] : fallback.news,
+    events: Array.isArray(candidate.events) ? candidate.events as MarketEvent[] : fallback.events,
+    tick: typeof candidate.tick === "number" ? Math.max(0, Math.floor(candidate.tick)) : fallback.tick,
+    running: typeof candidate.running === "boolean" ? candidate.running : fallback.running,
+    speed: isSpeed(candidate.speed) ? candidate.speed : fallback.speed,
+    difficulty,
+    milestones: Array.isArray(candidate.milestones) ? candidate.milestones.filter((item) => typeof item === "string") as string[] : fallback.milestones,
+  };
+}
+
+function readSavedState(): TradingState | null {
+  if (!canUseLocalStorage()) {
+    return null;
+  }
+
+  try {
+    const raw = window.localStorage.getItem(STORAGE_KEY);
+    if (!raw) {
+      return null;
+    }
+
+    const parsed = JSON.parse(raw) as Partial<SavedTradingState>;
+    if (parsed.version !== STORAGE_VERSION) {
+      return null;
+    }
+
+    return sanitizeSavedState(parsed.state);
+  } catch {
+    return null;
+  }
+}
+
+function saveState(state: TradingStore): void {
+  if (!canUseLocalStorage()) {
+    return;
+  }
+
+  try {
+    const payload: SavedTradingState = {
+      version: STORAGE_VERSION,
+      savedAt: Date.now(),
+      state: pickState(state),
+    };
+
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+  } catch {
+    // Ignore storage quota/private-mode failures; the simulator should keep running.
+  }
 }
 
 function findStock(stocks: Stock[], symbol: string): Stock {
@@ -115,7 +243,7 @@ function updateMilestones(state: TradingState): string[] {
 }
 
 export const useTradingStore = create<TradingStore>((set, get) => ({
-  ...buildInitialState(),
+  ...(readSavedState() ?? buildInitialState()),
 
   advanceTick: () => {
     set((state) => {
@@ -231,3 +359,5 @@ export const useTradingStore = create<TradingStore>((set, get) => ({
     set((state) => ({ difficulty, tradeError: "", tradeMessage: DIFFICULTY_CONFIG[difficulty].description }));
   },
 }));
+
+useTradingStore.subscribe(saveState);
