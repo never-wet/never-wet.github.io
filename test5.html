@@ -1,0 +1,2540 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Never Wet RPG Homepage</title>
+    <meta
+      name="description"
+      content="A playable RPG-style homepage where each building is a cinematic portal to a Never Wet project."
+    />
+    <link rel="icon" href="./favicon.ico" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js" defer></script>
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "./threejs/three.js-master/build/three.module.js"
+        }
+      }
+    </script>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #0a0b0d;
+        --panel: rgba(14, 15, 18, 0.62);
+        --panel-strong: rgba(15, 16, 20, 0.86);
+        --line: rgba(255, 255, 255, 0.12);
+        --text: #f5f7f4;
+        --muted: rgba(245, 247, 244, 0.68);
+        --aqua: #54e0d8;
+        --amber: #ffd66b;
+        --rose: #ff7a9c;
+        --green: #9cff8c;
+        --violet: #a78bfa;
+        --orange: #ff9a5f;
+        --sky-a: #101416;
+        --sky-b: #07080a;
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        overflow: hidden;
+        background:
+          radial-gradient(circle at 20% 12%, rgba(84, 224, 216, 0.12), transparent 30%),
+          radial-gradient(circle at 78% 18%, rgba(255, 122, 156, 0.1), transparent 28%),
+          linear-gradient(135deg, var(--sky-a) 0%, #11100f 42%, var(--sky-b) 100%);
+        color: var(--text);
+      }
+
+      body {
+        cursor: default;
+      }
+
+      button {
+        font: inherit;
+      }
+
+      .stage-wrap {
+        position: fixed;
+        inset: 0;
+        isolation: isolate;
+      }
+
+      #worldCanvas {
+        position: absolute;
+        inset: 0;
+        display: block;
+        width: 100%;
+        height: 100%;
+        background: #090a0c;
+      }
+
+      .vignette {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        background:
+          linear-gradient(180deg, rgba(0, 0, 0, 0.08), transparent 26%, rgba(0, 0, 0, 0.36)),
+          radial-gradient(circle at center, transparent 48%, rgba(0, 0, 0, 0.34));
+        z-index: 3;
+      }
+
+      .hud {
+        position: fixed;
+        inset: 0;
+        z-index: 5;
+        pointer-events: none;
+      }
+
+      .brand-lockup {
+        position: fixed;
+        top: clamp(14px, 3vw, 28px);
+        left: clamp(14px, 3vw, 30px);
+        display: grid;
+        gap: 3px;
+        text-transform: uppercase;
+        letter-spacing: 0;
+        text-shadow: 0 8px 28px rgba(0, 0, 0, 0.5);
+      }
+
+      .brand-lockup strong {
+        font-size: clamp(18px, 2.6vw, 34px);
+        line-height: 1;
+        font-weight: 780;
+      }
+
+      .brand-lockup span {
+        color: var(--muted);
+        font-size: 11px;
+        letter-spacing: 0.14em;
+      }
+
+      .help-strip {
+        position: fixed;
+        left: 50%;
+        bottom: clamp(12px, 3vw, 24px);
+        transform: translateX(-50%);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        max-width: min(760px, calc(100vw - 28px));
+        padding: 9px 11px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: rgba(9, 10, 12, 0.58);
+        color: rgba(245, 247, 244, 0.72);
+        font-size: 12px;
+        line-height: 1.3;
+        backdrop-filter: blur(18px);
+        box-shadow: 0 18px 60px rgba(0, 0, 0, 0.26);
+        white-space: nowrap;
+      }
+
+      .help-strip kbd {
+        min-width: 22px;
+        padding: 3px 6px;
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        border-bottom-color: rgba(255, 255, 255, 0.32);
+        border-radius: 5px;
+        color: var(--text);
+        background: rgba(255, 255, 255, 0.08);
+        font-size: 11px;
+        font-weight: 700;
+        text-align: center;
+      }
+
+      .target-panel {
+        position: fixed;
+        right: clamp(14px, 3vw, 30px);
+        top: clamp(14px, 3vw, 28px);
+        width: min(300px, calc(100vw - 28px));
+        padding: 12px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--panel);
+        box-shadow: 0 20px 70px rgba(0, 0, 0, 0.28);
+        backdrop-filter: blur(18px);
+      }
+
+      .target-panel small {
+        display: block;
+        margin-bottom: 5px;
+        color: var(--muted);
+        font-size: 10px;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+      }
+
+      .target-panel strong {
+        display: block;
+        min-height: 24px;
+        font-size: 19px;
+        line-height: 1.15;
+      }
+
+      .target-panel p {
+        min-height: 32px;
+        margin: 7px 0 0;
+        color: rgba(245, 247, 244, 0.68);
+        font-size: 12px;
+        line-height: 1.35;
+      }
+
+      .mini-map {
+        position: fixed;
+        right: clamp(14px, 3vw, 30px);
+        bottom: clamp(66px, 7vw, 92px);
+        width: 164px;
+        height: 164px;
+        overflow: hidden;
+        border: 1px solid var(--line);
+        border-radius: 50%;
+        background:
+          radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.08), rgba(8, 9, 12, 0.72) 58%),
+          rgba(9, 10, 12, 0.58);
+        backdrop-filter: blur(18px);
+        box-shadow:
+          inset 0 0 0 5px rgba(255, 255, 255, 0.035),
+          0 18px 60px rgba(0, 0, 0, 0.28);
+        pointer-events: auto;
+        cursor: crosshair;
+      }
+
+      .mini-map::before,
+      .mini-map::after {
+        content: "";
+        position: absolute;
+        z-index: 2;
+        background: rgba(255, 255, 255, 0.1);
+        pointer-events: none;
+      }
+
+      .mini-map::before {
+        left: 50%;
+        top: 14px;
+        bottom: 14px;
+        width: 1px;
+      }
+
+      .mini-map::after {
+        top: 50%;
+        left: 14px;
+        right: 14px;
+        height: 1px;
+      }
+
+      #miniMapCanvas {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+      }
+
+      .minimap-mode {
+        position: absolute;
+        left: 50%;
+        bottom: 11px;
+        z-index: 3;
+        transform: translateX(-50%);
+        padding: 4px 7px;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        border-radius: 999px;
+        background: rgba(0, 0, 0, 0.34);
+        color: rgba(255, 255, 255, 0.76);
+        font-size: 9px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        cursor: pointer;
+      }
+
+      .world-label {
+        position: fixed;
+        z-index: 6;
+        left: 0;
+        top: 0;
+        display: grid;
+        gap: 3px;
+        min-width: 122px;
+        padding: 7px 8px;
+        border: 1px solid color-mix(in srgb, var(--accent) 58%, rgba(255, 255, 255, 0.25));
+        border-radius: 7px;
+        background: rgba(9, 10, 12, 0.6);
+        box-shadow:
+          0 0 28px color-mix(in srgb, var(--accent) 22%, transparent),
+          0 10px 34px rgba(0, 0, 0, 0.28);
+        color: var(--text);
+        pointer-events: none;
+        opacity: 0.55;
+        transform-origin: center bottom;
+        backdrop-filter: blur(16px);
+        transition:
+          opacity 160ms ease,
+          filter 160ms ease,
+          border-color 160ms ease;
+      }
+
+      .world-label span {
+        color: var(--accent);
+        font-size: 9px;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+      }
+
+      .world-label strong {
+        font-size: 12px;
+        line-height: 1.1;
+        font-weight: 760;
+      }
+
+      .world-label.is-active,
+      .world-label.is-near {
+        opacity: 1;
+        filter: saturate(1.2);
+      }
+
+      .world-label.is-near::after {
+        content: "Press E";
+        justify-self: start;
+        margin-top: 3px;
+        padding: 2px 6px;
+        border-radius: 999px;
+        background: color-mix(in srgb, var(--accent) 25%, rgba(255, 255, 255, 0.08));
+        color: #fff;
+        font-size: 9px;
+        font-weight: 800;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+      }
+
+      .spatial-card,
+      .npc-bubble {
+        position: fixed;
+        left: 0;
+        top: 0;
+        z-index: 7;
+        width: min(270px, calc(100vw - 28px));
+        padding: 12px;
+        border: 1px solid color-mix(in srgb, var(--accent, #54e0d8) 42%, rgba(255, 255, 255, 0.18));
+        border-radius: 10px;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.12), rgba(8, 9, 12, 0.58));
+        box-shadow:
+          0 0 34px color-mix(in srgb, var(--accent, #54e0d8) 18%, transparent),
+          0 18px 52px rgba(0, 0, 0, 0.34);
+        color: var(--text);
+        opacity: 0;
+        pointer-events: none;
+        transform-origin: center bottom;
+        backdrop-filter: blur(22px) saturate(1.16);
+        transition:
+          opacity 180ms ease,
+          transform 180ms ease;
+      }
+
+      .spatial-card.is-visible,
+      .npc-bubble.is-visible {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      .spatial-card small,
+      .npc-bubble small {
+        display: block;
+        margin-bottom: 5px;
+        color: var(--accent, var(--aqua));
+        font-size: 9px;
+        font-weight: 800;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+      }
+
+      .spatial-card strong,
+      .npc-bubble strong {
+        display: block;
+        font-size: 17px;
+        line-height: 1.1;
+      }
+
+      .spatial-card p,
+      .npc-bubble p {
+        margin: 7px 0 11px;
+        color: rgba(245, 247, 244, 0.72);
+        font-size: 12px;
+        line-height: 1.42;
+      }
+
+      .spatial-actions {
+        display: flex;
+        gap: 8px;
+      }
+
+      .glass-button {
+        min-height: 32px;
+        padding: 0 11px;
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.08);
+        color: var(--text);
+        font-size: 12px;
+        font-weight: 760;
+        cursor: pointer;
+        transition:
+          transform 160ms ease,
+          border-color 160ms ease,
+          background 160ms ease;
+      }
+
+      .glass-button:hover,
+      .glass-button.is-active {
+        transform: translateY(-1px);
+        border-color: color-mix(in srgb, var(--accent, #54e0d8) 50%, rgba(255, 255, 255, 0.22));
+        background: color-mix(in srgb, var(--accent, #54e0d8) 18%, rgba(255, 255, 255, 0.08));
+      }
+
+      .world-tools {
+        position: fixed;
+        left: clamp(14px, 3vw, 30px);
+        top: clamp(96px, 11vw, 118px);
+        z-index: 8;
+        display: grid;
+        gap: 8px;
+        pointer-events: auto;
+      }
+
+      .tool-button {
+        width: 42px;
+        height: 38px;
+        border: 1px solid var(--line);
+        border-radius: 9px;
+        background: rgba(9, 10, 12, 0.54);
+        color: var(--text);
+        font-size: 15px;
+        cursor: pointer;
+        backdrop-filter: blur(16px);
+        transition:
+          transform 160ms ease,
+          background 160ms ease,
+          border-color 160ms ease;
+      }
+
+      .tool-button:hover,
+      .tool-button.is-active {
+        transform: translateY(-1px);
+        border-color: rgba(255, 255, 255, 0.28);
+        background: rgba(255, 255, 255, 0.12);
+      }
+
+      .floating-panel {
+        position: fixed;
+        z-index: 12;
+        width: min(340px, calc(100vw - 28px));
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: rgba(8, 9, 12, 0.74);
+        box-shadow: 0 26px 84px rgba(0, 0, 0, 0.42);
+        color: var(--text);
+        opacity: 0;
+        pointer-events: none;
+        transform: translateY(10px) scale(0.98);
+        backdrop-filter: blur(24px) saturate(1.18);
+        transition:
+          opacity 180ms ease,
+          transform 180ms ease;
+      }
+
+      .floating-panel.is-open {
+        opacity: 1;
+        pointer-events: auto;
+        transform: translateY(0) scale(1);
+      }
+
+      .floating-panel header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 12px 12px 8px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      }
+
+      .floating-panel header small {
+        display: block;
+        color: var(--muted);
+        font-size: 9px;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+      }
+
+      .floating-panel header strong {
+        display: block;
+        margin-top: 2px;
+        font-size: 16px;
+      }
+
+      .panel-close {
+        width: 32px;
+        height: 30px;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.08);
+        color: var(--text);
+        cursor: pointer;
+      }
+
+      .customizer-panel {
+        left: clamp(68px, 7vw, 86px);
+        top: clamp(96px, 11vw, 118px);
+      }
+
+      .time-panel {
+        left: clamp(68px, 7vw, 86px);
+        top: clamp(252px, 28vw, 292px);
+      }
+
+      .npc-chat {
+        right: clamp(14px, 3vw, 30px);
+        top: clamp(154px, 17vw, 180px);
+      }
+
+      .panel-body {
+        display: grid;
+        gap: 14px;
+        padding: 12px;
+      }
+
+      .control-group {
+        display: grid;
+        gap: 8px;
+      }
+
+      .control-group label,
+      .control-group span {
+        color: rgba(245, 247, 244, 0.7);
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
+
+      .swatch-row,
+      .choice-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .swatch {
+        width: 28px;
+        height: 28px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 50%;
+        background: var(--swatch);
+        cursor: pointer;
+        box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.18);
+      }
+
+      .swatch.is-active {
+        outline: 2px solid rgba(255, 255, 255, 0.86);
+        outline-offset: 2px;
+      }
+
+      .choice-pill {
+        min-height: 30px;
+        padding: 0 10px;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.07);
+        color: var(--text);
+        font-size: 11px;
+        cursor: pointer;
+      }
+
+      .choice-pill.is-active {
+        border-color: rgba(255, 255, 255, 0.38);
+        background: rgba(255, 255, 255, 0.15);
+      }
+
+      .time-readout {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        color: rgba(245, 247, 244, 0.78);
+        font-size: 12px;
+      }
+
+      input[type="range"] {
+        width: 100%;
+        accent-color: var(--aqua);
+      }
+
+      .npc-chat-log {
+        display: grid;
+        gap: 8px;
+        max-height: 240px;
+        overflow: auto;
+        padding-right: 2px;
+      }
+
+      .chat-message {
+        padding: 9px 10px;
+        border: 1px solid rgba(255, 255, 255, 0.09);
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.06);
+        color: rgba(245, 247, 244, 0.78);
+        font-size: 12px;
+        line-height: 1.42;
+      }
+
+      .chat-message.is-user {
+        justify-self: end;
+        max-width: 86%;
+        border-color: rgba(84, 224, 216, 0.22);
+        background: rgba(84, 224, 216, 0.1);
+        color: var(--text);
+      }
+
+      .npc-quick-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 7px;
+      }
+
+      .reticle {
+        position: fixed;
+        left: 50%;
+        top: 50%;
+        z-index: 4;
+        width: 16px;
+        height: 16px;
+        transform: translate(-50%, -50%);
+        border: 1px solid rgba(255, 255, 255, 0.45);
+        border-radius: 50%;
+        opacity: 0.34;
+        pointer-events: none;
+      }
+
+      .reticle::after {
+        content: "";
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 3px;
+        height: 3px;
+        border-radius: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(255, 255, 255, 0.72);
+      }
+
+      .transition-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 18;
+        display: grid;
+        place-items: center;
+        pointer-events: none;
+        opacity: 0;
+        background:
+          radial-gradient(circle at 50% 50%, rgba(84, 224, 216, 0.08), transparent 26%),
+          rgba(4, 5, 7, 0.96);
+        transition: opacity 360ms ease;
+      }
+
+      .transition-card {
+        display: grid;
+        justify-items: center;
+        gap: 10px;
+        transform: translateY(10px);
+        text-align: center;
+      }
+
+      .transition-card small {
+        color: var(--muted);
+        font-size: 11px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+      }
+
+      .transition-card strong {
+        font-size: clamp(28px, 7vw, 72px);
+        line-height: 0.95;
+        text-transform: uppercase;
+      }
+
+      .transition-loader {
+        width: min(280px, 70vw);
+        height: 2px;
+        overflow: hidden;
+        background: rgba(255, 255, 255, 0.12);
+      }
+
+      .transition-loader span {
+        display: block;
+        width: 45%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, var(--aqua), transparent);
+        animation: loadSweep 1.05s infinite ease-in-out;
+      }
+
+      .portal-layer {
+        position: fixed;
+        inset: 0;
+        z-index: 16;
+        display: grid;
+        grid-template-rows: auto 1fr;
+        background: #050608;
+        opacity: 0;
+        pointer-events: none;
+        transform: scale(1.015);
+        transition:
+          opacity 280ms ease,
+          transform 360ms ease;
+      }
+
+      .portal-layer.is-open {
+        opacity: 1;
+        pointer-events: auto;
+        transform: scale(1);
+      }
+
+      .portal-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        min-height: 52px;
+        padding: 9px 12px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(8, 9, 11, 0.9);
+        backdrop-filter: blur(16px);
+      }
+
+      .portal-title {
+        min-width: 0;
+      }
+
+      .portal-title small {
+        display: block;
+        color: var(--muted);
+        font-size: 10px;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+      }
+
+      .portal-title strong {
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-size: 14px;
+      }
+
+      .portal-close {
+        min-width: 42px;
+        height: 34px;
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        border-radius: 7px;
+        background: rgba(255, 255, 255, 0.08);
+        color: var(--text);
+        cursor: pointer;
+        transition:
+          transform 160ms ease,
+          border-color 160ms ease,
+          background 160ms ease;
+      }
+
+      .portal-close:hover {
+        transform: translateY(-1px);
+        border-color: rgba(255, 255, 255, 0.34);
+        background: rgba(255, 255, 255, 0.13);
+      }
+
+      .portal-frame-shell {
+        position: relative;
+        min-height: 0;
+        background: #050608;
+      }
+
+      .portal-frame-shell::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: 1;
+        pointer-events: none;
+        box-shadow: inset 0 0 90px rgba(0, 0, 0, 0.42);
+      }
+
+      #portalFrame {
+        display: block;
+        width: 100%;
+        height: 100%;
+        border: 0;
+        opacity: 0;
+        background: #050608;
+        transition: opacity 320ms ease;
+      }
+
+      #portalFrame.is-loaded {
+        opacity: 1;
+      }
+
+      .scanline {
+        position: fixed;
+        inset: 0;
+        z-index: 17;
+        pointer-events: none;
+        opacity: 0.2;
+        background: repeating-linear-gradient(
+          180deg,
+          transparent 0,
+          transparent 7px,
+          rgba(255, 255, 255, 0.03) 8px
+        );
+        mix-blend-mode: screen;
+      }
+
+      .is-targeting #worldCanvas {
+        cursor: pointer;
+      }
+
+      @keyframes loadSweep {
+        0% {
+          transform: translateX(-120%);
+        }
+        100% {
+          transform: translateX(240%);
+        }
+      }
+
+      @media (max-width: 720px) {
+        .target-panel {
+          left: 14px;
+          right: 14px;
+          top: auto;
+          bottom: 76px;
+          width: auto;
+          padding: 10px;
+        }
+
+        .target-panel p {
+          display: none;
+        }
+
+        .mini-map {
+          right: 14px;
+          bottom: 148px;
+          width: 118px;
+          height: 118px;
+        }
+
+        .world-tools {
+          top: 76px;
+          left: 14px;
+          grid-template-columns: repeat(3, 38px);
+        }
+
+        .tool-button {
+          width: 38px;
+          height: 34px;
+        }
+
+        .customizer-panel,
+        .time-panel,
+        .npc-chat {
+          left: 14px;
+          right: 14px;
+          top: 124px;
+          width: auto;
+        }
+
+        .spatial-card {
+          display: none !important;
+        }
+
+        .help-strip {
+          justify-content: center;
+          width: calc(100vw - 28px);
+          white-space: normal;
+          text-align: center;
+        }
+
+        .help-strip kbd:nth-of-type(n + 3),
+        .help-strip span:nth-of-type(n + 3) {
+          display: none;
+        }
+
+        .brand-lockup strong {
+          font-size: 20px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="stage-wrap">
+      <canvas id="worldCanvas" aria-label="Playable RPG homepage world"></canvas>
+      <div id="labelLayer" aria-hidden="true"></div>
+      <div class="reticle" aria-hidden="true"></div>
+      <div class="vignette" aria-hidden="true"></div>
+    </div>
+
+    <div class="hud" aria-live="polite">
+      <div class="brand-lockup">
+        <strong>Never Wet</strong>
+        <span>Playable homepage</span>
+      </div>
+
+      <aside class="target-panel" aria-label="Current destination">
+        <small>Nearby portal</small>
+        <strong id="currentName">Central Plaza</strong>
+        <p id="currentHint">Move through the plaza. Buildings are portals.</p>
+      </aside>
+
+      <div class="mini-map" id="miniMap" aria-label="World minimap">
+        <canvas id="miniMapCanvas" width="328" height="328"></canvas>
+        <button class="minimap-mode" id="minimapMode" type="button" aria-label="Toggle minimap mode">North</button>
+      </div>
+
+      <div class="help-strip" aria-label="Controls">
+        <kbd>WASD</kbd><span>move</span>
+        <kbd>Drag</kbd><span>look</span>
+        <kbd>Click</kbd><span>walk or target</span>
+        <kbd>E</kbd><span>enter</span>
+      </div>
+    </div>
+
+    <div class="world-tools" aria-label="World tools">
+      <button class="tool-button" id="customizerToggle" type="button" aria-label="Customize character">C</button>
+      <button class="tool-button" id="timeToggle" type="button" aria-label="Time controls">T</button>
+      <button class="tool-button" id="npcToggle" type="button" aria-label="Open guide chat">G</button>
+    </div>
+
+    <section class="floating-panel customizer-panel" id="customizerPanel" aria-hidden="true" aria-label="Character customization">
+      <header>
+        <div>
+          <small>Avatar</small>
+          <strong>Character Customization</strong>
+        </div>
+        <button class="panel-close" type="button" data-close-panel="customizerPanel" aria-label="Close customization">x</button>
+      </header>
+      <div class="panel-body">
+        <div class="control-group">
+          <span>Outfit color</span>
+          <div class="swatch-row" id="outfitSwatches"></div>
+        </div>
+        <div class="control-group">
+          <span>Hair color</span>
+          <div class="swatch-row" id="hairSwatches"></div>
+        </div>
+        <div class="control-group">
+          <span>Hair style</span>
+          <div class="choice-row" id="hairChoices"></div>
+        </div>
+        <div class="control-group">
+          <span>Accessory</span>
+          <div class="choice-row" id="accessoryChoices"></div>
+        </div>
+        <div class="control-group">
+          <span>Avatar type</span>
+          <div class="choice-row" id="avatarChoices"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="floating-panel time-panel" id="timePanel" aria-hidden="true" aria-label="Day night controls">
+      <header>
+        <div>
+          <small>Atmosphere</small>
+          <strong>Day / Night Cycle</strong>
+        </div>
+        <button class="panel-close" type="button" data-close-panel="timePanel" aria-label="Close time controls">x</button>
+      </header>
+      <div class="panel-body">
+        <div class="time-readout">
+          <span id="timeLabel">Afternoon</span>
+          <button class="choice-pill is-active" id="autoCycleToggle" type="button">Auto On</button>
+        </div>
+        <input id="timeSlider" type="range" min="0" max="1" step="0.001" value="0.36" aria-label="Time of day" />
+      </div>
+    </section>
+
+    <section class="floating-panel npc-chat" id="npcChat" aria-hidden="true" aria-label="AI guide chat">
+      <header>
+        <div>
+          <small>Guide</small>
+          <strong>Hub Concierge</strong>
+        </div>
+        <button class="panel-close" type="button" data-close-panel="npcChat" aria-label="Close guide chat">x</button>
+      </header>
+      <div class="panel-body">
+        <div class="npc-chat-log" id="npcChatLog"></div>
+        <div class="npc-quick-actions" id="npcQuickActions"></div>
+      </div>
+    </section>
+
+    <div class="portal-layer" id="portalLayer" aria-hidden="true">
+      <div class="portal-bar">
+        <div class="portal-title">
+          <small>Inside portal</small>
+          <strong id="portalTitle">Loading</strong>
+        </div>
+        <button class="portal-close" id="portalClose" type="button" aria-label="Return to plaza">Back</button>
+      </div>
+      <div class="portal-frame-shell">
+        <iframe id="portalFrame" title="Destination page" loading="lazy"></iframe>
+      </div>
+    </div>
+
+    <div class="transition-overlay" id="transitionOverlay" aria-hidden="true">
+      <div class="transition-card">
+        <small>Entering</small>
+        <strong id="transitionTitle">Portal</strong>
+        <div class="transition-loader"><span></span></div>
+      </div>
+    </div>
+    <div class="scanline" aria-hidden="true"></div>
+
+    <script type="module">
+      import * as THREE from "three";
+
+      const canvas = document.querySelector("#worldCanvas");
+      const labelLayer = document.querySelector("#labelLayer");
+      const currentName = document.querySelector("#currentName");
+      const currentHint = document.querySelector("#currentHint");
+      const transitionOverlay = document.querySelector("#transitionOverlay");
+      const transitionTitle = document.querySelector("#transitionTitle");
+      const portalLayer = document.querySelector("#portalLayer");
+      const portalFrame = document.querySelector("#portalFrame");
+      const portalTitle = document.querySelector("#portalTitle");
+      const portalClose = document.querySelector("#portalClose");
+      const miniMap = document.querySelector("#miniMap");
+      const miniMapCanvas = document.querySelector("#miniMapCanvas");
+      const minimapMode = document.querySelector("#minimapMode");
+      const customizerToggle = document.querySelector("#customizerToggle");
+      const timeToggle = document.querySelector("#timeToggle");
+      const npcToggle = document.querySelector("#npcToggle");
+      const customizerPanel = document.querySelector("#customizerPanel");
+      const timePanel = document.querySelector("#timePanel");
+      const npcChat = document.querySelector("#npcChat");
+      const outfitSwatches = document.querySelector("#outfitSwatches");
+      const hairSwatches = document.querySelector("#hairSwatches");
+      const hairChoices = document.querySelector("#hairChoices");
+      const accessoryChoices = document.querySelector("#accessoryChoices");
+      const avatarChoices = document.querySelector("#avatarChoices");
+      const autoCycleToggle = document.querySelector("#autoCycleToggle");
+      const timeSlider = document.querySelector("#timeSlider");
+      const timeLabel = document.querySelector("#timeLabel");
+      const npcChatLog = document.querySelector("#npcChatLog");
+      const npcQuickActions = document.querySelector("#npcQuickActions");
+
+      const WORLD_LIMIT = 20;
+      const INTERACTION_RADIUS = 3.15;
+      const STORAGE_KEY = "neverWetRpgCharacter";
+      let lastFrameTime = performance.now();
+      const pointer = new THREE.Vector2(10, 10);
+      const raycaster = new THREE.Raycaster();
+      const groundPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+      const tempVec = new THREE.Vector3();
+      const tempVec2 = new THREE.Vector3();
+      const lookTarget = new THREE.Vector3(0, 1.2, 0);
+      const minimapCtx = miniMapCanvas.getContext("2d");
+
+      const outfitColors = ["#f7f7ef", "#54e0d8", "#a78bfa", "#ff7a9c", "#9cff8c", "#ff9a5f"];
+      const hairColors = ["#f2ede0", "#20242b", "#b67743", "#a78bfa", "#54e0d8"];
+      const hairStyles = ["short", "wave", "crest"];
+      const accessories = ["none", "visor", "halo"];
+      const avatarTypes = ["scout", "architect", "pilot"];
+
+      const defaultCharacter = {
+        outfitColor: "#f7f7ef",
+        hairColor: "#20242b",
+        hairStyle: "short",
+        accessory: "visor",
+        avatarType: "scout"
+      };
+
+      const npcResponses = {
+        intro: "Welcome to the hub. Walk to a building or tap a minimap marker and I will help you find the right portal.",
+        portfolio: "Portfolio Building opens the project index. Start there when you want the broadest view of the work.",
+        "ai-lab": "AI Lab collects experiments around agents, models, interfaces, and tool systems.",
+        "stock-terminal": "Stock Terminal opens Market Pulse Trader, the browser stock trading simulation.",
+        "music-studio": "Music Studio takes you to the loop DAW, a browser music workspace.",
+        "galaxy-lab": "Galaxy Lab opens Galaxy Simulator, the interactive space and gravity sandbox.",
+        "contact-office": "Contact Office routes back to the main contact area when you want to reach out.",
+        recommend: "If you are exploring for the first time, enter Portfolio Building. If you want the most technical stop, choose AI Lab."
+      };
+
+      const buildings = [
+        {
+          id: "portfolio",
+          name: "Portfolio Building",
+          shortName: "Portfolio",
+          href: "./project-hub.html",
+          section: "Projects Page",
+          hint: "A clean gallery tower for web experiments and project launches.",
+          color: "#54e0d8",
+          base: "#1b3434",
+          position: [0, 0, -12],
+          size: [3.7, 2.8, 3.1],
+          shape: "portfolio"
+        },
+        {
+          id: "ai-lab",
+          name: "AI Lab",
+          shortName: "AI Lab",
+          href: "./ai-lab/",
+          section: "AI Projects",
+          hint: "A faceted research lab with glowing model cores and tool demos.",
+          color: "#a78bfa",
+          base: "#2b2440",
+          position: [-12, 0, -6],
+          size: [3.5, 3.3, 3.2],
+          shape: "ai"
+        },
+        {
+          id: "stock-terminal",
+          name: "Stock Terminal",
+          shortName: "Stocks",
+          href: "./games/stock-trading-sim/",
+          section: "Trading App",
+          hint: "A data tower for Market Pulse Trader, portfolio decisions, and live trading practice.",
+          color: "#9cff8c",
+          base: "#1d3323",
+          position: [12, 0, -6],
+          size: [3.0, 4.6, 3.0],
+          shape: "terminal"
+        },
+        {
+          id: "music-studio",
+          name: "Music Studio",
+          shortName: "Music",
+          href: "./loop-daw/",
+          section: "Music App",
+          hint: "A low studio block with speaker cores and loop production tools.",
+          color: "#ff7a9c",
+          base: "#402431",
+          position: [-12, 0, 7],
+          size: [4.0, 2.35, 3.4],
+          shape: "music"
+        },
+        {
+          id: "galaxy-lab",
+          name: "Galaxy Lab",
+          shortName: "Galaxy",
+          href: "./games/galaxy-simulator/",
+          section: "Space Simulator",
+          hint: "An observatory-style portal for orbital physics, cosmic events, and galaxy scenarios.",
+          color: "#ffd66b",
+          base: "#3f351d",
+          position: [11.5, 0, 7.5],
+          size: [3.8, 3.25, 3.8],
+          shape: "galaxy"
+        },
+        {
+          id: "contact-office",
+          name: "Contact Office",
+          shortName: "Contact",
+          href: "./#contact",
+          section: "Contact Page",
+          hint: "A quiet office beacon that routes back to the contact point.",
+          color: "#ff9a5f",
+          base: "#422a1d",
+          position: [0, 0, 13],
+          size: [3.4, 3.1, 2.9],
+          shape: "contact"
+        }
+      ];
+
+      const state = {
+        player: new THREE.Vector3(0, 0, 1.8),
+        playerTarget: null,
+        autoEnterId: null,
+        keys: new Set(),
+        hoverId: null,
+        hoverNpc: false,
+        nearId: null,
+        activeId: null,
+        selectedRouteId: null,
+        locked: false,
+        portalOpen: false,
+        minimapNorthUp: true,
+        character: loadCharacterSettings(),
+        timeOfDay: 0.36,
+        autoCycle: true,
+        npcChatOpen: false,
+        npcNear: false,
+        cameraYaw: 0.72,
+        cameraPitch: 0.58,
+        cameraDistance: 13.8,
+        drag: {
+          active: false,
+          moved: false,
+          x: 0,
+          y: 0,
+          button: 0
+        }
+      };
+
+      if (new URLSearchParams(window.location.search).has("debug")) {
+        window.__neverWetWorld = {
+          state: () => ({
+            player: state.player.toArray(),
+            target: state.playerTarget ? state.playerTarget.toArray() : null,
+            hoverId: state.hoverId,
+            nearId: state.nearId,
+            activeId: state.activeId,
+            locked: state.locked,
+            portalOpen: state.portalOpen
+          }),
+          enter: (id) => {
+            const building = getBuildingById(id);
+            if (building) enterOrApproach(building);
+          },
+          open: (id) => {
+            const building = getBuildingById(id);
+            if (building) enterBuilding(building);
+          }
+        };
+      }
+
+      const scene = new THREE.Scene();
+      scene.background = new THREE.Color("#0a0b0d");
+      scene.fog = new THREE.FogExp2("#0a0b0d", 0.026);
+
+      let playerMesh;
+      let playerFacing = 0;
+      let playerParts = {};
+      let npcGuide;
+      let npcBubble;
+      let hemisphereLight;
+      let sunLight;
+      let rimLight;
+      let skyDome;
+      let starField;
+
+      const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 140);
+      camera.position.set(10, 10, 13);
+
+      const renderer = new THREE.WebGLRenderer({
+        canvas,
+        antialias: true,
+        powerPreference: "high-performance"
+      });
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFShadowMap;
+      renderer.outputColorSpace = THREE.SRGBColorSpace;
+
+      const world = new THREE.Group();
+      scene.add(world);
+
+      const interactiveMeshes = [];
+      const buildingRuntime = new Map();
+      const spatialOverlays = new Map();
+
+      setupLights();
+      createGround();
+      createBuildings();
+      createPlayer();
+      createNpcGuide();
+      createMiniMap();
+      createCustomizer();
+      createNpcChat();
+      applyCharacterSettings();
+      updateHud();
+
+      window.addEventListener("resize", onResize);
+      window.addEventListener("keydown", onKeyDown);
+      window.addEventListener("keyup", onKeyUp);
+      canvas.addEventListener("pointermove", onPointerMove);
+      canvas.addEventListener("pointerdown", onPointerDown);
+      window.addEventListener("pointerup", onPointerUp);
+      canvas.addEventListener("wheel", onWheel, { passive: true });
+      canvas.addEventListener("contextmenu", (event) => event.preventDefault());
+      miniMap.addEventListener("click", onMinimapClick);
+      minimapMode.addEventListener("click", toggleMinimapMode);
+      customizerToggle.addEventListener("click", () => togglePanel(customizerPanel, customizerToggle));
+      timeToggle.addEventListener("click", () => togglePanel(timePanel, timeToggle));
+      npcToggle.addEventListener("click", () => openNpcChat("intro"));
+      autoCycleToggle.addEventListener("click", toggleAutoCycle);
+      timeSlider.addEventListener("input", onTimeSlider);
+      document.querySelectorAll("[data-close-panel]").forEach((button) => {
+        button.addEventListener("click", () => closePanel(document.querySelector(`#${button.dataset.closePanel}`)));
+      });
+      portalClose.addEventListener("click", closePortal);
+      portalFrame.addEventListener("load", onPortalLoaded);
+      window.addEventListener("popstate", closePortal);
+
+      renderer.setAnimationLoop(animate);
+
+      function setupLights() {
+        hemisphereLight = new THREE.HemisphereLight("#dffdfa", "#19120d", 2.4);
+        scene.add(hemisphereLight);
+
+        sunLight = new THREE.DirectionalLight("#fff1d0", 2.5);
+        sunLight.position.set(8, 18, 10);
+        sunLight.castShadow = true;
+        sunLight.shadow.mapSize.set(1024, 1024);
+        sunLight.shadow.camera.near = 1;
+        sunLight.shadow.camera.far = 60;
+        sunLight.shadow.camera.left = -24;
+        sunLight.shadow.camera.right = 24;
+        sunLight.shadow.camera.top = 24;
+        sunLight.shadow.camera.bottom = -24;
+        scene.add(sunLight);
+
+        rimLight = new THREE.DirectionalLight("#80fff5", 1.1);
+        rimLight.position.set(-14, 8, -8);
+        scene.add(rimLight);
+      }
+
+      function createGround() {
+        const groundMaterial = new THREE.MeshStandardMaterial({
+          color: "#111214",
+          roughness: 0.86,
+          metalness: 0.08
+        });
+        const ground = new THREE.Mesh(new THREE.PlaneGeometry(46, 46), groundMaterial);
+        ground.rotation.x = -Math.PI / 2;
+        ground.receiveShadow = true;
+        world.add(ground);
+
+        const plazaMat = new THREE.MeshStandardMaterial({
+          color: "#1b1d1d",
+          roughness: 0.78,
+          metalness: 0.16
+        });
+        const plaza = new THREE.Mesh(new THREE.CylinderGeometry(6.2, 6.2, 0.08, 48), plazaMat);
+        plaza.position.y = 0.04;
+        plaza.receiveShadow = true;
+        world.add(plaza);
+
+        const ringMat = new THREE.MeshBasicMaterial({
+          color: "#54e0d8",
+          transparent: true,
+          opacity: 0.28
+        });
+        const plazaRing = new THREE.Mesh(new THREE.TorusGeometry(6.45, 0.025, 8, 96), ringMat);
+        plazaRing.rotation.x = -Math.PI / 2;
+        plazaRing.position.y = 0.095;
+        world.add(plazaRing);
+
+        buildings.forEach((building) => createPathTo(building));
+
+        const grid = new THREE.GridHelper(44, 22, "#2b2e2e", "#202222");
+        grid.position.y = 0.105;
+        grid.material.transparent = true;
+        grid.material.opacity = 0.22;
+        world.add(grid);
+
+        const horizonMat = new THREE.MeshBasicMaterial({
+          color: "#141313",
+          transparent: true,
+          opacity: 0.44,
+          side: THREE.BackSide
+        });
+        skyDome = new THREE.Mesh(new THREE.SphereGeometry(72, 32, 16), horizonMat);
+        skyDome.position.y = -4;
+        scene.add(skyDome);
+
+        const starGeometry = new THREE.BufferGeometry();
+        const starPositions = [];
+        for (let i = 0; i < 180; i += 1) {
+          const angle = Math.random() * Math.PI * 2;
+          const radius = 24 + Math.random() * 34;
+          starPositions.push(Math.cos(angle) * radius, 18 + Math.random() * 28, Math.sin(angle) * radius);
+        }
+        starGeometry.setAttribute("position", new THREE.Float32BufferAttribute(starPositions, 3));
+        starField = new THREE.Points(
+          starGeometry,
+          new THREE.PointsMaterial({
+            color: "#f7fbff",
+            size: 0.08,
+            transparent: true,
+            opacity: 0
+          })
+        );
+        scene.add(starField);
+      }
+
+      function createPathTo(building) {
+        const [x, , z] = building.position;
+        const pathMat = new THREE.MeshStandardMaterial({
+          color: "#222523",
+          roughness: 0.72,
+          metalness: 0.11
+        });
+        const length = Math.hypot(x, z) - 5.5;
+        const midX = x * 0.5;
+        const midZ = z * 0.5;
+        const path = new THREE.Mesh(new THREE.BoxGeometry(1.28, 0.06, Math.max(length, 4)), pathMat);
+        path.position.set(midX, 0.08, midZ);
+        path.rotation.y = Math.atan2(x, z);
+        path.receiveShadow = true;
+        world.add(path);
+
+        const accent = new THREE.MeshBasicMaterial({
+          color: building.color,
+          transparent: true,
+          opacity: 0.22
+        });
+        const guide = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.025, Math.max(length, 4)), accent);
+        guide.position.set(midX, 0.135, midZ);
+        guide.rotation.y = Math.atan2(x, z);
+        world.add(guide);
+      }
+
+      function createBuildings() {
+        buildings.forEach((building) => {
+          const group = new THREE.Group();
+          group.position.fromArray(building.position);
+          group.rotation.y = Math.atan2(building.position[0], building.position[2]);
+          group.userData.building = building;
+          world.add(group);
+
+          const runtime = {
+            data: building,
+            group,
+            label: createLabel(building),
+            overlay: createSpatialOverlay(building),
+            ring: null,
+            materials: [],
+            meshes: [],
+            light: null,
+            mapDot: null
+          };
+          buildingRuntime.set(building.id, runtime);
+
+          const baseMat = material(building.base, building.color, 0.08, 0.38, 0.62);
+          const accentMat = material(building.color, building.color, 0.36, 0.35, 0.25);
+          const glassMat = new THREE.MeshPhysicalMaterial({
+            color: building.color,
+            emissive: new THREE.Color(building.color),
+            emissiveIntensity: 0.12,
+            roughness: 0.22,
+            metalness: 0.1,
+            transmission: 0.12,
+            transparent: true,
+            opacity: 0.58
+          });
+          runtime.materials.push(baseMat, accentMat, glassMat);
+
+          addBuildingShape(group, building, baseMat, accentMat, glassMat, runtime);
+          addEntrance(group, building, accentMat, runtime);
+          addPortalRing(group, building, runtime);
+
+          const light = new THREE.PointLight(building.color, 0.75, 7, 1.8);
+          light.position.set(0, building.size[1] + 0.8, 0);
+          group.add(light);
+          runtime.light = light;
+        });
+      }
+
+      function addBuildingShape(group, building, baseMat, accentMat, glassMat, runtime) {
+        const [w, h, d] = building.size;
+
+        if (building.shape === "portfolio") {
+          addBox(group, [w, h, d], [0, h / 2, 0], baseMat, runtime);
+          addBox(group, [w + 0.45, 0.16, d + 0.42], [0, h + 0.08, 0], accentMat, runtime);
+          addBox(group, [0.18, h + 0.9, d + 0.55], [-w / 2 - 0.28, (h + 0.9) / 2, 0], accentMat, runtime);
+          addBox(group, [0.18, h + 0.6, d + 0.55], [w / 2 + 0.28, (h + 0.6) / 2, 0], accentMat, runtime);
+          for (let i = -1; i <= 1; i += 1) {
+            addBox(group, [0.56, 1.7, 0.06], [i * 0.86, 1.7, -d / 2 - 0.045], glassMat, runtime);
+          }
+        }
+
+        if (building.shape === "ai") {
+          addCylinder(group, [1.85, 2.15, h * 0.66, 6], [0, h * 0.33, 0], baseMat, runtime);
+          const core = new THREE.Mesh(new THREE.IcosahedronGeometry(1.15, 1), glassMat);
+          core.position.y = h * 0.86;
+          core.castShadow = true;
+          group.add(core);
+          runtime.meshes.push(core);
+          interactiveMeshes.push(core);
+          core.userData.buildingId = building.id;
+          addCylinder(group, [0.08, 0.08, 1.25, 12], [0, h + 0.92, 0], accentMat, runtime);
+          addBox(group, [2.65, 0.12, 0.22], [0, h + 1.48, 0], accentMat, runtime);
+          addBox(group, [0.22, 0.12, 2.65], [0, h + 1.48, 0], accentMat, runtime);
+        }
+
+        if (building.shape === "terminal") {
+          addBox(group, [w, h, d], [0, h / 2, 0], baseMat, runtime);
+          for (let y = 1; y < h; y += 0.72) {
+            addBox(group, [w + 0.08, 0.08, 0.09], [0, y, -d / 2 - 0.055], accentMat, runtime);
+          }
+          for (let i = -1; i <= 1; i += 1) {
+            addBox(group, [0.22, h * 0.78, 0.08], [i * 0.68, h * 0.5, -d / 2 - 0.07], glassMat, runtime);
+          }
+          addBox(group, [w + 0.55, 0.2, d + 0.55], [0, h + 0.1, 0], accentMat, runtime);
+        }
+
+        if (building.shape === "music") {
+          addBox(group, [w, h * 0.72, d], [0, h * 0.36, 0], baseMat, runtime);
+          addBox(group, [w * 0.72, 0.28, d + 0.55], [0, h * 0.78, 0], accentMat, runtime);
+          for (let i = -1; i <= 1; i += 2) {
+            const speaker = new THREE.Mesh(new THREE.CylinderGeometry(0.48, 0.48, 0.12, 32), glassMat);
+            speaker.rotation.x = Math.PI / 2;
+            speaker.position.set(i * 0.92, 1.25, -d / 2 - 0.085);
+            speaker.castShadow = true;
+            group.add(speaker);
+            runtime.meshes.push(speaker);
+            interactiveMeshes.push(speaker);
+            speaker.userData.buildingId = building.id;
+          }
+          const wave = new THREE.Mesh(new THREE.TorusGeometry(1.62, 0.035, 8, 72), accentMat);
+          wave.position.set(0, h + 0.48, 0);
+          wave.rotation.x = Math.PI / 2;
+          group.add(wave);
+          runtime.meshes.push(wave);
+        }
+
+        if (building.shape === "galaxy") {
+          addCylinder(group, [1.95, 2.25, h * 0.55, 32], [0, h * 0.275, 0], baseMat, runtime);
+          const dome = new THREE.Mesh(new THREE.SphereGeometry(1.65, 32, 14, 0, Math.PI * 2, 0, Math.PI / 2), glassMat);
+          dome.position.y = h * 0.55;
+          dome.castShadow = true;
+          group.add(dome);
+          runtime.meshes.push(dome);
+          interactiveMeshes.push(dome);
+          dome.userData.buildingId = building.id;
+          for (let i = 0; i < 3; i += 1) {
+            const orbit = new THREE.Mesh(new THREE.TorusGeometry(1.95 + i * 0.24, 0.025, 8, 96), accentMat);
+            orbit.position.y = h * 0.84 + i * 0.08;
+            orbit.rotation.x = Math.PI / 2 + i * 0.35;
+            orbit.rotation.z = i * 0.5;
+            group.add(orbit);
+            runtime.meshes.push(orbit);
+          }
+        }
+
+        if (building.shape === "contact") {
+          addBox(group, [w, h, d], [0, h / 2, 0], baseMat, runtime);
+          addBox(group, [w * 0.54, h + 0.7, d * 0.58], [0.42, (h + 0.7) / 2, 0.22], baseMat, runtime);
+          for (let y = 0.95; y < h + 0.5; y += 0.68) {
+            addBox(group, [0.08, 0.32, d + 0.08], [-w / 2 - 0.045, y, 0], glassMat, runtime);
+          }
+          const beacon = new THREE.Mesh(new THREE.ConeGeometry(0.55, 0.92, 4), accentMat);
+          beacon.position.set(0.42, h + 1.22, 0.22);
+          beacon.rotation.y = Math.PI / 4;
+          beacon.castShadow = true;
+          group.add(beacon);
+          runtime.meshes.push(beacon);
+        }
+      }
+
+      function addEntrance(group, building, accentMat, runtime) {
+        const [, h, d] = building.size;
+        const doorMat = accentMat.clone();
+        doorMat.emissiveIntensity = 0.82;
+        runtime.materials.push(doorMat);
+        const door = new THREE.Mesh(new THREE.BoxGeometry(0.78, 1.28, 0.08), doorMat);
+        door.position.set(0, 0.68, -d / 2 - 0.08);
+        door.castShadow = false;
+        group.add(door);
+        runtime.meshes.push(door);
+        interactiveMeshes.push(door);
+        door.userData.buildingId = building.id;
+
+        const lintel = new THREE.Mesh(new THREE.BoxGeometry(1.14, 0.12, 0.12), doorMat);
+        lintel.position.set(0, 1.39, -d / 2 - 0.1);
+        group.add(lintel);
+        runtime.meshes.push(lintel);
+
+        const marker = new THREE.Mesh(new THREE.CylinderGeometry(0.82, 0.82, 0.025, 48), doorMat);
+        marker.position.set(0, 0.06, -d / 2 - 0.52);
+        marker.rotation.x = Math.PI / 2;
+        group.add(marker);
+        runtime.meshes.push(marker);
+      }
+
+      function addPortalRing(group, building, runtime) {
+        const ringMat = new THREE.MeshBasicMaterial({
+          color: building.color,
+          transparent: true,
+          opacity: 0.18,
+          depthWrite: false
+        });
+        const ring = new THREE.Mesh(new THREE.TorusGeometry(2.2, 0.025, 8, 96), ringMat);
+        ring.rotation.x = -Math.PI / 2;
+        ring.position.y = 0.16;
+        group.add(ring);
+        runtime.ring = ring;
+      }
+
+      function addBox(group, size, position, mat, runtime) {
+        const mesh = new THREE.Mesh(new THREE.BoxGeometry(size[0], size[1], size[2]), mat);
+        mesh.position.set(position[0], position[1], position[2]);
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+        group.add(mesh);
+        runtime.meshes.push(mesh);
+        interactiveMeshes.push(mesh);
+        mesh.userData.buildingId = runtime.data.id;
+        return mesh;
+      }
+
+      function addCylinder(group, args, position, mat, runtime) {
+        const mesh = new THREE.Mesh(new THREE.CylinderGeometry(args[0], args[1], args[2], args[3]), mat);
+        mesh.position.set(position[0], position[1], position[2]);
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+        group.add(mesh);
+        runtime.meshes.push(mesh);
+        interactiveMeshes.push(mesh);
+        mesh.userData.buildingId = runtime.data.id;
+        return mesh;
+      }
+
+      function material(color, emissive, emissiveIntensity, metalness, roughness) {
+        return new THREE.MeshStandardMaterial({
+          color,
+          emissive,
+          emissiveIntensity,
+          metalness,
+          roughness
+        });
+      }
+
+      function createLabel(building) {
+        const label = document.createElement("div");
+        label.className = "world-label";
+        label.style.setProperty("--accent", building.color);
+        label.innerHTML = `<span>${building.section}</span><strong>${building.name}</strong>`;
+        labelLayer.appendChild(label);
+        return label;
+      }
+
+      function createSpatialOverlay(building) {
+        const overlay = document.createElement("div");
+        overlay.className = "spatial-card";
+        overlay.style.setProperty("--accent", building.color);
+        overlay.innerHTML = `
+          <small>${building.section}</small>
+          <strong>${building.name}</strong>
+          <p>${building.hint}</p>
+          <div class="spatial-actions">
+            <button class="glass-button" type="button" data-enter="${building.id}">Enter</button>
+            <button class="glass-button" type="button" data-guide="${building.id}">Guide</button>
+          </div>
+        `;
+        overlay.querySelector("[data-enter]").addEventListener("click", () => enterOrApproach(building));
+        overlay.querySelector("[data-guide]").addEventListener("click", () => {
+          state.selectedRouteId = building.id;
+          state.playerTarget = getEntrancePosition(building);
+          state.autoEnterId = null;
+          addNpcMessage(npcResponses[building.id] || building.hint);
+          openNpcChat(building.id);
+        });
+        labelLayer.appendChild(overlay);
+        spatialOverlays.set(building.id, overlay);
+        return overlay;
+      }
+
+      function createPlayer() {
+        const group = new THREE.Group();
+        const bodyMat = new THREE.MeshStandardMaterial({
+          color: state.character.outfitColor,
+          emissive: "#54e0d8",
+          emissiveIntensity: 0.08,
+          roughness: 0.38,
+          metalness: 0.2
+        });
+        const accentMat = new THREE.MeshStandardMaterial({
+          color: "#54e0d8",
+          emissive: "#54e0d8",
+          emissiveIntensity: 0.45,
+          roughness: 0.28,
+          metalness: 0.26
+        });
+        const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.33, 0.72, 5, 12), bodyMat);
+        body.position.y = 0.72;
+        body.castShadow = true;
+        group.add(body);
+
+        const hairMat = new THREE.MeshStandardMaterial({
+          color: state.character.hairColor,
+          roughness: 0.52,
+          metalness: 0.04
+        });
+        const hair = new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.16, 0.42), hairMat);
+        hair.position.set(0, 1.18, 0.02);
+        hair.castShadow = true;
+        group.add(hair);
+
+        const visor = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.12, 0.08), accentMat);
+        visor.position.set(0, 1.07, -0.3);
+        group.add(visor);
+
+        const halo = new THREE.Mesh(new THREE.TorusGeometry(0.32, 0.015, 8, 48), accentMat);
+        halo.position.set(0, 1.48, 0);
+        halo.rotation.x = Math.PI / 2;
+        group.add(halo);
+
+        const base = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.55, 0.035, 32), accentMat);
+        base.position.y = 0.06;
+        base.material.transparent = true;
+        base.material.opacity = 0.45;
+        group.add(base);
+
+        group.position.copy(state.player);
+        scene.add(group);
+        playerMesh = group;
+        playerParts = { body, bodyMat, accentMat, hair, hairMat, visor, halo, base };
+      }
+
+      function createNpcGuide() {
+        const group = new THREE.Group();
+        group.position.set(-2.7, 0, 2.4);
+        const guideMat = new THREE.MeshStandardMaterial({
+          color: "#dfe8e5",
+          emissive: "#54e0d8",
+          emissiveIntensity: 0.16,
+          roughness: 0.34,
+          metalness: 0.18
+        });
+        const coatMat = new THREE.MeshStandardMaterial({
+          color: "#1f2f34",
+          emissive: "#54e0d8",
+          emissiveIntensity: 0.1,
+          roughness: 0.58,
+          metalness: 0.18
+        });
+        const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.31, 0.68, 5, 12), coatMat);
+        body.position.y = 0.72;
+        body.castShadow = true;
+        group.add(body);
+
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.25, 18, 14), guideMat);
+        head.position.y = 1.28;
+        head.castShadow = true;
+        group.add(head);
+
+        const ring = new THREE.Mesh(
+          new THREE.TorusGeometry(0.58, 0.018, 8, 64),
+          new THREE.MeshBasicMaterial({ color: "#54e0d8", transparent: true, opacity: 0.46 })
+        );
+        ring.position.y = 0.08;
+        ring.rotation.x = Math.PI / 2;
+        group.add(ring);
+
+        const hit = new THREE.Mesh(
+          new THREE.SphereGeometry(0.78, 12, 8),
+          new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false })
+        );
+        hit.position.y = 0.78;
+        hit.userData.npcGuide = true;
+        group.add(hit);
+        interactiveMeshes.push(hit);
+
+        scene.add(group);
+        npcGuide = group;
+
+        npcBubble = document.createElement("div");
+        npcBubble.className = "npc-bubble";
+        npcBubble.style.setProperty("--accent", "#54e0d8");
+        npcBubble.innerHTML = `
+          <small>Guide</small>
+          <strong>Need help finding something?</strong>
+          <p>Tap me for directions.</p>
+        `;
+        npcBubble.addEventListener("click", () => openNpcChat("intro"));
+        labelLayer.appendChild(npcBubble);
+      }
+
+      function createMiniMap() {
+        drawMiniMap();
+      }
+
+      function createCustomizer() {
+        renderSwatches(outfitSwatches, outfitColors, "outfitColor");
+        renderSwatches(hairSwatches, hairColors, "hairColor");
+        renderChoices(hairChoices, hairStyles, "hairStyle");
+        renderChoices(accessoryChoices, accessories, "accessory");
+        renderChoices(avatarChoices, avatarTypes, "avatarType");
+      }
+
+      function renderSwatches(container, values, key) {
+        container.innerHTML = "";
+        values.forEach((value) => {
+          const button = document.createElement("button");
+          button.className = "swatch";
+          button.type = "button";
+          button.style.setProperty("--swatch", value);
+          button.setAttribute("aria-label", `${key} ${value}`);
+          button.addEventListener("click", () => {
+            state.character[key] = value;
+            saveCharacterSettings();
+            applyCharacterSettings();
+            updateCustomizerUI();
+          });
+          container.appendChild(button);
+        });
+      }
+
+      function renderChoices(container, values, key) {
+        container.innerHTML = "";
+        values.forEach((value) => {
+          const button = document.createElement("button");
+          button.className = "choice-pill";
+          button.type = "button";
+          button.textContent = titleCase(value);
+          button.addEventListener("click", () => {
+            state.character[key] = value;
+            saveCharacterSettings();
+            applyCharacterSettings();
+            updateCustomizerUI();
+          });
+          container.appendChild(button);
+        });
+      }
+
+      function updateCustomizerUI() {
+        updateActiveButtons(outfitSwatches, state.character.outfitColor, "--swatch");
+        updateActiveButtons(hairSwatches, state.character.hairColor, "--swatch");
+        updateActiveTextButtons(hairChoices, state.character.hairStyle);
+        updateActiveTextButtons(accessoryChoices, state.character.accessory);
+        updateActiveTextButtons(avatarChoices, state.character.avatarType);
+      }
+
+      function updateActiveButtons(container, activeValue, cssVar) {
+        [...container.children].forEach((button) => {
+          button.classList.toggle("is-active", button.style.getPropertyValue(cssVar).trim() === activeValue);
+        });
+      }
+
+      function updateActiveTextButtons(container, activeValue) {
+        [...container.children].forEach((button) => {
+          button.classList.toggle("is-active", button.textContent.toLowerCase() === activeValue);
+        });
+      }
+
+      function loadCharacterSettings() {
+        try {
+          return {
+            ...defaultCharacter,
+            ...JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}")
+          };
+        } catch {
+          return { ...defaultCharacter };
+        }
+      }
+
+      function saveCharacterSettings() {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state.character));
+      }
+
+      function applyCharacterSettings() {
+        if (!playerParts.body) return;
+        playerParts.bodyMat.color.set(state.character.outfitColor);
+        playerParts.hairMat.color.set(state.character.hairColor);
+        playerParts.accentMat.color.set(state.character.outfitColor === "#54e0d8" ? "#ffffff" : "#54e0d8");
+        playerParts.accentMat.emissive.set(playerParts.accentMat.color);
+
+        const avatarScale = state.character.avatarType === "pilot" ? [0.92, 1.08, 0.92] : state.character.avatarType === "architect" ? [1.08, 0.98, 1.08] : [1, 1, 1];
+        playerParts.body.scale.set(...avatarScale);
+        playerParts.hair.visible = state.character.hairStyle !== "short" || state.character.hairColor !== "#20242b";
+        playerParts.hair.scale.set(
+          state.character.hairStyle === "crest" ? 0.72 : 1,
+          state.character.hairStyle === "wave" ? 1.45 : 1,
+          state.character.hairStyle === "crest" ? 1.18 : 1
+        );
+        playerParts.hair.position.y = state.character.hairStyle === "crest" ? 1.26 : 1.18;
+        playerParts.visor.visible = state.character.accessory === "visor";
+        playerParts.halo.visible = state.character.accessory === "halo";
+        updateCustomizerUI();
+      }
+
+      function createNpcChat() {
+        addNpcMessage(npcResponses.intro);
+        const actions = [
+          ["Portfolio", "portfolio"],
+          ["AI Lab", "ai-lab"],
+          ["Stocks", "stock-terminal"],
+          ["Music", "music-studio"],
+          ["Galaxy", "galaxy-lab"],
+          ["Recommend", "recommend"]
+        ];
+        actions.forEach(([label, id]) => {
+          const button = document.createElement("button");
+          button.className = "choice-pill";
+          button.type = "button";
+          button.textContent = label;
+          button.addEventListener("click", () => {
+            addNpcMessage(label, true);
+            addNpcMessage(npcResponses[id] || npcResponses.recommend);
+            if (getBuildingById(id)) {
+              state.selectedRouteId = id;
+            }
+          });
+          npcQuickActions.appendChild(button);
+        });
+      }
+
+      function addNpcMessage(text, isUser = false) {
+        if (!npcChatLog) return;
+        const message = document.createElement("div");
+        message.className = `chat-message${isUser ? " is-user" : ""}`;
+        message.textContent = text;
+        npcChatLog.appendChild(message);
+        npcChatLog.scrollTop = npcChatLog.scrollHeight;
+      }
+
+      function openNpcChat(topic = "intro") {
+        state.npcChatOpen = true;
+        npcChat.classList.add("is-open");
+        npcChat.setAttribute("aria-hidden", "false");
+        npcToggle.classList.add("is-active");
+        if (topic !== "intro" && npcResponses[topic]) {
+          addNpcMessage(npcResponses[topic]);
+        }
+      }
+
+      function togglePanel(panel, button) {
+        const isOpen = panel.classList.toggle("is-open");
+        panel.setAttribute("aria-hidden", String(!isOpen));
+        button?.classList.toggle("is-active", isOpen);
+      }
+
+      function closePanel(panel) {
+        if (!panel) return;
+        panel.classList.remove("is-open");
+        panel.setAttribute("aria-hidden", "true");
+        if (panel === customizerPanel) customizerToggle.classList.remove("is-active");
+        if (panel === timePanel) timeToggle.classList.remove("is-active");
+        if (panel === npcChat) {
+          npcToggle.classList.remove("is-active");
+          state.npcChatOpen = false;
+        }
+      }
+
+      function toggleAutoCycle() {
+        state.autoCycle = !state.autoCycle;
+        autoCycleToggle.textContent = state.autoCycle ? "Auto On" : "Auto Off";
+        autoCycleToggle.classList.toggle("is-active", state.autoCycle);
+      }
+
+      function onTimeSlider() {
+        state.timeOfDay = Number(timeSlider.value);
+        state.autoCycle = false;
+        autoCycleToggle.textContent = "Auto Off";
+        autoCycleToggle.classList.remove("is-active");
+      }
+
+      function onResize() {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+      }
+
+      function onKeyDown(event) {
+        if (state.portalOpen) {
+          if (event.key === "Escape") closePortal();
+          return;
+        }
+        const key = event.key.toLowerCase();
+        state.keys.add(key);
+        if (key === "e") {
+          const building = getBuildingById(state.nearId || state.hoverId);
+          if (building) enterOrApproach(building);
+          if (state.hoverNpc || state.npcNear) openNpcChat("intro");
+        }
+      }
+
+      function onKeyUp(event) {
+        state.keys.delete(event.key.toLowerCase());
+      }
+
+      function onPointerMove(event) {
+        const rect = canvas.getBoundingClientRect();
+        pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+        pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+        if (state.drag.active) {
+          const dx = event.clientX - state.drag.x;
+          const dy = event.clientY - state.drag.y;
+          if (Math.abs(dx) + Math.abs(dy) > 2) state.drag.moved = true;
+          state.cameraYaw -= dx * 0.005;
+          state.cameraPitch = clamp(state.cameraPitch + dy * 0.003, 0.34, 0.93);
+          state.drag.x = event.clientX;
+          state.drag.y = event.clientY;
+        }
+      }
+
+      function onPointerDown(event) {
+        if (state.portalOpen || state.locked) return;
+        state.drag.active = true;
+        state.drag.moved = false;
+        state.drag.x = event.clientX;
+        state.drag.y = event.clientY;
+        state.drag.button = event.button;
+        canvas.setPointerCapture?.(event.pointerId);
+      }
+
+      function onPointerUp(event) {
+        if (state.portalOpen || state.locked) {
+          state.drag.active = false;
+          return;
+        }
+        const wasClick = state.drag.active && !state.drag.moved && state.drag.button === 0;
+        state.drag.active = false;
+        if (!wasClick) return;
+
+        if (state.hoverNpc) {
+          openNpcChat("intro");
+          return;
+        }
+
+        const building = getBuildingById(state.hoverId || state.nearId || state.activeId);
+        if (building && (state.hoverId || state.nearId || state.activeId)) {
+          enterOrApproach(building);
+          return;
+        }
+
+        const point = raycastGround();
+        if (point) {
+          point.x = clamp(point.x, -WORLD_LIMIT, WORLD_LIMIT);
+          point.z = clamp(point.z, -WORLD_LIMIT, WORLD_LIMIT);
+          point.y = 0;
+          state.playerTarget = point;
+          state.autoEnterId = null;
+          state.selectedRouteId = null;
+        }
+      }
+
+      function onWheel(event) {
+        state.cameraDistance = clamp(state.cameraDistance + Math.sign(event.deltaY) * 0.9, 9.5, 18);
+      }
+
+      function onMinimapClick(event) {
+        event.stopPropagation();
+        const rect = miniMap.getBoundingClientRect();
+        const size = miniMapCanvas.width;
+        const scale = size / (WORLD_LIMIT * 2.55);
+        const x = ((event.clientX - rect.left) / rect.width) * size - size / 2;
+        const z = ((event.clientY - rect.top) / rect.height) * size - size / 2;
+        const rotation = state.minimapNorthUp ? 0 : -state.cameraYaw;
+        const worldX = (Math.cos(-rotation) * x - Math.sin(-rotation) * z) / scale;
+        const worldZ = (Math.sin(-rotation) * x + Math.cos(-rotation) * z) / scale;
+
+        let nearest = null;
+        let nearestDistance = Infinity;
+        buildings.forEach((building) => {
+          const distance = Math.hypot(building.position[0] - worldX, building.position[2] - worldZ);
+          if (distance < nearestDistance) {
+            nearestDistance = distance;
+            nearest = building;
+          }
+        });
+
+        if (nearest && nearestDistance < 3.4) {
+          state.selectedRouteId = nearest.id;
+          state.playerTarget = getEntrancePosition(nearest);
+          state.autoEnterId = null;
+          currentName.textContent = nearest.name;
+          currentHint.textContent = `Route set to ${nearest.section}. Follow the minimap line or press E near the entrance.`;
+          return;
+        }
+
+        state.selectedRouteId = null;
+        state.playerTarget = clampVector(new THREE.Vector3(worldX, 0, worldZ));
+        state.autoEnterId = null;
+      }
+
+      function toggleMinimapMode(event) {
+        event.stopPropagation();
+        state.minimapNorthUp = !state.minimapNorthUp;
+        minimapMode.textContent = state.minimapNorthUp ? "North" : "Rotate";
+      }
+
+      function raycastGround() {
+        raycaster.setFromCamera(pointer, camera);
+        const out = new THREE.Vector3();
+        return raycaster.ray.intersectPlane(groundPlane, out);
+      }
+
+      function updateHover() {
+        if (state.portalOpen || state.locked) {
+          state.hoverId = null;
+          state.hoverNpc = false;
+          document.body.classList.remove("is-targeting");
+          return;
+        }
+        raycaster.setFromCamera(pointer, camera);
+        const hits = raycaster.intersectObjects(interactiveMeshes, false);
+        const hit = hits[0]?.object;
+        state.hoverNpc = Boolean(hit?.userData.npcGuide);
+        state.hoverId = hit?.userData.buildingId || null;
+        document.body.classList.toggle("is-targeting", Boolean(state.hoverId || state.hoverNpc));
+      }
+
+      function animate(time = performance.now()) {
+        const dt = Math.min(Math.max((time - lastFrameTime) / 1000, 0), 0.04);
+        lastFrameTime = time;
+        updateHover();
+        updateDayNight(dt);
+        updatePlayer(dt);
+        updateNpcGuide(dt);
+        updateBuildingFocus(dt);
+        updateCamera(dt);
+        updateLabels();
+        drawMiniMap();
+        renderer.render(scene, camera);
+      }
+
+      function updateDayNight(dt) {
+        if (state.autoCycle && !state.portalOpen) {
+          state.timeOfDay = (state.timeOfDay + dt * 0.012) % 1;
+          timeSlider.value = state.timeOfDay.toFixed(3);
+        }
+
+        const t = state.timeOfDay;
+        const daylight = clamp(Math.sin(t * Math.PI * 2 - Math.PI / 2) * 0.5 + 0.5, 0, 1);
+        const sunset = Math.exp(-Math.pow((t - 0.72) / 0.12, 2));
+        const morning = Math.exp(-Math.pow((t - 0.24) / 0.13, 2));
+        const night = getNightLift();
+
+        const sky = new THREE.Color("#07101a")
+          .lerp(new THREE.Color("#7da9b8"), daylight)
+          .lerp(new THREE.Color("#ff9a5f"), sunset * 0.34)
+          .lerp(new THREE.Color("#171125"), night * 0.44);
+        const horizon = new THREE.Color("#090a0d")
+          .lerp(new THREE.Color("#d5ded8"), daylight * 0.48)
+          .lerp(new THREE.Color("#593722"), sunset * 0.35);
+
+        scene.background.copy(sky);
+        scene.fog.color.copy(sky).lerp(new THREE.Color("#050608"), 0.35);
+        skyDome.material.color.copy(horizon);
+        skyDome.material.opacity = 0.34 + night * 0.28;
+        if (starField) starField.material.opacity = night * 0.72;
+
+        sunLight.intensity = 0.28 + daylight * 2.55 + sunset * 0.45;
+        sunLight.color.set("#fff1d0").lerp(new THREE.Color("#ffb36d"), sunset * 0.65).lerp(new THREE.Color("#8db8ff"), night * 0.5);
+        sunLight.position.set(Math.cos(t * Math.PI * 2) * 18, 5 + daylight * 18, Math.sin(t * Math.PI * 2) * 18);
+
+        hemisphereLight.intensity = 0.55 + daylight * 1.85 + morning * 0.18;
+        hemisphereLight.color.set("#dffdfa").lerp(new THREE.Color("#b8c7ff"), night * 0.48);
+        hemisphereLight.groundColor.set("#19120d").lerp(new THREE.Color("#050708"), night * 0.72);
+        rimLight.intensity = 0.7 + night * 1.1 + sunset * 0.5;
+
+        document.documentElement.style.setProperty("--sky-a", `#${sky.getHexString()}`);
+        document.documentElement.style.setProperty("--sky-b", `#${horizon.getHexString()}`);
+        timeLabel.textContent = getTimeLabel(t);
+      }
+
+      function updateNpcGuide(dt) {
+        if (!npcGuide) return;
+        const distance = npcGuide.position.distanceTo(state.player);
+        state.npcNear = distance < 4.3;
+        npcGuide.position.y = Math.sin(performance.now() * 0.0022) * 0.035;
+
+        const desiredYaw = state.npcNear
+          ? Math.atan2(state.player.x - npcGuide.position.x, state.player.z - npcGuide.position.z)
+          : Math.sin(performance.now() * 0.0008) * 0.35;
+        npcGuide.rotation.y = lerpAngle(npcGuide.rotation.y, desiredYaw, 1 - Math.pow(0.001, dt));
+      }
+
+      function updatePlayer(dt) {
+        if (state.locked || state.portalOpen) return;
+
+        const input = new THREE.Vector3();
+        const forward = new THREE.Vector3(-Math.sin(state.cameraYaw), 0, -Math.cos(state.cameraYaw));
+        const right = new THREE.Vector3(Math.cos(state.cameraYaw), 0, -Math.sin(state.cameraYaw));
+
+        if (state.keys.has("w") || state.keys.has("arrowup")) input.add(forward);
+        if (state.keys.has("s") || state.keys.has("arrowdown")) input.sub(forward);
+        if (state.keys.has("d") || state.keys.has("arrowright")) input.add(right);
+        if (state.keys.has("a") || state.keys.has("arrowleft")) input.sub(right);
+
+        if (input.lengthSq() > 0.0001) {
+          input.normalize();
+          state.playerTarget = null;
+          state.autoEnterId = null;
+          const speed = state.keys.has("shift") ? 8 : 5.1;
+          state.player.addScaledVector(input, speed * dt);
+          playerFacing = Math.atan2(input.x, input.z);
+        } else if (state.playerTarget) {
+          tempVec.copy(state.playerTarget).sub(state.player);
+          tempVec.y = 0;
+          const distance = tempVec.length();
+          if (distance < 0.16) {
+            state.player.copy(state.playerTarget);
+            state.playerTarget = null;
+            if (state.autoEnterId) {
+              const building = getBuildingById(state.autoEnterId);
+              state.autoEnterId = null;
+              if (building) enterBuilding(building);
+            }
+          } else {
+            tempVec.normalize();
+            state.player.addScaledVector(tempVec, Math.min(distance, 4.6 * dt));
+            playerFacing = Math.atan2(tempVec.x, tempVec.z);
+            if (maybeAutoEnter()) return;
+          }
+        }
+
+        state.player.x = clamp(state.player.x, -WORLD_LIMIT, WORLD_LIMIT);
+        state.player.z = clamp(state.player.z, -WORLD_LIMIT, WORLD_LIMIT);
+
+        if (playerMesh) {
+          playerMesh.position.copy(state.player);
+          playerMesh.rotation.y = lerpAngle(playerMesh.rotation.y, playerFacing, 1 - Math.pow(0.001, dt));
+        }
+      }
+
+      function maybeAutoEnter() {
+        if (!state.autoEnterId) return false;
+        const building = getBuildingById(state.autoEnterId);
+        if (!building) {
+          state.autoEnterId = null;
+          return false;
+        }
+        const entrance = getEntrancePosition(building);
+        if (entrance.distanceTo(state.player) > 0.75) return false;
+        state.playerTarget = null;
+        state.autoEnterId = null;
+        enterBuilding(building);
+        return true;
+      }
+
+      function updateBuildingFocus(dt) {
+        if (!state.locked && !state.portalOpen) {
+          let nearestId = null;
+          let nearestDistance = Infinity;
+
+          buildingRuntime.forEach((runtime) => {
+            const entrance = getEntrancePosition(runtime.data);
+            const distance = entrance.distanceTo(state.player);
+            if (distance < nearestDistance) {
+              nearestDistance = distance;
+              nearestId = runtime.data.id;
+            }
+          });
+
+          state.nearId = nearestDistance < INTERACTION_RADIUS ? nearestId : null;
+          state.activeId = state.nearId || state.hoverId;
+        }
+
+        buildingRuntime.forEach((runtime) => {
+          const isActive = runtime.data.id === state.activeId;
+          const isNear = runtime.data.id === state.nearId;
+          const isSelected = runtime.data.id === state.selectedRouteId;
+          const nightLift = getNightLift();
+          const lift = isNear ? 1 : isActive ? 0.62 : 0;
+          const targetScale = isActive || isSelected ? 1.035 : 1;
+          runtime.group.scale.lerp(new THREE.Vector3(targetScale, targetScale, targetScale), 1 - Math.pow(0.001, dt));
+          runtime.ring.material.opacity = THREE.MathUtils.lerp(runtime.ring.material.opacity, isActive || isSelected ? 0.56 : 0.18 + nightLift * 0.12, 0.12);
+          runtime.ring.rotation.z += dt * (isActive || isSelected ? 0.95 : 0.22);
+          runtime.light.intensity = THREE.MathUtils.lerp(runtime.light.intensity, isActive ? 1.85 : 0.72 + nightLift * 1.35, 0.1);
+          runtime.materials.forEach((mat) => {
+            if (mat.emissiveIntensity !== undefined) {
+              mat.emissiveIntensity = THREE.MathUtils.lerp(mat.emissiveIntensity, 0.08 + lift * 0.55 + nightLift * 0.26, 0.12);
+            }
+          });
+          runtime.label.classList.toggle("is-active", isActive);
+          runtime.label.classList.toggle("is-near", isNear);
+          runtime.overlay.classList.toggle("is-visible", isActive || isNear);
+        });
+
+        updateHud();
+      }
+
+      function updateCamera(dt) {
+        if (state.locked) return;
+        const distance = state.cameraDistance;
+        const horizontal = Math.cos(state.cameraPitch) * distance;
+        const desired = new THREE.Vector3(
+          state.player.x + Math.sin(state.cameraYaw) * horizontal,
+          state.player.y + Math.sin(state.cameraPitch) * distance + 1.8,
+          state.player.z + Math.cos(state.cameraYaw) * horizontal
+        );
+        camera.position.lerp(desired, 1 - Math.pow(0.002, dt));
+        tempVec.set(state.player.x, state.player.y + 1.25, state.player.z);
+        lookTarget.lerp(tempVec, 1 - Math.pow(0.001, dt));
+        camera.lookAt(lookTarget);
+      }
+
+      function updateLabels() {
+        buildingRuntime.forEach((runtime) => {
+          const { data, label, overlay } = runtime;
+          const labelPos = runtime.group.position.clone();
+          labelPos.y += data.size[1] + 1.28;
+          labelPos.project(camera);
+
+          const visible = labelPos.z < 1;
+          const x = (labelPos.x * 0.5 + 0.5) * window.innerWidth;
+          const y = (-labelPos.y * 0.5 + 0.5) * window.innerHeight;
+          const distance = camera.position.distanceTo(runtime.group.position);
+          const scale = clamp(1.08 - distance / 70, 0.82, 1);
+
+          label.style.display = visible ? "grid" : "none";
+          label.style.transform = `translate(-50%, -100%) translate(${x}px, ${y}px) scale(${scale})`;
+
+          const overlayPos = runtime.group.position.clone();
+          overlayPos.y += data.size[1] * 0.72;
+          overlayPos.x += data.position[0] > 0 ? -0.7 : 0.7;
+          overlayPos.project(camera);
+          const overlayX = (overlayPos.x * 0.5 + 0.5) * window.innerWidth;
+          const overlayY = (-overlayPos.y * 0.5 + 0.5) * window.innerHeight;
+          overlay.style.display = overlayPos.z < 1 ? "block" : "none";
+          overlay.style.transform = `translate(-50%, -100%) translate(${overlayX}px, ${overlayY}px) scale(${scale})`;
+        });
+
+        if (npcGuide && npcBubble) {
+          const npcPos = npcGuide.position.clone();
+          npcPos.y += 1.82;
+          npcPos.project(camera);
+          const visible = npcPos.z < 1 && (state.npcNear || state.hoverNpc);
+          npcBubble.classList.toggle("is-visible", visible);
+          npcBubble.style.transform = `translate(-50%, -100%) translate(${(npcPos.x * 0.5 + 0.5) * window.innerWidth}px, ${(-npcPos.y * 0.5 + 0.5) * window.innerHeight}px) scale(0.94)`;
+        }
+      }
+
+      function drawMiniMap() {
+        const size = miniMapCanvas.width;
+        const center = size / 2;
+        const scale = size / (WORLD_LIMIT * 2.55);
+        minimapCtx.clearRect(0, 0, size, size);
+        minimapCtx.save();
+        minimapCtx.translate(center, center);
+        minimapCtx.beginPath();
+        minimapCtx.arc(0, 0, center - 4, 0, Math.PI * 2);
+        minimapCtx.clip();
+        minimapCtx.fillStyle = "rgba(5, 7, 9, 0.52)";
+        minimapCtx.fillRect(-center, -center, size, size);
+
+        const rotation = state.minimapNorthUp ? 0 : -state.cameraYaw;
+        minimapCtx.rotate(rotation);
+
+        minimapCtx.strokeStyle = "rgba(255,255,255,0.14)";
+        minimapCtx.lineWidth = 5;
+        buildings.forEach((building) => {
+          const x = building.position[0] * scale;
+          const z = building.position[2] * scale;
+          minimapCtx.beginPath();
+          minimapCtx.moveTo(0, 0);
+          minimapCtx.lineTo(x, z);
+          minimapCtx.stroke();
+        });
+
+        if (state.selectedRouteId) {
+          const selected = getBuildingById(state.selectedRouteId);
+          if (selected) {
+            minimapCtx.strokeStyle = selected.color;
+            minimapCtx.lineWidth = 2.4;
+            minimapCtx.setLineDash([8, 6]);
+            minimapCtx.beginPath();
+            minimapCtx.moveTo(state.player.x * scale, state.player.z * scale);
+            minimapCtx.lineTo(selected.position[0] * scale, selected.position[2] * scale);
+            minimapCtx.stroke();
+            minimapCtx.setLineDash([]);
+          }
+        }
+
+        buildings.forEach((building) => {
+          const x = building.position[0] * scale;
+          const z = building.position[2] * scale;
+          const active = building.id === state.activeId || building.id === state.selectedRouteId;
+          const near = building.id === state.nearId;
+          const pulse = near ? 1 + Math.sin(performance.now() * 0.008) * 0.22 : 1;
+          minimapCtx.beginPath();
+          minimapCtx.fillStyle = building.color;
+          minimapCtx.shadowColor = building.color;
+          minimapCtx.shadowBlur = active || near ? 16 : 6;
+          minimapCtx.arc(x, z, (active ? 6.2 : 4.7) * pulse, 0, Math.PI * 2);
+          minimapCtx.fill();
+          minimapCtx.shadowBlur = 0;
+          minimapCtx.strokeStyle = "rgba(255,255,255,0.72)";
+          minimapCtx.lineWidth = 1;
+          minimapCtx.stroke();
+        });
+
+        minimapCtx.save();
+        minimapCtx.translate(state.player.x * scale, state.player.z * scale);
+        minimapCtx.rotate(state.minimapNorthUp ? playerFacing : playerFacing + rotation);
+        minimapCtx.fillStyle = "#ffffff";
+        minimapCtx.shadowColor = "#ffffff";
+        minimapCtx.shadowBlur = 12;
+        minimapCtx.beginPath();
+        minimapCtx.moveTo(0, -8);
+        minimapCtx.lineTo(5, 6);
+        minimapCtx.lineTo(0, 3);
+        minimapCtx.lineTo(-5, 6);
+        minimapCtx.closePath();
+        minimapCtx.fill();
+        minimapCtx.restore();
+        minimapCtx.restore();
+      }
+
+      function updateHud() {
+        const building = getBuildingById(state.activeId);
+        if (building) {
+          currentName.textContent = building.name;
+          currentHint.textContent = state.nearId === building.id
+            ? `Enter ${building.shortName} to open ${building.section}.`
+            : building.hint;
+        } else if (state.selectedRouteId) {
+          const selected = getBuildingById(state.selectedRouteId);
+          currentName.textContent = selected?.name || "Route Selected";
+          currentHint.textContent = selected ? `Minimap route set to ${selected.section}.` : "Follow the route marker.";
+        } else {
+          currentName.textContent = "Central Plaza";
+          currentHint.textContent = "Move through the plaza. Buildings are portals.";
+        }
+      }
+
+      function enterOrApproach(building) {
+        const entrance = getEntrancePosition(building);
+        const distance = entrance.distanceTo(state.player);
+        if (distance <= INTERACTION_RADIUS) {
+          enterBuilding(building);
+          return;
+        }
+        state.selectedRouteId = building.id;
+        state.playerTarget = entrance;
+        state.autoEnterId = building.id;
+      }
+
+      function enterBuilding(building) {
+        if (state.locked || state.portalOpen) return;
+        state.locked = true;
+        state.activeId = building.id;
+        state.playerTarget = null;
+        state.autoEnterId = null;
+        transitionTitle.textContent = building.shortName;
+        portalTitle.textContent = building.name;
+        transitionOverlay.style.opacity = "0.98";
+
+        const entrance = getEntrancePosition(building);
+        const runtime = buildingRuntime.get(building.id);
+        const frontDirection = entrance.clone().sub(runtime.group.position).setY(0).normalize();
+        const endPosition = entrance.clone().addScaledVector(frontDirection, 1.08);
+        endPosition.y = 1.36;
+        const focus = runtime.group.position.clone();
+        focus.y = 1.25;
+        let completed = false;
+        const completeTransition = () => {
+          if (completed) return;
+          completed = true;
+          openPortal(building);
+        };
+        const fallbackTimer = window.setTimeout(completeTransition, 1500);
+
+        if (window.gsap) {
+          const tl = window.gsap.timeline({
+            defaults: { ease: "power3.inOut" },
+            onComplete: () => {
+              window.clearTimeout(fallbackTimer);
+              completeTransition();
+            }
+          });
+          tl.to(transitionOverlay, { opacity: 0.98, duration: 0.52 }, 0.42);
+          tl.to(camera.position, {
+            x: endPosition.x,
+            y: endPosition.y,
+            z: endPosition.z,
+            duration: 1.16,
+            onUpdate: () => camera.lookAt(focus)
+          }, 0);
+          tl.to(lookTarget, {
+            x: focus.x,
+            y: focus.y,
+            z: focus.z,
+            duration: 1.16,
+            onUpdate: () => camera.lookAt(lookTarget)
+          }, 0);
+        } else {
+          transitionOverlay.style.opacity = "0.98";
+          window.setTimeout(completeTransition, 900);
+        }
+      }
+
+      function openPortal(building) {
+        state.portalOpen = true;
+        transitionOverlay.style.opacity = "0.98";
+        portalFrame.classList.remove("is-loaded");
+        portalLayer.classList.add("is-open");
+        portalLayer.setAttribute("aria-hidden", "false");
+        portalFrame.src = building.href;
+        if (window.location.hash !== `#${building.id}`) {
+          history.pushState({ portal: building.id }, "", `#${building.id}`);
+        }
+      }
+
+      function onPortalLoaded() {
+        if (!state.portalOpen) return;
+        portalFrame.classList.add("is-loaded");
+        window.setTimeout(() => {
+          transitionOverlay.style.opacity = "0";
+        }, 180);
+      }
+
+      function closePortal() {
+        if (!state.portalOpen && !state.locked) return;
+        state.portalOpen = false;
+        state.locked = false;
+        portalLayer.classList.remove("is-open");
+        portalLayer.setAttribute("aria-hidden", "true");
+        portalFrame.classList.remove("is-loaded");
+        setTimeout(() => {
+          if (!state.portalOpen) portalFrame.src = "about:blank";
+        }, 260);
+        transitionOverlay.style.opacity = "0";
+        if (window.location.hash) {
+          history.pushState(null, "", window.location.pathname);
+        }
+      }
+
+      function getEntrancePosition(building) {
+        const runtime = buildingRuntime.get(building.id);
+        const [, , depth] = building.size;
+        return runtime.group.localToWorld(new THREE.Vector3(0, 0, -depth / 2 - 0.74));
+      }
+
+      function getBuildingById(id) {
+        return buildings.find((building) => building.id === id);
+      }
+
+      function clamp(value, min, max) {
+        return Math.min(max, Math.max(min, value));
+      }
+
+      function clampVector(point) {
+        point.x = clamp(point.x, -WORLD_LIMIT, WORLD_LIMIT);
+        point.z = clamp(point.z, -WORLD_LIMIT, WORLD_LIMIT);
+        point.y = 0;
+        return point;
+      }
+
+      function getNightLift() {
+        const daylight = clamp(Math.sin(state.timeOfDay * Math.PI * 2 - Math.PI / 2) * 0.5 + 0.5, 0, 1);
+        return 1 - daylight;
+      }
+
+      function getTimeLabel(t) {
+        if (t < 0.18 || t > 0.88) return "Night";
+        if (t < 0.36) return "Morning";
+        if (t < 0.64) return "Afternoon";
+        return "Sunset";
+      }
+
+      function titleCase(value) {
+        return value.charAt(0).toUpperCase() + value.slice(1);
+      }
+
+      function lerpAngle(a, b, t) {
+        const delta = Math.atan2(Math.sin(b - a), Math.cos(b - a));
+        return a + delta * t;
+      }
+    </script>
+  </body>
+</html>
