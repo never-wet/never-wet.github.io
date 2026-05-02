@@ -11,6 +11,7 @@ const featuredNames = [
   "Gemini AI Chat",
   "Particle Shape System",
   "Wheel of Fortune",
+  "Sorting Algorithm Visualizer",
   "Hand Draw Studio",
   "Market Intel AI",
   "Loop DAW",

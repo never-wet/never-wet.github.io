@@ -1,0 +1,147 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+  --page: #f7f5ee;
+  --ink: #18212f;
+  --muted: rgba(24, 33, 47, 0.62);
+  --line: rgba(24, 33, 47, 0.12);
+  --panel: rgba(255, 255, 255, 0.72);
+  --panel-strong: #ffffff;
+  --normal: #4f7f9f;
+  --compare: #2a9fd6;
+  --swap: #f25f5c;
+  --overwrite: #e58c35;
+  --pivot: #f2b705;
+  --sorted: #2fbf9f;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  min-height: 100%;
+  background: var(--page);
+}
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  background:
+    radial-gradient(circle at 8% 12%, rgba(47, 191, 159, 0.18), transparent 24rem),
+    radial-gradient(circle at 88% 8%, rgba(242, 183, 5, 0.16), transparent 23rem),
+    radial-gradient(circle at 48% 92%, rgba(42, 159, 214, 0.13), transparent 30rem),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(247, 245, 238, 0.96));
+  color: var(--ink);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+select,
+input {
+  font: inherit;
+}
+
+button,
+select,
+input[type="range"],
+input[type="checkbox"] {
+  cursor: pointer;
+}
+
+button:disabled,
+select:disabled,
+input:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+@layer components {
+  .panel {
+    @apply rounded-lg border border-black/10 bg-white/75 shadow-panel backdrop-blur-xl;
+  }
+
+  .control-label {
+    @apply text-[0.68rem] font-black uppercase tracking-[0.14em] text-black/45;
+  }
+
+  .field {
+    @apply min-h-11 w-full rounded-lg border border-black/10 bg-white px-3 text-sm font-extrabold text-ink outline-none transition focus:border-cyan/60 focus:ring-4 focus:ring-cyan/10;
+  }
+
+  .icon-button {
+    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-black/10 bg-white px-3 text-sm font-extrabold text-ink transition hover:-translate-y-0.5 hover:border-black/20 hover:shadow-soft disabled:hover:translate-y-0 disabled:hover:shadow-none;
+  }
+
+  .icon-button-dark {
+    @apply border-ink bg-ink text-white hover:border-ink;
+  }
+
+  .stat-cell {
+    @apply rounded-lg border border-black/10 bg-white/65 p-3;
+  }
+
+  .range-track {
+    @apply h-2 w-full accent-cyan;
+  }
+}
+
+.bar-item {
+  min-width: 2px;
+  transform-origin: bottom;
+  transition:
+    height 150ms ease,
+    background 150ms ease,
+    background-color 110ms ease,
+    opacity 110ms ease,
+    transform 110ms ease,
+    box-shadow 110ms ease,
+    filter 110ms ease,
+    outline-color 110ms ease;
+}
+
+.bar-item.is-active {
+  box-shadow: 0 0 0 1px rgba(24, 33, 47, 0.28);
+}
+
+.bar-item.is-swap,
+.bar-item.is-overwrite {
+  transform: translateY(-5px);
+}
+
+.pseudocode-scroll {
+  scrollbar-color: rgba(24, 33, 47, 0.24) transparent;
+  scrollbar-width: thin;
+}
+
+.pseudocode-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+
+.pseudocode-scroll::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgba(24, 33, 47, 0.22);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.001ms !important;
+  }
+}

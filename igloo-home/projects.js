@@ -48,6 +48,12 @@ export const projects = [
     href: "../wheel-of-fortune/",
   },
   {
+    title: "Sorting Algorithm Visualizer",
+    tag: "Education / Algorithms",
+    description: "Step-by-step sorting lab with animated bars, pseudocode highlighting, complexity notes, playback controls, and side-by-side algorithm comparison.",
+    href: "../sorting-algorithm-visualizer/",
+  },
+  {
     title: "Hand Draw Studio",
     tag: "Camera / Drawing Tool",
     description: "Webcam hand-tracking canvas where the cursor follows your index fingertip and an index-plus-thumb pinch draws smooth lines.",
