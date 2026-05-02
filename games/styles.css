@@ -827,6 +827,16 @@ body.page-transition-out::after {
   --cabinet-warm: #8ef4c2;
 }
 
+.cabinet--sort {
+  --cabinet-accent: #9efcff;
+  --cabinet-warm: #ff7a90;
+}
+
+.cabinet--galaxy {
+  --cabinet-accent: #9b8cff;
+  --cabinet-warm: #fff1a8;
+}
+
 .cabinet--coming {
   --cabinet-accent: #8ea0bb;
   --cabinet-warm: #c7d2e7;

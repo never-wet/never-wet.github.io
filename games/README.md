@@ -20,6 +20,10 @@ This folder holds the web game section for `never-wet.github.io`.
   A playable soccer idle game with upgrades, passive income, multiple screens, and browser save data.
 - `flight-simulator/`
   A Cesium-powered 3D flight exploration simulator with user-location navigation, safe recovery collisions, and interactive OSM building metadata.
+- `sorting-algorithm-visualizer/`
+  A Next.js sorting lab with animated algorithm playback, pseudocode highlighting, complexity notes, and comparison mode.
+- `galaxy-simulator/`
+  A React Three Fiber gravity sandbox with celestial body creation, collisions, black holes, supernova events, and predictive trajectories.
 - `stitch_soccer_clicker_tycoon/`
   A concept bundle / prototype set for a larger soccer clicker tycoon project.
 
@@ -34,6 +38,8 @@ From the site:
 - `/games/lantern-oath/`
 - `/games/soccer-idle/`
 - `/games/flight-simulator/`
+- `/games/sorting-algorithm-visualizer/`
+- `/games/galaxy-simulator/`
 
 If you are testing locally, serve the repo as a static site and open the same paths in your browser.
 

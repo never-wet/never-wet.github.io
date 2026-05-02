@@ -51,7 +51,13 @@ export const projects = [
     title: "Sorting Algorithm Visualizer",
     tag: "Education / Algorithms",
     description: "Step-by-step sorting lab with animated bars, pseudocode highlighting, complexity notes, playback controls, and side-by-side algorithm comparison.",
-    href: "../sorting-algorithm-visualizer/",
+    href: "../games/sorting-algorithm-visualizer/",
+  },
+  {
+    title: "Galaxy Simulator",
+    tag: "Physics / Cosmic Sandbox",
+    description: "Interactive 3D gravity lab with celestial body creation, Newtonian orbits, collisions, black holes, supernova events, and predictive future paths.",
+    href: "../games/galaxy-simulator/",
   },
   {
     title: "Hand Draw Studio",
