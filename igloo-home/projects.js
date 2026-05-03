@@ -1,5 +1,11 @@
 export const projects = [
   {
+    title: "Visual Search Lens",
+    tag: "AI Vision / Image Search",
+    description: "Upload an image and receive detailed visual search analysis with searchable descriptions, keywords, Google image queries, style classification, color palettes, tags, objects, and similar-image discovery guidance.",
+    href: "../visual-search-lens/",
+  },
+  {
     title: "Space Explorer",
     tag: "NASA-style / 3D Solar System",
     description: "Cinematic 3D space explorer with textured planets, major moons, asteroid and Kuiper belts, famous stars, orbit paths, real measurements, and NASA/JPL integration hooks.",

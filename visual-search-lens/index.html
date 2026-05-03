@@ -1,0 +1,1016 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Visual Search Lens</title>
+    <meta
+      name="description"
+      content="Search-focused image analysis with keywords, Google image queries, style classification, colors, tags, and discovery guidance."
+    />
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f6f4ef;
+        --ink: #161713;
+        --soft: #ffffffcc;
+        --muted: #6f6b62;
+        --line: rgba(22, 23, 19, 0.12);
+        --blue: #1d5cff;
+        --red: #b42318;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background:
+          linear-gradient(90deg, rgba(22, 23, 19, 0.045) 1px, transparent 1px),
+          linear-gradient(180deg, rgba(22, 23, 19, 0.045) 1px, transparent 1px),
+          var(--bg);
+        background-size: 40px 40px;
+        color: var(--ink);
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      button,
+      input {
+        font: inherit;
+      }
+
+      button {
+        cursor: pointer;
+      }
+
+      .app {
+        width: min(1320px, calc(100% - 28px));
+        min-height: 100vh;
+        margin: 0 auto;
+        padding: 16px 0;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+
+      .topbar,
+      .upload-card,
+      .result-card {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--soft);
+        box-shadow: 0 18px 54px rgba(22, 23, 19, 0.08);
+        backdrop-filter: blur(16px);
+      }
+
+      .topbar {
+        min-height: 72px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        padding: 12px 14px;
+      }
+
+      .eyebrow {
+        margin: 0 0 4px;
+        color: var(--muted);
+        font-size: 0.72rem;
+        font-weight: 800;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: clamp(1.35rem, 2.4vw, 2rem);
+        letter-spacing: -0.02em;
+      }
+
+      .copy-all,
+      .upload-button,
+      .tab,
+      .chip,
+      .copy-small,
+      .query {
+        border: 0;
+        border-radius: 999px;
+        font-weight: 800;
+        transition:
+          transform 0.18s ease,
+          background 0.18s ease,
+          border-color 0.18s ease,
+          color 0.18s ease;
+      }
+
+      .copy-all,
+      .upload-button {
+        min-height: 42px;
+        padding: 0 18px;
+        background: var(--ink);
+        color: var(--bg);
+      }
+
+      .copy-all:disabled {
+        cursor: not-allowed;
+        background: #c9c4ba;
+      }
+
+      .shell {
+        flex: 1;
+        display: grid;
+        grid-template-columns: minmax(0, 0.9fr) minmax(380px, 0.72fr);
+        gap: 14px;
+      }
+
+      .upload-card {
+        padding: 12px;
+      }
+
+      .dropzone {
+        position: relative;
+        min-height: 560px;
+        display: grid;
+        place-items: center;
+        overflow: hidden;
+        border: 1px dashed var(--line);
+        border-radius: 7px;
+        background: rgba(232, 229, 221, 0.72);
+      }
+
+      .dropzone.is-dragging {
+        border-color: var(--blue);
+        background: #eef4ff;
+      }
+
+      .dropzone img {
+        width: 100%;
+        height: 100%;
+        min-height: 560px;
+        object-fit: contain;
+      }
+
+      .drop-empty {
+        border: 0;
+        background: transparent;
+        color: var(--ink);
+        text-align: center;
+      }
+
+      .drop-empty span {
+        display: block;
+      }
+
+      .drop-empty .plus {
+        width: 56px;
+        height: 56px;
+        display: grid;
+        place-items: center;
+        margin: 0 auto 14px;
+        border-radius: 999px;
+        background: var(--ink);
+        color: var(--bg);
+        font-size: 2rem;
+        line-height: 1;
+      }
+
+      .drop-empty strong {
+        display: block;
+        font-size: 1.5rem;
+      }
+
+      .drop-empty small {
+        display: block;
+        margin-top: 8px;
+        color: var(--muted);
+        font-weight: 700;
+      }
+
+      .float-row {
+        position: absolute;
+        left: 12px;
+        right: 12px;
+        top: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+      }
+
+      .meta-pill,
+      .toast {
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.92);
+        color: var(--muted);
+        padding: 9px 12px;
+        font-size: 0.78rem;
+        font-weight: 800;
+        box-shadow: 0 10px 28px rgba(22, 23, 19, 0.08);
+      }
+
+      .progress {
+        position: absolute;
+        left: 12px;
+        right: 12px;
+        bottom: 12px;
+        display: none;
+        padding: 12px;
+        border: 1px solid var(--line);
+        border-radius: 7px;
+        background: rgba(255, 255, 255, 0.92);
+      }
+
+      .progress.is-active {
+        display: block;
+      }
+
+      .progress-label {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 8px;
+        font-size: 0.86rem;
+        font-weight: 800;
+      }
+
+      .bar {
+        height: 8px;
+        overflow: hidden;
+        border-radius: 999px;
+        background: #dedbd3;
+      }
+
+      .bar span {
+        display: block;
+        width: 45%;
+        height: 100%;
+        border-radius: inherit;
+        background: var(--blue);
+        animation: slide 1.1s ease-in-out infinite;
+      }
+
+      @keyframes slide {
+        0% {
+          transform: translateX(-100%);
+        }
+        100% {
+          transform: translateX(245%);
+        }
+      }
+
+      .result-card {
+        display: flex;
+        flex-direction: column;
+        min-height: 620px;
+      }
+
+      .tabs {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 8px;
+        padding: 12px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .tab {
+        min-height: 40px;
+        padding: 0 10px;
+        background: #ece9e1;
+        color: var(--muted);
+      }
+
+      .tab.is-active {
+        background: var(--ink);
+        color: var(--bg);
+      }
+
+      .panel {
+        flex: 1;
+        padding: 16px;
+        overflow: auto;
+      }
+
+      .empty {
+        min-height: 420px;
+        display: grid;
+        place-items: center;
+        border: 1px solid var(--line);
+        border-radius: 7px;
+        background: rgba(248, 247, 243, 0.8);
+        color: var(--muted);
+        text-align: center;
+        font-weight: 700;
+      }
+
+      .section {
+        margin-bottom: 16px;
+        padding: 14px;
+        border: 1px solid var(--line);
+        border-radius: 7px;
+        background: rgba(248, 247, 243, 0.86);
+      }
+
+      .section-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 12px;
+      }
+
+      h2 {
+        margin: 0;
+        color: var(--muted);
+        font-size: 0.76rem;
+        font-weight: 900;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+      }
+
+      .description {
+        margin: 0;
+        font-size: 1.08rem;
+        line-height: 1.75;
+      }
+
+      .copy-small {
+        border: 1px solid var(--line);
+        background: white;
+        padding: 7px 11px;
+        font-size: 0.75rem;
+        color: var(--ink);
+      }
+
+      .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .chip {
+        border: 1px solid var(--line);
+        background: rgba(248, 247, 243, 0.96);
+        padding: 9px 12px;
+        color: var(--ink);
+        font-size: 0.88rem;
+      }
+
+      .chip:hover,
+      .query:hover {
+        border-color: var(--blue);
+        color: #0f49d7;
+        background: #eef4ff;
+      }
+
+      .query {
+        width: 100%;
+        min-height: 54px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 10px;
+        border: 1px solid var(--line);
+        border-radius: 7px;
+        background: rgba(248, 247, 243, 0.96);
+        padding: 12px 14px;
+        color: var(--ink);
+        text-align: left;
+      }
+
+      .facts {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .fact {
+        border: 1px solid var(--line);
+        border-radius: 7px;
+        background: rgba(248, 247, 243, 0.86);
+        padding: 12px;
+      }
+
+      .fact span {
+        display: block;
+        margin-bottom: 6px;
+        color: var(--muted);
+        font-size: 0.7rem;
+        font-weight: 900;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+      }
+
+      .fact strong {
+        display: block;
+        line-height: 1.4;
+      }
+
+      .colors {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .color {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        border: 1px solid var(--line);
+        border-radius: 7px;
+        background: rgba(248, 247, 243, 0.86);
+        padding: 10px;
+      }
+
+      .swatch {
+        width: 40px;
+        height: 40px;
+        flex: 0 0 auto;
+        border: 1px solid var(--line);
+        border-radius: 7px;
+      }
+
+      .color strong,
+      .color code {
+        display: block;
+      }
+
+      .color code {
+        color: var(--muted);
+        font-size: 0.82rem;
+      }
+
+      .error {
+        display: none;
+        margin: 12px 12px 0;
+        border: 1px solid rgba(180, 35, 24, 0.22);
+        border-radius: 7px;
+        background: #fff2f0;
+        color: var(--red);
+        padding: 11px 12px;
+        font-weight: 800;
+        font-size: 0.9rem;
+      }
+
+      .error.is-active {
+        display: block;
+      }
+
+      .toast {
+        display: none;
+        color: #027a48;
+        background: #ecfdf3;
+      }
+
+      .toast.is-active {
+        display: inline-flex;
+      }
+
+      @media (max-width: 980px) {
+        .shell,
+        .facts,
+        .colors {
+          grid-template-columns: 1fr;
+        }
+
+        .result-card {
+          min-height: 560px;
+        }
+      }
+
+      @media (max-width: 620px) {
+        .topbar {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+
+        .tabs {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .dropzone,
+        .dropzone img {
+          min-height: 420px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="app">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Visual Search Lens</p>
+          <h1>Image-to-search analyzer</h1>
+        </div>
+        <div>
+          <span class="toast" id="toast">Copied</span>
+          <button class="copy-all" id="copyAll" type="button" disabled>Copy All</button>
+        </div>
+      </header>
+
+      <section class="shell">
+        <div class="upload-card">
+          <div class="dropzone" id="dropzone">
+            <button class="drop-empty" id="dropEmpty" type="button">
+              <span class="plus">+</span>
+              <strong>Drop image</strong>
+              <small>JPG, PNG, WEBP</small>
+            </button>
+            <img id="preview" alt="Uploaded preview" hidden />
+
+            <div class="float-row">
+              <button class="upload-button" id="uploadButton" type="button">Upload</button>
+              <span class="meta-pill" id="metaPill">No image loaded</span>
+            </div>
+
+            <div class="progress" id="progress">
+              <div class="progress-label">
+                <span>Analyzing visual search signals</span>
+                <span id="sourceSize"></span>
+              </div>
+              <div class="bar"><span></span></div>
+            </div>
+          </div>
+          <input id="fileInput" type="file" accept="image/png,image/jpeg,image/webp" hidden />
+        </div>
+
+        <aside class="result-card">
+          <div class="tabs" id="tabs">
+            <button class="tab is-active" type="button" data-tab="description">Description</button>
+            <button class="tab" type="button" data-tab="keywords">Keywords</button>
+            <button class="tab" type="button" data-tab="queries">Search Queries</button>
+            <button class="tab" type="button" data-tab="style">Style</button>
+          </div>
+          <div class="error" id="error"></div>
+          <div class="panel" id="panel">
+            <div class="empty">Results appear here after analysis.</div>
+          </div>
+        </aside>
+      </section>
+    </main>
+
+    <script>
+      const MAX_SOURCE_BYTES = 16 * 1024 * 1024;
+      const MAX_IMAGE_EDGE = 1600;
+      const JPEG_QUALITY = 0.82;
+      const emptyAnalysis = {
+        description: "",
+        keywords: [],
+        search_queries: [],
+        style: {
+          type: "",
+          genre: "",
+          aesthetic: "",
+          lighting: "",
+          composition: "",
+          camera_angle: "",
+          mood: ""
+        },
+        colors: [],
+        tags: [],
+        objects: [],
+        setting: "",
+        brands: [],
+        similar_image_guidance: [],
+        notes: ""
+      };
+
+      const state = {
+        analysis: emptyAnalysis,
+        activeTab: "description",
+        hasResults: false,
+        previewUrl: ""
+      };
+
+      const els = {
+        copyAll: document.getElementById("copyAll"),
+        dropzone: document.getElementById("dropzone"),
+        dropEmpty: document.getElementById("dropEmpty"),
+        error: document.getElementById("error"),
+        fileInput: document.getElementById("fileInput"),
+        metaPill: document.getElementById("metaPill"),
+        panel: document.getElementById("panel"),
+        preview: document.getElementById("preview"),
+        progress: document.getElementById("progress"),
+        sourceSize: document.getElementById("sourceSize"),
+        tabs: document.getElementById("tabs"),
+        toast: document.getElementById("toast"),
+        uploadButton: document.getElementById("uploadButton")
+      };
+
+      const LOCAL_ANALYZER_PORTS = [8091, 8092, 8093, 8094, 8095, 8096, 8097, 8098, 8099, 8100];
+
+      function bytesToLabel(bytes) {
+        if (!bytes) return "";
+        if (bytes < 1024 * 1024) return `${Math.max(bytes / 1024, 1).toFixed(0)} KB`;
+        return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+      }
+
+      function escapeHtml(value) {
+        return String(value ?? "")
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;");
+      }
+
+      function renderEmpty() {
+        els.panel.innerHTML = '<div class="empty">Results appear here after analysis.</div>';
+      }
+
+      function showToast(label) {
+        els.toast.textContent = label;
+        els.toast.classList.add("is-active");
+        window.setTimeout(() => els.toast.classList.remove("is-active"), 1300);
+      }
+
+      async function copyText(value, label = "Copied") {
+        if (!String(value).trim()) return;
+        try {
+          await navigator.clipboard.writeText(value);
+          showToast(label);
+        } catch {
+          showToast("Copy failed");
+        }
+      }
+
+      function formatAnalysis(analysis) {
+        return [
+          `Description:\n${analysis.description}`,
+          `Keywords:\n${analysis.keywords.join(", ")}`,
+          `Search queries:\n${analysis.search_queries.map((query) => `- ${query}`).join("\n")}`,
+          `Style:\nType: ${analysis.style.type}\nGenre: ${analysis.style.genre}\nAesthetic: ${analysis.style.aesthetic}\nLighting: ${analysis.style.lighting}\nComposition: ${analysis.style.composition}\nCamera angle: ${analysis.style.camera_angle}\nMood: ${analysis.style.mood}`,
+          `Colors:\n${analysis.colors.map((color) => `${color.name} ${color.hex}`).join("\n")}`,
+          `Tags:\n${analysis.tags.join(", ")}`,
+          `Objects:\n${analysis.objects.join(", ")}`,
+          `Setting:\n${analysis.setting}`,
+          `Brands:\n${analysis.brands.length ? analysis.brands.join(", ") : "None detected"}`,
+          `Similar-image guidance:\n${analysis.similar_image_guidance.map((item) => `- ${item}`).join("\n")}`,
+          analysis.notes ? `Notes:\n${analysis.notes}` : ""
+        ]
+          .filter(Boolean)
+          .join("\n\n");
+      }
+
+      function setError(message) {
+        els.error.textContent = message;
+        els.error.classList.toggle("is-active", Boolean(message));
+      }
+
+      function setLoading(isLoading) {
+        els.progress.classList.toggle("is-active", isLoading);
+      }
+
+      function setTab(tab) {
+        state.activeTab = tab;
+        for (const button of els.tabs.querySelectorAll(".tab")) {
+          button.classList.toggle("is-active", button.dataset.tab === tab);
+        }
+        renderPanel();
+      }
+
+      function renderPanel() {
+        if (!state.hasResults) {
+          renderEmpty();
+          return;
+        }
+
+        const analysis = state.analysis;
+
+        if (state.activeTab === "description") {
+          els.panel.innerHTML = `
+            <section class="section">
+              <div class="section-head">
+                <h2>Structured Description</h2>
+                <button class="copy-small" type="button" data-copy-description>Copy</button>
+              </div>
+              <p class="description">${escapeHtml(analysis.description)}</p>
+            </section>
+            ${renderInfoList("Discovery Guidance", analysis.similar_image_guidance, "guidance")}
+            <div class="facts">
+              ${renderFact("Setting", analysis.setting)}
+              ${renderFact("Brands", analysis.brands.length ? analysis.brands.join(", ") : "None detected")}
+            </div>
+            ${analysis.notes ? `<p class="section">${escapeHtml(analysis.notes)}</p>` : ""}
+          `;
+          return;
+        }
+
+        if (state.activeTab === "keywords") {
+          els.panel.innerHTML = `
+            ${renderChipSection("Keywords", analysis.keywords)}
+            ${renderChipSection("Tags", analysis.tags)}
+            ${renderChipSection("Objects", analysis.objects)}
+          `;
+          return;
+        }
+
+        if (state.activeTab === "queries") {
+          els.panel.innerHTML = analysis.search_queries
+            .map(
+              (query) => `
+                <button class="query" type="button" data-search="${escapeHtml(query)}">
+                  <span>${escapeHtml(query)}</span>
+                  <span>Open</span>
+                </button>
+              `
+            )
+            .join("");
+          return;
+        }
+
+        const styleFields = [
+          ["Type", analysis.style.type],
+          ["Genre", analysis.style.genre],
+          ["Aesthetic", analysis.style.aesthetic],
+          ["Lighting", analysis.style.lighting],
+          ["Composition", analysis.style.composition],
+          ["Camera Angle", analysis.style.camera_angle],
+          ["Mood", analysis.style.mood]
+        ];
+
+        els.panel.innerHTML = `
+          <div class="facts">
+            ${styleFields.map(([label, value]) => renderFact(label, value)).join("")}
+          </div>
+          <section class="section">
+            <div class="section-head"><h2>Color Palette</h2></div>
+            <div class="colors">
+              ${analysis.colors
+                .map(
+                  (color) => `
+                    <div class="color">
+                      <span class="swatch" style="background:${escapeHtml(color.hex)}"></span>
+                      <span><strong>${escapeHtml(color.name)}</strong><code>${escapeHtml(color.hex)}</code></span>
+                    </div>
+                  `
+                )
+                .join("")}
+            </div>
+          </section>
+        `;
+      }
+
+      function renderFact(label, value) {
+        return `<div class="fact"><span>${escapeHtml(label)}</span><strong>${escapeHtml(value || "Unknown")}</strong></div>`;
+      }
+
+      function renderInfoList(title, items, kind) {
+        return `
+          <section class="section">
+            <div class="section-head"><h2>${escapeHtml(title)}</h2></div>
+            ${(items || [])
+              .map(
+                (item) =>
+                  `<button class="query" type="button" data-copy="${escapeHtml(item)}" data-copy-kind="${escapeHtml(kind)}"><span>${escapeHtml(item)}</span><span>Copy</span></button>`
+              )
+              .join("")}
+          </section>
+        `;
+      }
+
+      function renderChipSection(title, items) {
+        return `
+          <section class="section">
+            <div class="section-head"><h2>${escapeHtml(title)}</h2></div>
+            <div class="chips">
+              ${(items || [])
+                .map((item) => `<button class="chip" type="button" data-copy="${escapeHtml(item)}">${escapeHtml(item)}</button>`)
+                .join("") || "<span>No items detected.</span>"}
+            </div>
+          </section>
+        `;
+      }
+
+      function loadImage(file) {
+        const url = URL.createObjectURL(file);
+        return new Promise((resolve, reject) => {
+          const image = new Image();
+          image.onload = () => {
+            URL.revokeObjectURL(url);
+            resolve(image);
+          };
+          image.onerror = () => {
+            URL.revokeObjectURL(url);
+            reject(new Error("Could not load the image."));
+          };
+          image.src = url;
+        });
+      }
+
+      async function compressImage(file) {
+        const image = await loadImage(file);
+        const scale = Math.min(1, MAX_IMAGE_EDGE / Math.max(image.naturalWidth, image.naturalHeight));
+        const width = Math.max(1, Math.round(image.naturalWidth * scale));
+        const height = Math.max(1, Math.round(image.naturalHeight * scale));
+        const canvas = document.createElement("canvas");
+        const context = canvas.getContext("2d");
+
+        if (!context) throw new Error("Canvas is not available in this browser.");
+
+        canvas.width = width;
+        canvas.height = height;
+        context.fillStyle = "#ffffff";
+        context.fillRect(0, 0, width, height);
+        context.drawImage(image, 0, 0, width, height);
+
+        const blob = await new Promise((resolve, reject) => {
+          canvas.toBlob(
+            (result) => (result ? resolve(result) : reject(new Error("Could not compress the image."))),
+            "image/jpeg",
+            JPEG_QUALITY
+          );
+        });
+
+        const dataUrl = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(String(reader.result));
+          reader.onerror = () => reject(new Error("Could not read the compressed image."));
+          reader.readAsDataURL(blob);
+        });
+
+        return { dataUrl, width, height, size: blob.size };
+      }
+
+      function isLocalHost() {
+        return ["localhost", "127.0.0.1", "::1"].includes(window.location.hostname);
+      }
+
+      function getAnalyzerEndpoints() {
+        const relativeEndpoint = new URL("/api/analyze", window.location.href).href;
+
+        if (!isLocalHost()) return [relativeEndpoint];
+
+        const localEndpoints = LOCAL_ANALYZER_PORTS.map((port) => `http://127.0.0.1:${port}/api/analyze`);
+
+        if (window.location.port && LOCAL_ANALYZER_PORTS.includes(Number(window.location.port))) {
+          return [relativeEndpoint, ...localEndpoints.filter((endpoint) => endpoint !== relativeEndpoint)];
+        }
+
+        return [...localEndpoints, relativeEndpoint];
+      }
+
+      function shouldTryNextEndpoint(response, data) {
+        if (data?.error) return false;
+        return response.status === 404 || response.status === 405 || response.status === 501;
+      }
+
+      function createFatalAnalyzerError(message) {
+        const error = new Error(message);
+        error.name = "AnalyzerFatalError";
+        return error;
+      }
+
+      async function readJsonResponse(response) {
+        const contentType = response.headers.get("content-type") || "";
+
+        if (!contentType.includes("application/json")) {
+          await response.text().catch(() => "");
+          return null;
+        }
+
+        return response.json().catch(() => null);
+      }
+
+      async function requestAnalysis(dataUrl) {
+        let lastEndpointError = "";
+
+        for (const endpoint of getAnalyzerEndpoints()) {
+          try {
+            const response = await fetch(endpoint, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ image: dataUrl })
+            });
+            const data = await readJsonResponse(response);
+
+            if (response.ok && data && !data.error) return data;
+
+            if (shouldTryNextEndpoint(response, data)) {
+              lastEndpointError = `No analyzer API at ${new URL(endpoint).origin}.`;
+              continue;
+            }
+
+            throw createFatalAnalyzerError(
+              data?.error ||
+                `Analyzer API returned ${response.status} from ${new URL(endpoint).origin}.`
+            );
+          } catch (error) {
+            if (error instanceof Error && error.name === "AnalyzerFatalError") {
+              throw error;
+            }
+
+            lastEndpointError = error instanceof Error ? error.message : "Analyzer API request failed.";
+          }
+        }
+
+        throw new Error(
+          `${lastEndpointError || "The analyzer API is not reachable."} Open the Next app at http://127.0.0.1:8091 or deploy Visual Search Lens to a host that supports Next.js API routes.`
+        );
+      }
+
+      async function analyzeImage(dataUrl) {
+        setLoading(true);
+        setError("");
+        try {
+          const data = await requestAnalysis(dataUrl);
+          state.analysis = data;
+          state.hasResults = true;
+          els.copyAll.disabled = false;
+          setTab("description");
+        } catch (error) {
+          state.analysis = emptyAnalysis;
+          state.hasResults = false;
+          els.copyAll.disabled = true;
+          renderPanel();
+          setError(error instanceof Error ? error.message : "The analyzer could not read this image.");
+        } finally {
+          setLoading(false);
+        }
+      }
+
+      async function handleFile(file) {
+        if (!file) return;
+        if (!file.type.startsWith("image/")) {
+          setError("Choose an image file.");
+          return;
+        }
+        if (file.size > MAX_SOURCE_BYTES) {
+          setError("Choose an image under 16 MB.");
+          return;
+        }
+
+        if (state.previewUrl) URL.revokeObjectURL(state.previewUrl);
+        state.previewUrl = URL.createObjectURL(file);
+        els.preview.src = state.previewUrl;
+        els.preview.hidden = false;
+        els.dropEmpty.hidden = true;
+        els.sourceSize.textContent = bytesToLabel(file.size);
+        state.hasResults = false;
+        els.copyAll.disabled = true;
+        renderPanel();
+        setError("");
+
+        try {
+          const compressed = await compressImage(file);
+          els.metaPill.textContent = `${compressed.width} x ${compressed.height} / ${bytesToLabel(compressed.size)} compressed`;
+          await analyzeImage(compressed.dataUrl);
+        } catch (error) {
+          setError(error instanceof Error ? error.message : "Could not prepare this image for analysis.");
+        }
+      }
+
+      els.uploadButton.addEventListener("click", () => els.fileInput.click());
+      els.dropEmpty.addEventListener("click", () => els.fileInput.click());
+      els.fileInput.addEventListener("change", (event) => {
+        handleFile(event.target.files?.[0]);
+        event.target.value = "";
+      });
+
+      els.dropzone.addEventListener("dragenter", (event) => {
+        event.preventDefault();
+        els.dropzone.classList.add("is-dragging");
+      });
+      els.dropzone.addEventListener("dragover", (event) => event.preventDefault());
+      els.dropzone.addEventListener("dragleave", () => els.dropzone.classList.remove("is-dragging"));
+      els.dropzone.addEventListener("drop", (event) => {
+        event.preventDefault();
+        els.dropzone.classList.remove("is-dragging");
+        handleFile(event.dataTransfer.files[0]);
+      });
+
+      els.tabs.addEventListener("click", (event) => {
+        const button = event.target.closest("[data-tab]");
+        if (button) setTab(button.dataset.tab);
+      });
+
+      els.panel.addEventListener("click", (event) => {
+        const copyButton = event.target.closest("[data-copy]");
+        if (copyButton) {
+          copyText(copyButton.dataset.copy, "Copied");
+          return;
+        }
+
+        const descriptionButton = event.target.closest("[data-copy-description]");
+        if (descriptionButton) {
+          copyText(state.analysis.description, "Copied description");
+          return;
+        }
+
+        const searchButton = event.target.closest("[data-search]");
+        if (searchButton) {
+          window.open(
+            `https://www.google.com/search?tbm=isch&q=${encodeURIComponent(searchButton.dataset.search)}`,
+            "_blank",
+            "noopener,noreferrer"
+          );
+        }
+      });
+
+      els.copyAll.addEventListener("click", () => copyText(formatAnalysis(state.analysis), "Copied all"));
+    </script>
+  </body>
+</html>
