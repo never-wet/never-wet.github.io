@@ -3,6 +3,7 @@ import { projects } from "../igloo-home/projects.js";
 
 const localProjects = projects.filter((project) => !project.external);
 const featuredNames = [
+  "Private Residence Scroll Journey",
   "Global Intelligence World",
   "Global Intelligence Dashboard",
   "Global Route Intelligence Map",

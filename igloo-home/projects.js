@@ -1,5 +1,11 @@
 export const projects = [
   {
+    title: "Private Residence Scroll Journey",
+    tag: "Luxury Real Estate / R3F Scroll Tour",
+    description: "Cinematic luxury villa walkthrough where scroll drives the camera from gated arrival through driveway, exterior reveal, interiors, feature rooms, and private viewing CTA.",
+    href: "../luxury-house-scroll-journey/",
+  },
+  {
     title: "Global Intelligence World",
     tag: "RPG / AI Intelligence Dashboard",
     description: "Interactive 3D control hub where buildings open live intelligence, market analytics, infrastructure telemetry, and project dashboards.",
