@@ -178,9 +178,10 @@ function VDiagram({
           <path d="M-54 328H54" stroke="#1f2328" strokeWidth="38" strokeLinecap="round" />
         </g>
         <g transform="translate(-74 28) rotate(-22)">
-          {Array.from({ length: perBank }, (_, index) => (
-            <PistonUnit key={`l-${index}`} x={(index - (perBank - 1) / 2) * spacing} y={0} index={index} progress={progress} phase={(index / engine.cylinders) * Math.PI * 2} hotspot={hotspot} compact />
-          ))}
+          {Array.from({ length: perBank }, (_, index) => {
+            const phase = (index / perBank) * Math.PI * 2;
+            return <PistonUnit key={`l-${index}`} x={(index - (perBank - 1) / 2) * spacing} y={0} index={index} progress={progress} phase={phase} hotspot={hotspot} compact />;
+          })}
         </g>
         <g transform="translate(74 28) rotate(22)">
           {Array.from({ length: perBank }, (_, index) => (
@@ -190,7 +191,7 @@ function VDiagram({
               y={0}
               index={index}
               progress={progress}
-              phase={((index + perBank) / engine.cylinders) * Math.PI * 2}
+              phase={(index / perBank) * Math.PI * 2}
               hotspot={hotspot}
               compact
             />
@@ -198,12 +199,8 @@ function VDiagram({
         </g>
         <g {...hotspot("crankshaft")} transform="translate(0 332)">
           <line x1="-148" y1="0" x2="148" y2="0" stroke="#22252b" strokeWidth="16" strokeLinecap="round" />
-          {Array.from({ length: perBank }, (_, index) => (
-            <g key={index} transform={`translate(${(index - (perBank - 1) / 2) * 80} 0) rotate(${((crankAngle + index) * 180) / Math.PI})`}>
-              <circle r="28" fill="none" stroke="#49515c" strokeWidth="8" />
-              <circle cx="24" cy="0" r="8" fill={stageColor} />
-            </g>
-          ))}
+          {/* Crank-pin circles are drawn by each PistonUnit’s connectingRod endpoint,
+              so drawing separate “crankshaft pins” here can desync and look disconnected. */}
         </g>
         {engine.modelKind === "supercharged" ? <SuperchargerOverlay progress={progress} hotspot={hotspot} /> : null}
       </g>
@@ -240,10 +237,8 @@ function BoxerDiagram({
       <g {...hotspot("crankshaft")}>
         <circle r="58" fill="#23272f" opacity="0.92" />
         <circle r="34" fill="#fffaf0" opacity="0.26" />
-        <g transform={`rotate(${(crankAngle * 180) / Math.PI})`}>
-          <circle cx="46" r="10" fill={stageColor} />
-          <line x1="-46" x2="46" stroke={stageColor} strokeWidth="8" strokeLinecap="round" opacity="0.72" />
-        </g>
+        {/* Crank-pin circles are drawn by each PistonUnit’s connectingRod endpoint,
+            so omit the extra rotating pin/rod depiction to avoid visual mismatch. */}
       </g>
     </g>
   );
@@ -403,10 +398,10 @@ function PistonUnit({
   const scale = compact ? 0.82 : 1;
   const travel = pistonTravel(progress * 2, phase);
   const pistonY = 92 + travel * 66;
-  const crankY = 252;
-  const crankAngle = progress * Math.PI * 4 + phase;
-  const crankX = Math.cos(crankAngle) * 23;
-  const crankPinY = crankY + Math.sin(crankAngle) * 23;
+  const crankY = compact ? 332 : 252;
+  const crankAngle = progress * Math.PI * 4 + phase - Math.PI / 2;
+  const crankX = Math.cos(crankAngle) * 26;
+  const crankPinY = crankY + Math.sin(crankAngle) * 26;
   const intakeLift = Math.max(0, Math.sin(progress * Math.PI * 8 + phase));
   const exhaustLift = Math.max(0, Math.sin(progress * Math.PI * 8 + phase + Math.PI));
 
