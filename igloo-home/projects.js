@@ -264,6 +264,12 @@ export const projects = [
     href: "../aero-rank-system/",
   },
   {
+    title: "Car Engine Lab",
+    tag: "Education / 2D + 3D Engines",
+    description: "Interactive engine learning lab with animated 2D diagrams, procedural 3D models, component isolation, cutaway and x-ray modes, torque graphs, and side-by-side comparison for combustion, hybrid, electric, turbo, and supercharged engines.",
+    href: "../car-engine-lab/",
+  },
+  {
     title: "ARCTIS / SIGNAL",
     tag: "Immersive / WebGL",
     description: "Realtime brand world with cinematic scroll-driven 3D choreography.",

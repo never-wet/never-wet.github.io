@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 220" role="img" aria-labelledby="title desc">
+  <title id="title">Four stroke cycle color key</title>
+  <desc id="desc">Color coded stages for intake, compression, combustion, and exhaust.</desc>
+  <rect width="960" height="220" rx="18" fill="#f6f2ea"/>
+  <g fill="none" stroke-width="12" stroke-linecap="round">
+    <path d="M90 120 C150 48 230 48 290 120" stroke="#2f80ed"/>
+    <path d="M310 120 C370 48 450 48 510 120" stroke="#f2c94c"/>
+    <path d="M530 120 C590 48 670 48 730 120" stroke="#eb5757"/>
+    <path d="M750 120 C810 48 890 48 930 120" stroke="#8a8f98"/>
+  </g>
+  <g font-family="Arial, sans-serif" font-size="22" font-weight="700" fill="#1d1d1f">
+    <text x="96" y="168">Intake</text>
+    <text x="316" y="168">Compression</text>
+    <text x="536" y="168">Combustion</text>
+    <text x="756" y="168">Exhaust</text>
+  </g>
+</svg>

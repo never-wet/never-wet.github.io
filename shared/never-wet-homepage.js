@@ -33,6 +33,7 @@ const featuredNames = [
   "Physics Engine Playground",
   "ARCTIS / SIGNAL",
   "AeroRank Vehicle System",
+  "Car Engine Lab",
   "Apex Hypercar Showcase",
   "Aeroform Car Showcase",
   "Noema Vault",
