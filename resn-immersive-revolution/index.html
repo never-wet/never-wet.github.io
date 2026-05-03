@@ -1,0 +1,110 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>REVOLUTION | Z-Axis Immersive</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.160.0/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/studio-freight/lenis@1.0.19/bundled/lenis.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@900&display=swap');
+        body, html { margin: 0; padding: 0; background: #000; color: #fff; font-family: 'Inter', sans-serif; overflow: hidden; }
+        canvas#webgl { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
+        #ui-layer { position: relative; z-index: 10; pointer-events: none; width: 100%; }
+        .section { height: 400vh; display: flex; align-items: center; justify-content: center; }
+        h1 { font-size: 14vw; text-transform: uppercase; letter-spacing: -0.05em; mix-blend-mode: difference; }
+        .loader { position: fixed; inset: 0; background: #000; z-index: 100; display: flex; align-items: center; justify-content: center; font-size: 3rem; }
+        #cursor { position: fixed; width: 15px; height: 15px; background: #fff; border-radius: 50%; pointer-events: none; z-index: 999; mix-blend-mode: difference; }
+    </style>
+</head>
+<body>
+    <div class="loader" id="loader">0%</div>
+    <div id="cursor"></div>
+    <canvas id="webgl"></canvas>
+
+    <div id="ui-layer">
+        <section class="section"><h1>Project Alpha</h1></section>
+        <section class="section"><h1>Next Gen</h1></section>
+        <section class="section"><h1>Revolution</h1></section>
+    </div>
+
+    <script>
+        // 1. LOADER LOGIC
+        const loader = document.getElementById('loader');
+        let count = 0;
+        const interval = setInterval(() => {
+            count += Math.floor(Math.random() * 10);
+            if(count >= 100) {
+                count = 100;
+                clearInterval(interval);
+                gsap.to(loader, { opacity: 0, duration: 1.5, ease: "power4.inOut", onComplete: () => loader.remove() });
+            }
+            loader.innerText = count + "%";
+        }, 80);
+
+        // 2. CURSOR
+        window.addEventListener('mousemove', (e) => {
+            gsap.to('#cursor', { x: e.clientX - 7, y: e.clientY - 7, duration: 0.2 });
+        });
+
+        // 3. SMOOTH SCROLL (LENIS)
+        const lenis = new Lenis({ lerp: 0.02, infinite: true });
+        function raf(time) { lenis.raf(time); requestAnimationFrame(raf); }
+        requestAnimationFrame(raf);
+
+        // 4. THREE.JS Z-AXIS TUNNEL
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('webgl'), antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+
+        // Procedural Star-field Tunnel
+        const starGeom = new THREE.BufferGeometry();
+        const starCount = 15000;
+        const posArray = new Float32Array(starCount * 3);
+        for(let i=0; i < starCount * 3; i++) {
+            posArray[i] = (Math.random() - 0.5) * 150;
+        }
+        starGeom.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+        const starMat = new THREE.PointsMaterial({ size: 0.05, color: 0xffffff, transparent: true, opacity: 0.8 });
+        const stars = new THREE.Points(starGeom, starMat);
+        scene.add(stars);
+
+        // Interactive Wireframe Core
+        const coreGeom = new THREE.TorusKnotGeometry(10, 3, 100, 16);
+        const coreMat = new THREE.MeshBasicMaterial({ color: 0x222222, wireframe: true, transparent: true, opacity: 0.3 });
+        const core = new THREE.Mesh(coreGeom, coreMat);
+        scene.add(core);
+
+        let mX = 0, mY = 0;
+        window.addEventListener('mousemove', (e) => {
+            mX = (e.clientX / window.innerWidth) - 0.5;
+            mY = (e.clientY / window.innerHeight) - 0.5;
+        });
+
+        function animate() {
+            // Mapping Scroll to Z-Depth
+            const scrollDepth = (lenis.scroll * 0.1) % 150;
+            camera.position.z = 80 - scrollDepth;
+
+            // Reactivity
+            core.rotation.y += 0.005;
+            camera.position.x += (mX * 10 - camera.position.x) * 0.05;
+            camera.position.y += (-mY * 10 - camera.position.y) * 0.05;
+            camera.lookAt(0,0,0);
+
+            renderer.render(scene, camera);
+            requestAnimationFrame(animate);
+        }
+        animate();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>
