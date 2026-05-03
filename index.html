@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="en">
+
 <head>
 	<meta charset="utf-8" />
 	<meta name="viewport" content="width=device-width,initial-scale=1" />
@@ -7,81 +8,247 @@
 	<link rel="preconnect" href="https://fonts.googleapis.com">
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
-	<script>window.TW_CONFIG = {theme: {extend: {colors: {obsidian: '#050505', accent: '#00bfff'}}}};</script>
+	<script>window.TW_CONFIG = { theme: { extend: { colors: { obsidian: '#000000', accent: '#ffffff' } } } };</script>
 	<script src="https://cdn.tailwindcss.com"></script>
 	<style>
-	:root{--bg:#050505; --fg:#fff; --accent:#00bfff}
-	html,body{height:100%}
-	body{margin:0;background:var(--bg);color:var(--fg);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial}
-	::-webkit-scrollbar{display:none}
-	#loader{position:fixed;inset:0;background:linear-gradient(180deg, rgba(0,0,0,.85), rgba(0,0,0,.6));display:flex;align-items:center;justify-content:center;z-index:60}
-	#loader .counter{font-size:clamp(2rem,8vw,6rem);font-weight:800;letter-spacing:0.04em;color:var(--fg);opacity:0.95}
-	#threeContainer{position:fixed;inset:0;z-index:0;pointer-events:none}
-	main{position:relative;z-index:10}
-	.progress-top{position:fixed;left:0;top:0;height:3px;background:var(--accent);width:0;z-index:70}
-	.cta-btn{display:inline-flex;align-items:center;justify-content:center;padding:.75rem 1.25rem;border-radius:9999px;background:rgba(255,255,255,.03);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.06);color:var(--fg);transition:transform .2s ease,box-shadow .2s ease}
-	.card{background:linear-gradient(180deg,rgba(255,255,255,0.02),transparent);border:1px solid rgba(255,255,255,0.04);padding:1rem;border-radius:12px;backdrop-filter:blur(6px)}
-	#cursorCanvas{position:fixed;inset:0;pointer-events:none;z-index:80}
-	.work-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:1rem}
-	.header{position:fixed;top:18px;left:18px;right:18px;display:flex;justify-content:space-between;align-items:center;z-index:75}
-	.header .brand{font-weight:700;letter-spacing:0.02em}
-	.small-muted{opacity:.65;font-size:.95rem}
-	.search-input{width:260px;padding:.6rem 1rem;border-radius:12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);color:var(--fg);outline:none;backdrop-filter:blur(6px);transition:box-shadow .15s ease}
-	.search-input::placeholder{color:rgba(255,255,255,0.45)}
-	.search-input:focus{box-shadow:0 6px 24px rgba(0,0,0,0.6);border-color:var(--accent)}
-	.search-clear{position:absolute;right:8px;top:6px;transform:none;padding:6px 8px;border-radius:8px;background:transparent;border:none;color:var(--fg);opacity:.8}
+		:root {
+			--bg: #000000;
+			--fg: #fff;
+			--accent: #ffffff
+		}
+
+		html,
+		body {
+			height: 100%
+		}
+
+		body {
+			margin: 0;
+			background: var(--bg);
+			color: var(--fg);
+			font-family: Inter, system-ui, sans-serif;
+			overflow-x: hidden;
+		}
+
+		::-webkit-scrollbar {
+			display: none
+		}
+
+		#loader {
+			position: fixed;
+			inset: 0;
+			background: #000;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			z-index: 9000;
+			clip-path: circle(150% at 50% 50%)
+		}
+
+		#loader .counter {
+			font-size: clamp(4rem, 15vw, 12rem);
+			font-weight: 800;
+			letter-spacing: -0.04em;
+			color: var(--fg);
+			font-variant-numeric: tabular-nums;
+		}
+
+		#threeContainer {
+			position: fixed;
+			inset: 0;
+			z-index: 0;
+			pointer-events: none
+		}
+
+		main {
+			position: relative;
+			z-index: 10
+		}
+
+		.cta-btn {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			padding: 1rem 2rem;
+			border-radius: 9999px;
+			background: rgba(255, 255, 255, .05);
+			border: 1px solid rgba(255, 255, 255, .1);
+			color: var(--fg);
+			text-transform: uppercase;
+			font-size: 0.7rem;
+			letter-spacing: 0.2em;
+			font-weight: 600;
+			transition: all .3s cubic-bezier(0.23, 1, 0.32, 1)
+		}
+
+		.cta-btn:hover {
+			background: #fff;
+			color: #000
+		}
+
+		.card {
+			background: rgba(255, 255, 255, 0.03);
+			border: 1px solid rgba(255, 255, 255, 0.08);
+			padding: 2rem;
+			border-radius: 0px;
+			transition: border-color 0.4s ease
+		}
+
+		.card:hover {
+			border-color: rgba(255, 255, 255, 0.4)
+		}
+
+		#cursorCanvas {
+			position: fixed;
+			inset: 0;
+			pointer-events: none;
+			z-index: 10000;
+			mix-blend-mode: difference
+		}
+
+		.header {
+			position: fixed;
+			top: 18px;
+			left: 18px;
+			right: 18px;
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			z-index: 75
+		}
+
+		.header .brand {
+			font-weight: 800;
+			letter-spacing: -0.02em;
+			text-transform: uppercase;
+			font-size: 1.2rem
+		}
+
+		.metadata {
+			font-family: monospace;
+			font-size: 0.65rem;
+			text-transform: uppercase;
+			letter-spacing: 0.2em;
+			opacity: 0.5
+		}
+
+		.small-muted {
+			opacity: .45;
+			font-size: .9rem;
+			line-height: 1.6
+		}
+
+		.search-input {
+			width: 260px;
+			padding: .6rem 1rem;
+			background: transparent;
+			border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+			color: var(--fg);
+			outline: none;
+			transition: border-color .3s ease
+		}
+
+		.search-input::placeholder {
+			color: rgba(255, 255, 255, 0.45)
+		}
+
+		.search-input:focus {
+			border-color: #fff
+		}
+
+		.search-clear {
+			position: absolute;
+			right: 8px;
+			top: 6px;
+			transform: none;
+			padding: 6px 8px;
+			border-radius: 8px;
+			background: transparent;
+			border: none;
+			color: var(--fg);
+			opacity: .8
+		}
+
+		.reveal-text {
+			overflow: hidden;
+			display: inline-block
+		}
+
+		.reveal-text span {
+			display: inline-block;
+			will-change: transform
+		}
 	</style>
 </head>
-<body>
-	<div class="progress-top" id="progressTop"></div>
-	<div id="loader"><div class="counter" id="loaderCounter">00</div></div>
+
+<body class="antialiased">
+	<div id="loader">
+		<div class="counter" id="loaderCounter">00</div>
+	</div>
 	<div id="threeContainer"></div>
 	<header class="header">
 		<div class="brand">Main Portfolio</div>
 		<div class="flex items-center gap-3">
 			<div class="relative" style="min-width:240px">
-				<input id="searchInput" class="search-input" placeholder="Search pages (press /)" aria-label="Search pages">
-				<button id="clearSearch" class="search-clear" title="Clear" style="display:none">✕</button>
+				<input id="searchInput" class="search-input" placeholder="Search pages (press /)"
+					aria-label="Search pages">
 			</div>
-			<button id="refreshBtn" class="cta-btn">Refresh list</button>
-			<a href="#work" class="cta-btn">Work</a>
+			<button id="refreshBtn" class="cta-btn magnetic">Refresh</button>
+			<a href="#work" class="cta-btn magnetic">Work</a>
 		</div>
 	</header>
-	<main class="min-h-screen flex flex-col items-center justify-start">
-		<section id="hero" class="w-full min-h-screen flex items-center justify-center py-24">
-			<div class="max-w-4xl text-center px-6">
-				<h1 id="heroHeadline" class="text-[clamp(2.25rem,6vw,4.5rem)] leading-tight font-extrabold">A Curated Hub for never-wet.github.io</h1>
-				<p class="mt-6 small-muted">Organized access to every HTML page — fast, cinematic, and built for exploration.</p>
-				<div class="mt-10 flex items-center justify-center gap-4">
-					<a id="exploreBtn" class="cta-btn">Explore work</a>
-					<a id="contactBtn" class="cta-btn">Contact</a>
+	<main>
+		<section id="hero" class="w-full min-h-[120vh] flex items-center px-12">
+			<div class="grid grid-cols-12 w-full max-w-7xl mx-auto">
+				<div class="col-span-12 md:col-span-8">
+					<div class="metadata mb-6">Volume 01 / 2024</div>
+					<h1 id="heroHeadline"
+						class="text-[clamp(3.5rem,10vw,9rem)] leading-[0.85] font-extrabold uppercase tracking-tighter mb-8">
+						Digital<br />Prestige
+					</h1>
+					<p class="small-muted max-w-md text-lg">
+						A precision-engineered gateway for never-wet.github.io.
+						Navigating the intersection of high-poly aesthetics and raw performance.
+					</p>
+					<div class="mt-12 flex items-center gap-6">
+						<a id="exploreBtn" href="#work" class="cta-btn magnetic">Explore Index</a>
+						<div class="metadata opacity-30">SCROLL TO BEGIN</div>
+					</div>
 				</div>
 			</div>
 		</section>
 
-		<section id="work" class="w-full max-w-7xl px-6 py-12">
-			<div class="flex items-center justify-between mb-6">
-				<h2 class="text-2xl font-semibold">Work — HTML pages</h2>
-				<div class="small-muted">Found <span id="fileCount">0</span> pages <span id="resultsCount" style="margin-left:.6rem;display:none"></span></div>
+		<section id="work" class="w-full max-w-[1400px] mx-auto px-6 py-32">
+			<div class="flex items-end justify-between mb-16 border-b border-white/10 pb-8">
+				<div>
+					<div class="metadata text-accent">Selected Archives</div>
+					<h2 class="text-5xl font-bold uppercase tracking-tighter mt-2">The Directory</h2>
+				</div>
+				<div class="metadata text-right">Count / <span id="fileCount">0</span> <span id="resultsCount"
+						style="display:none"></span></div>
 			</div>
-			<div id="workGrid" class="work-grid"></div>
-			<div class="mt-8 text-center">
-				<button id="loadMoreBtn" class="cta-btn">Load more</button>
+			<div id="workGrid" class="grid grid-cols-1 md:grid-cols-12 gap-1"></div>
+			<div class="mt-1 text-center">
+				<button id="loadMoreBtn"
+					class="w-full py-12 bg-white/5 uppercase text-xs tracking-widest font-bold hover:bg-white hover:text-black transition-colors">Load
+					more assets</button>
 			</div>
 		</section>
 
 		<section id="expertise" class="w-full max-w-7xl px-6 py-12">
 			<h2 class="text-2xl font-semibold mb-4">Expertise</h2>
-			<p class="small-muted">Interactive 3D backgrounds, magnetic UX, custom cursor trails, and smooth inertia scrolling.</p>
+			<p class="small-muted">Interactive 3D backgrounds, magnetic UX, custom cursor trails, and smooth inertia
+				scrolling.</p>
 		</section>
 
 		<section id="contact" class="w-full max-w-7xl px-6 py-12">
 			<h2 class="text-2xl font-semibold mb-4">Contact</h2>
-			<p class="small-muted">This hub links directly to each page; open any item to inspect its source and content.</p>
+			<p class="small-muted">This hub links directly to each page; open any item to inspect its source and
+				content.</p>
 		</section>
 	</main>
 
-	<canvas id="cursorCanvas" width="800" height="600"></canvas>
+	<canvas id="cursorCanvas"></canvas>
 
 	<!-- Libraries -->
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.5/gsap.min.js"></script>
@@ -90,373 +257,352 @@
 	<script src="https://cdn.jsdelivr.net/npm/lenis@1.0.39/bundled/lenis.min.js"></script>
 
 	<script>
-	(async function(){
-		const ACCENT = getComputedStyle(document.documentElement).getPropertyValue('--accent') || '#00bfff';
-		const loaderEl = document.getElementById('loader');
-		const loaderCounter = document.getElementById('loaderCounter');
-		const progressTop = document.getElementById('progressTop');
-		const workGrid = document.getElementById('workGrid');
-		const fileCountEl = document.getElementById('fileCount');
-		const loadMoreBtn = document.getElementById('loadMoreBtn');
-		const refreshBtn = document.getElementById('refreshBtn');
-		const searchInput = document.getElementById('searchInput');
-		const clearSearch = document.getElementById('clearSearch');
-		const resultsCountEl = document.getElementById('resultsCount');
+		(async function () {
+			const ACCENT = '#ffffff';
+			const loaderEl = document.getElementById('loader');
+			const loaderCounter = document.getElementById('loaderCounter');
+			const workGrid = document.getElementById('workGrid');
+			const fileCountEl = document.getElementById('fileCount');
+			const loadMoreBtn = document.getElementById('loadMoreBtn');
+			const refreshBtn = document.getElementById('refreshBtn');
+			const searchInput = document.getElementById('searchInput');
+			const resultsCountEl = document.getElementById('resultsCount');
 
-		// Simple loader counter visual
-		let progress = 0;
-		function setLoader(n){
-			loaderCounter.textContent = String(n).padStart(2,'0');
-			progress = n/100;
-			progressTop.style.width = (n)+'%';
-		}
-
-		// safe fetch with timeout helper
-		async function safeFetch(url, options = {}, timeout = 4000){
-			const controller = new AbortController();
-			const id = setTimeout(()=> controller.abort(), timeout);
-			try{
-				const res = await fetch(url, Object.assign({}, options, {signal: controller.signal}));
-				clearTimeout(id);
-				return res;
-			} catch(err){
-				clearTimeout(id);
-				throw err;
+			// Simple loader counter visual
+			let progress = 0;
+			function setLoader(n) {
+				loaderCounter.textContent = String(n).padStart(2, '0');
+				progress = n / 100;
 			}
-		}
 
-		// Fetch list of HTML files from GitHub repo tree (public) with timeouts and fallbacks
-		async function fetchRepoHtmlList(){
-			const owner = 'never-wet';
-			const repo = 'never-wet.github.io';
-			const url = `https://api.github.com/repos/${owner}/${repo}/git/trees/main?recursive=1`;
-			try {
-				const res = await safeFetch(url, {}, 4000);
-				if(!res || !res.ok) throw new Error('GitHub API error');
-				const json = await res.json();
-				const htmlPaths = (json.tree||[]).filter(i=>i.path && i.path.endsWith('.html')).map(i=>i.path).sort();
-				return htmlPaths;
-			} catch(err){
-				console.warn('GitHub API failed, falling back to small local list',err);
-				// Fallback: attempt to fetch local index JSON
-				try {
-					const r = await safeFetch('/html-index.json', {}, 2000);
-					if(r && r.ok){ const list = await r.json(); return list.filter(p=>p.endsWith('.html')); }
-				}catch(e){}
-				// Minimal fallback: root index.html only
-				return ['index.html'];
-			}
-		}
-
-		// progressive loader while fetching assets (non-blocking with enforced timeout)
-		setLoader(0);
-		let loaderHidden = false;
-
-		// fake progress ticker so UI feels alive even if network stalls
-		let fakeProgress = 6;
-		setLoader(fakeProgress);
-		const progressInterval = setInterval(()=>{
-			fakeProgress = Math.min(96, fakeProgress + Math.random()*6);
-			setLoader(Math.floor(fakeProgress));
-		}, 220);
-
-		function finalizeLoader(){
-			if(loaderHidden) return;
-			clearInterval(progressInterval);
-			setLoader(100);
-			gsap.to(loaderEl, {y:'-120%', duration:0.8, ease:'power2.inOut', onComplete:()=>{
-				try{ loaderEl.remove(); }catch(e){}
-				loaderHidden = true;
-				// reveal hero after loader
-				splitReveal(document.getElementById('heroHeadline'));
-				prepareGrid();
-			}});
-		}
-
-		// grid state and builder
-		const gridState = { allFiles: [], shown: 0, CHUNK: 80 };
-		function prepareGrid(){
-			if(resultsCountEl) resultsCountEl.style.display = 'none';
-			if(clearSearch) clearSearch.style.display = 'none';
-			const allFiles = window.__repoHtmlList || gridState.allFiles || [];
-			gridState.allFiles = allFiles;
-			gridState.shown = 0;
-			workGrid.innerHTML = '';
-			fileCountEl.textContent = allFiles.length;
-			loadMoreBtn.style.display = allFiles.length > gridState.CHUNK ? 'inline-flex' : 'none';
-			function addChunk(){
-				const slice = gridState.allFiles.slice(gridState.shown, gridState.shown + gridState.CHUNK);
-				slice.forEach(p => workGrid.appendChild(createCard(p)));
-				gridState.shown += slice.length;
-				if(gridState.shown >= gridState.allFiles.length) loadMoreBtn.style.display = 'none';
-			}
-			loadMoreBtn.onclick = addChunk;
-			if(allFiles.length > 0) addChunk();
-		}
-
-		// start background tasks (don't block UI)
-		const listPromise = (async ()=>{
-			try{
-				const list = await fetchRepoHtmlList();
-				window.__repoHtmlList = list;
-				fileCountEl.textContent = list.length;
-				if(!loaderHidden) setLoader(60);
-				if(loaderHidden) prepareGrid();
-			}catch(err){
-				console.warn('Failed to fetch repo list', err);
-				window.__repoHtmlList = ['index.html'];
-				fileCountEl.textContent = 1;
-				if(loaderHidden) prepareGrid();
-			}
-		})();
-
-		const threePromise = (async ()=>{
-			try{ await initializeThree(); } catch(e){ console.warn('Three init failed', e); }
-		})();
-
-		// ensure loader never blocks interaction longer than N ms
-		await Promise.race([
-			Promise.allSettled([listPromise, threePromise]),
-			new Promise(r=>setTimeout(r, 7000))
-		]);
-
-		finalizeLoader();
-
-		// refresh handler updates the list and grid
-		refreshBtn.addEventListener('click', async ()=>{
-			loadMoreBtn.style.display='block';
-			workGrid.innerHTML='';
-			gridState.shown = 0;
-			const list = await fetchRepoHtmlList();
-			window.__repoHtmlList = list;
-			fileCountEl.textContent = list.length;
-			if(loaderHidden) prepareGrid();
-		});
-
-		// --- Search: client-side filtering and keyboard shortcuts ---
-		function debounce(fn, wait=150){ let t; return (...args)=>{ clearTimeout(t); t = setTimeout(()=> fn.apply(this,args), wait); }; }
-
-		async function ensureFilesLoaded(){
-			if(gridState.allFiles && gridState.allFiles.length) return;
-			if(window.__repoHtmlList && window.__repoHtmlList.length){ gridState.allFiles = window.__repoHtmlList; return; }
-			try{
-				const list = await fetchRepoHtmlList();
-				window.__repoHtmlList = list;
-				gridState.allFiles = list;
-				fileCountEl.textContent = list.length;
-			}catch(e){ console.warn('Search: failed to load list', e); }
-		}
-
-		function performSearch(q){
-			q = (q||'').trim().toLowerCase();
-			if(!q){ if(resultsCountEl) resultsCountEl.style.display = 'none'; prepareGrid(); return; }
-			const source = (gridState.allFiles && gridState.allFiles.length) ? gridState.allFiles : (window.__repoHtmlList || []);
-			const filtered = source.filter(p => p.toLowerCase().includes(q));
-			workGrid.innerHTML = '';
-			filtered.forEach(p => workGrid.appendChild(createCard(p)));
-			if(resultsCountEl){ resultsCountEl.style.display = 'inline'; resultsCountEl.textContent = `Showing ${filtered.length} result${filtered.length!==1 ? 's' : ''}`; }
-			if(loadMoreBtn) loadMoreBtn.style.display = 'none';
-		}
-
-		const handleSearch = debounce(async (e)=>{
-			const q = (e && e.target) ? e.target.value : (searchInput && searchInput.value) || '';
-			await ensureFilesLoaded();
-			performSearch(q);
-			if(searchInput && clearSearch) {
-				if(searchInput.value) clearSearch.style.display = 'inline';
-				else clearSearch.style.display = 'none';
-			}
-		}, 180);
-
-		if(searchInput) searchInput.addEventListener('input', handleSearch);
-		if(clearSearch) clearSearch.addEventListener('click', ()=>{ if(searchInput){ searchInput.value=''; handleSearch({target:searchInput}); searchInput.focus(); } });
-
-		document.addEventListener('keydown', (ev)=>{
-			if(ev.key === '/' && searchInput && document.activeElement !== searchInput){ ev.preventDefault(); searchInput.focus(); searchInput.select(); }
-			if(ev.key === 'Escape' && searchInput && document.activeElement === searchInput){ searchInput.value=''; handleSearch({target:searchInput}); searchInput.blur(); }
-		});
-
-		// Initialize Lenis for inertia scrolling
-		const lenis = new Lenis({ duration:1.4, lerp:0.05 });
-		function raf(time){
-			lenis.raf(time);
-			requestAnimationFrame(raf);
-		}
-		requestAnimationFrame(raf);
-
-		// progress bar based on lenis scroll
-		function updateProgress(){
-			const max = document.documentElement.scrollHeight - window.innerHeight;
-			const s = lenis.scroll;
-			const pct = Math.min(1, Math.max(0, s / (max || 1)));
-			progressTop.style.width = (pct*100)+'%';
-			// infinite scroll: loop
-			if(pct > 0.995){
-				lenis.scrollTo(1, {duration:0});
-			}
-			requestAnimationFrame(updateProgress);
-		}
-		requestAnimationFrame(updateProgress);
-
-		// Create a 3D background (morphing icosahedron)
-		async function initializeThree(){
-			return new Promise(resolve=>{
-				const WIDTH = window.innerWidth, HEIGHT = window.innerHeight;
-				const container = document.getElementById('threeContainer');
-				const renderer = new THREE.WebGLRenderer({antialias:true, alpha:true});
-				renderer.setSize(WIDTH, HEIGHT);
-				renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-				renderer.domElement.style.position = 'absolute';
-				renderer.domElement.style.inset = '0';
-				container.appendChild(renderer.domElement);
-
-				const scene = new THREE.Scene();
-				scene.fog = new THREE.FogExp2('#000', 0.0015);
-
-				const camera = new THREE.PerspectiveCamera(35, WIDTH/HEIGHT, 0.1, 1000);
-				camera.position.z = 6;
-
-				// geometry + material
-				const geo = new THREE.IcosahedronGeometry(1.9, 5);
-				const mat = new THREE.MeshStandardMaterial({color:ACCENT, emissive:0x001a33, metalness:0.2, roughness:0.6, transparent:true, opacity:0.92});
-				const mesh = new THREE.Mesh(geo, mat);
-				scene.add(mesh);
-
-				// lights
-				const amb = new THREE.AmbientLight(0xffffff, 0.4);
-				scene.add(amb);
-				const dir = new THREE.DirectionalLight(0xffffff, 1.2);
-				dir.position.set(5, 10, 7);
-				scene.add(dir);
-
-				const simplex = new SimplexNoise();
-
-				// store original positions
-				const pos = geo.attributes.position;
-				const basePositions = new Float32Array(pos.array.length);
-				basePositions.set(pos.array);
-
-				const clock = new THREE.Clock();
-
-				function animate(){
-					const t = clock.getElapsedTime();
-					const arr = pos.array;
-					for(let i=0;i<arr.length;i+=3){
-						const ox = basePositions[i], oy = basePositions[i+1], oz = basePositions[i+2];
-						const n = simplex.noise3D(ox*0.8 + t*0.2, oy*0.8 + t*0.15, oz*0.8 + t*0.12);
-						arr[i] = ox + n*0.12;
-						arr[i+1] = oy + n*0.12;
-						arr[i+2] = oz + n*0.12;
-					}
-					pos.needsUpdate = true;
-					mesh.rotation.y += 0.0015;
-					mesh.rotation.x += 0.0007;
-					renderer.render(scene, camera);
-					requestAnimationFrame(animate);
-				}
-				animate();
-
-				window.addEventListener('resize', ()=> {
-					const W = window.innerWidth, H = window.innerHeight;
-					camera.aspect = W/H;
-					camera.updateProjectionMatrix();
-					renderer.setSize(W,H);
+			// Magnetic Buttons Logic
+			function initMagnetic() {
+				document.querySelectorAll('.magnetic').forEach(btn => {
+					btn.addEventListener('mousemove', (e) => {
+						const rect = btn.getBoundingClientRect();
+						const x = (e.clientX - rect.left - rect.width / 2) * 0.4;
+						const y = (e.clientY - rect.top - rect.height / 2) * 0.4;
+						gsap.to(btn, { x, y, duration: 0.4, ease: "power2.out" });
+					});
+					btn.addEventListener('mouseleave', () => {
+						gsap.to(btn, { x: 0, y: 0, duration: 0.6, ease: "elastic.out(1, 0.3)" });
+					});
 				});
-
-				resolve();
-			});
-		}
-
-		// Create card element
-		function createCard(path){
-			const a = document.createElement('a');
-			a.href = path;
-			a.className = 'card';
-			a.target = '_blank';
-			const title = path.split('/').pop();
-			a.innerHTML = `<div class="truncate font-medium">${title}</div><div class="small-muted text-sm mt-2">${path}</div>`;
-			// tilt effect
-			a.addEventListener('pointermove', (e)=> {
-				const rect = a.getBoundingClientRect();
-				const px = (e.clientX - rect.left) / rect.width;
-				const py = (e.clientY - rect.top) / rect.height;
-				const rx = (py - 0.5) * -10;
-				const ry = (px - 0.5) * 10;
-				a.style.transform = `perspective(800px) rotateX(${rx}deg) rotateY(${ry}deg) translateZ(6px)`;
-				a.style.boxShadow = `0 10px 30px rgba(0,0,0,0.5)`;
-			});
-			a.addEventListener('pointerleave', ()=> {
-				a.style.transform = '';
-				a.style.boxShadow = '';
-			});
-			return a;
-		}
-
-		// split reveal for headline
-		function splitReveal(el){
-			const text = el.textContent.trim();
-			el.textContent = '';
-			const words = text.split(' ');
-			words.forEach((w,i)=>{
-				const span = document.createElement('span');
-				span.style.display = 'inline-block';
-				span.style.overflow = 'hidden';
-				span.style.transform = 'translateY(120%)';
-				span.style.marginRight = '0.35ch';
-				span.textContent = w;
-				el.appendChild(span);
-				gsap.to(span, {y:'0%', duration:0.9, delay:0.35 + i*0.07, ease:'power3.out', transform:'translateY(0%)'});
-			});
-		}
-
-		// Cursor ribbon
-		(function setupCursorRibbon(){
-			const canvas = document.getElementById('cursorCanvas');
-			const ctx = canvas.getContext('2d');
-			function resize(){ canvas.width = innerWidth; canvas.height = innerHeight; }
-			resize(); window.addEventListener('resize', resize);
-			const pts = [];
-			const maxPts = 15;
-			canvas.style.mixBlendMode='screen';
-			document.addEventListener('pointermove', (e)=>{
-				const now = Date.now();
-				const p = {x:e.clientX, y:e.clientY, t:now};
-				pts.push(p); if(pts.length>maxPts) pts.shift();
-			});
-			function catmullRom(p0,p1,p2,p3,t){
-				const t2 = t*t, t3 = t2*t;
-				return {
-					x: 0.5*((2*p1.x)+(-p0.x+p2.x)*t+(2*p0.x-5*p1.x+4*p2.x-p3.x)*t2+(-p0.x+3*p1.x-3*p2.x+p3.x)*t3),
-					y: 0.5*((2*p1.y)+(-p0.y+p2.y)*t+(2*p0.y-5*p1.y+4*p2.y-p3.y)*t2+(-p0.y+3*p1.y-3*p2.y+p3.y)*t3)
-				};
 			}
-			function draw(){
-				ctx.clearRect(0,0,canvas.width,canvas.height);
-				if(pts.length>1){
-					ctx.lineJoin = ctx.lineCap = 'round';
-					// sample smooth curve along points using Catmull-Rom
-					ctx.beginPath();
-					for(let i=0;i<pts.length-3;i++){
-						for(let t=0;t<1;t+=0.08){
-							const p = catmullRom(pts[i], pts[i+1], pts[i+2], pts[i+3], t);
-							const alpha = 1 - (i / pts.length);
-							const width = 12 * (1 - (i/pts.length));
-							ctx.strokeStyle = `rgba(0,191,255,${0.14 + 0.6 * alpha})`;
-							ctx.lineWidth = width;
-							if(t===0 && i===0) ctx.moveTo(p.x,p.y);
-							else ctx.lineTo(p.x,p.y);
-						}
-					}
-					ctx.stroke();
+
+			// Custom Fluid Cursor
+			(function setupCursor() {
+				const c = document.getElementById('cursorCanvas');
+				const ctx = c.getContext('2d');
+				let pts = [];
+				const resize = () => { c.width = innerWidth; c.height = innerHeight; };
+				window.addEventListener('resize', resize); resize();
+				window.addEventListener('pointermove', e => {
+					pts.push({ x: e.clientX, y: e.clientY, t: Date.now() });
+					if (pts.length > 20) pts.shift();
+				});
+				function draw() {
+					ctx.clearRect(0, 0, c.width, c.height);
+					if (pts.length < 2) { requestAnimationFrame(draw); return; }
+					ctx.beginPath(); ctx.strokeStyle = '#fff'; ctx.lineWidth = 2;
+					pts.forEach((p, i) => { if (i === 0) ctx.moveTo(p.x, p.y); else ctx.lineTo(p.x, p.y); });
+					ctx.stroke(); requestAnimationFrame(draw);
+				} draw();
+			})();
+
+			// safe fetch with timeout helper
+			async function safeFetch(url, options = {}, timeout = 4000) {
+				const controller = new AbortController();
+				const id = setTimeout(() => controller.abort(), timeout);
+				try {
+					const res = await fetch(url, Object.assign({}, options, { signal: controller.signal }));
+					clearTimeout(id);
+					return res;
+				} catch (err) {
+					clearTimeout(id);
+					throw err;
 				}
-				requestAnimationFrame(draw);
 			}
-			draw();
+
+			// Hardcoded list of all HTML files, including test files
+			const allHtmlFiles = [
+				'./index.html',
+				'./test4.html',
+				'./test3.html',
+				'./test2.html',
+				'./test.html',
+				'./project-hub.html',
+				'./Emergent _ Fullstack App.html',
+				'./carEmergent _ Fullstack App.html',
+			].sort();
+
+			// Fetch list of HTML files from GitHub repo tree (public) with timeouts and fallbacks
+			async function fetchRepoHtmlList() {
+				try {
+					// Directly return the hardcoded list for this request
+					console.log('Using hardcoded HTML file list.');
+					return allHtmlFiles;
+				} catch (err) {
+					console.warn('GitHub API failed, falling back to small local list', err);
+					// Fallback: attempt to fetch local index JSON
+					try {
+						const r = await safeFetch('/html-index.json', {}, 2000);
+						if (r && r.ok) { const list = await r.json(); return list.filter(p => p.endsWith('.html')); }
+					} catch (e) { }
+					// Minimal fallback: root index.html only
+					return ['./index.html'];
+				}
+			}
+			// progressive loader while fetching assets (non-blocking with enforced timeout)
+			setLoader(0);
+			let loaderHidden = false;
+
+			// fake progress ticker so UI feels alive even if network stalls
+			let fakeProgress = 6;
+			setLoader(fakeProgress);
+			const progressInterval = setInterval(() => {
+				fakeProgress = Math.min(96, fakeProgress + Math.random() * 6);
+				setLoader(Math.floor(fakeProgress));
+			}, 220);
+
+			function finalizeLoader() {
+				if (loaderHidden) return;
+				clearInterval(progressInterval);
+				setLoader(100);
+				gsap.to(loaderEl, {
+					clipPath: 'circle(0% at 50% 50%)', duration: 1.2, ease: 'expo.inOut', onComplete: () => {
+						try { loaderEl.remove(); } catch (e) { }
+						loaderHidden = true;
+						splitReveal(document.getElementById('heroHeadline'));
+						gsap.from('#hero .small-muted, #hero .cta-btn', { y: 40, opacity: 0, stagger: 0.1, duration: 1, ease: 'expo.out', delay: 0.5 });
+						prepareGrid();
+						initMagnetic();
+					}
+				});
+			}
+
+			// grid state and builder
+			const gridState = { allFiles: [], shown: 0, CHUNK: 80 };
+			function prepareGrid() {
+				if (resultsCountEl) resultsCountEl.style.display = 'none';
+				const allFiles = window.__repoHtmlList || gridState.allFiles || [];
+				gridState.allFiles = allFiles;
+				gridState.shown = 0;
+				workGrid.innerHTML = '';
+				fileCountEl.textContent = allFiles.length;
+				loadMoreBtn.style.display = allFiles.length > gridState.CHUNK ? 'inline-flex' : 'none';
+				function addChunk() {
+					const slice = gridState.allFiles.slice(gridState.shown, gridState.shown + gridState.CHUNK);
+					slice.forEach((p, idx) => {
+						const card = createCard(p);
+						// Bento sizing logic
+						const span = (idx % 7 === 0) ? 'md:col-span-8' : (idx % 3 === 0) ? 'md:col-span-6' : 'md:col-span-4';
+						card.classList.add(...span.split(' '));
+						workGrid.appendChild(card);
+					});
+					gridState.shown += slice.length;
+					if (gridState.shown >= gridState.allFiles.length) loadMoreBtn.style.display = 'none';
+				}
+				loadMoreBtn.onclick = addChunk;
+				if (allFiles.length > 0) addChunk();
+			}
+
+			// start background tasks (don't block UI)
+			const listPromise = (async () => {
+				try {
+					const list = await fetchRepoHtmlList();
+					window.__repoHtmlList = list;
+					fileCountEl.textContent = list.length;
+					if (!loaderHidden) setLoader(60);
+					if (loaderHidden) prepareGrid();
+				} catch (err) {
+					console.warn('Failed to fetch repo list', err);
+					window.__repoHtmlList = ['index.html'];
+					fileCountEl.textContent = 1;
+					if (loaderHidden) prepareGrid();
+				}
+			})();
+
+			const threePromise = (async () => {
+				try { await initializeThree(); } catch (e) { console.warn('Three init failed', e); }
+			})();
+
+			// ensure loader never blocks interaction longer than N ms
+			await Promise.race([
+				Promise.allSettled([listPromise, threePromise]),
+				new Promise(r => setTimeout(r, 7000))
+			]);
+
+			finalizeLoader();
+
+			// refresh handler updates the list and grid
+			refreshBtn.addEventListener('click', async () => {
+				loadMoreBtn.style.display = 'block';
+				workGrid.innerHTML = '';
+				gridState.shown = 0;
+				const list = await fetchRepoHtmlList();
+				window.__repoHtmlList = list;
+				fileCountEl.textContent = list.length;
+				if (loaderHidden) prepareGrid();
+			});
+
+			// --- Search: client-side filtering and keyboard shortcuts ---
+			function debounce(fn, wait = 150) { let t; return (...args) => { clearTimeout(t); t = setTimeout(() => fn.apply(this, args), wait); }; }
+
+			async function ensureFilesLoaded() {
+				if (gridState.allFiles && gridState.allFiles.length) return;
+				if (window.__repoHtmlList && window.__repoHtmlList.length) { gridState.allFiles = window.__repoHtmlList; return; }
+				try {
+					const list = await fetchRepoHtmlList();
+					window.__repoHtmlList = list;
+					gridState.allFiles = list;
+					fileCountEl.textContent = list.length;
+				} catch (e) { console.warn('Search: failed to load list', e); }
+			}
+
+			function performSearch(q) {
+				q = (q || '').trim().toLowerCase();
+				if (!q) { if (resultsCountEl) resultsCountEl.style.display = 'none'; prepareGrid(); return; }
+				const source = (gridState.allFiles && gridState.allFiles.length) ? gridState.allFiles : (window.__repoHtmlList || []);
+				const filtered = source.filter(p => p.toLowerCase().includes(q));
+				workGrid.innerHTML = '';
+				filtered.forEach(p => workGrid.appendChild(createCard(p)));
+				if (resultsCountEl) { resultsCountEl.style.display = 'inline'; resultsCountEl.textContent = `Showing ${filtered.length} result${filtered.length !== 1 ? 's' : ''}`; }
+				if (loadMoreBtn) loadMoreBtn.style.display = 'none';
+			}
+
+			const handleSearch = debounce(async (e) => {
+				const q = (e && e.target) ? e.target.value : (searchInput && searchInput.value) || '';
+				await ensureFilesLoaded();
+				performSearch(q);
+			}, 180);
+
+			if (searchInput) searchInput.addEventListener('input', handleSearch);
+
+			document.addEventListener('keydown', (ev) => {
+				if (ev.key === '/' && searchInput && document.activeElement !== searchInput) { ev.preventDefault(); searchInput.focus(); searchInput.select(); }
+				if (ev.key === 'Escape' && searchInput && document.activeElement === searchInput) { searchInput.value = ''; handleSearch({ target: searchInput }); searchInput.blur(); }
+			});
+			// Initialize Lenis for inertia scrolling
+			const lenis = new Lenis({ duration: 1.4, lerp: 0.05 });
+			function raf(time) {
+				lenis.raf(time);
+				requestAnimationFrame(raf);
+			}
+			requestAnimationFrame(raf);
+
+			function updateProgress() { requestAnimationFrame(updateProgress); }
+			requestAnimationFrame(updateProgress);
+
+			// Create a 3D background (morphing Glass icosahedron)
+			async function initializeThree() {
+				return new Promise(resolve => {
+					const WIDTH = window.innerWidth, HEIGHT = window.innerHeight;
+					const container = document.getElementById('threeContainer');
+					const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+					renderer.setSize(WIDTH, HEIGHT);
+					renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+					renderer.domElement.style.position = 'absolute';
+					renderer.domElement.style.inset = '0';
+					container.appendChild(renderer.domElement);
+
+					const scene = new THREE.Scene();
+
+					const camera = new THREE.PerspectiveCamera(35, WIDTH / HEIGHT, 0.1, 1000);
+					camera.position.z = 6;
+
+					// geometry + material
+					const geo = new THREE.IcosahedronGeometry(1.9, 5);
+					const mat = new THREE.MeshPhysicalMaterial({ color: 0xffffff, metalness: 0.9, roughness: 0.05, transmission: 0.95, thickness: 0.5 });
+					const mesh = new THREE.Mesh(geo, mat);
+					scene.add(mesh);
+
+					// lights
+					const amb = new THREE.AmbientLight(0xffffff, 0.4);
+					scene.add(amb);
+					const dir = new THREE.DirectionalLight(0xffffff, 1.2);
+					dir.position.set(5, 10, 7);
+					scene.add(dir);
+
+					const simplex = new SimplexNoise();
+
+					// store original positions
+					const pos = geo.attributes.position;
+					const basePositions = new Float32Array(pos.array.length);
+					basePositions.set(pos.array);
+
+					const clock = new THREE.Clock();
+
+					function animate() {
+						const t = clock.getElapsedTime();
+						const arr = pos.array;
+						for (let i = 0; i < arr.length; i += 3) {
+							const ox = basePositions[i], oy = basePositions[i + 1], oz = basePositions[i + 2];
+							const n = simplex.noise3D(ox * 0.8 + t * 0.2, oy * 0.8 + t * 0.15, oz * 0.8 + t * 0.12);
+							arr[i] = ox + n * 0.12;
+							arr[i + 1] = oy + n * 0.12;
+							arr[i + 2] = oz + n * 0.12;
+						}
+						pos.needsUpdate = true;
+						mesh.rotation.y += 0.0015;
+						mesh.rotation.x += 0.0007;
+						renderer.render(scene, camera);
+						requestAnimationFrame(animate);
+					}
+					animate();
+
+					window.addEventListener('resize', () => {
+						const W = window.innerWidth, H = window.innerHeight;
+						camera.aspect = W / H;
+						camera.updateProjectionMatrix();
+						renderer.setSize(W, H);
+					});
+					resolve();
+				});
+			}
+			// Create card element
+			function createCard(path) {
+				const a = document.createElement('a');
+				a.href = path;
+				a.className = 'card';
+				a.target = '_blank';
+				const title = path.split('/').pop();
+				a.innerHTML = `<div class="metadata mb-4">File // Archive</div><div class="truncate font-bold text-2xl uppercase tracking-tighter">${title}</div><div class="small-muted text-xs mt-4">${path}</div>`;
+				// tilt effect
+				a.addEventListener('pointermove', (e) => {
+					const rect = a.getBoundingClientRect();
+					const px = (e.clientX - rect.left) / rect.width;
+					const py = (e.clientY - rect.top) / rect.height;
+					const rx = (py - 0.5) * -15;
+					const ry = (px - 0.5) * 15;
+					a.style.transform = `perspective(1000px) rotateX(${rx}deg) rotateY(${ry}deg) translateZ(10px)`;
+					a.style.backgroundColor = `rgba(255,255,255,0.06)`;
+				});
+				a.addEventListener('pointerleave', () => {
+					a.style.transform = '';
+					a.style.boxShadow = '';
+				});
+				return a;
+			}
+
+			// split reveal for headline
+			function splitReveal(el) {
+				const text = el.textContent.trim();
+				el.textContent = '';
+				const words = text.split(' ');
+				words.forEach((w, i) => {
+					const span = document.createElement('span');
+					span.style.display = 'inline-block';
+					span.style.overflow = 'hidden';
+					span.style.transform = 'translateY(120%)';
+					span.style.marginRight = '0.35ch';
+					span.textContent = w;
+					el.appendChild(span);
+					gsap.to(span, { y: '0%', duration: 0.9, delay: 0.35 + i * 0.07, ease: 'power3.out', transform: 'translateY(0%)' });
+				});
+			}
 		})();
-
-	})();
 	</script>
-
 </body>
-</html>
 
+</html>
