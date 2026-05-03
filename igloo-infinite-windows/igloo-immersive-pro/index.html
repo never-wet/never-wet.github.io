@@ -1,0 +1,110 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IGLOO | Immersive Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.160.0/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/studio-freight/lenis@1.0.19/bundled/lenis.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@900&display=swap');
+        body { margin: 0; background: #000; color: #fff; overflow-x: hidden; font-family: 'Inter', sans-serif; }
+        canvas#webgl { position: fixed; top: 0; left: 0; z-index: -1; }
+        .section { height: 100vh; display: flex; align-items: center; justify-content: center; position: relative; }
+        .bento-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; width: 80%; max-width: 1200px; }
+        .card { height: 400px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 40px; backdrop-filter: blur(20px); transition: all 0.5s ease; position: relative; overflow: hidden; }
+        .card:hover { border-color: rgba(255,255,255,0.5); background: rgba(255,255,255,0.08); }
+        h1 { font-size: 15vw; line-height: 0.8; letter-spacing: -0.05em; text-transform: uppercase; pointer-events: none; }
+    </style>
+</head>
+<body>
+    <canvas id="webgl"></canvas>
+    
+    <div id="content">
+        <section class="section"><h1>Igloo</h1></section>
+        <section class="section">
+            <div class="bento-grid">
+                <div class="card p-10 flex flex-col justify-end"><h3>Immersive</h3></div>
+                <div class="card p-10 flex flex-col justify-end bg-white text-black"><h3>Fluid</h3></div>
+                <div class="card p-10 flex flex-col justify-end"><h3>Infinite</h3></div>
+            </div>
+        </section>
+        <section class="section"><h1>Motion</h1></section>
+    </div>
+
+    <script>
+        // 1. SMOOTH INFINITE SCROLL
+        const lenis = new Lenis({ infinite: true, lerp: 0.05, smoothness: 2 });
+        function raf(time) { lenis.raf(time); requestAnimationFrame(raf); }
+        requestAnimationFrame(raf);
+
+        // 2. WEBGL ENGINE
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ canvas: document.querySelector('#webgl'), antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+        // 3. THE IGLOO DOME (SDF-LIKE WIREFRAME)
+        const geometry = new THREE.IcosahedronGeometry(4, 15);
+        const material = new THREE.MeshStandardMaterial({ 
+            color: 0xffffff, 
+            wireframe: true, 
+            transparent: true, 
+            opacity: 0.15 
+        });
+        const dome = new THREE.Mesh(geometry, material);
+        scene.add(dome);
+        
+        const light = new THREE.PointLight(0xffffff, 100);
+        light.position.set(5, 5, 5);
+        scene.add(light);
+        scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+        camera.position.z = 10;
+
+        // 4. PHYSICS MOUSE TRAIL (Organic particles)
+        const particlesGeom = new THREE.BufferGeometry();
+        const particlesCount = 5000;
+        const posArray = new Float32Array(particlesCount * 3);
+        for(let i=0; i<particlesCount * 3; i++) posArray[i] = (Math.random() - 0.5) * 10;
+        particlesGeom.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+        const particlesMaterial = new THREE.PointsMaterial({ size: 0.005, color: 0xffffff, transparent: true, opacity: 0.8 });
+        const particleMesh = new THREE.Points(particlesGeom, particlesMaterial);
+        scene.add(particleMesh);
+
+        let mouseX = 0, mouseY = 0;
+        window.addEventListener('mousemove', (e) => {
+            mouseX = (e.clientX / window.innerWidth) - 0.5;
+            mouseY = (e.clientY / window.innerHeight) - 0.5;
+            
+            // Interaction with particles
+            gsap.to(particleMesh.rotation, { y: mouseX * 2, x: -mouseY * 2, duration: 2 });
+        });
+
+        function animate() {
+            dome.rotation.y += 0.001;
+            dome.position.y = Math.sin(Date.now() * 0.001) * 0.2; // Float effect
+            
+            // Mouse Lag Follow
+            camera.position.x += (mouseX * 2 - camera.position.x) * 0.05;
+            camera.position.y += (-mouseY * 2 - camera.position.y) * 0.05;
+            camera.lookAt(0,0,0);
+
+            renderer.render(scene, camera);
+            requestAnimationFrame(animate);
+        }
+        animate();
+
+        // 5. CARD PARALLAX
+        document.querySelectorAll('.card').forEach(card => {
+            window.addEventListener('mousemove', (e) => {
+                const x = (e.clientX - window.innerWidth/2) / 50;
+                const y = (e.clientY - window.innerHeight/2) / 50;
+                gsap.to(card, { x: x, y: y, duration: 1, ease: "power2.out" });
+            });
+        });
+    </script>
+</body>
+</html>

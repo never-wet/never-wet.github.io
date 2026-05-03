@@ -1,0 +1,144 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IGLOO | Fixed Dome Infinite</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.160.0/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/studio-freight/lenis@1.0.19/bundled/lenis.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@900&display=swap');
+        
+        /* HIDDEN SCROLLBAR */
+        html, body {
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            background: #000;
+            color: #fff;
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+        }
+        html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
+
+        canvas#webgl { 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            z-index: 0; /* Keep it behind content */
+            pointer-events: none; 
+        }
+
+        .content-wrapper { position: relative; z-index: 10; }
+        .section { height: 100vh; display: flex; align-items: center; justify-content: center; }
+        
+        h1 { 
+            font-size: 16vw; 
+            line-height: 0.8; 
+            letter-spacing: -0.05em; 
+            text-transform: uppercase; 
+            mix-blend-difference: exclusion; /* Makes text pop against 3D */
+        }
+
+        .bento-grid { 
+            display: grid; 
+            grid-template-columns: repeat(3, 1fr); 
+            gap: 2rem; 
+            width: 85%; 
+        }
+
+        .card { 
+            height: 450px; 
+            background: rgba(255,255,255,0.02); 
+            border: 1px solid rgba(255,255,255,0.1); 
+            border-radius: 45px; 
+            backdrop-filter: blur(15px); 
+        }
+    </style>
+</head>
+<body>
+    <canvas id="webgl"></canvas>
+    
+    <div class="content-wrapper" id="infinite-target">
+        <div id="master-content">
+            <section class="section"><h1>Igloo</h1></section>
+            <section class="section">
+                <div class="bento-grid">
+                    <div class="card p-12 flex flex-col justify-end"><h3>Immersive</h3></div>
+                    <div class="card p-12 flex flex-col justify-end bg-white text-black"><h3>Fluid</h3></div>
+                    <div class="card p-12 flex flex-col justify-end"><h3>Infinite</h3></div>
+                </div>
+            </section>
+            <section class="section"><h1>Motion</h1></section>
+        </div>
+    </div>
+
+    <script>
+        // 1. INFINITE CLONING
+        const target = document.querySelector('#infinite-target');
+        const master = document.querySelector('#master-content');
+        target.appendChild(master.cloneNode(true));
+        target.appendChild(master.cloneNode(true));
+
+        // 2. SMOOTH SCROLL
+        const lenis = new Lenis({ 
+            infinite: true, 
+            lerp: 0.05, 
+            smoothness: 1.5 
+        });
+        function raf(time) { lenis.raf(time); requestAnimationFrame(raf); }
+        requestAnimationFrame(raf);
+
+        // 3. THE IGLOO DOME (STAYS FIXED)
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ canvas: document.querySelector('#webgl'), antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+        // Geometric Dome
+        const geometry = new THREE.IcosahedronGeometry(4.5, 8);
+        const material = new THREE.MeshBasicMaterial({ 
+            color: 0xffffff, 
+            wireframe: true, 
+            transparent: true, 
+            opacity: 0.08 
+        });
+        const igloo = new THREE.Mesh(geometry, material);
+        scene.add(igloo);
+        camera.position.z = 10;
+
+        let mouseX = 0, mouseY = 0;
+        window.addEventListener('mousemove', (e) => {
+            mouseX = (e.clientX / window.innerWidth) - 0.5;
+            mouseY = (e.clientY / window.innerHeight) - 0.5;
+        });
+
+        function animate() {
+            // Constant subtle rotation
+            igloo.rotation.y += 0.001;
+            
+            // React to mouse movement
+            igloo.rotation.y += (mouseX * 0.2);
+            igloo.rotation.x += (mouseY * 0.1);
+            
+            // Smooth Camera Follow
+            camera.position.x += (mouseX * 3 - camera.position.x) * 0.05;
+            camera.position.y += (-mouseY * 3 - camera.position.y) * 0.05;
+            camera.lookAt(0,0,0);
+
+            renderer.render(scene, camera);
+            requestAnimationFrame(animate);
+        }
+        animate();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>

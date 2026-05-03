@@ -1,0 +1,84 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IGLOO | Infinite Windows Edition</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.160.0/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/studio-freight/lenis@1.0.19/bundled/lenis.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;900&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #fff; margin: 0; overflow-x: hidden; }
+        canvas#three-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; }
+        #trail-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 40; pointer-events: none; }
+        .bento-card { background: rgba(245, 245, 247, 0.6); backdrop-filter: blur(20px); border-radius: 3rem; transition: transform 0.3s ease; }
+    </style>
+</head>
+<body>
+    <canvas id="three-canvas"></canvas>
+    <canvas id="trail-canvas"></canvas>
+    <nav class="fixed top-0 w-full z-50 px-10 py-8 flex justify-between items-center mix-blend-difference text-white">
+        <div class="font-black text-2xl uppercase">Igloo.</div>
+    </nav>
+    <div id="scroll-content">
+        <section class="h-screen flex items-center px-10 md:px-20">
+            <h1 class="text-[15vw] font-black leading-[0.75] tracking-tighter uppercase">ICE <br> <span class="text-gray-200">FLOW</span></h1>
+        </section>
+        <section class="p-10 md:p-20 grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div class="bento-card h-[70vh] p-12 flex flex-col justify-end group cursor-pointer">
+                <h3 class="text-5xl font-black uppercase italic leading-none group-hover:scale-110 transition-transform">GLSL Shaders</h3>
+            </div>
+            <div class="space-y-8">
+                <div class="bento-card h-[33vh] bg-black text-white p-12 flex flex-col justify-end"><h3 class="text-3xl font-black uppercase italic">Infinite Loop</h3></div>
+                <div class="bento-card h-[33vh] p-12 flex flex-col justify-end border-2 border-black"><h3 class="text-3xl font-black uppercase italic">Liquid Motion</h3></div>
+            </div>
+        </section>
+    </div>
+    <script>
+        const content = document.querySelector('#scroll-content');
+        document.body.appendChild(content.cloneNode(true));
+        const lenis = new Lenis({ infinite: true });
+        function raf(time) { lenis.raf(time); requestAnimationFrame(raf); }
+        requestAnimationFrame(raf);
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ canvas: document.querySelector('#three-canvas'), antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        const geometry = new THREE.SphereGeometry(4, 32, 16, 0, Math.PI * 2, 0, Math.PI / 2);
+        const material = new THREE.MeshNormalMaterial({ wireframe: true, transparent: true, opacity: 0.2 });
+        const igloo = new THREE.Mesh(geometry, material);
+        scene.add(igloo);
+        camera.position.z = 10;
+        let mouseX = 0, mouseY = 0;
+        window.addEventListener('mousemove', (e) => {
+            mouseX = (e.clientX / window.innerWidth) - 0.5;
+            mouseY = (e.clientY / window.innerHeight) - 0.5;
+        });
+        function animate() {
+            igloo.rotation.y += 0.002 + (mouseX * 0.05);
+            igloo.rotation.x += (mouseY * 0.05);
+            renderer.render(scene, camera);
+            requestAnimationFrame(animate);
+        }
+        animate();
+        const trailCanvas = document.querySelector('#trail-canvas');
+        const ctx = trailCanvas.getContext('2d');
+        let dots = [];
+        window.addEventListener('mousemove', (e) => { dots.push({x: e.clientX, y: e.clientY, a: 1, r: 15}); });
+        function draw() {
+            trailCanvas.width = window.innerWidth; trailCanvas.height = window.innerHeight;
+            ctx.clearRect(0,0,trailCanvas.width, trailCanvas.height);
+            dots.forEach((d, i) => {
+                d.a -= 0.02; d.r *= 0.98;
+                ctx.beginPath(); ctx.arc(d.x, d.y, d.r, 0, Math.PI*2);
+                ctx.fillStyle = 'rgba(0,0,0,' + d.a + ')'; ctx.fill();
+                if(d.a <= 0) dots.splice(i, 1);
+            });
+            requestAnimationFrame(draw);
+        }
+        draw();
+    </script>
+</body>
+</html>

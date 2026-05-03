@@ -1,203 +1,406 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Never Wet | Interactive Portfolio</title>
-    <meta
-      name="description"
-      content="Never Wet is an interactive portfolio for cinematic web experiments, browser tools, games, simulations, and realtime 3D interfaces."
-    />
-    <link rel="icon" type="image/x-icon" href="./favicon.ico" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Archivo:wght@300;400;500;600;700;800;900&family=Michroma&family=Space+Grotesk:wght@400;500;600;700&family=Syncopate:wght@400;700&display=swap"
-      rel="stylesheet"
-    />
-    <link rel="stylesheet" href="./css/never-wet-home.css" />
-    <script>
-      document.documentElement.classList.add("js-enabled");
-    </script>
-    <script type="importmap">
-      {
-        "imports": {
-          "three": "./threejs/three.js-master/build/three.module.js"
-        }
-      }
-    </script>
-  </head>
-  <body class="home-entry">
-    <div class="loader" id="pageLoader" aria-live="polite" aria-label="Loading Never Wet portfolio">
-      <div class="loader__panel">
-        <span class="loader__kicker">Never Wet</span>
-        <strong>Preparing the portfolio field</strong>
-        <div class="loader__track"><span id="loaderProgress"></span></div>
-      </div>
-    </div>
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width,initial-scale=1" />
+	<title>Main Portfolio — Repo Hub</title>
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+	<script>window.TW_CONFIG = {theme: {extend: {colors: {obsidian: '#050505', accent: '#00bfff'}}}};</script>
+	<script src="https://cdn.tailwindcss.com"></script>
+	<style>
+	:root{--bg:#050505; --fg:#fff; --accent:#00bfff}
+	html,body{height:100%}
+	body{margin:0;background:var(--bg);color:var(--fg);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial}
+	::-webkit-scrollbar{display:none}
+	#loader{position:fixed;inset:0;background:linear-gradient(180deg, rgba(0,0,0,.85), rgba(0,0,0,.6));display:flex;align-items:center;justify-content:center;z-index:60}
+	#loader .counter{font-size:clamp(2rem,8vw,6rem);font-weight:800;letter-spacing:0.04em;color:var(--fg);opacity:0.95}
+	#threeContainer{position:fixed;inset:0;z-index:0;pointer-events:none}
+	main{position:relative;z-index:10}
+	.progress-top{position:fixed;left:0;top:0;height:3px;background:var(--accent);width:0;z-index:70}
+	.cta-btn{display:inline-flex;align-items:center;justify-content:center;padding:.75rem 1.25rem;border-radius:9999px;background:rgba(255,255,255,.03);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.06);color:var(--fg);transition:transform .2s ease,box-shadow .2s ease}
+	.card{background:linear-gradient(180deg,rgba(255,255,255,0.02),transparent);border:1px solid rgba(255,255,255,0.04);padding:1rem;border-radius:12px;backdrop-filter:blur(6px)}
+	#cursorCanvas{position:fixed;inset:0;pointer-events:none;z-index:80}
+	.work-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:1rem}
+	.header{position:fixed;top:18px;left:18px;right:18px;display:flex;justify-content:space-between;align-items:center;z-index:75}
+	.header .brand{font-weight:700;letter-spacing:0.02em}
+	.small-muted{opacity:.65;font-size:.95rem}
+	</style>
+</head>
+<body>
+	<div class="progress-top" id="progressTop"></div>
+	<div id="loader"><div class="counter" id="loaderCounter">00</div></div>
+	<div id="threeContainer"></div>
+	<header class="header">
+		<div class="brand">Main Portfolio</div>
+		<div class="flex items-center gap-3">
+			<button id="refreshBtn" class="cta-btn">Refresh list</button>
+			<a href="#work" class="cta-btn">Work</a>
+		</div>
+	</header>
+	<main class="min-h-screen flex flex-col items-center justify-start">
+		<section id="hero" class="w-full min-h-screen flex items-center justify-center py-24">
+			<div class="max-w-4xl text-center px-6">
+				<h1 id="heroHeadline" class="text-[clamp(2.25rem,6vw,4.5rem)] leading-tight font-extrabold">A Curated Hub for never-wet.github.io</h1>
+				<p class="mt-6 small-muted">Organized access to every HTML page — fast, cinematic, and built for exploration.</p>
+				<div class="mt-10 flex items-center justify-center gap-4">
+					<a id="exploreBtn" class="cta-btn">Explore work</a>
+					<a id="contactBtn" class="cta-btn">Contact</a>
+				</div>
+			</div>
+		</section>
 
-    <div class="cursor" id="customCursor" aria-hidden="true">
-      <span class="cursor__dot"></span>
-      <span class="cursor__ring"></span>
-      <span class="cursor__label">View</span>
-    </div>
+		<section id="work" class="w-full max-w-7xl px-6 py-12">
+			<div class="flex items-center justify-between mb-6">
+				<h2 class="text-2xl font-semibold">Work — HTML pages</h2>
+				<div class="small-muted">Found <span id="fileCount">0</span> pages</div>
+			</div>
+			<div id="workGrid" class="work-grid"></div>
+			<div class="mt-8 text-center">
+				<button id="loadMoreBtn" class="cta-btn">Load more</button>
+			</div>
+		</section>
 
-    <canvas class="motion-stage" id="portfolioStage" aria-hidden="true"></canvas>
+		<section id="expertise" class="w-full max-w-7xl px-6 py-12">
+			<h2 class="text-2xl font-semibold mb-4">Expertise</h2>
+			<p class="small-muted">Interactive 3D backgrounds, magnetic UX, custom cursor trails, and smooth inertia scrolling.</p>
+		</section>
 
-    <header class="site-header reveal" data-reveal>
-      <a class="brand magnetic" href="./" aria-label="Never Wet home" data-cursor="Home">
-        <span class="brand__mark">NW</span>
-        <span>
-          <strong>Never Wet</strong>
-          <small>Interactive Portfolio</small>
-        </span>
-      </a>
-      <nav class="site-nav" aria-label="Primary">
-        <a href="#work" data-cursor="Work">Work</a>
-        <a href="#motion" data-cursor="Motion">Motion</a>
-        <a href="#index" data-cursor="Index">Index</a>
-        <a class="nav-cta magnetic" href="#contact" data-cursor="Start">Start</a>
-      </nav>
-    </header>
+		<section id="contact" class="w-full max-w-7xl px-6 py-12">
+			<h2 class="text-2xl font-semibold mb-4">Contact</h2>
+			<p class="small-muted">This hub links directly to each page; open any item to inspect its source and content.</p>
+		</section>
+	</main>
 
-    <main>
-      <section class="hero" id="top" aria-labelledby="home-title">
-        <div class="hero__visual parallax-media reveal" data-reveal data-parallax-speed="-0.08">
-          <img
-            src="./assets/homepage/hero-light-abstract.jpg"
-            alt="Abstract light and shadow texture"
-            width="3840"
-            height="5729"
-            loading="eager"
-          />
-          <div class="hero__visual-label">
-            <span>01</span>
-            <strong>Live Motion Field</strong>
-          </div>
-        </div>
+	<canvas id="cursorCanvas" width="800" height="600"></canvas>
 
-        <div class="hero__content">
-          <p class="eyebrow reveal" data-reveal>Portfolio / WebGL / Tools / Games</p>
-          <h1 id="home-title" class="reveal" data-reveal>
-            Junha builds digital places that react back.
-          </h1>
-          <div class="hero__bottom reveal" data-reveal>
-            <p>
-              A light, image-led archive for interactive projects: cinematic web scenes,
-              practical browser tools, playful experiments, and systems with motion built in.
-            </p>
-            <div class="hero__actions">
-              <a class="button button--dark magnetic" href="#work" data-cursor="Explore">Explore Work</a>
-              <a class="button button--light magnetic" href="./project-hub.html" data-cursor="Open">Project Hub</a>
-            </div>
-          </div>
-        </div>
+	<!-- Libraries -->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.5/gsap.min.js"></script>
+	<script src="https://unpkg.com/three@0.152.2/build/three.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/simplex-noise@3.0.0/dist/umd/simplex-noise.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/lenis@1.0.39/bundled/lenis.min.js"></script>
 
-        <aside class="hero__stats reveal" data-reveal>
-          <div>
-            <strong data-live-count>35</strong>
-            <span>launch paths</span>
-          </div>
-          <div>
-            <strong>3D</strong>
-            <span>motion layer</span>
-          </div>
-          <div>
-            <strong>4K</strong>
-            <span>local imagery</span>
-          </div>
-        </aside>
+	<script>
+	(async function(){
+		const ACCENT = getComputedStyle(document.documentElement).getPropertyValue('--accent') || '#00bfff';
+		const loaderEl = document.getElementById('loader');
+		const loaderCounter = document.getElementById('loaderCounter');
+		const progressTop = document.getElementById('progressTop');
+		const workGrid = document.getElementById('workGrid');
+		const fileCountEl = document.getElementById('fileCount');
+		const loadMoreBtn = document.getElementById('loadMoreBtn');
+		const refreshBtn = document.getElementById('refreshBtn');
 
-        <div class="scroll-cue" aria-hidden="true">
-          <span>Scroll</span>
-          <i></i>
-        </div>
-      </section>
+		// Simple loader counter visual
+		let progress = 0;
+		function setLoader(n){
+			loaderCounter.textContent = String(n).padStart(2,'0');
+			progress = n/100;
+			progressTop.style.width = (n)+'%';
+		}
 
-      <section class="visual-strip" id="visuals" aria-label="Visual direction">
-        <figure class="strip-card reveal" data-reveal data-tilt-card data-parallax-speed="0.06">
-          <img src="./assets/homepage/architecture-shadow.jpg" alt="Sharp architectural shadows" width="3840" height="2880" loading="lazy" />
-          <figcaption><span>Image system</span><strong>Light, shadow, structure</strong></figcaption>
-        </figure>
-        <figure class="strip-card strip-card--tall reveal" data-reveal data-tilt-card data-parallax-speed="-0.04">
-          <img src="./assets/homepage/gallery-installation.jpg" alt="Modern geometric art installation" width="3840" height="2560" loading="lazy" />
-          <figcaption><span>Interaction mood</span><strong>Gallery-grade motion</strong></figcaption>
-        </figure>
-        <figure class="strip-card reveal" data-reveal data-tilt-card data-parallax-speed="0.08">
-          <img src="./assets/homepage/render-structure.jpg" alt="Abstract 3D architectural render" width="3840" height="2560" loading="lazy" />
-          <figcaption><span>3D layer</span><strong>Objects with depth</strong></figcaption>
-        </figure>
-      </section>
+		// safe fetch with timeout helper
+		async function safeFetch(url, options = {}, timeout = 4000){
+			const controller = new AbortController();
+			const id = setTimeout(()=> controller.abort(), timeout);
+			try{
+				const res = await fetch(url, Object.assign({}, options, {signal: controller.signal}));
+				clearTimeout(id);
+				return res;
+			} catch(err){
+				clearTimeout(id);
+				throw err;
+			}
+		}
 
-      <section class="statement section-wrap" aria-labelledby="statement-title">
-        <p class="eyebrow reveal" data-reveal>Design Direction</p>
-        <h2 id="statement-title" class="reveal" data-reveal>
-          Clean base. Strong images. Motion that earns its place.
-        </h2>
-        <p class="statement__copy reveal" data-reveal>
-          The homepage now starts from a calm #f2f2f2 surface and uses hover states,
-          cursor feedback, parallax, entrance reveals, and a lightweight 3D layer to give
-          the archive presence without burying the work.
-        </p>
-      </section>
+		// Fetch list of HTML files from GitHub repo tree (public) with timeouts and fallbacks
+		async function fetchRepoHtmlList(){
+			const owner = 'never-wet';
+			const repo = 'never-wet.github.io';
+			const url = `https://api.github.com/repos/${owner}/${repo}/git/trees/main?recursive=1`;
+			try {
+				const res = await safeFetch(url, {}, 4000);
+				if(!res || !res.ok) throw new Error('GitHub API error');
+				const json = await res.json();
+				const htmlPaths = (json.tree||[]).filter(i=>i.path && i.path.endsWith('.html')).map(i=>i.path).sort();
+				return htmlPaths;
+			} catch(err){
+				console.warn('GitHub API failed, falling back to small local list',err);
+				// Fallback: attempt to fetch local index JSON
+				try {
+					const r = await safeFetch('/html-index.json', {}, 2000);
+					if(r && r.ok){ const list = await r.json(); return list.filter(p=>p.endsWith('.html')); }
+				}catch(e){}
+				// Minimal fallback: root index.html only
+				return ['index.html'];
+			}
+		}
 
-      <section class="work section-wrap" id="work" aria-labelledby="work-title">
-        <div class="section-heading reveal" data-reveal>
-          <p class="eyebrow">Selected Work</p>
-          <h2 id="work-title">Featured launches</h2>
-        </div>
-        <div class="project-grid" data-project-grid></div>
-      </section>
+		// progressive loader while fetching assets (non-blocking with enforced timeout)
+		setLoader(0);
+		let loaderHidden = false;
 
-      <section class="capabilities section-wrap" id="motion" aria-labelledby="capabilities-title">
-        <div class="section-heading reveal" data-reveal>
-          <p class="eyebrow">Interaction System</p>
-          <h2 id="capabilities-title">The polish layer</h2>
-        </div>
-        <div class="capability-grid">
-          <article class="capability reveal" data-reveal data-tilt-card data-cursor="Hover">
-            <span>01</span>
-            <strong>Hover effects</strong>
-            <p>Cards lift, images scale, metadata slides, and the cursor names the action.</p>
-          </article>
-          <article class="capability reveal" data-reveal data-tilt-card data-cursor="Reveal">
-            <span>02</span>
-            <strong>Entrance reveal</strong>
-            <p>Sections fade and rise in with staggered timing so the page feels intentional.</p>
-          </article>
-          <article class="capability reveal" data-reveal data-tilt-card data-cursor="Parallax">
-            <span>03</span>
-            <strong>Parallax depth</strong>
-            <p>Image panels drift at different speeds while the 3D field responds to scroll.</p>
-          </article>
-          <article class="capability reveal" data-reveal data-tilt-card data-cursor="Motion">
-            <span>04</span>
-            <strong>3D motion</strong>
-            <p>A soft WebGL object system floats behind the layout and reacts to pointer movement.</p>
-          </article>
-        </div>
-      </section>
+		// fake progress ticker so UI feels alive even if network stalls
+		let fakeProgress = 6;
+		setLoader(fakeProgress);
+		const progressInterval = setInterval(()=>{
+			fakeProgress = Math.min(96, fakeProgress + Math.random()*6);
+			setLoader(Math.floor(fakeProgress));
+		}, 220);
 
-      <section class="index section-wrap" id="index" aria-labelledby="index-title">
-        <div class="section-heading reveal" data-reveal>
-          <p class="eyebrow">Full Index</p>
-          <h2 id="index-title">Every live path</h2>
-        </div>
-        <div class="archive-list reveal" data-reveal data-project-index></div>
-      </section>
+		function finalizeLoader(){
+			if(loaderHidden) return;
+			clearInterval(progressInterval);
+			setLoader(100);
+			gsap.to(loaderEl, {y:'-120%', duration:0.8, ease:'power2.inOut', onComplete:()=>{
+				try{ loaderEl.remove(); }catch(e){}
+				loaderHidden = true;
+				// reveal hero after loader
+				splitReveal(document.getElementById('heroHeadline'));
+				prepareGrid();
+			}});
+		}
 
-      <section class="contact section-wrap" id="contact" aria-labelledby="contact-title">
-        <div class="contact__panel reveal" data-reveal data-tilt-card>
-          <p class="eyebrow">Next</p>
-          <h2 id="contact-title">Open the archive and start moving through it.</h2>
-          <div class="hero__actions">
-            <a class="button button--dark magnetic" href="./project-hub.html" data-cursor="Hub">Open Project Hub</a>
-            <a class="button button--light magnetic" href="#top" data-cursor="Top">Back to Top</a>
-          </div>
-        </div>
-      </section>
-    </main>
+		// grid state and builder
+		const gridState = { allFiles: [], shown: 0, CHUNK: 80 };
+		function prepareGrid(){
+			const allFiles = window.__repoHtmlList || gridState.allFiles || [];
+			gridState.allFiles = allFiles;
+			gridState.shown = 0;
+			workGrid.innerHTML = '';
+			fileCountEl.textContent = allFiles.length;
+			loadMoreBtn.style.display = allFiles.length > gridState.CHUNK ? 'inline-flex' : 'none';
+			function addChunk(){
+				const slice = gridState.allFiles.slice(gridState.shown, gridState.shown + gridState.CHUNK);
+				slice.forEach(p => workGrid.appendChild(createCard(p)));
+				gridState.shown += slice.length;
+				if(gridState.shown >= gridState.allFiles.length) loadMoreBtn.style.display = 'none';
+			}
+			loadMoreBtn.onclick = addChunk;
+			if(allFiles.length > 0) addChunk();
+		}
 
-    <script type="module" src="./shared/never-wet-homepage.js"></script>
-  </body>
+		// start background tasks (don't block UI)
+		const listPromise = (async ()=>{
+			try{
+				const list = await fetchRepoHtmlList();
+				window.__repoHtmlList = list;
+				fileCountEl.textContent = list.length;
+				if(!loaderHidden) setLoader(60);
+				if(loaderHidden) prepareGrid();
+			}catch(err){
+				console.warn('Failed to fetch repo list', err);
+				window.__repoHtmlList = ['index.html'];
+				fileCountEl.textContent = 1;
+				if(loaderHidden) prepareGrid();
+			}
+		})();
+
+		const threePromise = (async ()=>{
+			try{ await initializeThree(); } catch(e){ console.warn('Three init failed', e); }
+		})();
+
+		// ensure loader never blocks interaction longer than N ms
+		await Promise.race([
+			Promise.allSettled([listPromise, threePromise]),
+			new Promise(r=>setTimeout(r, 7000))
+		]);
+
+		finalizeLoader();
+
+		// refresh handler updates the list and grid
+		refreshBtn.addEventListener('click', async ()=>{
+			loadMoreBtn.style.display='block';
+			workGrid.innerHTML='';
+			gridState.shown = 0;
+			const list = await fetchRepoHtmlList();
+			window.__repoHtmlList = list;
+			fileCountEl.textContent = list.length;
+			if(loaderHidden) prepareGrid();
+		});
+
+		// Initialize Lenis for inertia scrolling
+		const lenis = new Lenis({ duration:1.4, lerp:0.05 });
+		function raf(time){
+			lenis.raf(time);
+			requestAnimationFrame(raf);
+		}
+		requestAnimationFrame(raf);
+
+		// progress bar based on lenis scroll
+		function updateProgress(){
+			const max = document.documentElement.scrollHeight - window.innerHeight;
+			const s = lenis.scroll;
+			const pct = Math.min(1, Math.max(0, s / (max || 1)));
+			progressTop.style.width = (pct*100)+'%';
+			// infinite scroll: loop
+			if(pct > 0.995){
+				lenis.scrollTo(1, {duration:0});
+			}
+			requestAnimationFrame(updateProgress);
+		}
+		requestAnimationFrame(updateProgress);
+
+		// Create a 3D background (morphing icosahedron)
+		async function initializeThree(){
+			return new Promise(resolve=>{
+				const WIDTH = window.innerWidth, HEIGHT = window.innerHeight;
+				const container = document.getElementById('threeContainer');
+				const renderer = new THREE.WebGLRenderer({antialias:true, alpha:true});
+				renderer.setSize(WIDTH, HEIGHT);
+				renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+				renderer.domElement.style.position = 'absolute';
+				renderer.domElement.style.inset = '0';
+				container.appendChild(renderer.domElement);
+
+				const scene = new THREE.Scene();
+				scene.fog = new THREE.FogExp2('#000', 0.0015);
+
+				const camera = new THREE.PerspectiveCamera(35, WIDTH/HEIGHT, 0.1, 1000);
+				camera.position.z = 6;
+
+				// geometry + material
+				const geo = new THREE.IcosahedronGeometry(1.9, 5);
+				const mat = new THREE.MeshStandardMaterial({color:ACCENT, emissive:0x001a33, metalness:0.2, roughness:0.6, transparent:true, opacity:0.92});
+				const mesh = new THREE.Mesh(geo, mat);
+				scene.add(mesh);
+
+				// lights
+				const amb = new THREE.AmbientLight(0xffffff, 0.4);
+				scene.add(amb);
+				const dir = new THREE.DirectionalLight(0xffffff, 1.2);
+				dir.position.set(5, 10, 7);
+				scene.add(dir);
+
+				const simplex = new SimplexNoise();
+
+				// store original positions
+				const pos = geo.attributes.position;
+				const basePositions = new Float32Array(pos.array.length);
+				basePositions.set(pos.array);
+
+				const clock = new THREE.Clock();
+
+				function animate(){
+					const t = clock.getElapsedTime();
+					const arr = pos.array;
+					for(let i=0;i<arr.length;i+=3){
+						const ox = basePositions[i], oy = basePositions[i+1], oz = basePositions[i+2];
+						const n = simplex.noise3D(ox*0.8 + t*0.2, oy*0.8 + t*0.15, oz*0.8 + t*0.12);
+						arr[i] = ox + n*0.12;
+						arr[i+1] = oy + n*0.12;
+						arr[i+2] = oz + n*0.12;
+					}
+					pos.needsUpdate = true;
+					mesh.rotation.y += 0.0015;
+					mesh.rotation.x += 0.0007;
+					renderer.render(scene, camera);
+					requestAnimationFrame(animate);
+				}
+				animate();
+
+				window.addEventListener('resize', ()=> {
+					const W = window.innerWidth, H = window.innerHeight;
+					camera.aspect = W/H;
+					camera.updateProjectionMatrix();
+					renderer.setSize(W,H);
+				});
+
+				resolve();
+			});
+		}
+
+		// Create card element
+		function createCard(path){
+			const a = document.createElement('a');
+			a.href = path;
+			a.className = 'card';
+			a.target = '_blank';
+			const title = path.split('/').pop();
+			a.innerHTML = `<div class="truncate font-medium">${title}</div><div class="small-muted text-sm mt-2">${path}</div>`;
+			// tilt effect
+			a.addEventListener('pointermove', (e)=> {
+				const rect = a.getBoundingClientRect();
+				const px = (e.clientX - rect.left) / rect.width;
+				const py = (e.clientY - rect.top) / rect.height;
+				const rx = (py - 0.5) * -10;
+				const ry = (px - 0.5) * 10;
+				a.style.transform = `perspective(800px) rotateX(${rx}deg) rotateY(${ry}deg) translateZ(6px)`;
+				a.style.boxShadow = `0 10px 30px rgba(0,0,0,0.5)`;
+			});
+			a.addEventListener('pointerleave', ()=> {
+				a.style.transform = '';
+				a.style.boxShadow = '';
+			});
+			return a;
+		}
+
+		// split reveal for headline
+		function splitReveal(el){
+			const text = el.textContent.trim();
+			el.textContent = '';
+			const words = text.split(' ');
+			words.forEach((w,i)=>{
+				const span = document.createElement('span');
+				span.style.display = 'inline-block';
+				span.style.overflow = 'hidden';
+				span.style.transform = 'translateY(120%)';
+				span.style.marginRight = '0.35ch';
+				span.textContent = w;
+				el.appendChild(span);
+				gsap.to(span, {y:'0%', duration:0.9, delay:0.35 + i*0.07, ease:'power3.out', transform:'translateY(0%)'});
+			});
+		}
+
+		// Cursor ribbon
+		(function setupCursorRibbon(){
+			const canvas = document.getElementById('cursorCanvas');
+			const ctx = canvas.getContext('2d');
+			function resize(){ canvas.width = innerWidth; canvas.height = innerHeight; }
+			resize(); window.addEventListener('resize', resize);
+			const pts = [];
+			const maxPts = 15;
+			canvas.style.mixBlendMode='screen';
+			document.addEventListener('pointermove', (e)=>{
+				const now = Date.now();
+				const p = {x:e.clientX, y:e.clientY, t:now};
+				pts.push(p); if(pts.length>maxPts) pts.shift();
+			});
+			function catmullRom(p0,p1,p2,p3,t){
+				const t2 = t*t, t3 = t2*t;
+				return {
+					x: 0.5*((2*p1.x)+(-p0.x+p2.x)*t+(2*p0.x-5*p1.x+4*p2.x-p3.x)*t2+(-p0.x+3*p1.x-3*p2.x+p3.x)*t3),
+					y: 0.5*((2*p1.y)+(-p0.y+p2.y)*t+(2*p0.y-5*p1.y+4*p2.y-p3.y)*t2+(-p0.y+3*p1.y-3*p2.y+p3.y)*t3)
+				};
+			}
+			function draw(){
+				ctx.clearRect(0,0,canvas.width,canvas.height);
+				if(pts.length>1){
+					ctx.lineJoin = ctx.lineCap = 'round';
+					// sample smooth curve along points using Catmull-Rom
+					ctx.beginPath();
+					for(let i=0;i<pts.length-3;i++){
+						for(let t=0;t<1;t+=0.08){
+							const p = catmullRom(pts[i], pts[i+1], pts[i+2], pts[i+3], t);
+							const alpha = 1 - (i / pts.length);
+							const width = 12 * (1 - (i/pts.length));
+							ctx.strokeStyle = `rgba(0,191,255,${0.14 + 0.6 * alpha})`;
+							ctx.lineWidth = width;
+							if(t===0 && i===0) ctx.moveTo(p.x,p.y);
+							else ctx.lineTo(p.x,p.y);
+						}
+					}
+					ctx.stroke();
+				}
+				requestAnimationFrame(draw);
+			}
+			draw();
+		})();
+
+	})();
+	</script>
+
+</body>
 </html>
+
