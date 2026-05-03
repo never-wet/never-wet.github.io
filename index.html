@@ -26,6 +26,10 @@
 	.header{position:fixed;top:18px;left:18px;right:18px;display:flex;justify-content:space-between;align-items:center;z-index:75}
 	.header .brand{font-weight:700;letter-spacing:0.02em}
 	.small-muted{opacity:.65;font-size:.95rem}
+	.search-input{width:260px;padding:.6rem 1rem;border-radius:12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);color:var(--fg);outline:none;backdrop-filter:blur(6px);transition:box-shadow .15s ease}
+	.search-input::placeholder{color:rgba(255,255,255,0.45)}
+	.search-input:focus{box-shadow:0 6px 24px rgba(0,0,0,0.6);border-color:var(--accent)}
+	.search-clear{position:absolute;right:8px;top:6px;transform:none;padding:6px 8px;border-radius:8px;background:transparent;border:none;color:var(--fg);opacity:.8}
 	</style>
 </head>
 <body>
@@ -35,6 +39,10 @@
 	<header class="header">
 		<div class="brand">Main Portfolio</div>
 		<div class="flex items-center gap-3">
+			<div class="relative" style="min-width:240px">
+				<input id="searchInput" class="search-input" placeholder="Search pages (press /)" aria-label="Search pages">
+				<button id="clearSearch" class="search-clear" title="Clear" style="display:none">✕</button>
+			</div>
 			<button id="refreshBtn" class="cta-btn">Refresh list</button>
 			<a href="#work" class="cta-btn">Work</a>
 		</div>
@@ -54,7 +62,7 @@
 		<section id="work" class="w-full max-w-7xl px-6 py-12">
 			<div class="flex items-center justify-between mb-6">
 				<h2 class="text-2xl font-semibold">Work — HTML pages</h2>
-				<div class="small-muted">Found <span id="fileCount">0</span> pages</div>
+				<div class="small-muted">Found <span id="fileCount">0</span> pages <span id="resultsCount" style="margin-left:.6rem;display:none"></span></div>
 			</div>
 			<div id="workGrid" class="work-grid"></div>
 			<div class="mt-8 text-center">
@@ -91,6 +99,9 @@
 		const fileCountEl = document.getElementById('fileCount');
 		const loadMoreBtn = document.getElementById('loadMoreBtn');
 		const refreshBtn = document.getElementById('refreshBtn');
+		const searchInput = document.getElementById('searchInput');
+		const clearSearch = document.getElementById('clearSearch');
+		const resultsCountEl = document.getElementById('resultsCount');
 
 		// Simple loader counter visual
 		let progress = 0;
@@ -165,6 +176,8 @@
 		// grid state and builder
 		const gridState = { allFiles: [], shown: 0, CHUNK: 80 };
 		function prepareGrid(){
+			if(resultsCountEl) resultsCountEl.style.display = 'none';
+			if(clearSearch) clearSearch.style.display = 'none';
 			const allFiles = window.__repoHtmlList || gridState.allFiles || [];
 			gridState.allFiles = allFiles;
 			gridState.shown = 0;
@@ -218,6 +231,49 @@
 			window.__repoHtmlList = list;
 			fileCountEl.textContent = list.length;
 			if(loaderHidden) prepareGrid();
+		});
+
+		// --- Search: client-side filtering and keyboard shortcuts ---
+		function debounce(fn, wait=150){ let t; return (...args)=>{ clearTimeout(t); t = setTimeout(()=> fn.apply(this,args), wait); }; }
+
+		async function ensureFilesLoaded(){
+			if(gridState.allFiles && gridState.allFiles.length) return;
+			if(window.__repoHtmlList && window.__repoHtmlList.length){ gridState.allFiles = window.__repoHtmlList; return; }
+			try{
+				const list = await fetchRepoHtmlList();
+				window.__repoHtmlList = list;
+				gridState.allFiles = list;
+				fileCountEl.textContent = list.length;
+			}catch(e){ console.warn('Search: failed to load list', e); }
+		}
+
+		function performSearch(q){
+			q = (q||'').trim().toLowerCase();
+			if(!q){ if(resultsCountEl) resultsCountEl.style.display = 'none'; prepareGrid(); return; }
+			const source = (gridState.allFiles && gridState.allFiles.length) ? gridState.allFiles : (window.__repoHtmlList || []);
+			const filtered = source.filter(p => p.toLowerCase().includes(q));
+			workGrid.innerHTML = '';
+			filtered.forEach(p => workGrid.appendChild(createCard(p)));
+			if(resultsCountEl){ resultsCountEl.style.display = 'inline'; resultsCountEl.textContent = `Showing ${filtered.length} result${filtered.length!==1 ? 's' : ''}`; }
+			if(loadMoreBtn) loadMoreBtn.style.display = 'none';
+		}
+
+		const handleSearch = debounce(async (e)=>{
+			const q = (e && e.target) ? e.target.value : (searchInput && searchInput.value) || '';
+			await ensureFilesLoaded();
+			performSearch(q);
+			if(searchInput && clearSearch) {
+				if(searchInput.value) clearSearch.style.display = 'inline';
+				else clearSearch.style.display = 'none';
+			}
+		}, 180);
+
+		if(searchInput) searchInput.addEventListener('input', handleSearch);
+		if(clearSearch) clearSearch.addEventListener('click', ()=>{ if(searchInput){ searchInput.value=''; handleSearch({target:searchInput}); searchInput.focus(); } });
+
+		document.addEventListener('keydown', (ev)=>{
+			if(ev.key === '/' && searchInput && document.activeElement !== searchInput){ ev.preventDefault(); searchInput.focus(); searchInput.select(); }
+			if(ev.key === 'Escape' && searchInput && document.activeElement === searchInput){ searchInput.value=''; handleSearch({target:searchInput}); searchInput.blur(); }
 		});
 
 		// Initialize Lenis for inertia scrolling
