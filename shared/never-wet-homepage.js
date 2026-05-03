@@ -3,6 +3,7 @@ import { projects } from "../igloo-home/projects.js";
 
 const localProjects = projects.filter((project) => !project.external);
 const featuredNames = [
+  "Space Explorer",
   "Private Residence Scroll Journey",
   "Global Intelligence World",
   "Global Intelligence Dashboard",
@@ -40,6 +41,7 @@ const featuredNames = [
 ];
 
 const projectImages = [
+  "./space-explorer/textures/milky-way.jpg",
   "./assets/homepage/architecture-shadow.jpg",
   "./assets/homepage/gallery-installation.jpg",
   "./assets/homepage/render-structure.jpg",

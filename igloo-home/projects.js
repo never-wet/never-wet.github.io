@@ -1,5 +1,11 @@
 export const projects = [
   {
+    title: "Space Explorer",
+    tag: "NASA-style / 3D Solar System",
+    description: "Cinematic 3D space explorer with textured planets, major moons, asteroid and Kuiper belts, famous stars, orbit paths, real measurements, and NASA/JPL integration hooks.",
+    href: "../space-explorer/",
+  },
+  {
     title: "Private Residence Scroll Journey",
     tag: "Luxury Real Estate / R3F Scroll Tour",
     description: "Cinematic luxury villa walkthrough where scroll drives the camera from gated arrival through driveway, exterior reveal, interiors, feature rooms, and private viewing CTA.",
