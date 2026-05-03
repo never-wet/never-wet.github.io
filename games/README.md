@@ -24,6 +24,8 @@ This folder holds the web game section for `never-wet.github.io`.
   A Next.js sorting lab with animated algorithm playback, pseudocode highlighting, complexity notes, and comparison mode.
 - `galaxy-simulator/`
   A React Three Fiber gravity sandbox with celestial body creation, collisions, black holes, supernova events, and predictive trajectories.
+- `sitebound-rpg/`
+  A full-screen Phaser pixel-art RPG with authored zones, collision-safe buildings, playable interiors, NPCs, quests, pathfinding, day/night, weather, sound, mini-games, and saves.
 - `stitch_soccer_clicker_tycoon/`
   A concept bundle / prototype set for a larger soccer clicker tycoon project.
 
@@ -40,6 +42,7 @@ From the site:
 - `/games/flight-simulator/`
 - `/games/sorting-algorithm-visualizer/`
 - `/games/galaxy-simulator/`
+- `/games/sitebound-rpg/`
 
 If you are testing locally, serve the repo as a static site and open the same paths in your browser.
 
