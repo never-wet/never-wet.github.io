@@ -1,0 +1,29 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;900&family=JetBrains+Mono&display=swap');
+        body { background: #000; color: #fff; font-family: 'Inter', sans-serif; }
+        .nav-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); transition: 0.4s; }
+        .nav-card:hover { border-color: #fff; background: rgba(255,255,255,0.07); }
+    </style>
+</head>
+<body class="p-16">
+    <h1 class="text-6xl font-black mb-20">Scholar Dashboard</h1>
+    <div class="grid grid-cols-12 gap-6">
+        <div class="col-span-8 nav-card p-10 rounded-3xl cursor-pointer" onclick="location.href='lesson_engine.html'">
+            <h3 class="opacity-40 uppercase text-xs">Resume Lesson</h3>
+            <h2 class="text-3xl font-bold">Quantum Mechanics: Step 02</h2>
+        </div>
+        <div class="col-span-4 nav-card p-10 rounded-3xl cursor-pointer" onclick="location.href='simulation_lab.html'">
+            <h2 class="text-2xl font-bold">3D Orbit Lab</h2>
+        </div>
+        <div class="col-span-12 nav-card p-10 rounded-3xl cursor-pointer" onclick="location.href='assessment_engine.html'">
+            <h2 class="text-2xl font-bold text-center uppercase tracking-widest">Take Verification Exam</h2>
+        </div>
+    </div>
+</body>
+</html>

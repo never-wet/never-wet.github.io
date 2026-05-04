@@ -1,0 +1,131 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Schrödinger Masterclass | Quantum Physics</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.contrib/auto-render.min.js" onload="renderMathInElement(document.body);"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;700;800&family=JetBrains+Mono&display=swap');
+        body { background: #05070a; color: #e2e8f0; font-family: 'Plus Jakarta Sans', sans-serif; line-height: 1.7; }
+        .mono { font-family: 'JetBrains Mono', monospace; }
+        .glass-card { background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 1.5rem; }
+        .accent-text { color: #60a5fa; font-weight: 700; }
+        .mnemonic-box { border-left: 4px solid #10b981; background: rgba(16, 185, 129, 0.05); padding: 1.5rem; border-radius: 0 1rem 1rem 0; }
+        .exam-tip { border-left: 4px solid #f59e0b; background: rgba(245, 158, 11, 0.05); padding: 1.5rem; border-radius: 0 1rem 1rem 0; }
+    </style>
+</head>
+<body class="max-w-5xl mx-auto px-6 py-16 lg:px-20">
+
+    <!-- HEADER SECTION -->
+    <header class="mb-16 border-b border-white/10 pb-10">
+        <div class="mono text-[10px] uppercase tracking-[0.4em] text-blue-500 mb-4">Physics Level 04: Quantum Mechanics</div>
+        <h1 class="text-6xl font-extrabold tracking-tighter mb-6">The Schrödinger <span class="text-white/40">Equation</span></h1>
+        <p class="text-xl text-slate-400 max-w-2xl">Think of this as the "F = ma" of the subatomic world. It predicts where a particle will be, but only as a probability.</p>
+    </header>
+
+    <!-- THE "CHEAT SHEET" EQUATION BOX -->
+    <section class="glass-card p-10 mb-16 shadow-2xl relative overflow-hidden">
+        <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-indigo-600"></div>
+        <div class="text-center py-6">
+            <div class="text-3xl lg:text-5xl font-mono tracking-tighter text-white">
+                cd.. i\hbar \frac{\partial}{\partial t} \Psi(\mathbf{r},t) = \hat{H} \Psi(\mathbf{r},t) cd..
+            </div>
+        </div>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8 text-center text-[10px] uppercase tracking-widest text-slate-500">
+            <div><span class="text-blue-400 block mb-1">Imaginary Unit</span>$</div>
+            <div><span class="text-blue-400 block mb-1">Action Scale</span>$\hbar$</div>
+            <div><span class="text-blue-400 block mb-1">Change / Time</span>$\frac{\partial}{\partial t}$</div>
+            <div><span class="text-blue-400 block mb-1">Total Energy</span>$\hat{H}$</div>
+        </div>
+    </section>
+
+    <!-- CONTENT BREAKDOWN -->
+    <div class="grid lg:grid-cols-3 gap-12">
+        <div class="lg:col-span-2 space-y-12">
+            
+            <!-- 1. The Analogy -->
+            <section>
+                <h2 class="text-2xl font-bold mb-6 flex items-center gap-3">
+                    <span class="w-8 h-8 rounded-full bg-blue-500/20 text-blue-400 text-sm flex items-center justify-center">01</span>
+                    The Simple Analogy
+                </h2>
+                <p class="text-slate-400">
+                    If you kick a football, Newton tells you exactly where it lands. In the quantum world, particles are "fuzzy." 
+                    The <span class="accent-text">Wavefunction ($\Psi$)</span> is a cloud representing every possible place a particle could be. 
+                    Schrödinger's equation is the <b>math that tells the cloud how to move</b>.
+                </p>
+                
+            </section>
+
+            <!-- 2. Memory Trick -->
+            <section class="mnemonic-box">
+                <h3 class="font-bold text-emerald-400 mb-2 uppercase text-xs tracking-widest">How to Remember it (Mnemonic)</h3>
+                <p class="text-lg italic">"<b>I</b> <b>H</b>ave <b>T</b>o <b>C</b>hange <b>PSI</b> to <b>H</b>ave <b>PSI</b>."</p>
+                <ul class="mt-4 text-sm space-y-1 opacity-70">
+                    <li><b>I</b> ($) = The complex plane</li>
+                    <li><b>H</b>ave ($\hbar$) = Planck's Constant</li>
+                    <li><b>T</b>o <b>C</b>hange ($\frac{\partial}{\partial t}$) = Time derivative</li>
+                    <li><b>PSI</b> ($\Psi$) = The wave itself</li>
+                </ul>
+            </section>
+
+            <!-- 3. Symbol Deep Dive -->
+            <section>
+                <h2 class="text-2xl font-bold mb-6 flex items-center gap-3">
+                    <span class="w-8 h-8 rounded-full bg-blue-500/20 text-blue-400 text-sm flex items-center justify-center">02</span>
+                    The Symbol Breakdown
+                </h2>
+                <div class="space-y-6">
+                    <div class="glass-card p-6">
+                        <h4 class="accent-text mb-2">The Hamiltonian ($\hat{H}$)</h4>
+                        <p class="text-sm opacity-60">This is the "Energy Master." It adds up the particle's <b>Kinetic Energy</b> (speed) and <b>Potential Energy</b> (gravity/electricity). If you want to know the energy of a particle, you "apply" the Hamiltonian to it.</p>
+                    </div>
+                    <div class="glass-card p-6">
+                        <h4 class="accent-text mb-2">H-Bar ($\hbar$)</h4>
+                        <p class="text-sm opacity-60">This is Planck's constant divided by \pi$. It is the "resolution" of the universe. Without it, the subatomic world would behave just like the macro world.</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- SIDEBAR: EXAM STRATEGY -->
+        <aside class="space-y-8">
+            <div class="exam-tip">
+                <h3 class="font-bold text-amber-400 mb-4 uppercase text-xs tracking-widest">Exam Survival Guide</h3>
+                <ul class="text-sm space-y-4">
+                    <li>
+                        <strong class="text-white block">1. Check Units!</strong>
+                        Ensure your energy units ($) match the Hamiltonian output.
+                    </li>
+                    <li>
+                        <strong class="text-white block">2. Normalization</strong>
+                        Remember: The total probability of a particle being *somewhere* must be <b>1</b>. Don't forget to normalize your wavefunctions!
+                    </li>
+                    <li>
+                        <strong class="text-white block">3. Time vs. Time-Independent</strong>
+                        Read the question carefully. If the energy doesn't change over time, use the shorter version: $\hat{H}\Psi = E\Psi$.
+                    </li>
+                </ul>
+            </div>
+
+            <div class="glass-card p-6 border-blue-500/30">
+                <h4 class="text-xs font-bold mb-4 opacity-40">PROGRESS TRACKER</h4>
+                <div class="w-full bg-white/5 h-1 rounded-full mb-2">
+                    <div class="bg-blue-500 h-full w-[15%]"></div>
+                </div>
+                <span class="text-[10px] opacity-40">1/6 CONCEPTS MASTERED</span>
+            </div>
+        </aside>
+    </div>
+
+    <!-- NEXT STEPS -->
+    <footer class="mt-20 pt-10 border-t border-white/5 flex justify-between items-center">
+        <div class="mono text-[10px] opacity-30">Session ID: #8829-Q</div>
+        <button class="bg-blue-600 hover:bg-blue-500 text-white px-8 py-4 rounded-xl font-bold text-xs uppercase tracking-widest transition-all">Next: Particle in a Box →</button>
+    </footer>
+
+</body>
+</html>

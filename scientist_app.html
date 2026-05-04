@@ -1,0 +1,225 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scientist.edu | Ultimate Study Portal</title>
+    
+    <!-- External Libraries -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.contrib/auto-render.min.js" onload="renderMathInElement(document.body);"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;700;800&family=JetBrains+Mono&display=swap');
+        
+        :root {
+            --primary: #3b82f6;
+            --secondary: #10b981;
+            --accent: #f59e0b;
+            --bg-dark: #020617;
+        }
+
+        body { 
+            background: var(--bg-dark); 
+            color: #f1f5f9; 
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            scroll-behavior: smooth;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+
+        .glass-card { 
+            background: rgba(30, 41, 59, 0.4); 
+            border: 1px solid rgba(255, 255, 255, 0.05); 
+            backdrop-filter: blur(12px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .glass-card:hover { 
+            border-color: var(--primary); 
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .input-field {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            transition: 0.2s;
+        }
+
+        .input-field:focus {
+            border-color: var(--primary);
+            outline: none;
+            background: rgba(0, 0, 0, 0.4);
+        }
+
+        .quiz-option {
+            cursor: pointer;
+            transition: 0.2s;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .quiz-option:hover {
+            background: rgba(59, 130, 246, 0.1);
+            border-color: var(--primary);
+        }
+
+        .correct { background: rgba(16, 185, 129, 0.2) !important; border-color: var(--secondary) !important; }
+        .wrong { background: rgba(239, 68, 68, 0.2) !important; border-color: #ef4444 !important; }
+
+        @keyframes pulse-soft {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        .pulse { animation: pulse-soft 3s infinite; }
+    </style>
+</head>
+<body>
+
+    <!-- NAVIGATION -->
+    <nav class="border-b border-white/5 bg-slate-950/80 backdrop-blur-xl sticky top-0 z-50 px-8 py-4 flex justify-between items-center">
+        <div class="flex items-center gap-3">
+            <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center font-bold">S</div>
+            <div class="font-black text-xl tracking-tighter uppercase">Scientist<span class="text-blue-500">.edu</span></div>
+        </div>
+        <div class="hidden md:flex gap-8 text-xs font-bold uppercase tracking-widest opacity-60">
+            <a href="#biology" class="hover:text-blue-400 transition">Biology</a>
+            <a href="#chemistry" class="hover:text-blue-400 transition">Chemistry</a>
+            <a href="#math" class="hover:text-blue-400 transition">Math Tools</a>
+        </div>
+        <div id="user-rank" class="text-[10px] font-bold border border-blue-500/30 px-3 py-1 rounded-full text-blue-400">
+            RANK: NOVICE
+        </div>
+    </nav>
+
+    <main class="max-w-6xl mx-auto px-6 py-12">
+
+        <!-- HERO SECTION -->
+        <header class="text-center mb-20">
+            <h1 class="text-6xl md:text-8xl font-black mb-6 tracking-tighter">Master the <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">Universe.</span></h1>
+            <p class="text-slate-400 text-lg max-w-2xl mx-auto">From high school fundamentals to advanced quantum research. Your path to becoming a scientist starts here.</p>
+        </header>
+
+        <!-- MATH INTERACTIVE TOOL: UNIT CONVERTER -->
+        <section id="math" class="mb-24">
+            <div class="glass-card p-8 rounded-3xl">
+                <h2 class="text-2xl font-bold mb-6 flex items-center gap-2">
+                    <span class="text-blue-500">#</span> Quick Unit Converter
+                </h2>
+                <div class="grid md:grid-cols-3 gap-6">
+                    <div>
+                        <label class="block text-[10px] uppercase font-bold opacity-40 mb-2">Value</label>
+                        <input type="number" id="unit-val" class="input-field w-full p-4 rounded-xl" placeholder="Enter number..." oninput="convertUnits()">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] uppercase font-bold opacity-40 mb-2">From</label>
+                        <select id="unit-from" class="input-field w-full p-4 rounded-xl cursor-pointer" onchange="convertUnits()">
+                            <option value="km">Kilometers</option>
+                            <option value="m">Meters</option>
+                            <option value="mi">Miles</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] uppercase font-bold opacity-40 mb-2">To Meters (Result)</label>
+                        <div id="unit-result" class="p-4 bg-blue-600/10 border border-blue-500/20 rounded-xl font-mono text-blue-400">0 m</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- BIOLOGY & QUIZ ENGINE -->
+        <section id="biology" class="mb-24 grid lg:grid-cols-2 gap-12">
+            <div>
+                <h2 class="text-4xl font-black mb-6">Biology <span class="text-emerald-500">Lab</span></h2>
+                <p class="text-slate-400 mb-8">Test your knowledge on <b>Cellular Mitosis</b> and <b>Genetic Sequencing</b>. Professional researchers never stop testing themselves.</p>
+                <div class="p-6 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl">
+                    <h4 class="font-bold text-emerald-400 mb-2">Mnemonic of the Day</h4>
+                    <p class="italic text-sm">"<b>P</b>lease <b>M</b>ake <b>A</b>nother <b>T</b>oast" (Prophase, Metaphase, Anaphase, Telophase)</p>
+                </div>
+            </div>
+
+            <div class="glass-card p-8 rounded-3xl relative overflow-hidden" id="quiz-container">
+                <div class="absolute top-0 left-0 w-full h-1 bg-emerald-500"></div>
+                <div id="quiz-content">
+                    <span class="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">Active Quiz</span>
+                    <h3 class="text-xl font-bold mt-2 mb-6" id="question-text">Which nitrogenous base pairs with Guanine in DNA?</h3>
+                    <div class="space-y-3">
+                        <div class="quiz-option p-4 rounded-xl bg-white/5" onclick="checkAnswer(this, false)">Adenine</div>
+                        <div class="quiz-option p-4 rounded-xl bg-white/5" onclick="checkAnswer(this, false)">Thymine</div>
+                        <div class="quiz-option p-4 rounded-xl bg-white/5" onclick="checkAnswer(this, true)">Cytosine</div>
+                        <div class="quiz-option p-4 rounded-xl bg-white/5" onclick="checkAnswer(this, false)">Uracil</div>
+                    </div>
+                </div>
+                <div id="quiz-feedback" class="hidden mt-6 p-4 rounded-xl text-center font-bold"></div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-slate-950 p-12 text-center border-t border-white/5">
+        <p class="text-xs opacity-30">© 2026 Scientist.edu - High Fidelity Learning Systems</p>
+    </footer>
+
+    <script>
+        // 1. UNIT CONVERTER LOGIC
+        function convertUnits() {
+            const val = document.getElementById('unit-val').value;
+            const from = document.getElementById('unit-from').value;
+            const resultDiv = document.getElementById('unit-result');
+            
+            let meters = 0;
+            if(from === 'km') meters = val * 1000;
+            if(from === 'm') meters = val;
+            if(from === 'mi') meters = val * 1609.34;
+
+            resultDiv.innerText = meters.toLocaleString() + " m";
+        }
+
+        // 2. QUIZ ENGINE LOGIC
+        let score = 0;
+        function checkAnswer(element, isCorrect) {
+            const options = document.querySelectorAll('.quiz-option');
+            const feedback = document.getElementById('quiz-feedback');
+            
+            // Disable all options
+            options.forEach(opt => opt.style.pointerEvents = 'none');
+
+            if(isCorrect) {
+                element.classList.add('correct');
+                feedback.innerText = "CORRECT! +10 Scientific Credits";
+                feedback.className = "mt-6 p-4 rounded-xl text-center font-bold bg-emerald-500/20 text-emerald-400";
+                score += 10;
+                updateRank();
+            } else {
+                element.classList.add('wrong');
+                feedback.innerText = "INCORRECT. Review the DNA module.";
+                feedback.className = "mt-6 p-4 rounded-xl text-center font-bold bg-red-500/20 text-red-400";
+            }
+            feedback.classList.remove('hidden');
+        }
+
+        function updateRank() {
+            const rankBadge = document.getElementById('user-rank');
+            if(score >= 10) rankBadge.innerText = "RANK: RESEARCH ASSISTANT";
+            if(score >= 50) rankBadge.innerText = "RANK: DOCTORATE";
+        }
+
+        // 3. INITIALIZE KATEX (Math Rendering)
+        document.addEventListener("DOMContentLoaded", function() {
+            renderMathInElement(document.body, {
+                delimiters: [
+                    {left: 'omni_science_v2.html', right: 'omni_science_v2.html', display: true},
+                    {left: '$', right: '$', display: false}
+                ]
+            });
+        });
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,294 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Omni-Science Encyclopedia v3.0</title>
+
+    <!-- External Libraries -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.contrib/auto-render.min.js"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;700;800&family=JetBrains+Mono&display=swap');
+
+        body {
+            background: #020617;
+            color: #f1f5f9;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            scroll-behavior: smooth;
+        }
+
+        .glass-card {
+            background: rgba(30, 41, 59, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(12px);
+            transition: all 0.3s ease;
+        }
+
+        .glass-card:hover {
+            border-color: #3b82f6;
+            box-shadow: 0 10px 40px rgba(59, 130, 246, 0.15);
+        }
+
+        .search-bar {
+            background: rgba(0, 0, 0, 0.4);
+            border: 2px solid rgba(59, 130, 246, 0.3);
+            transition: 0.3s;
+        }
+
+        .search-bar:focus {
+            border-color: #3b82f6;
+            outline: none;
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.2);
+        }
+
+        .analogy-box {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.02));
+            border-left: 4px solid #10b981;
+        }
+
+        .badge-basic {
+            background: #3b82f620;
+            color: #60a5fa;
+            border: 1px solid #3b82f650;
+        }
+
+        .badge-intermediate {
+            background: #f59e0b20;
+            color: #fbbf24;
+            border: 1px solid #f59e0b50;
+        }
+
+        .badge-scientist {
+            background: #ef444420;
+            color: #f87171;
+            border: 1px solid #ef444450;
+        }
+
+        .difficulty-meter {
+            height: 6px;
+            border-radius: 3px;
+            background: #334155;
+            overflow: hidden;
+            display: flex;
+        }
+
+        .difficulty-fill {
+            height: 100%;
+            transition: width 0.5s ease;
+        }
+    </style>
+</head>
+
+<body class="min-h-screen">
+
+    <!-- NAVIGATION & HERO -->
+    <header class="border-b border-white/5 bg-slate-950/80 backdrop-blur-xl sticky top-0 z-50 py-6 px-8">
+        <div class="max-w-7xl mx-auto">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-6">
+                <div class="font-black text-2xl tracking-tighter uppercase text-center md:text-left">
+                    Omni<span class="text-blue-500">Science</span>
+                    <div class="text-[10px] text-slate-500 tracking-widest mt-1">RESEARCH DATABASE V3.0</div>
+                </div>
+
+                <!-- LIVE SEARCH BAR -->
+                <div class="w-full md:w-2/3 relative">
+                    <input type="text" id="searchInput"
+                        class="search-bar w-full py-4 px-6 rounded-2xl text-lg text-white font-mono"
+                        placeholder="Search concepts, keywords, or fields...">
+                    <div class="absolute right-4 top-4 text-xs font-bold text-blue-500 bg-blue-500/10 px-3 py-1 rounded-full uppercase tracking-widest"
+                        id="resultCount">Loading...</div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- CONTENT FEED -->
+    <main class="max-w-7xl mx-auto px-6 py-12">
+        <div id="contentFeed" class="space-y-16">
+            <!-- JavaScript will inject cards here -->
+        </div>
+    </main>
+
+    <script>
+        // ==========================================
+        // THE OMNI-SCIENCE RESEARCH DATABASE
+        // Paste your ChatGPT outputs directly into this array.
+        // ==========================================
+        const database = [
+            {
+                subject: "Physics",
+                field: "General Relativity",
+                level: "Scientist",
+                title: "Spacetime Curvature (Einstein Field Equations)",
+                formula: "$$ G_{\\mu\\nu} + \\Lambda g_{\\mu\\nu} = \\frac{8\\pi G}{c^4} T_{\\mu\\nu} $$",
+                text: "General Relativity is the geometric theory of gravitation published by Albert Einstein in 1915 and is the current description of gravitation in modern physics. It generalizes special relativity and refines Newton's law of universal gravitation, providing a unified description of gravity as a geometric property of space and time or spacetime.\n\nThe mechanism relies on the relationship between the geometry of a four-dimensional pseudo-Riemannian manifold (spacetime) and the energy-momentum contained in that spacetime. Massive objects dictate how spacetime curves, and this curvature dictates how matter moves. The stress-energy tensor ($T_{\\mu\\nu}$) represents the distribution of mass and energy, while the Einstein tensor ($G_{\\mu\\nu}$) represents the curvature.\n\nHistorically, this replaced the Newtonian view of gravity as an invisible 'pulling' force across empty space, famously proven during the 1919 solar eclipse when Arthur Eddington observed light bending around the sun.\n\nReal-world applications include the Global Positioning System (GPS), which must account for both special relativity (satellites moving fast) and general relativity (satellites experiencing less gravity), otherwise navigation errors would accumulate at a rate of 10 kilometers per day.\n\nAt a deeper level, reconciling these equations with quantum field theory to create a theory of Quantum Gravity remains one of the most significant unsolved problems in theoretical physics.",
+                analogy: "Imagine a heavy bowling ball placed in the center of a stretched rubber trampoline. The heavy ball creates a deep dip. If you roll a smaller marble nearby, it won't go straight; it will circle the dip. The bowling ball didn't 'pull' the marble; it just changed the shape of the surface the marble rolls on.",
+                keywords: ["Gravity", "Einstein", "Manifold", "Tensor", "Spacetime", "Relativity"],
+                difficulty_score: 9,
+                prerequisites: ["Special Relativity", "Differential Geometry", "Newtonian Gravity"],
+                applications: ["GPS Synchronization", "Black Hole Observation", "Cosmological Modeling"],
+                media: "https://images.unsplash.com/photo-1462331940025-496dfbfc7564?auto=format&fit=crop&w=800&q=80"
+            },
+            {
+                subject: "Biology",
+                field: "Genetics",
+                level: "Intermediate",
+                title: "CRISPR-Cas9 Gene Editing",
+                formula: "$$ \\text{gRNA} + \\text{Cas9} + \\text{Target DNA} \\rightarrow \\text{Double-Strand Break} $$",
+                text: "CRISPR-Cas9 is a unique technology that enables geneticists and medical researchers to edit parts of the genome by removing, adding, or altering sections of the DNA sequence. It is currently the simplest, most versatile, and precise method of genetic manipulation.\n\nThe system consists of two key molecules that introduce a mutation into the DNA. These are an enzyme called Cas9, which acts as a pair of 'molecular scissors' that can cut the two strands of DNA at a specific location, and a piece of RNA called guide RNA (gRNA). The gRNA is pre-designed to find and bind to a specific sequence in the DNA, guiding Cas9 to the exact right spot to make the cut.\n\nHistorically, CRISPRs (Clustered Regularly Interspaced Short Palindromic Repeats) were discovered in the adaptive immune systems of bacteria, which use them to 'remember' and destroy viruses by cutting their DNA. Emmanuelle Charpentier and Jennifer Doudna won the 2020 Nobel Prize in Chemistry for adapting this into a tool.\n\nReal-world applications include agricultural enhancements (creating drought-resistant crops), treating genetic disorders like sickle cell anemia, and creating advanced animal models for disease research.",
+                analogy: "Imagine a 1,000-page book with a single typo on page 42. CRISPR is like a word processor's 'Find and Replace' feature. The 'Guide RNA' is the exact sentence you type into the search bar, and 'Cas9' is the cursor that deletes the typo so you can type the correct letter.",
+                keywords: ["DNA", "RNA", "Enzyme", "Gene Editing", "Mutation"],
+                difficulty_score: 6,
+                prerequisites: ["Central Dogma of Biology", "DNA Structure", "RNA Transcription"],
+                applications: ["Curing Genetic Diseases", "Agricultural Engineering", "Immunotherapy"],
+                media: "https://images.unsplash.com/photo-1530213786676-418eb1411582?auto=format&fit=crop&w=800&q=80"
+            }
+        ];
+
+        // LOGIC FOR RENDERING AND SEARCHING
+        const searchInput = document.getElementById('searchInput');
+        const contentFeed = document.getElementById('contentFeed');
+        const resultCount = document.getElementById('resultCount');
+
+        function getLevelBadge(level) {
+            if (level === 'Basic') return 'badge-basic';
+            if (level === 'Intermediate') return 'badge-intermediate';
+            if (level === 'Scientist') return 'badge-scientist';
+            return 'badge-basic';
+        }
+
+        function getDifficultyColor(score) {
+            if (score <= 3) return 'bg-blue-400';
+            if (score <= 7) return 'bg-amber-400';
+            return 'bg-red-500';
+        }
+
+        function renderCards(dataToRender) {
+            contentFeed.innerHTML = '';
+            resultCount.innerText = dataToRender.length + " Results Found";
+
+            if (dataToRender.length === 0) {
+                contentFeed.innerHTML = '<div class="text-center p-12 text-slate-500 font-bold text-xl">No concepts found. Try adjusting your search.</div>';
+                return;
+            }
+
+            dataToRender.forEach(item => {
+                // Convert paragraphs into proper HTML
+                const formattedText = item.text.split('\n\n').map(p => `<p class="mb-4 text-slate-300 leading-relaxed text-lg">${p}</p>`).join('');
+
+                // Format Arrays
+                const keywordsHTML = item.keywords.map(kw => `<span class="bg-white/5 border border-white/10 px-2 py-1 rounded text-xs text-slate-400">#${kw}</span>`).join('');
+                const prereqsHTML = item.prerequisites.map(pr => `<li class="text-sm text-slate-400 border-l border-blue-500/30 pl-2 ml-2">${pr}</li>`).join('');
+                const appsHTML = item.applications.map(app => `<li class="text-sm text-slate-400 border-l border-emerald-500/30 pl-2 ml-2">${app}</li>`).join('');
+
+                const card = document.createElement('div');
+                card.className = "glass-card p-8 md:p-12 rounded-3xl relative overflow-hidden";
+
+                card.innerHTML = `
+                    <div class="grid md:grid-cols-12 gap-10">
+                        <!-- Left Column: Core Data -->
+                        <div class="md:col-span-8">
+                            <div class="flex flex-wrap items-center gap-3 mb-6">
+                                <span class="text-xs font-bold px-3 py-1 rounded bg-white/10 tracking-widest uppercase">${item.subject}</span>
+                                <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">${item.field}</span>
+                                <span class="text-xs font-bold px-3 py-1 rounded-full uppercase tracking-widest ml-auto ${getLevelBadge(item.level)}">${item.level}</span>
+                            </div>
+                            
+                            <h2 class="text-4xl md:text-5xl font-black mb-8 tracking-tight">${item.title}</h2>
+                            
+                            ${item.formula !== 'N/A' ? `
+                            <div class="bg-black/40 py-8 px-6 rounded-2xl border border-white/5 font-mono text-center overflow-x-auto mb-8 shadow-inner">
+                                ${item.formula}
+                            </div>` : ''}
+                            
+                            <div class="prose prose-invert max-w-none">
+                                ${formattedText}
+                            </div>
+                            
+                            <div class="analogy-box p-6 rounded-r-2xl mt-8">
+                                <h4 class="text-emerald-400 font-bold uppercase tracking-widest text-xs mb-3 flex items-center gap-2">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                                    Intuition Builder (The 1+1=2 Analogy)
+                                </h4>
+                                <p class="text-emerald-50 italic text-lg leading-relaxed">"${item.analogy}"</p>
+                            </div>
+                            
+                            <div class="mt-8 flex flex-wrap gap-2">
+                                ${keywordsHTML}
+                            </div>
+                        </div>
+                        
+                        <!-- Right Column: Meta Data & Media -->
+                        <div class="md:col-span-4 space-y-8">
+                            <!-- Image -->
+                            <div class="rounded-2xl overflow-hidden border border-white/10 aspect-video md:aspect-square bg-slate-900">
+                                <img src="${item.media}" class="w-full h-full object-cover" alt="${item.title}">
+                            </div>
+
+                            <!-- Difficulty -->
+                            <div class="bg-white/5 p-6 rounded-2xl border border-white/5">
+                                <div class="flex justify-between items-end mb-2">
+                                    <span class="text-xs uppercase tracking-widest font-bold text-slate-500">Difficulty</span>
+                                    <span class="text-xl font-black font-mono">${item.difficulty_score}<span class="text-slate-500 text-sm">/10</span></span>
+                                </div>
+                                <div class="difficulty-meter">
+                                    <div class="difficulty-fill ${getDifficultyColor(item.difficulty_score)}" style="width: ${item.difficulty_score * 10}%"></div>
+                                </div>
+                            </div>
+
+                            <!-- Prereqs & Apps -->
+                            <div class="space-y-6">
+                                <div>
+                                    <h4 class="text-xs uppercase tracking-widest font-bold text-blue-400 mb-3">Required Prerequisites</h4>
+                                    <ul class="space-y-2">${prereqsHTML}</ul>
+                                </div>
+                                <div>
+                                    <h4 class="text-xs uppercase tracking-widest font-bold text-emerald-400 mb-3">Real-World Applications</h4>
+                                    <ul class="space-y-2">${appsHTML}</ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                contentFeed.appendChild(card);
+            });
+
+            // Re-render Math equations using KaTeX
+            renderMathInElement(contentFeed, {
+                delimiters: [
+                    { left: '$$', right: '$$', display: true },
+                    { left: '$', right: '$', display: false }
+                ]
+            });
+        }
+
+        // Deep Search Implementation
+        searchInput.addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            const filteredData = database.filter(item => {
+                const searchString = `
+                    ${item.title} 
+                    ${item.text} 
+                    ${item.subject} 
+                    ${item.field} 
+                    ${item.level} 
+                    ${item.keywords.join(' ')} 
+                    ${item.applications.join(' ')}
+                `.toLowerCase();
+                return searchString.includes(searchTerm);
+            });
+            renderCards(filteredData);
+        });
+
+        // Initial Render
+        renderCards(database);
+
+    </script>
+</body>
+
+</html>

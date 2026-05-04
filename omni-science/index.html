@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Omni-Science Research Portal</title>
+
+    <!-- Core Libraries -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Math Rendering (KaTeX) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+
+    <style>
+        /* --- CONNECTED: globals.css --- */
+        :root {
+            --bg: #0b0f1a;
+            --panel: rgba(255, 255, 255, 0.05);
+            --border: rgba(255, 255, 255, 0.1);
+            --accent: #22d3ee;
+            --text: #e5e7eb;
+        }
+
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+            background: radial-gradient(1200px 600px at 20% -10%, #111827 0%, var(--bg) 60%);
+            color: var(--text);
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .glass-card {
+            background: var(--panel);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 10px;
+        }
+
+        /* Interactive Input Styles */
+        input[type="range"] {
+            accent-color: var(--accent);
+        }
+    </style>
+</head>
+
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useMemo, useEffect } = React;
+
+        /* --- CONNECTED: scienceDatabase.ts --- */
+        const scienceDatabase = [
+            {
+                id: "derivative",
+                subject: "Mathematics",
+                field: "Calculus",
+                level: "Basic",
+                title: "The Derivative",
+                formula: "\\frac{dy}{dx} = \\lim_{h \\to 0} \\frac{f(x+h) - f(x)}{h}",
+                text: "The derivative measures the instantaneous rate of change. Visually, it is the slope of the tangent line at any given point on a curve.",
+                analogy: "Think of a car's speedometer: distance is your function, but the derivative is your exact speed at this precise moment.",
+                applications: ["Physics Engines", "Machine Learning Gradient Descent"]
+            },
+            {
+                id: "entropy",
+                subject: "Physics",
+                field: "Thermodynamics",
+                level: "Intermediate",
+                title: "Entropy (Second Law)",
+                formula: "S = k_B \\ln \\Omega",
+                text: "Entropy is a measure of molecular disorder or randomness in a system. The second law states total entropy always increases in isolated systems.",
+                analogy: "Like a bedroom: it naturally gets messy over time (high entropy) unless you put energy in to clean it (low entropy).",
+                applications: ["Information Theory", "Cosmology", "Chemistry"]
+            }
+        ];
+
+        /* --- CONNECTED: DerivativeGraph.tsx --- */
+        const InteractiveSim = ({ conceptId }) => {
+            const [val, setVal] = useState(1);
+            if (conceptId !== 'derivative') return null;
+
+            return (
+                <div className="glass-card p-6 mt-8 border-cyan-500/20">
+                    <h3 className="text-cyan-400 text-xs font-bold uppercase tracking-widest mb-4">Live Simulation</h3>
+                    <input
+                        type="range" min="-4" max="4" step="0.1" value={val}
+                        onChange={(e) => setVal(parseFloat(e.target.value))}
+                        className="w-full mb-4"
+                    />
+                    <div className="flex justify-between font-mono text-sm">
+                        <span>Position (x): <span className="text-white">{val}</span></span>
+                        <span>Slope (2x): <span className="text-cyan-400">{(val * 2).toFixed(2)}</span></span>
+                    </div>
+                </div>
+            );
+        };
+
+        /* --- CONNECTED: AITutor.tsx --- */
+        const AITutor = ({ concept }) => {
+            const [messages, setMessages] = useState([]);
+            const [input, setInput] = useState("");
+
+            const handleSend = () => {
+                if (!input) return;
+                const userMsg = { role: 'user', text: input };
+                setMessages([...messages, userMsg]);
+                setInput("");
+
+                setTimeout(() => {
+                    setMessages(prev => [...prev, {
+                        role: 'ai',
+                        text: `Applying first principles to ${concept.title}: ${concept.analogy}`
+                    }]);
+                }, 600);
+            };
+
+            return (
+                <div className="glass-card h-full flex flex-col p-5">
+                    <h4 className="font-bold mb-4 flex items-center gap-2">
+                        <span className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse"></span>
+                        AI Tutor
+                    </h4>
+                    <div className="flex-1 overflow-y-auto custom-scrollbar space-y-4 mb-4">
+                        {messages.length === 0 && <p className="text-gray-500 text-sm italic">Ask me anything about {concept.title}...</p>}
+                        {messages.map((m, i) => (
+                            <div key={i} className={`p-3 rounded-xl text-sm ${m.role === 'ai' ? 'bg-cyan-500/10 text-cyan-100 border border-cyan-500/10' : 'bg-white/5 text-gray-300 ml-6'}`}>
+                                {m.text}
+                            </div>
+                        ))}
+                    </div>
+                    <div className="flex gap-2">
+                        <input
+                            value={input}
+                            onChange={(e) => setInput(e.target.value)}
+                            onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+                            className="flex-1 bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm outline-none focus:border-cyan-500 transition"
+                            placeholder="Type a question..."
+                        />
+                        <button onClick={handleSend} className="bg-cyan-500 hover:bg-cyan-400 text-black px-4 py-2 rounded-lg text-sm font-bold transition">Send</button>
+                    </div>
+                </div>
+            );
+        };
+
+        /* --- MAIN APP LOGIC --- */
+        const App = () => {
+            const [activeId, setActiveId] = useState(scienceDatabase[0].id);
+            const current = useMemo(() => scienceDatabase.find(c => c.id === activeId), [activeId]);
+
+            return (
+                <div className="flex h-screen w-screen overflow-hidden">
+                    {/* Sidebar */}
+                    <nav className="w-64 border-r border-white/5 p-6 flex flex-col bg-black/20">
+                        <div className="mb-10">
+                            <h1 className="text-xl font-black tracking-tighter uppercase">Omni<span className="text-cyan-400">Science</span></h1>
+                        </div>
+                        <div className="flex-1 space-y-1">
+                            {scienceDatabase.map(item => (
+                                <button
+                                    key={item.id}
+                                    onClick={() => setActiveId(item.id)}
+                                    className={`w-full text-left px-4 py-2 rounded-lg text-sm transition ${activeId === item.id ? 'bg-cyan-500/10 text-cyan-400 font-bold' : 'text-gray-500 hover:text-gray-300'}`}
+                                >
+                                    {item.title}
+                                </button>
+                            ))}
+                        </div>
+                    </nav>
+
+                    {/* Main Content Area */}
+                    <main className="flex-1 overflow-y-auto custom-scrollbar p-12">
+                        <div className="max-w-4xl mx-auto">
+                            <div className="mb-12">
+                                <span className="text-cyan-400 text-xs font-bold uppercase tracking-[0.2em]">{current.subject} // {current.field}</span>
+                                <h2 className="text-6xl font-black text-white mt-2 mb-6 tracking-tight">{current.title}</h2>
+                                <div className="glass-card p-10 flex justify-center items-center text-3xl font-mono text-cyan-50 mb-10 border-cyan-500/10">
+                                    {/* In a real app, we'd use a KaTeX component here, for now using raw text */}
+                                    {current.formula}
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+                                    <div className="space-y-6">
+                                        <p className="text-gray-400 text-lg leading-relaxed">{current.text}</p>
+                                        <div className="bg-emerald-500/5 border-l-2 border-emerald-500 p-6 rounded-r-xl italic text-emerald-100/80">
+                                            "{current.analogy}"
+                                        </div>
+                                    </div>
+                                    <InteractiveSim conceptId={activeId} />
+                                </div>
+                            </div>
+                        </div>
+                    </main>
+
+                    {/* Right Tutor Panel */}
+                    <aside className="w-80 border-l border-white/5 p-6 bg-black/40">
+                        <AITutor concept={current} />
+                    </aside>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+
+</html>

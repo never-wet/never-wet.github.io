@@ -1,0 +1,149 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>The Scientist's Portal | Master Any Subject</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.contrib/auto-render.min.js" onload="renderMathInElement(document.body);"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;700;800&family=JetBrains+Mono&display=swap');
+        body { background: #020617; color: #f1f5f9; font-family: 'Plus Jakarta Sans', sans-serif; }
+        .glass-card { background: rgba(30, 41, 59, 0.5); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 1.5rem; transition: 0.3s; }
+        .glass-card:hover { border-color: #3b82f6; box-shadow: 0 0 30px rgba(59, 130, 246, 0.1); }
+        .tab-active { border-bottom: 2px solid #3b82f6; color: #3b82f6; }
+        .scientist-level { color: #10b981; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; font-size: 0.7rem; }
+        .mnemonic-box { border-left: 4px solid #f59e0b; background: rgba(245, 158, 11, 0.05); padding: 1rem; }
+    </style>
+</head>
+<body class="min-h-screen">
+
+    <!-- TOP NAVIGATION -->
+    <nav class="border-b border-white/5 bg-slate-950/50 backdrop-blur-md sticky top-0 z-50 px-8 py-4 flex justify-between items-center">
+        <div class="font-black text-xl tracking-tighter">SCIENTIST<span class="text-blue-500">.EDU</span></div>
+        <div class="flex gap-8 text-sm font-medium opacity-70">
+            <a href="#math" class="hover:text-blue-400">Mathematics</a>
+            <a href="#physics" class="hover:text-blue-400">Physics</a>
+            <a href="#chemistry" class="hover:text-blue-400">Chemistry</a>
+            <a href="#biology" class="hover:text-blue-400">Biology</a>
+        </div>
+        <div class="bg-blue-600/20 text-blue-400 px-4 py-1 rounded-full text-xs font-bold border border-blue-500/30">LEVEL: UNDERGRAD</div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-6 py-12">
+
+        <!-- 1. BIOLOGY SECTION: From Cells to Gene Editing -->
+        <section id="biology" class="mb-24">
+            <div class="flex items-center gap-4 mb-8">
+                <h2 class="text-4xl font-extrabold">Biology</h2>
+                <span class="scientist-level">Foundation to CRISPR</span>
+            </div>
+            
+            <div class="grid lg:grid-cols-3 gap-8">
+                <div class="glass-card p-8 col-span-2">
+                    <h3 class="text-xl font-bold mb-4 text-emerald-400">DNA Replication & Synthesis</h3>
+                    <p class="text-slate-400 mb-6 leading-relaxed">Understanding the Central Dogma is the key to passing biology. Information flows from <b>DNA</b> to <b>RNA</b> to <b>Protein</b>.</p>
+                    
+                    <div class="grid grid-cols-2 gap-4 mb-6">
+                        <div class="p-4 bg-white/5 rounded-xl border border-white/5">
+                            <p class="text-xs uppercase opacity-40 font-bold mb-1">Mnemonic for Bases</p>
+                            <p class="font-mono text-sm">"<b>G</b>eorge <b>C</b>an <b>A</b>lways <b>T</b>alk"</p>
+                            <p class="text-[10px] mt-1 opacity-60">Guanine-Cytosine | Adenine-Thymine</p>
+                        </div>
+                        <div class="p-4 bg-white/5 rounded-xl border border-white/5">
+                            <p class="text-xs uppercase opacity-40 font-bold mb-1">Scientist Insight</p>
+                            <p class="text-xs italic text-emerald-300">"This is how CRISPR-Cas9 targets specific sequences to edit genomes."</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="glass-card p-8 bg-emerald-500/5">
+                    <h4 class="font-bold mb-4">Interactive Lab</h4>
+                    <div class="aspect-video bg-slate-900 rounded-xl flex items-center justify-center border border-emerald-500/20 mb-4">
+                        <span class="text-xs opacity-40">[Simulation: Protein Folding]</span>
+                    </div>
+                    <button class="w-full py-3 bg-emerald-600 rounded-xl font-bold text-sm">Launch Lab</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. CHEMISTRY SECTION: Periodicity & Thermodynamics -->
+        <section id="chemistry" class="mb-24">
+            <div class="flex items-center gap-4 mb-8">
+                <h2 class="text-4xl font-extrabold">Chemistry</h2>
+                <span class="scientist-level">Stoichiometry to Quantum Chem</span>
+            </div>
+
+            <div class="glass-card p-10 relative overflow-hidden">
+                <div class="absolute top-0 right-0 p-8 opacity-10 text-8xl font-black">H<sub>2</sub>O</div>
+                <h3 class="text-2xl font-bold mb-6">The Gibbs Free Energy Equation</h3>
+                <div class="text-4xl font-mono mb-8 text-center bg-black/30 py-10 rounded-2xl border border-white/5">
+                    cd.. \Delta G = \Delta H - T \Delta S cd..
+                </div>
+                
+                <div class="grid md:grid-cols-3 gap-8">
+                    <div>
+                        <h4 class="text-blue-400 font-bold mb-2">How to Understand It</h4>
+                        <p class="text-sm opacity-60">This tells you if a reaction happens spontaneously. If $\Delta G$ is negative, the reaction "goes" without extra energy help.</p>
+                    </div>
+                    <div>
+                        <h4 class="text-blue-400 font-bold mb-2">Exam Tip</h4>
+                        <p class="text-sm opacity-60">Temperature ($) <b>must</b> be in Kelvin. Forgetting this is the #1 reason students fail thermodynamics questions.</p>
+                    </div>
+                    <div class="mnemonic-box">
+                        <h4 class="text-amber-400 font-bold mb-1">Mnemonic</h4>
+                        <p class="text-sm italic">"<b>G</b>ood <b>H</b>omework <b>T</b>akes <b>S</b>tudy."</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. ADVANCED MATH: The Scientist's Toolset -->
+        <section id="math" class="mb-24">
+            <div class="flex items-center gap-4 mb-8">
+                <h2 class="text-4xl font-extrabold">Mathematics</h2>
+                <span class="scientist-level">Calculus & Linear Algebra</span>
+            </div>
+
+            <div class="grid lg:grid-cols-4 gap-6">
+                <div class="glass-card p-6 border-l-4 border-l-indigo-500">
+                    <h4 class="font-bold mb-2 italic">Derivatives</h4>
+                    <p class="text-xs opacity-50 mb-4">Rate of change. Essential for finding velocity in Physics.</p>
+                    <code class="text-indigo-400 text-sm">f'(x) = \lim_{h \to 0} \frac{f(x+h) - f(x)}{h}</code>
+                </div>
+                <div class="glass-card p-6 border-l-4 border-l-indigo-500">
+                    <h4 class="font-bold mb-2 italic">Integrals</h4>
+                    <p class="text-xs opacity-50 mb-4">Area under a curve. Used to find work done or total probability.</p>
+                    <code class="text-indigo-400 text-sm">\int_{a}^{b} f(x) dx</code>
+                </div>
+                <div class="glass-card p-6 border-l-4 border-l-indigo-500">
+                    <h4 class="font-bold mb-2 italic">Matrices</h4>
+                    <p class="text-xs opacity-50 mb-4">The math of 3D space, AI, and Quantum States.</p>
+                    <code class="text-indigo-400 text-sm">A \mathbf{x} = \mathbf{b}</code>
+                </div>
+                <div class="glass-card p-6 bg-indigo-600/20 flex flex-col justify-center text-center">
+                    <h4 class="font-bold mb-1">Math Quiz</h4>
+                    <p class="text-[10px] mb-4 opacity-70">Unlock 'Scientist' Status</p>
+                    <button class="bg-indigo-500 py-2 rounded-lg text-xs font-black uppercase">Start Test</button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-slate-950 py-20 px-8 border-t border-white/5">
+        <div class="max-w-7xl mx-auto flex justify-between items-end">
+            <div>
+                <div class="font-black text-3xl tracking-tighter mb-4">SCIENTIST<span class="text-blue-500">.EDU</span></div>
+                <p class="text-xs opacity-30 max-w-xs">Built for students who want to lead the next generation of research. Ver: 2.0.4 - "Omni-Science"</p>
+            </div>
+            <div class="text-right">
+                <div class="text-[10px] uppercase tracking-widest opacity-40 mb-2">Next Chapter</div>
+                <div class="text-2xl font-bold">Quantum Computing 101 →</div>
+            </div>
+        </div>
+    </footer>
+
+</body>
+</html>

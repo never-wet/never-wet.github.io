@@ -1,0 +1,40 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>KNOWLEDGE | PORTAL</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;900&family=JetBrains+Mono&display=swap');
+        body { background: #050505; color: #fff; font-family: 'Inter', sans-serif; overflow-x: hidden; }
+        .mono { font-family: 'JetBrains Mono', monospace; }
+        .tier-card { border: 1px solid rgba(255,255,255,0.1); transition: all 0.5s ease; cursor: pointer; }
+        .tier-card:hover { border-color: #fff; transform: translateY(-10px); background: rgba(255,255,255,0.02); }
+    </style>
+</head>
+<body>
+    <main class="min-h-screen px-10 py-20">
+        <header class="mb-40">
+            <h1 id="hero-text" class="text-[10vw] font-black leading-none uppercase tracking-tighter">
+                <span class="inline-block">Curiosity</span><br><span class="inline-block opacity-20">Unbound.</span>
+            </h1>
+        </header>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="tier-card p-12 h-[500px] flex flex-col justify-between" onclick="location.href='dashboard.html'">
+                <div><span class="mono text-xs opacity-50">01. Foundation</span><h2 class="text-4xl font-bold mt-4">The Basics.</h2></div>
+                <button class="text-left mono text-xs uppercase">Enter Hub →</button>
+            </div>
+            <div class="tier-card p-12 h-[500px] flex flex-col justify-between bg-white text-black" onclick="location.href='dashboard.html'">
+                <div><span class="mono text-xs opacity-50">02. Explorer</span><h2 class="text-4xl font-bold mt-4">Deep Logic.</h2></div>
+                <button class="text-left mono text-xs uppercase">Enter Hub →</button>
+            </div>
+            <div class="tier-card p-12 h-[500px] flex flex-col justify-between" onclick="location.href='dashboard.html'">
+                <div><span class="mono text-xs opacity-50">03. Specialist</span><h2 class="text-4xl font-bold mt-4">Advanced.</h2></div>
+                <button class="text-left mono text-xs uppercase">Enter Hub →</button>
+            </div>
+        </div>
+    </main>
+    <script>gsap.from("#hero-text span", { y: 100, opacity: 0, duration: 1.5, stagger: 0.2, ease: "expo.out" });</script>
+</body>
+</html>

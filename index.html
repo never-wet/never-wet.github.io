@@ -195,6 +195,7 @@
 			</div>
 			<button id="refreshBtn" class="cta-btn magnetic">Refresh</button>
 			<a href="#work" class="cta-btn magnetic">Work</a>
+			<a href="#contact" class="cta-btn magnetic">Contact</a>
 		</div>
 	</header>
 	<main>
@@ -235,16 +236,10 @@
 			</div>
 		</section>
 
-		<section id="expertise" class="w-full max-w-7xl px-6 py-12">
+		<section id="expertise" class="w-full max-w-7xl mx-auto px-6 py-12">
 			<h2 class="text-2xl font-semibold mb-4">Expertise</h2>
 			<p class="small-muted">Interactive 3D backgrounds, magnetic UX, custom cursor trails, and smooth inertia
 				scrolling.</p>
-		</section>
-
-		<section id="contact" class="w-full max-w-7xl px-6 py-12">
-			<h2 class="text-2xl font-semibold mb-4">Contact</h2>
-			<p class="small-muted">This hub links directly to each page; open any item to inspect its source and
-				content.</p>
 		</section>
 	</main>
 
@@ -334,6 +329,17 @@
 				'./project-hub.html',
 				'./Emergent _ Fullstack App.html',
 				'./carEmergent _ Fullstack App.html',
+				'./omni_science_v2.html',
+				'./scientist_app.html',
+				'./Quantum_Learning_Lab/deep_learning_lesson.html',
+				'./Quantum_Education_Suite/quantum_lesson_pro.html',
+				'./resn-immersive-revolution/index.html',
+				'./omni-science/index.html',
+				'./Educational_Platform_V1/assessment_engine.html',
+				'./Educational_Platform_V1/dashboard.html',
+				'./Educational_Platform_V1/index_edu.html',
+				'./Educational_Platform_V1/lesson_egine.html',
+				'./Educational_Platform_V1/simulation_lab.html',
 			].sort();
 
 			// Fetch list of HTML files from GitHub repo tree (public) with timeouts and fallbacks
@@ -511,7 +517,7 @@
 					const camera = new THREE.PerspectiveCamera(35, WIDTH / HEIGHT, 0.1, 1000);
 					camera.position.z = 6;
 
-					// geometry + material
+					// geometry + material (Glass Icosahedron)
 					const geo = new THREE.IcosahedronGeometry(1.9, 5);
 					const mat = new THREE.MeshPhysicalMaterial({ color: 0xffffff, metalness: 0.9, roughness: 0.05, transmission: 0.95, thickness: 0.5 });
 					const mesh = new THREE.Mesh(geo, mat);
