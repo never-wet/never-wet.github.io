@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Story Engine - Interactive</title>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-black text-white h-screen flex items-center justify-center">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        // --- Engine Data ---
+        const storyData = {
+            'start': { id: 'start', speaker: 'Narrator', text: 'You awaken in a silent, abandoned library. Dust motes dance in shafts of moonlight. A leather-bound journal lies before you.', choices: [
+                { text: 'Read the journal', next: 'read_journal' }, { text: 'Explore the aisles', next: 'aisles' }
+            ]},
+            'read_journal': { id: 'read_journal', speaker: 'Journal', text: 'It speaks of a hidden clockwork mechanism beneath the floor. "Turn the dial three times to the left," it whispers.', choices: [
+                { text: 'Turn the dial', next: 'mechanism', effect: (s) => s.flags['unlocked_mechanism'] = true }, { text: 'Ignore it', next: 'aisles' }
+            ]},
+            'aisles': { id: 'aisles', speaker: 'Narrator', text: 'Row after row of forgotten books. You hear a faint ticking sound near the back wall.', choices: [
+                { text: 'Investigate ticking', next: 'mechanism' }, { text: 'Search shelves', next: 'shelves' }
+            ]},
+            'shelves': { id: 'shelves', speaker: 'Narrator', text: 'You find a collection of maps depicting worlds that don\'t exist. One glows faintly.', choices: [
+                { text: 'Touch the map', next: 'other_world' }, { text: 'Leave it', next: 'aisles' }
+            ]},
+            'mechanism': { id: 'mechanism', speaker: 'Mechanism', text: 'A heavy stone door grinds open, revealing a spiral staircase descending into darkness.', choices: [
+                { text: 'Descend', next: 'catacombs' }, { text: 'Stay in library', next: 'start' }
+            ]},
+            'catacombs': { id: 'catacombs', speaker: 'Narrator', text: 'The air is thick with ozone. You see a glowing pedestal at the center of the chamber.', choices: [
+                { text: 'Examine pedestal', next: 'pedestal', condition: (s) => s.flags['unlocked_mechanism'] }, { text: 'Return', next: 'start' }
+            ]},
+            'pedestal': { id: 'pedestal', speaker: 'Entity', text: 'You have returned the seal. The world breathes again.', choices: [
+                { text: 'Victory', next: 'win' }
+            ]},
+            'other_world': { id: 'other_world', speaker: 'Narrator', text: 'The map swallows you. You are now in a realm of floating islands.', choices: [
+                { text: 'Explore islands', next: 'win' }, { text: 'Find way back', next: 'start' }
+            ]},
+            'win': { id: 'win', speaker: 'Narrator', text: 'The story ends... or does it? A new chapter begins.', choices: [{ text: 'Play Again', next: 'start' }]},
+            'end': { id: 'end', speaker: 'Narrator', text: 'The silence takes you. Your journey ends here.', choices: [{ text: 'Restart', next: 'start' }]}
+        };
+
+        // --- Game Component ---
+        function Game() {
+            const [nodeId, setNodeId] = React.useState('start');
+            const [state, setState] = React.useState({ flags: {} });
+            const node = storyData[nodeId];
+
+            const handleChoice = (c) => {
+                const newState = { ...state };
+                if (c.effect) c.effect(newState);
+                setState(newState);
+                setNodeId(c.next);
+            };
+
+            return (
+                <div className="max-w-xl w-full p-8 border border-white/20 rounded-xl bg-white/5 backdrop-blur-sm">
+                    <h2 className="text-sm uppercase tracking-widest opacity-50 mb-4">{node.speaker}</h2>
+                    <p className="text-xl mb-8 leading-relaxed">{node.text}</p>
+                    <div className="flex flex-col gap-3">
+                        {node.choices
+                            .filter(c => !c.condition || c.condition(state))
+                            .map((c, i) => (
+                            <button 
+                                key={i} 
+                                onClick={() => handleChoice(c)}
+                                className="px-6 py-3 border border-white/10 hover:bg-white/20 transition-colors text-left"
+                            >
+                                {c.text}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<Game />);
+    </script>
+</body>
+</html>
