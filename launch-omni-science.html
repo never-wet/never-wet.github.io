@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Launch Omni-Science | Interactive Intuition Lab</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;700;800&display=swap');
+        
+        :root {
+            --primary: #3b82f6;
+            --bg: #020617;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: #f8fafc;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .glass-container {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 3rem;
+            padding: 4rem;
+            max-width: 600px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .glow-button {
+            background: var(--primary);
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .glow-button:hover {
+            box-shadow: 0 0 40px rgba(59, 130, 246, 0.6);
+            transform: translateY(-2px);
+        }
+
+        .badge {
+            background: rgba(59, 130, 246, 0.1);
+            color: #60a5fa;
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            display: inline-block;
+            margin-bottom: 1.5rem;
+            border: 1px solid rgba(59, 130, 246, 0.2);
+        }
+
+        .floating-circles div {
+            position: absolute;
+            border-radius: 50%;
+            background: var(--primary);
+            filter: blur(80px);
+            opacity: 0.15;
+            z-index: -1;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="floating-circles">
+        <div style="width: 400px; height: 400px; top: -100px; left: -100px;"></div>
+        <div style="width: 300px; height: 300px; bottom: -50px; right: -50px; background: #8b5cf6;"></div>
+    </div>
+
+    <div class="glass-container">
+        <span class="badge">Next-Gen Education</span>
+        
+        <h1 class="text-5xl font-black tracking-tighter mb-6 leading-tight">
+            Omni<span class="text-blue-500">Science</span>
+        </h1>
+        
+        <p class="text-slate-400 text-lg mb-10 leading-relaxed font-medium">
+            Step into the 3D Intuition Lab. Experience the curvature of spacetime, the chaos of entropy, and the elegance of calculus through interactive simulations.
+        </p>
+
+        <div class="space-y-4">
+            <a href="./omni-science/" class="glow-button block w-full py-4 rounded-2xl font-bold text-lg text-white no-underline">
+                Launch Application
+            </a>
+            
+            <p class="text-xs text-slate-500 font-bold uppercase tracking-widest mt-6">
+                Direct Link: <a href="http://localhost:3000" class="text-blue-400 hover:text-blue-300 transition-colors">localhost:3000</a>
+            </p>
+        </div>
+
+        <div class="mt-12 pt-8 border-t border-white/5 grid grid-cols-3 gap-4 text-[10px] font-black uppercase tracking-tighter text-slate-500">
+            <div>3D Engine</div>
+            <div>Intuition toggle</div>
+            <div>Progressive paths</div>
+        </div>
+    </div>
+
+</body>
+</html>

@@ -426,6 +426,12 @@ export const projects = [
     href: "../translator/",
   },
   {
+    title: "Omni-Science",
+    tag: "Education / 3D Intuition Lab",
+    description: "Next-gen science platform combining structured knowledge with an 'Intuition Engine'. Experience complex physics and math through interactive 3D simulations, curved spacetime labs, and relatable analogies.",
+    href: "../omni-science/",
+  },
+  {
     title: "Junha2010.github.io",
     tag: "External / Personal Site",
     description: "External site link for the broader web presence.",
