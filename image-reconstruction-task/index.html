@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Strip Sorting</title>
+    <style>
+        :root { --bg: #f5f5f7; --accent: #0071e3; }
+        body { font-family: sans-serif; background: var(--bg); display: flex; flex-direction: column; align-items: center; margin: 0; min-height: 100vh; padding: 20px; }
+        .controls { display: flex; gap: 10px; margin-bottom: 20px; }
+        #sorting-container { position: relative; width: 400px; height: 500px; background: #ddd; border-radius: 4px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .strip { position: absolute; width: 100%; transition: top 0.4s ease; border-bottom: 1px solid rgba(255,255,255,0.3); }
+        button { padding: 10px 20px; border-radius: 8px; border: none; background: var(--accent); color: white; cursor: pointer; }
+        button:disabled { background: #ccc; }
+    </style>
+</head>
+<body>
+    <div class="controls">
+        <input type="file" id="upload" accept="image/*">
+        <button id="shuffle">Shuffle</button>
+        <button id="solve">Auto Solve</button>
+    </div>
+    <div id="sorting-container"></div>
+    <script>
+        const container = document.getElementById('sorting-container');
+        let strips = [], count = 20, img = new Image();
+        
+        document.getElementById('upload').onchange = e => {
+            const reader = new FileReader();
+            reader.onload = ev => { img.src = ev.target.result; img.onload = createStrips; };
+            reader.readAsDataURL(e.target.files[0]);
+        };
+
+        function createStrips() {
+            container.innerHTML = '';
+            const h = 500, stripH = h / count;
+            strips = [];
+            for (let i = 0; i < count; i++) {
+                const div = document.createElement('div');
+                div.className = 'strip';
+                div.style.height = `${stripH}px`;
+                div.style.backgroundImage = `url(${img.src})`;
+                div.style.backgroundSize = `400px 500px`;
+                div.style.backgroundPosition = `0 -${i * stripH}px`;
+                container.appendChild(div);
+                strips.push({ el: div, correct: i, current: i });
+            }
+            render();
+        }
+
+        function render() {
+            const stripH = 500 / count;
+            strips.forEach(s => s.el.style.top = `${s.current * stripH}px`);
+        }
+
+        function shuffle() {
+            for (let i = strips.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [strips[i].current, strips[j].current] = [strips[j].current, strips[i].current];
+            }
+            render();
+        }
+
+        async function solve() {
+            document.querySelectorAll('button').forEach(b => b.disabled = true);
+            for (let i = 0; i < strips.length; i++) {
+                const targetIdx = strips.findIndex(s => s.current === i);
+                const correctIdx = strips.findIndex(s => s.correct === i);
+                if (targetIdx !== correctIdx) {
+                    [strips[targetIdx].current, strips[correctIdx].current] = [strips[correctIdx].current, strips[targetIdx].current];
+                    render();
+                    await new Promise(r => setTimeout(r, 200));
+                }
+            }
+            document.querySelectorAll('button').forEach(b => b.disabled = false);
+        }
+
+        document.getElementById('shuffle').onclick = shuffle;
+        document.getElementById('solve').onclick = solve;
+    </script>
+</body>
+</html>
