@@ -1,0 +1,2895 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>World Landmarks Gallery</title>
+    <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
+    <style>
+        /* ==========================================================================
+           Step 1: Layout & Styling (Dark Mode Focus)
+           ========================================================================== */
+        
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #0a0a0a; /* Deep dark background */
+            color: #ffffff; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow-x: hidden;
+            /* Height is 400vh to ensure there is plenty of room to scroll down */
+            height: 400vh; 
+        }
+
+        /* Lock scroll when an item is clicked */
+        body.scroll-locked {
+            overflow: hidden;
+        }
+
+        /* Fixed full-screen container to hold the track */
+        .gallery-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            overflow: hidden;
+            perspective: 1000px;
+            z-index: 10;
+        }
+
+        /* Dim the un-clicked items so the active model pops */
+        body.scroll-locked .landmark-item:not(.active) {
+            opacity: 0.15;
+            filter: brightness(0.3);
+            pointer-events: none;
+        }
+
+        /* The flexbox track that moves horizontally */
+        .track {
+            display: flex;
+            gap: 8vw;
+            padding: 0 50vw; /* Starts the first item in the middle of the screen */
+            will-change: transform;
+            /* Smooth interpolation for the scroll movement */
+            transition: transform 0.1s linear; 
+            align-items: center;
+        }
+
+        /* The landmark container (No borders, no backgrounds) */
+        .landmark-item {
+            position: relative;
+            flex-shrink: 0;
+            width: 320px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+            transform-origin: center center;
+            
+            /* Explicitly removing any box-like styling */
+            background: transparent;
+            border: none;
+            outline: none;
+            box-shadow: none;
+        }
+
+        /* Slight float effect on hover */
+        .landmark-item:hover {
+            transform: translateY(-15px);
+        }
+
+        .landmark-image {
+            width: 100%;
+            height: 350px;
+            object-fit: contain;
+            margin-bottom: 20px;
+            transition: all 0.6s ease;
+            /* Added border radius just in case images aren't perfectly transparent yet */
+            border-radius: 12px; 
+        }
+
+        /* Only apply CSS drop-shadow to actual images, not the 3D model canvas */
+        img.landmark-image {
+            filter: drop-shadow(0 15px 25px rgba(0,0,0,0.8));
+        }
+
+        model-viewer.landmark-image {
+            filter: none;
+            outline: none;
+        }
+
+        /* Prevent iframes from stealing clicks when the card is not expanded */
+        .landmark-item:not(.active) iframe.landmark-image {
+            pointer-events: none;
+        }
+
+        .landmark-info {
+            text-align: center;
+            transition: opacity 0.4s ease;
+        }
+
+        .landmark-name {
+            font-size: 1.8rem;
+            margin: 0 0 5px 0;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+
+        .landmark-country {
+            font-size: 1rem;
+            color: #888;
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+        }
+
+        /* ==========================================================================
+           Step 2: The Click Interaction & Split Screen
+           ========================================================================== */
+           
+        /* Active State - Styles applied when clicked */
+        .landmark-item.active {
+            z-index: 10;
+            cursor: default;
+        }
+
+        .landmark-item.active .landmark-info {
+            opacity: 0; /* Hide basic name/country text when expanded */
+            pointer-events: none;
+        }
+
+        .landmark-item.active .landmark-image {
+            filter: drop-shadow(0 30px 40px rgba(0,0,0,1));
+        }
+
+        /* Details Panel - Slides in on the right */
+        .details-panel {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 50vw;
+            height: 100vh;
+            background: linear-gradient(135deg, #1f1f1f 0%, #121212 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 5vw;
+            box-sizing: border-box;
+            transform: translateX(100%); /* Hidden by default off-screen */
+            transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+            z-index: 20;
+            border-left: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .details-panel.visible {
+            transform: translateX(0); /* Slide in */
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 40px;
+            right: 40px;
+            background: transparent;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            font-size: 1rem;
+            padding: 10px 25px;
+            cursor: pointer;
+            border-radius: 30px;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .close-btn:hover {
+            background: white;
+            color: black;
+        }
+
+        .details-title {
+            font-size: 4.5rem;
+            margin: 0 0 10px 0;
+            line-height: 1.1;
+        }
+
+        .details-country {
+            font-size: 1.5rem;
+            color: #FFD700;
+            margin: 0 0 40px 0;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+        }
+
+        .details-stat {
+            display: flex;
+            margin-bottom: 20px;
+            font-size: 1.2rem;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding-bottom: 10px;
+        }
+
+        .details-stat-label {
+            font-weight: 600;
+            color: #888;
+            width: 140px;
+        }
+
+        .details-description {
+            margin-top: 30px;
+            font-size: 1.15rem;
+            line-height: 1.8;
+            color: #bbb;
+            max-width: 600px;
+        }
+        
+        /* Darkens the background when an item is active to shift focus */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.85);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.6s ease;
+            z-index: 5;
+        }
+
+        .overlay.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* Loading Screen */
+        #loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: #0a0a0a;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.6s ease;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(255, 255, 255, 0.1);
+            border-top-color: #ffffff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Loading Screen -->
+    <div id="loader">
+        <div class="spinner"></div>
+        <p>Loading 3D Models...</p>
+    </div>
+
+    <div class="overlay" id="overlay"></div>
+
+    <div class="gallery-container">
+        <div class="track" id="track">
+            <div class="landmark-item" data-id="eiffeltower774">
+                <model-viewer src="models/free__la_tour_eiffel.glb" alt="Eiffel Tower 3D Model" auto-rotate camera-controls disable-zoom disable-pan class="landmark-image" shadow-intensity="1" exposure="1" environment-image="neutral" camera-orbit="auto auto auto" style="background-color: transparent;"></model-viewer>
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Eiffel Tower</h2>
+                    <p class="landmark-country">France</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="greatwallofchin192">
+                <model-viewer src="models/great_wall_survey.glb" alt="Great Wall of China 3D Model" auto-rotate camera-controls disable-zoom disable-pan class="landmark-image" shadow-intensity="1" exposure="1" environment-image="neutral" camera-orbit="auto auto auto" style="background-color: transparent;"></model-viewer>
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Great Wall of China</h2>
+                    <p class="landmark-country">China</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="colosseum59">
+                <model-viewer src="models/romes_colosseum.glb" alt="Colosseum 3D Model" auto-rotate camera-controls disable-zoom disable-pan class="landmark-image" shadow-intensity="1" exposure="1" environment-image="neutral" camera-orbit="auto auto auto" style="background-color: transparent;"></model-viewer>
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Colosseum</h2>
+                    <p class="landmark-country">Italy</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="tajmahal437">
+                <model-viewer src="models/taj_mahal_3d_model.glb" alt="Taj Mahal 3D Model" auto-rotate camera-controls disable-zoom disable-pan class="landmark-image" shadow-intensity="1" exposure="0.5" environment-image="neutral" camera-orbit="auto auto auto" style="background-color: transparent;"></model-viewer>
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Taj Mahal</h2>
+                    <p class="landmark-country">India</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="machupicchu66">
+                <img src="https://placehold.co/300x400/transparent/white?text=Machu%20Picchu" alt="Machu Picchu" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Machu Picchu</h2>
+                    <p class="landmark-country">Peru</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="statueofliberty670">
+                <img src="https://placehold.co/300x400/transparent/white?text=Statue%20of%20Liberty" alt="Statue of Liberty" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Statue of Liberty</h2>
+                    <p class="landmark-country">United States</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="sydneyoperahous94">
+                <img src="https://placehold.co/300x400/transparent/white?text=Sydney%20Opera%20House" alt="Sydney Opera House" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Sydney Opera House</h2>
+                    <p class="landmark-country">Australia</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="christtheredeem612">
+                <img src="https://placehold.co/300x400/transparent/white?text=Christ%20the%20Redeemer" alt="Christ the Redeemer" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Christ the Redeemer</h2>
+                    <p class="landmark-country">Brazil</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="pyramidsofgiza331">
+                <img src="https://placehold.co/300x400/transparent/white?text=Pyramids%20of%20Giza" alt="Pyramids of Giza" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Pyramids of Giza</h2>
+                    <p class="landmark-country">Egypt</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="burjkhalifa318">
+                <img src="https://placehold.co/300x400/transparent/white?text=Burj%20Khalifa" alt="Burj Khalifa" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Burj Khalifa</h2>
+                    <p class="landmark-country">United Arab Emirates</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="stonehenge184">
+                <img src="https://placehold.co/300x400/transparent/white?text=Stonehenge" alt="Stonehenge" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Stonehenge</h2>
+                    <p class="landmark-country">United Kingdom</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="acropolisofathe716">
+                <img src="https://placehold.co/300x400/transparent/white?text=Acropolis%20of%20Athens" alt="Acropolis of Athens" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Acropolis of Athens</h2>
+                    <p class="landmark-country">Greece</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="mounteverest578">
+                <img src="https://placehold.co/300x400/transparent/white?text=Mount%20Everest" alt="Mount Everest" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Mount Everest</h2>
+                    <p class="landmark-country">Nepal/China</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="grandcanyon302">
+                <img src="https://placehold.co/300x400/transparent/white?text=Grand%20Canyon" alt="Grand Canyon" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Grand Canyon</h2>
+                    <p class="landmark-country">United States</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="sagradafamilia427">
+                <img src="https://placehold.co/300x400/transparent/white?text=Sagrada%20Familia" alt="Sagrada Familia" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Sagrada Familia</h2>
+                    <p class="landmark-country">Spain</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="alhambra405">
+                <img src="https://placehold.co/300x400/transparent/white?text=Alhambra" alt="Alhambra" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Alhambra</h2>
+                    <p class="landmark-country">Spain</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="buckinghampalac732">
+                <img src="https://placehold.co/300x400/transparent/white?text=Buckingham%20Palace" alt="Buckingham Palace" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Buckingham Palace</h2>
+                    <p class="landmark-country">United Kingdom</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="goldengatebridg303">
+                <img src="https://placehold.co/300x400/transparent/white?text=Golden%20Gate%20Bridge" alt="Golden Gate Bridge" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Golden Gate Bridge</h2>
+                    <p class="landmark-country">United States</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="chichenitza791">
+                <img src="https://placehold.co/300x400/transparent/white?text=Chichen%20Itza" alt="Chichen Itza" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Chichen Itza</h2>
+                    <p class="landmark-country">Mexico</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="angkorwat859">
+                <img src="https://placehold.co/300x400/transparent/white?text=Angkor%20Wat" alt="Angkor Wat" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Angkor Wat</h2>
+                    <p class="landmark-country">Cambodia</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="leaningtowerofp246">
+                <img src="https://placehold.co/300x400/transparent/white?text=Leaning%20Tower%20of%20Pisa" alt="Leaning Tower of Pisa" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Leaning Tower of Pisa</h2>
+                    <p class="landmark-country">Italy</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="mountfuji616">
+                <img src="https://placehold.co/300x400/transparent/white?text=Mount%20Fuji" alt="Mount Fuji" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Mount Fuji</h2>
+                    <p class="landmark-country">Japan</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="victoriafalls326">
+                <img src="https://placehold.co/300x400/transparent/white?text=Victoria%20Falls" alt="Victoria Falls" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Victoria Falls</h2>
+                    <p class="landmark-country">Zambia/Zimbabwe</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="niagarafalls237">
+                <img src="https://placehold.co/300x400/transparent/white?text=Niagara%20Falls" alt="Niagara Falls" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Niagara Falls</h2>
+                    <p class="landmark-country">Canada/United States</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="neuschwansteinc264">
+                <img src="https://placehold.co/300x400/transparent/white?text=Neuschwanstein%20Castle" alt="Neuschwanstein Castle" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Neuschwanstein Castle</h2>
+                    <p class="landmark-country">Germany</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="bigben361">
+                <img src="https://placehold.co/300x400/transparent/white?text=Big%20Ben" alt="Big Ben" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Big Ben</h2>
+                    <p class="landmark-country">United Kingdom</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="mountkilimanjar234">
+                <img src="https://placehold.co/300x400/transparent/white?text=Mount%20Kilimanjaro" alt="Mount Kilimanjaro" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Mount Kilimanjaro</h2>
+                    <p class="landmark-country">Tanzania</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="stpetersbasilic699">
+                <img src="https://placehold.co/300x400/transparent/white?text=St.%20Peter's%20Basilica" alt="St. Peter's Basilica" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">St. Peter's Basilica</h2>
+                    <p class="landmark-country">Vatican City</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="thelouvre656">
+                <img src="https://placehold.co/300x400/transparent/white?text=The%20Louvre" alt="The Louvre" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">The Louvre</h2>
+                    <p class="landmark-country">France</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="toweroflondon661">
+                <img src="https://placehold.co/300x400/transparent/white?text=Tower%20of%20London" alt="Tower of London" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Tower of London</h2>
+                    <p class="landmark-country">United Kingdom</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="tablemountain941">
+                <img src="https://placehold.co/300x400/transparent/white?text=Table%20Mountain" alt="Table Mountain" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Table Mountain</h2>
+                    <p class="landmark-country">South Africa</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="stbasilscathedr679">
+                <img src="https://placehold.co/300x400/transparent/white?text=St.%20Basil's%20Cathedral" alt="St. Basil's Cathedral" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">St. Basil's Cathedral</h2>
+                    <p class="landmark-country">Russia</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="mountrushmore586">
+                <img src="https://placehold.co/300x400/transparent/white?text=Mount%20Rushmore" alt="Mount Rushmore" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Mount Rushmore</h2>
+                    <p class="landmark-country">United States</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="moaiofeasterisl847">
+                <img src="https://placehold.co/300x400/transparent/white?text=Moai%20of%20Easter%20Island" alt="Moai of Easter Island" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Moai of Easter Island</h2>
+                    <p class="landmark-country">Chile</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="redsquare192">
+                <img src="https://placehold.co/300x400/transparent/white?text=Red%20Square" alt="Red Square" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Red Square</h2>
+                    <p class="landmark-country">Russia</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="forbiddencity237">
+                <img src="https://placehold.co/300x400/transparent/white?text=Forbidden%20City" alt="Forbidden City" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Forbidden City</h2>
+                    <p class="landmark-country">China</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="iguazufalls867">
+                <img src="https://placehold.co/300x400/transparent/white?text=Iguazu%20Falls" alt="Iguazu Falls" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Iguazu Falls</h2>
+                    <p class="landmark-country">Argentina/Brazil</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="uluruayersrock456">
+                <img src="https://placehold.co/300x400/transparent/white?text=Uluru%20%2F%20Ayers%20Rock" alt="Uluru / Ayers Rock" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Uluru / Ayers Rock</h2>
+                    <p class="landmark-country">Australia</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="timessquare135">
+                <img src="https://placehold.co/300x400/transparent/white?text=Times%20Square" alt="Times Square" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Times Square</h2>
+                    <p class="landmark-country">United States</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="hagiasophia249">
+                <img src="https://placehold.co/300x400/transparent/white?text=Hagia%20Sophia" alt="Hagia Sophia" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Hagia Sophia</h2>
+                    <p class="landmark-country">Turkey</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="empirestatebuil655">
+                <img src="https://placehold.co/300x400/transparent/white?text=Empire%20State%20Building" alt="Empire State Building" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Empire State Building</h2>
+                    <p class="landmark-country">United States</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="burjalarab597">
+                <img src="https://placehold.co/300x400/transparent/white?text=Burj%20Al%20Arab" alt="Burj Al Arab" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Burj Al Arab</h2>
+                    <p class="landmark-country">United Arab Emirates</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="pantheon988">
+                <img src="https://placehold.co/300x400/transparent/white?text=Pantheon" alt="Pantheon" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Pantheon</h2>
+                    <p class="landmark-country">Italy</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="palaceofversail115">
+                <img src="https://placehold.co/300x400/transparent/white?text=Palace%20of%20Versailles" alt="Palace of Versailles" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Palace of Versailles</h2>
+                    <p class="landmark-country">France</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="towerbridge111">
+                <img src="https://placehold.co/300x400/transparent/white?text=Tower%20Bridge" alt="Tower Bridge" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Tower Bridge</h2>
+                    <p class="landmark-country">United Kingdom</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="theshard695">
+                <img src="https://placehold.co/300x400/transparent/white?text=The%20Shard" alt="The Shard" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">The Shard</h2>
+                    <p class="landmark-country">United Kingdom</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="notredamedepari29">
+                <img src="https://placehold.co/300x400/transparent/white?text=Notre-Dame%20de%20Paris" alt="Notre-Dame de Paris" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Notre-Dame de Paris</h2>
+                    <p class="landmark-country">France</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="mountvesuvius241">
+                <img src="https://placehold.co/300x400/transparent/white?text=Mount%20Vesuvius" alt="Mount Vesuvius" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Mount Vesuvius</h2>
+                    <p class="landmark-country">Italy</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="pompeii770">
+                <img src="https://placehold.co/300x400/transparent/white?text=Pompeii" alt="Pompeii" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Pompeii</h2>
+                    <p class="landmark-country">Italy</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="londoneye739">
+                <img src="https://placehold.co/300x400/transparent/white?text=London%20Eye" alt="London Eye" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">London Eye</h2>
+                    <p class="landmark-country">United Kingdom</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="centralpark763">
+                <img src="https://placehold.co/300x400/transparent/white?text=Central%20Park" alt="Central Park" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Central Park</h2>
+                    <p class="landmark-country">United States</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="marinabaysands403">
+                <img src="https://placehold.co/300x400/transparent/white?text=Marina%20Bay%20Sands" alt="Marina Bay Sands" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Marina Bay Sands</h2>
+                    <p class="landmark-country">Singapore</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="gardensbythebay979">
+                <img src="https://placehold.co/300x400/transparent/white?text=Gardens%20by%20the%20Bay" alt="Gardens by the Bay" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Gardens by the Bay</h2>
+                    <p class="landmark-country">Singapore</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="merlion65">
+                <img src="https://placehold.co/300x400/transparent/white?text=Merlion" alt="Merlion" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Merlion</h2>
+                    <p class="landmark-country">Singapore</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="sydneyharbourbr307">
+                <img src="https://placehold.co/300x400/transparent/white?text=Sydney%20Harbour%20Bridge" alt="Sydney Harbour Bridge" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Sydney Harbour Bridge</h2>
+                    <p class="landmark-country">Australia</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="greatsphinxofgi553">
+                <img src="https://placehold.co/300x400/transparent/white?text=Great%20Sphinx%20of%20Giza" alt="Great Sphinx of Giza" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Great Sphinx of Giza</h2>
+                    <p class="landmark-country">Egypt</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="mountsinai75">
+                <img src="https://placehold.co/300x400/transparent/white?text=Mount%20Sinai" alt="Mount Sinai" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Mount Sinai</h2>
+                    <p class="landmark-country">Egypt</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="domeoftherock916">
+                <img src="https://placehold.co/300x400/transparent/white?text=Dome%20of%20the%20Rock" alt="Dome of the Rock" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Dome of the Rock</h2>
+                    <p class="landmark-country">Palestine/Israel</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="westernwall376">
+                <img src="https://placehold.co/300x400/transparent/white?text=Western%20Wall" alt="Western Wall" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Western Wall</h2>
+                    <p class="landmark-country">Israel</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="bluemosque599">
+                <img src="https://placehold.co/300x400/transparent/white?text=Blue%20Mosque" alt="Blue Mosque" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Blue Mosque</h2>
+                    <p class="landmark-country">Turkey</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="cappadocia628">
+                <img src="https://placehold.co/300x400/transparent/white?text=Cappadocia" alt="Cappadocia" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Cappadocia</h2>
+                    <p class="landmark-country">Turkey</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="wadirum112">
+                <img src="https://placehold.co/300x400/transparent/white?text=Wadi%20Rum" alt="Wadi Rum" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Wadi Rum</h2>
+                    <p class="landmark-country">Jordan</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="petra807">
+                <img src="https://placehold.co/300x400/transparent/white?text=Petra" alt="Petra" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Petra</h2>
+                    <p class="landmark-country">Jordan</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="deadsea914">
+                <img src="https://placehold.co/300x400/transparent/white?text=Dead%20Sea" alt="Dead Sea" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Dead Sea</h2>
+                    <p class="landmark-country">Jordan/Israel</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="cntower977">
+                <img src="https://placehold.co/300x400/transparent/white?text=CN%20Tower" alt="CN Tower" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">CN Tower</h2>
+                    <p class="landmark-country">Canada</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="banffnationalpa282">
+                <img src="https://placehold.co/300x400/transparent/white?text=Banff%20National%20Park" alt="Banff National Park" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Banff National Park</h2>
+                    <p class="landmark-country">Canada</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="teotihuacan288">
+                <img src="https://placehold.co/300x400/transparent/white?text=Teotihuacan" alt="Teotihuacan" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Teotihuacan</h2>
+                    <p class="landmark-country">Mexico</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="tikal919">
+                <img src="https://placehold.co/300x400/transparent/white?text=Tikal" alt="Tikal" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Tikal</h2>
+                    <p class="landmark-country">Guatemala</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="salardeuyuni123">
+                <img src="https://placehold.co/300x400/transparent/white?text=Salar%20de%20Uyuni" alt="Salar de Uyuni" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Salar de Uyuni</h2>
+                    <p class="landmark-country">Bolivia</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="galapagosisland317">
+                <img src="https://placehold.co/300x400/transparent/white?text=Galapagos%20Islands" alt="Galapagos Islands" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Galapagos Islands</h2>
+                    <p class="landmark-country">Ecuador</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="torresdelpaine800">
+                <img src="https://placehold.co/300x400/transparent/white?text=Torres%20del%20Paine" alt="Torres del Paine" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Torres del Paine</h2>
+                    <p class="landmark-country">Chile</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="amazonrainfores960">
+                <img src="https://placehold.co/300x400/transparent/white?text=Amazon%20Rainforest" alt="Amazon Rainforest" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Amazon Rainforest</h2>
+                    <p class="landmark-country">Brazil/Peru/Colombia</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="angelfalls643">
+                <img src="https://placehold.co/300x400/transparent/white?text=Angel%20Falls" alt="Angel Falls" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Angel Falls</h2>
+                    <p class="landmark-country">Venezuela</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="peritomorenogla494">
+                <img src="https://placehold.co/300x400/transparent/white?text=Perito%20Moreno%20Glacier" alt="Perito Moreno Glacier" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Perito Moreno Glacier</h2>
+                    <p class="landmark-country">Argentina</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="copacabanabeach521">
+                <img src="https://placehold.co/300x400/transparent/white?text=Copacabana%20Beach" alt="Copacabana Beach" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Copacabana Beach</h2>
+                    <p class="landmark-country">Brazil</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="sugarloafmounta860">
+                <img src="https://placehold.co/300x400/transparent/white?text=Sugarloaf%20Mountain" alt="Sugarloaf Mountain" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Sugarloaf Mountain</h2>
+                    <p class="landmark-country">Brazil</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="thekremlin711">
+                <img src="https://placehold.co/300x400/transparent/white?text=The%20Kremlin" alt="The Kremlin" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">The Kremlin</h2>
+                    <p class="landmark-country">Russia</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="hermitagemuseum519">
+                <img src="https://placehold.co/300x400/transparent/white?text=Hermitage%20Museum" alt="Hermitage Museum" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Hermitage Museum</h2>
+                    <p class="landmark-country">Russia</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="lakebaikal666">
+                <img src="https://placehold.co/300x400/transparent/white?text=Lake%20Baikal" alt="Lake Baikal" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Lake Baikal</h2>
+                    <p class="landmark-country">Russia</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="brandenburgerto822">
+                <img src="https://placehold.co/300x400/transparent/white?text=Brandenburger%20Tor" alt="Brandenburger Tor" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Brandenburger Tor</h2>
+                    <p class="landmark-country">Germany</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="berlinwall983">
+                <img src="https://placehold.co/300x400/transparent/white?text=Berlin%20Wall" alt="Berlin Wall" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Berlin Wall</h2>
+                    <p class="landmark-country">Germany</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="colognecathedra499">
+                <img src="https://placehold.co/300x400/transparent/white?text=Cologne%20Cathedral" alt="Cologne Cathedral" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Cologne Cathedral</h2>
+                    <p class="landmark-country">Germany</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="reichstagbuildi269">
+                <img src="https://placehold.co/300x400/transparent/white?text=Reichstag%20Building" alt="Reichstag Building" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Reichstag Building</h2>
+                    <p class="landmark-country">Germany</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="thematterhorn472">
+                <img src="https://placehold.co/300x400/transparent/white?text=The%20Matterhorn" alt="The Matterhorn" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">The Matterhorn</h2>
+                    <p class="landmark-country">Switzerland</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="lakegeneva331">
+                <img src="https://placehold.co/300x400/transparent/white?text=Lake%20Geneva" alt="Lake Geneva" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Lake Geneva</h2>
+                    <p class="landmark-country">Switzerland</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="jungfraujoch429">
+                <img src="https://placehold.co/300x400/transparent/white?text=Jungfraujoch" alt="Jungfraujoch" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Jungfraujoch</h2>
+                    <p class="landmark-country">Switzerland</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="theatomium272">
+                <img src="https://placehold.co/300x400/transparent/white?text=The%20Atomium" alt="The Atomium" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">The Atomium</h2>
+                    <p class="landmark-country">Belgium</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="grandplace780">
+                <img src="https://placehold.co/300x400/transparent/white?text=Grand%20Place" alt="Grand Place" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Grand Place</h2>
+                    <p class="landmark-country">Belgium</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="keukenhof266">
+                <img src="https://placehold.co/300x400/transparent/white?text=Keukenhof" alt="Keukenhof" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Keukenhof</h2>
+                    <p class="landmark-country">Netherlands</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="annefrankhouse641">
+                <img src="https://placehold.co/300x400/transparent/white?text=Anne%20Frank%20House" alt="Anne Frank House" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Anne Frank House</h2>
+                    <p class="landmark-country">Netherlands</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="rijksmuseum952">
+                <img src="https://placehold.co/300x400/transparent/white?text=Rijksmuseum" alt="Rijksmuseum" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Rijksmuseum</h2>
+                    <p class="landmark-country">Netherlands</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="thelittlemermai935">
+                <img src="https://placehold.co/300x400/transparent/white?text=The%20Little%20Mermaid" alt="The Little Mermaid" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">The Little Mermaid</h2>
+                    <p class="landmark-country">Denmark</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="tivoligardens859">
+                <img src="https://placehold.co/300x400/transparent/white?text=Tivoli%20Gardens" alt="Tivoli Gardens" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Tivoli Gardens</h2>
+                    <p class="landmark-country">Denmark</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="preikestolen378">
+                <img src="https://placehold.co/300x400/transparent/white?text=Preikestolen" alt="Preikestolen" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Preikestolen</h2>
+                    <p class="landmark-country">Norway</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="geirangerfjord226">
+                <img src="https://placehold.co/300x400/transparent/white?text=Geirangerfjord" alt="Geirangerfjord" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Geirangerfjord</h2>
+                    <p class="landmark-country">Norway</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="bluelagoon458">
+                <img src="https://placehold.co/300x400/transparent/white?text=Blue%20Lagoon" alt="Blue Lagoon" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Blue Lagoon</h2>
+                    <p class="landmark-country">Iceland</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="gullfoss912">
+                <img src="https://placehold.co/300x400/transparent/white?text=Gullfoss" alt="Gullfoss" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Gullfoss</h2>
+                    <p class="landmark-country">Iceland</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="hallgrimskirkja929">
+                <img src="https://placehold.co/300x400/transparent/white?text=Hallgrimskirkja" alt="Hallgrimskirkja" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Hallgrimskirkja</h2>
+                    <p class="landmark-country">Iceland</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="cliffsofmoher312">
+                <img src="https://placehold.co/300x400/transparent/white?text=Cliffs%20of%20Moher" alt="Cliffs of Moher" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Cliffs of Moher</h2>
+                    <p class="landmark-country">Ireland</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="blarneycastle733">
+                <img src="https://placehold.co/300x400/transparent/white?text=Blarney%20Castle" alt="Blarney Castle" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Blarney Castle</h2>
+                    <p class="landmark-country">Ireland</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="giantscauseway494">
+                <img src="https://placehold.co/300x400/transparent/white?text=Giant's%20Causeway" alt="Giant's Causeway" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Giant's Causeway</h2>
+                    <p class="landmark-country">United Kingdom</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="edinburghcastle938">
+                <img src="https://placehold.co/300x400/transparent/white?text=Edinburgh%20Castle" alt="Edinburgh Castle" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Edinburgh Castle</h2>
+                    <p class="landmark-country">United Kingdom</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="lochness625">
+                <img src="https://placehold.co/300x400/transparent/white?text=Loch%20Ness" alt="Loch Ness" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Loch Ness</h2>
+                    <p class="landmark-country">United Kingdom</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="pradomuseum578">
+                <img src="https://placehold.co/300x400/transparent/white?text=Prado%20Museum" alt="Prado Museum" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Prado Museum</h2>
+                    <p class="landmark-country">Spain</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="parkguell359">
+                <img src="https://placehold.co/300x400/transparent/white?text=Park%20Guell" alt="Park Guell" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Park Guell</h2>
+                    <p class="landmark-country">Spain</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="mezquitaofcordo636">
+                <img src="https://placehold.co/300x400/transparent/white?text=Mezquita%20of%20Cordoba" alt="Mezquita of Cordoba" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Mezquita of Cordoba</h2>
+                    <p class="landmark-country">Spain</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="belmtower738">
+                <img src="https://placehold.co/300x400/transparent/white?text=Bel%C3%A9m%20Tower" alt="Belém Tower" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Belém Tower</h2>
+                    <p class="landmark-country">Portugal</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="penapalace527">
+                <img src="https://placehold.co/300x400/transparent/white?text=Pena%20Palace" alt="Pena Palace" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Pena Palace</h2>
+                    <p class="landmark-country">Portugal</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="jernimosmonaste284">
+                <img src="https://placehold.co/300x400/transparent/white?text=Jer%C3%B3nimos%20Monastery" alt="Jerónimos Monastery" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Jerónimos Monastery</h2>
+                    <p class="landmark-country">Portugal</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="uffizigallery694">
+                <img src="https://placehold.co/300x400/transparent/white?text=Uffizi%20Gallery" alt="Uffizi Gallery" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Uffizi Gallery</h2>
+                    <p class="landmark-country">Italy</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="florencecathedr946">
+                <img src="https://placehold.co/300x400/transparent/white?text=Florence%20Cathedral%20%2F%20Il%20Duomo" alt="Florence Cathedral / Il Duomo" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Florence Cathedral / Il Duomo</h2>
+                    <p class="landmark-country">Italy</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="rialtobridge389">
+                <img src="https://placehold.co/300x400/transparent/white?text=Rialto%20Bridge" alt="Rialto Bridge" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Rialto Bridge</h2>
+                    <p class="landmark-country">Italy</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="stmarksbasilica646">
+                <img src="https://placehold.co/300x400/transparent/white?text=St.%20Mark's%20Basilica" alt="St. Mark's Basilica" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">St. Mark's Basilica</h2>
+                    <p class="landmark-country">Italy</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="cinqueterre898">
+                <img src="https://placehold.co/300x400/transparent/white?text=Cinque%20Terre" alt="Cinque Terre" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Cinque Terre</h2>
+                    <p class="landmark-country">Italy</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="amalficoast333">
+                <img src="https://placehold.co/300x400/transparent/white?text=Amalfi%20Coast" alt="Amalfi Coast" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Amalfi Coast</h2>
+                    <p class="landmark-country">Italy</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="trevifountain838">
+                <img src="https://placehold.co/300x400/transparent/white?text=Trevi%20Fountain" alt="Trevi Fountain" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Trevi Fountain</h2>
+                    <p class="landmark-country">Italy</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="sistinechapel635">
+                <img src="https://placehold.co/300x400/transparent/white?text=Sistine%20Chapel" alt="Sistine Chapel" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Sistine Chapel</h2>
+                    <p class="landmark-country">Vatican City</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="montecarlocasin893">
+                <img src="https://placehold.co/300x400/transparent/white?text=Monte%20Carlo%20Casino" alt="Monte Carlo Casino" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Monte Carlo Casino</h2>
+                    <p class="landmark-country">Monaco</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="arcdetriomphe997">
+                <img src="https://placehold.co/300x400/transparent/white?text=Arc%20de%20Triomphe" alt="Arc de Triomphe" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Arc de Triomphe</h2>
+                    <p class="landmark-country">France</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="montsaintmichel737">
+                <img src="https://placehold.co/300x400/transparent/white?text=Mont%20Saint-Michel" alt="Mont Saint-Michel" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Mont Saint-Michel</h2>
+                    <p class="landmark-country">France</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="chateaudechambo226">
+                <img src="https://placehold.co/300x400/transparent/white?text=Chateau%20de%20Chambord" alt="Chateau de Chambord" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Chateau de Chambord</h2>
+                    <p class="landmark-country">France</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="palaceoftheparl730">
+                <img src="https://placehold.co/300x400/transparent/white?text=Palace%20of%20the%20Parliament" alt="Palace of the Parliament" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Palace of the Parliament</h2>
+                    <p class="landmark-country">Romania</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="brancastle230">
+                <img src="https://placehold.co/300x400/transparent/white?text=Bran%20Castle" alt="Bran Castle" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Bran Castle</h2>
+                    <p class="landmark-country">Romania</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="plitvicelakesna373">
+                <img src="https://placehold.co/300x400/transparent/white?text=Plitvice%20Lakes%20National%20Park" alt="Plitvice Lakes National Park" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Plitvice Lakes National Park</h2>
+                    <p class="landmark-country">Croatia</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="dubrovnikcitywa437">
+                <img src="https://placehold.co/300x400/transparent/white?text=Dubrovnik%20City%20Walls" alt="Dubrovnik City Walls" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Dubrovnik City Walls</h2>
+                    <p class="landmark-country">Croatia</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="lakebled993">
+                <img src="https://placehold.co/300x400/transparent/white?text=Lake%20Bled" alt="Lake Bled" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Lake Bled</h2>
+                    <p class="landmark-country">Slovenia</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="charlesbridge631">
+                <img src="https://placehold.co/300x400/transparent/white?text=Charles%20Bridge" alt="Charles Bridge" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Charles Bridge</h2>
+                    <p class="landmark-country">Czechia</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="praguecastle30">
+                <img src="https://placehold.co/300x400/transparent/white?text=Prague%20Castle" alt="Prague Castle" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Prague Castle</h2>
+                    <p class="landmark-country">Czechia</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="szechenyitherma881">
+                <img src="https://placehold.co/300x400/transparent/white?text=Szechenyi%20Thermal%20Bath" alt="Szechenyi Thermal Bath" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Szechenyi Thermal Bath</h2>
+                    <p class="landmark-country">Hungary</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="hungarianparlia973">
+                <img src="https://placehold.co/300x400/transparent/white?text=Hungarian%20Parliament%20Building" alt="Hungarian Parliament Building" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Hungarian Parliament Building</h2>
+                    <p class="landmark-country">Hungary</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="auschwitzbirken36">
+                <img src="https://placehold.co/300x400/transparent/white?text=Auschwitz-Birkenau" alt="Auschwitz-Birkenau" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Auschwitz-Birkenau</h2>
+                    <p class="landmark-country">Poland</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="wawelcastle446">
+                <img src="https://placehold.co/300x400/transparent/white?text=Wawel%20Castle" alt="Wawel Castle" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Wawel Castle</h2>
+                    <p class="landmark-country">Poland</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="rilamonastery513">
+                <img src="https://placehold.co/300x400/transparent/white?text=Rila%20Monastery" alt="Rila Monastery" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Rila Monastery</h2>
+                    <p class="landmark-country">Bulgaria</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="meteora809">
+                <img src="https://placehold.co/300x400/transparent/white?text=Meteora" alt="Meteora" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Meteora</h2>
+                    <p class="landmark-country">Greece</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="parthenon593">
+                <img src="https://placehold.co/300x400/transparent/white?text=Parthenon" alt="Parthenon" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Parthenon</h2>
+                    <p class="landmark-country">Greece</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="santorinicalder790">
+                <img src="https://placehold.co/300x400/transparent/white?text=Santorini%20Caldera" alt="Santorini Caldera" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Santorini Caldera</h2>
+                    <p class="landmark-country">Greece</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="mountolympus633">
+                <img src="https://placehold.co/300x400/transparent/white?text=Mount%20Olympus" alt="Mount Olympus" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Mount Olympus</h2>
+                    <p class="landmark-country">Greece</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="terracottaarmy471">
+                <img src="https://placehold.co/300x400/transparent/white?text=Terracotta%20Army" alt="Terracotta Army" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Terracotta Army</h2>
+                    <p class="landmark-country">China</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="summerpalace52">
+                <img src="https://placehold.co/300x400/transparent/white?text=Summer%20Palace" alt="Summer Palace" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Summer Palace</h2>
+                    <p class="landmark-country">China</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="templeofheaven71">
+                <img src="https://placehold.co/300x400/transparent/white?text=Temple%20of%20Heaven" alt="Temple of Heaven" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Temple of Heaven</h2>
+                    <p class="landmark-country">China</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="orientalpearlto593">
+                <img src="https://placehold.co/300x400/transparent/white?text=Oriental%20Pearl%20Tower" alt="Oriental Pearl Tower" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Oriental Pearl Tower</h2>
+                    <p class="landmark-country">China</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="victoriapeak249">
+                <img src="https://placehold.co/300x400/transparent/white?text=Victoria%20Peak" alt="Victoria Peak" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Victoria Peak</h2>
+                    <p class="landmark-country">China</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="fushimiinaritai812">
+                <img src="https://placehold.co/300x400/transparent/white?text=Fushimi%20Inari%20Taisha" alt="Fushimi Inari Taisha" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Fushimi Inari Taisha</h2>
+                    <p class="landmark-country">Japan</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="kinkakuji180">
+                <img src="https://placehold.co/300x400/transparent/white?text=Kinkaku-ji" alt="Kinkaku-ji" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Kinkaku-ji</h2>
+                    <p class="landmark-country">Japan</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="sensoji612">
+                <img src="https://placehold.co/300x400/transparent/white?text=Senso-ji" alt="Senso-ji" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Senso-ji</h2>
+                    <p class="landmark-country">Japan</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="himejicastle750">
+                <img src="https://placehold.co/300x400/transparent/white?text=Himeji%20Castle" alt="Himeji Castle" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Himeji Castle</h2>
+                    <p class="landmark-country">Japan</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="shibuyacrossing377">
+                <img src="https://placehold.co/300x400/transparent/white?text=Shibuya%20Crossing" alt="Shibuya Crossing" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Shibuya Crossing</h2>
+                    <p class="landmark-country">Japan</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="gyeongbokgungpa306">
+                <img src="https://placehold.co/300x400/transparent/white?text=Gyeongbokgung%20Palace" alt="Gyeongbokgung Palace" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Gyeongbokgung Palace</h2>
+                    <p class="landmark-country">South Korea</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="nseoultower913">
+                <img src="https://placehold.co/300x400/transparent/white?text=N%20Seoul%20Tower" alt="N Seoul Tower" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">N Seoul Tower</h2>
+                    <p class="landmark-country">South Korea</p>
+                </div>
+            </div>
+
+            <div class="landmark-item" data-id="potalapalace602">
+                <img src="https://placehold.co/300x400/transparent/white?text=Potala%20Palace" alt="Potala Palace" class="landmark-image">
+                <div class="landmark-info">
+                    <h2 class="landmark-name">Potala Palace</h2>
+                    <p class="landmark-country">China</p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="details-panel" id="detailsPanel">
+        <button class="close-btn" id="closeBtn">Close</button>
+        <h1 class="details-title" id="detailTitle">Landmark Name</h1>
+        <h2 class="details-country" id="detailCountry">Country</h2>
+        
+        <div class="details-stat">
+            <span class="details-stat-label">Location:</span>
+            <span id="detailLocation">City, Country</span>
+        </div>
+        <div class="details-stat">
+            <span class="details-stat-label">Year Built:</span>
+            <span id="detailYear">YYYY</span>
+        </div>
+        <div class="details-stat">
+            <span class="details-stat-label">Height:</span>
+            <span id="detailHeight">0m</span>
+        </div>
+
+        <p class="details-description" id="detailDesc">
+            Detailed description goes here.
+        </p>
+    </div>
+
+    <script>
+        // Database for the details panel
+        const landmarkData = {
+            'eiffeltower774': {
+                title: "Eiffel Tower",
+                country: "France",
+                location: "Paris, France",
+                year: '1889',
+                height: '330 m (1,083 ft)',
+                desc: "The Eiffel Tower is a wrought-iron lattice tower on the Champ de Mars in Paris, France. Named after engineer Gustave Eiffel, it was constructed as the centerpiece of the 1889 World's Fair. It was initially criticized by some of France's leading artists and intellectuals but has become a global cultural icon."
+            },
+            'greatwallofchin192': {
+                title: "Great Wall of China",
+                country: "China",
+                location: "Huairou District, China",
+                year: '7th Century BC',
+                height: '5 to 8 meters (16 to 26 ft)',
+                desc: "The Great Wall of China is a series of fortifications built across the historical northern borders of ancient Chinese states and Imperial China as protection against various nomadic groups from the Eurasian Steppe. The most well-known sections were built by the Ming dynasty (1368–1644)."
+            },
+            'colosseum59': {
+                title: "Colosseum",
+                country: "Italy",
+                location: "Rome, Italy",
+                year: 'AD 80',
+                height: '48 m (157 ft)',
+                desc: "The Colosseum is an elliptical amphitheatre in the centre of the city of Rome, Italy, just east of the Roman Forum. It is the largest ancient amphitheatre ever built, and is still the largest standing amphitheatre in the world today, despite its age. It could hold an estimated 50,000 to 80,000 spectators."
+            },
+            'tajmahal437': {
+                title: "Taj Mahal",
+                country: "India",
+                location: "Agra, Uttar Pradesh",
+                year: '1643',
+                height: '73 m (240 ft)',
+                desc: "The Taj Mahal is an ivory-white marble mausoleum on the right bank of the river Yamuna in Agra, India. It was commissioned in 1632 by the Mughal emperor Shah Jahan to house the tomb of his favourite wife, Mumtaz Mahal. The tomb is the centrepiece of a 17-hectare (42-acre) complex."
+            },
+            'machupicchu904': {
+                title: "Machu Picchu",
+                country: "Peru",
+                location: "Peru",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Machu Picchu is a renowned landmark located in Peru. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'statueofliberty23': {
+                title: "Statue of Liberty",
+                country: "United States",
+                location: "United States",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Statue of Liberty is a renowned landmark located in United States. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'sydneyoperahous979': {
+                title: "Sydney Opera House",
+                country: "Australia",
+                location: "Australia",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Sydney Opera House is a renowned landmark located in Australia. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'christtheredeem548': {
+                title: "Christ the Redeemer",
+                country: "Brazil",
+                location: "Brazil",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Christ the Redeemer is a renowned landmark located in Brazil. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'pyramidsofgiza326': {
+                title: "Pyramids of Giza",
+                country: "Egypt",
+                location: "Egypt",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Pyramids of Giza is a renowned landmark located in Egypt. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'burjkhalifa678': {
+                title: "Burj Khalifa",
+                country: "United Arab Emirates",
+                location: "United Arab Emirates",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Burj Khalifa is a renowned landmark located in United Arab Emirates. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'stonehenge810': {
+                title: "Stonehenge",
+                country: "United Kingdom",
+                location: "United Kingdom",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Stonehenge is a renowned landmark located in United Kingdom. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'acropolisofathe860': {
+                title: "Acropolis of Athens",
+                country: "Greece",
+                location: "Greece",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Acropolis of Athens is a renowned landmark located in Greece. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'mounteverest102': {
+                title: "Mount Everest",
+                country: "Nepal/China",
+                location: "Nepal/China",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Mount Everest is a renowned landmark located in Nepal/China. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'grandcanyon520': {
+                title: "Grand Canyon",
+                country: "United States",
+                location: "United States",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Grand Canyon is a renowned landmark located in United States. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'sagradafamilia642': {
+                title: "Sagrada Familia",
+                country: "Spain",
+                location: "Spain",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Sagrada Familia is a renowned landmark located in Spain. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'alhambra764': {
+                title: "Alhambra",
+                country: "Spain",
+                location: "Spain",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Alhambra is a renowned landmark located in Spain. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'buckinghampalac805': {
+                title: "Buckingham Palace",
+                country: "United Kingdom",
+                location: "United Kingdom",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Buckingham Palace is a renowned landmark located in United Kingdom. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'goldengatebridg813': {
+                title: "Golden Gate Bridge",
+                country: "United States",
+                location: "United States",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Golden Gate Bridge is a renowned landmark located in United States. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'chichenitza455': {
+                title: "Chichen Itza",
+                country: "Mexico",
+                location: "Mexico",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Chichen Itza is a renowned landmark located in Mexico. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'angkorwat342': {
+                title: "Angkor Wat",
+                country: "Cambodia",
+                location: "Cambodia",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Angkor Wat is a renowned landmark located in Cambodia. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'leaningtowerofp655': {
+                title: "Leaning Tower of Pisa",
+                country: "Italy",
+                location: "Italy",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Leaning Tower of Pisa is a renowned landmark located in Italy. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'mountfuji89': {
+                title: "Mount Fuji",
+                country: "Japan",
+                location: "Japan",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Mount Fuji is a renowned landmark located in Japan. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'victoriafalls184': {
+                title: "Victoria Falls",
+                country: "Zambia/Zimbabwe",
+                location: "Zambia/Zimbabwe",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Victoria Falls is a renowned landmark located in Zambia/Zimbabwe. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'niagarafalls656': {
+                title: "Niagara Falls",
+                country: "Canada/United States",
+                location: "Canada/United States",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Niagara Falls is a renowned landmark located in Canada/United States. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'neuschwansteinc28': {
+                title: "Neuschwanstein Castle",
+                country: "Germany",
+                location: "Germany",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Neuschwanstein Castle is a renowned landmark located in Germany. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'bigben30': {
+                title: "Big Ben",
+                country: "United Kingdom",
+                location: "United Kingdom",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Big Ben is a renowned landmark located in United Kingdom. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'mountkilimanjar542': {
+                title: "Mount Kilimanjaro",
+                country: "Tanzania",
+                location: "Tanzania",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Mount Kilimanjaro is a renowned landmark located in Tanzania. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'stpetersbasilic808': {
+                title: "St. Peter's Basilica",
+                country: "Vatican City",
+                location: "Vatican City",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The St. Peter's Basilica is a renowned landmark located in Vatican City. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'thelouvre911': {
+                title: "The Louvre",
+                country: "France",
+                location: "France",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The The Louvre is a renowned landmark located in France. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'toweroflondon621': {
+                title: "Tower of London",
+                country: "United Kingdom",
+                location: "United Kingdom",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Tower of London is a renowned landmark located in United Kingdom. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'tablemountain464': {
+                title: "Table Mountain",
+                country: "South Africa",
+                location: "South Africa",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Table Mountain is a renowned landmark located in South Africa. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'stbasilscathedr680': {
+                title: "St. Basil's Cathedral",
+                country: "Russia",
+                location: "Russia",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The St. Basil's Cathedral is a renowned landmark located in Russia. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'mountrushmore265': {
+                title: "Mount Rushmore",
+                country: "United States",
+                location: "United States",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Mount Rushmore is a renowned landmark located in United States. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'moaiofeasterisl71': {
+                title: "Moai of Easter Island",
+                country: "Chile",
+                location: "Chile",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Moai of Easter Island is a renowned landmark located in Chile. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'redsquare412': {
+                title: "Red Square",
+                country: "Russia",
+                location: "Russia",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Red Square is a renowned landmark located in Russia. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'forbiddencity801': {
+                title: "Forbidden City",
+                country: "China",
+                location: "China",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Forbidden City is a renowned landmark located in China. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'iguazufalls438': {
+                title: "Iguazu Falls",
+                country: "Argentina/Brazil",
+                location: "Argentina/Brazil",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Iguazu Falls is a renowned landmark located in Argentina/Brazil. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'uluruayersrock111': {
+                title: "Uluru / Ayers Rock",
+                country: "Australia",
+                location: "Australia",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Uluru / Ayers Rock is a renowned landmark located in Australia. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'timessquare239': {
+                title: "Times Square",
+                country: "United States",
+                location: "United States",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Times Square is a renowned landmark located in United States. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'hagiasophia433': {
+                title: "Hagia Sophia",
+                country: "Turkey",
+                location: "Turkey",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Hagia Sophia is a renowned landmark located in Turkey. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'empirestatebuil861': {
+                title: "Empire State Building",
+                country: "United States",
+                location: "United States",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Empire State Building is a renowned landmark located in United States. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'burjalarab576': {
+                title: "Burj Al Arab",
+                country: "United Arab Emirates",
+                location: "United Arab Emirates",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Burj Al Arab is a renowned landmark located in United Arab Emirates. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'pantheon998': {
+                title: "Pantheon",
+                country: "Italy",
+                location: "Italy",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Pantheon is a renowned landmark located in Italy. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'palaceofversail707': {
+                title: "Palace of Versailles",
+                country: "France",
+                location: "France",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Palace of Versailles is a renowned landmark located in France. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'towerbridge934': {
+                title: "Tower Bridge",
+                country: "United Kingdom",
+                location: "United Kingdom",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Tower Bridge is a renowned landmark located in United Kingdom. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'theshard487': {
+                title: "The Shard",
+                country: "United Kingdom",
+                location: "United Kingdom",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The The Shard is a renowned landmark located in United Kingdom. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'notredamedepari763': {
+                title: "Notre-Dame de Paris",
+                country: "France",
+                location: "France",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Notre-Dame de Paris is a renowned landmark located in France. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'mountvesuvius251': {
+                title: "Mount Vesuvius",
+                country: "Italy",
+                location: "Italy",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Mount Vesuvius is a renowned landmark located in Italy. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'pompeii485': {
+                title: "Pompeii",
+                country: "Italy",
+                location: "Italy",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Pompeii is a renowned landmark located in Italy. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'londoneye223': {
+                title: "London Eye",
+                country: "United Kingdom",
+                location: "United Kingdom",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The London Eye is a renowned landmark located in United Kingdom. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'centralpark533': {
+                title: "Central Park",
+                country: "United States",
+                location: "United States",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Central Park is a renowned landmark located in United States. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'marinabaysands31': {
+                title: "Marina Bay Sands",
+                country: "Singapore",
+                location: "Singapore",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Marina Bay Sands is a renowned landmark located in Singapore. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'gardensbythebay750': {
+                title: "Gardens by the Bay",
+                country: "Singapore",
+                location: "Singapore",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Gardens by the Bay is a renowned landmark located in Singapore. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'merlion416': {
+                title: "Merlion",
+                country: "Singapore",
+                location: "Singapore",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Merlion is a renowned landmark located in Singapore. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'sydneyharbourbr646': {
+                title: "Sydney Harbour Bridge",
+                country: "Australia",
+                location: "Australia",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Sydney Harbour Bridge is a renowned landmark located in Australia. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'greatsphinxofgi486': {
+                title: "Great Sphinx of Giza",
+                country: "Egypt",
+                location: "Egypt",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Great Sphinx of Giza is a renowned landmark located in Egypt. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'mountsinai37': {
+                title: "Mount Sinai",
+                country: "Egypt",
+                location: "Egypt",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Mount Sinai is a renowned landmark located in Egypt. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'domeoftherock276': {
+                title: "Dome of the Rock",
+                country: "Palestine/Israel",
+                location: "Palestine/Israel",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Dome of the Rock is a renowned landmark located in Palestine/Israel. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'westernwall255': {
+                title: "Western Wall",
+                country: "Israel",
+                location: "Israel",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Western Wall is a renowned landmark located in Israel. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'bluemosque669': {
+                title: "Blue Mosque",
+                country: "Turkey",
+                location: "Turkey",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Blue Mosque is a renowned landmark located in Turkey. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'cappadocia287': {
+                title: "Cappadocia",
+                country: "Turkey",
+                location: "Turkey",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Cappadocia is a renowned landmark located in Turkey. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'wadirum158': {
+                title: "Wadi Rum",
+                country: "Jordan",
+                location: "Jordan",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Wadi Rum is a renowned landmark located in Jordan. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'petra464': {
+                title: "Petra",
+                country: "Jordan",
+                location: "Jordan",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Petra is a renowned landmark located in Jordan. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'deadsea240': {
+                title: "Dead Sea",
+                country: "Jordan/Israel",
+                location: "Jordan/Israel",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Dead Sea is a renowned landmark located in Jordan/Israel. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'cntower379': {
+                title: "CN Tower",
+                country: "Canada",
+                location: "Canada",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The CN Tower is a renowned landmark located in Canada. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'banffnationalpa743': {
+                title: "Banff National Park",
+                country: "Canada",
+                location: "Canada",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Banff National Park is a renowned landmark located in Canada. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'teotihuacan598': {
+                title: "Teotihuacan",
+                country: "Mexico",
+                location: "Mexico",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Teotihuacan is a renowned landmark located in Mexico. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'tikal343': {
+                title: "Tikal",
+                country: "Guatemala",
+                location: "Guatemala",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Tikal is a renowned landmark located in Guatemala. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'salardeuyuni792': {
+                title: "Salar de Uyuni",
+                country: "Bolivia",
+                location: "Bolivia",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Salar de Uyuni is a renowned landmark located in Bolivia. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'galapagosisland540': {
+                title: "Galapagos Islands",
+                country: "Ecuador",
+                location: "Ecuador",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Galapagos Islands is a renowned landmark located in Ecuador. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'torresdelpaine690': {
+                title: "Torres del Paine",
+                country: "Chile",
+                location: "Chile",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Torres del Paine is a renowned landmark located in Chile. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'amazonrainfores514': {
+                title: "Amazon Rainforest",
+                country: "Brazil/Peru/Colombia",
+                location: "Brazil/Peru/Colombia",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Amazon Rainforest is a renowned landmark located in Brazil/Peru/Colombia. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'angelfalls326': {
+                title: "Angel Falls",
+                country: "Venezuela",
+                location: "Venezuela",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Angel Falls is a renowned landmark located in Venezuela. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'peritomorenogla278': {
+                title: "Perito Moreno Glacier",
+                country: "Argentina",
+                location: "Argentina",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Perito Moreno Glacier is a renowned landmark located in Argentina. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'copacabanabeach812': {
+                title: "Copacabana Beach",
+                country: "Brazil",
+                location: "Brazil",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Copacabana Beach is a renowned landmark located in Brazil. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'sugarloafmounta4': {
+                title: "Sugarloaf Mountain",
+                country: "Brazil",
+                location: "Brazil",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Sugarloaf Mountain is a renowned landmark located in Brazil. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'thekremlin591': {
+                title: "The Kremlin",
+                country: "Russia",
+                location: "Russia",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The The Kremlin is a renowned landmark located in Russia. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'hermitagemuseum737': {
+                title: "Hermitage Museum",
+                country: "Russia",
+                location: "Russia",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Hermitage Museum is a renowned landmark located in Russia. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'lakebaikal493': {
+                title: "Lake Baikal",
+                country: "Russia",
+                location: "Russia",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Lake Baikal is a renowned landmark located in Russia. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'brandenburgerto710': {
+                title: "Brandenburger Tor",
+                country: "Germany",
+                location: "Germany",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Brandenburger Tor is a renowned landmark located in Germany. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'berlinwall173': {
+                title: "Berlin Wall",
+                country: "Germany",
+                location: "Germany",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Berlin Wall is a renowned landmark located in Germany. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'colognecathedra577': {
+                title: "Cologne Cathedral",
+                country: "Germany",
+                location: "Germany",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Cologne Cathedral is a renowned landmark located in Germany. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'reichstagbuildi782': {
+                title: "Reichstag Building",
+                country: "Germany",
+                location: "Germany",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Reichstag Building is a renowned landmark located in Germany. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'thematterhorn322': {
+                title: "The Matterhorn",
+                country: "Switzerland",
+                location: "Switzerland",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The The Matterhorn is a renowned landmark located in Switzerland. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'lakegeneva429': {
+                title: "Lake Geneva",
+                country: "Switzerland",
+                location: "Switzerland",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Lake Geneva is a renowned landmark located in Switzerland. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'jungfraujoch206': {
+                title: "Jungfraujoch",
+                country: "Switzerland",
+                location: "Switzerland",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Jungfraujoch is a renowned landmark located in Switzerland. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'theatomium29': {
+                title: "The Atomium",
+                country: "Belgium",
+                location: "Belgium",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The The Atomium is a renowned landmark located in Belgium. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'grandplace434': {
+                title: "Grand Place",
+                country: "Belgium",
+                location: "Belgium",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Grand Place is a renowned landmark located in Belgium. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'keukenhof24': {
+                title: "Keukenhof",
+                country: "Netherlands",
+                location: "Netherlands",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Keukenhof is a renowned landmark located in Netherlands. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'annefrankhouse244': {
+                title: "Anne Frank House",
+                country: "Netherlands",
+                location: "Netherlands",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Anne Frank House is a renowned landmark located in Netherlands. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'rijksmuseum674': {
+                title: "Rijksmuseum",
+                country: "Netherlands",
+                location: "Netherlands",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Rijksmuseum is a renowned landmark located in Netherlands. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'thelittlemermai891': {
+                title: "The Little Mermaid",
+                country: "Denmark",
+                location: "Denmark",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The The Little Mermaid is a renowned landmark located in Denmark. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'tivoligardens360': {
+                title: "Tivoli Gardens",
+                country: "Denmark",
+                location: "Denmark",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Tivoli Gardens is a renowned landmark located in Denmark. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'preikestolen784': {
+                title: "Preikestolen",
+                country: "Norway",
+                location: "Norway",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Preikestolen is a renowned landmark located in Norway. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'geirangerfjord300': {
+                title: "Geirangerfjord",
+                country: "Norway",
+                location: "Norway",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Geirangerfjord is a renowned landmark located in Norway. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'bluelagoon421': {
+                title: "Blue Lagoon",
+                country: "Iceland",
+                location: "Iceland",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Blue Lagoon is a renowned landmark located in Iceland. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'gullfoss186': {
+                title: "Gullfoss",
+                country: "Iceland",
+                location: "Iceland",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Gullfoss is a renowned landmark located in Iceland. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'hallgrimskirkja304': {
+                title: "Hallgrimskirkja",
+                country: "Iceland",
+                location: "Iceland",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Hallgrimskirkja is a renowned landmark located in Iceland. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'cliffsofmoher176': {
+                title: "Cliffs of Moher",
+                country: "Ireland",
+                location: "Ireland",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Cliffs of Moher is a renowned landmark located in Ireland. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'blarneycastle852': {
+                title: "Blarney Castle",
+                country: "Ireland",
+                location: "Ireland",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Blarney Castle is a renowned landmark located in Ireland. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'giantscauseway406': {
+                title: "Giant's Causeway",
+                country: "United Kingdom",
+                location: "United Kingdom",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Giant's Causeway is a renowned landmark located in United Kingdom. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'edinburghcastle495': {
+                title: "Edinburgh Castle",
+                country: "United Kingdom",
+                location: "United Kingdom",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Edinburgh Castle is a renowned landmark located in United Kingdom. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'lochness117': {
+                title: "Loch Ness",
+                country: "United Kingdom",
+                location: "United Kingdom",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Loch Ness is a renowned landmark located in United Kingdom. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'pradomuseum600': {
+                title: "Prado Museum",
+                country: "Spain",
+                location: "Spain",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Prado Museum is a renowned landmark located in Spain. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'parkguell936': {
+                title: "Park Guell",
+                country: "Spain",
+                location: "Spain",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Park Guell is a renowned landmark located in Spain. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'mezquitaofcordo574': {
+                title: "Mezquita of Cordoba",
+                country: "Spain",
+                location: "Spain",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Mezquita of Cordoba is a renowned landmark located in Spain. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'belmtower4': {
+                title: "Belém Tower",
+                country: "Portugal",
+                location: "Portugal",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Belém Tower is a renowned landmark located in Portugal. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'penapalace974': {
+                title: "Pena Palace",
+                country: "Portugal",
+                location: "Portugal",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Pena Palace is a renowned landmark located in Portugal. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'jernimosmonaste841': {
+                title: "Jerónimos Monastery",
+                country: "Portugal",
+                location: "Portugal",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Jerónimos Monastery is a renowned landmark located in Portugal. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'uffizigallery975': {
+                title: "Uffizi Gallery",
+                country: "Italy",
+                location: "Italy",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Uffizi Gallery is a renowned landmark located in Italy. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'florencecathedr376': {
+                title: "Florence Cathedral / Il Duomo",
+                country: "Italy",
+                location: "Italy",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Florence Cathedral / Il Duomo is a renowned landmark located in Italy. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'rialtobridge288': {
+                title: "Rialto Bridge",
+                country: "Italy",
+                location: "Italy",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Rialto Bridge is a renowned landmark located in Italy. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'stmarksbasilica924': {
+                title: "St. Mark's Basilica",
+                country: "Italy",
+                location: "Italy",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The St. Mark's Basilica is a renowned landmark located in Italy. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'cinqueterre777': {
+                title: "Cinque Terre",
+                country: "Italy",
+                location: "Italy",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Cinque Terre is a renowned landmark located in Italy. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'amalficoast953': {
+                title: "Amalfi Coast",
+                country: "Italy",
+                location: "Italy",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Amalfi Coast is a renowned landmark located in Italy. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'trevifountain443': {
+                title: "Trevi Fountain",
+                country: "Italy",
+                location: "Italy",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Trevi Fountain is a renowned landmark located in Italy. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'sistinechapel754': {
+                title: "Sistine Chapel",
+                country: "Vatican City",
+                location: "Vatican City",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Sistine Chapel is a renowned landmark located in Vatican City. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'montecarlocasin615': {
+                title: "Monte Carlo Casino",
+                country: "Monaco",
+                location: "Monaco",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Monte Carlo Casino is a renowned landmark located in Monaco. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'arcdetriomphe402': {
+                title: "Arc de Triomphe",
+                country: "France",
+                location: "France",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Arc de Triomphe is a renowned landmark located in France. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'montsaintmichel835': {
+                title: "Mont Saint-Michel",
+                country: "France",
+                location: "France",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Mont Saint-Michel is a renowned landmark located in France. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'chateaudechambo309': {
+                title: "Chateau de Chambord",
+                country: "France",
+                location: "France",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Chateau de Chambord is a renowned landmark located in France. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'palaceoftheparl592': {
+                title: "Palace of the Parliament",
+                country: "Romania",
+                location: "Romania",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Palace of the Parliament is a renowned landmark located in Romania. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'brancastle234': {
+                title: "Bran Castle",
+                country: "Romania",
+                location: "Romania",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Bran Castle is a renowned landmark located in Romania. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'plitvicelakesna431': {
+                title: "Plitvice Lakes National Park",
+                country: "Croatia",
+                location: "Croatia",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Plitvice Lakes National Park is a renowned landmark located in Croatia. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'dubrovnikcitywa733': {
+                title: "Dubrovnik City Walls",
+                country: "Croatia",
+                location: "Croatia",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Dubrovnik City Walls is a renowned landmark located in Croatia. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'lakebled130': {
+                title: "Lake Bled",
+                country: "Slovenia",
+                location: "Slovenia",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Lake Bled is a renowned landmark located in Slovenia. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'charlesbridge283': {
+                title: "Charles Bridge",
+                country: "Czechia",
+                location: "Czechia",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Charles Bridge is a renowned landmark located in Czechia. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'praguecastle785': {
+                title: "Prague Castle",
+                country: "Czechia",
+                location: "Czechia",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Prague Castle is a renowned landmark located in Czechia. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'szechenyitherma370': {
+                title: "Szechenyi Thermal Bath",
+                country: "Hungary",
+                location: "Hungary",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Szechenyi Thermal Bath is a renowned landmark located in Hungary. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'hungarianparlia250': {
+                title: "Hungarian Parliament Building",
+                country: "Hungary",
+                location: "Hungary",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Hungarian Parliament Building is a renowned landmark located in Hungary. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'auschwitzbirken503': {
+                title: "Auschwitz-Birkenau",
+                country: "Poland",
+                location: "Poland",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Auschwitz-Birkenau is a renowned landmark located in Poland. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'wawelcastle709': {
+                title: "Wawel Castle",
+                country: "Poland",
+                location: "Poland",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Wawel Castle is a renowned landmark located in Poland. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'rilamonastery520': {
+                title: "Rila Monastery",
+                country: "Bulgaria",
+                location: "Bulgaria",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Rila Monastery is a renowned landmark located in Bulgaria. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'meteora753': {
+                title: "Meteora",
+                country: "Greece",
+                location: "Greece",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Meteora is a renowned landmark located in Greece. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'parthenon16': {
+                title: "Parthenon",
+                country: "Greece",
+                location: "Greece",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Parthenon is a renowned landmark located in Greece. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'santorinicalder274': {
+                title: "Santorini Caldera",
+                country: "Greece",
+                location: "Greece",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Santorini Caldera is a renowned landmark located in Greece. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'mountolympus429': {
+                title: "Mount Olympus",
+                country: "Greece",
+                location: "Greece",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Mount Olympus is a renowned landmark located in Greece. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'terracottaarmy170': {
+                title: "Terracotta Army",
+                country: "China",
+                location: "China",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Terracotta Army is a renowned landmark located in China. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'summerpalace650': {
+                title: "Summer Palace",
+                country: "China",
+                location: "China",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Summer Palace is a renowned landmark located in China. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'templeofheaven72': {
+                title: "Temple of Heaven",
+                country: "China",
+                location: "China",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Temple of Heaven is a renowned landmark located in China. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'orientalpearlto492': {
+                title: "Oriental Pearl Tower",
+                country: "China",
+                location: "China",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Oriental Pearl Tower is a renowned landmark located in China. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'victoriapeak663': {
+                title: "Victoria Peak",
+                country: "China",
+                location: "China",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Victoria Peak is a renowned landmark located in China. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'fushimiinaritai609': {
+                title: "Fushimi Inari Taisha",
+                country: "Japan",
+                location: "Japan",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Fushimi Inari Taisha is a renowned landmark located in Japan. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'kinkakuji287': {
+                title: "Kinkaku-ji",
+                country: "Japan",
+                location: "Japan",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Kinkaku-ji is a renowned landmark located in Japan. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'sensoji274': {
+                title: "Senso-ji",
+                country: "Japan",
+                location: "Japan",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Senso-ji is a renowned landmark located in Japan. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'himejicastle515': {
+                title: "Himeji Castle",
+                country: "Japan",
+                location: "Japan",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Himeji Castle is a renowned landmark located in Japan. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'shibuyacrossing21': {
+                title: "Shibuya Crossing",
+                country: "Japan",
+                location: "Japan",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Shibuya Crossing is a renowned landmark located in Japan. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'gyeongbokgungpa414': {
+                title: "Gyeongbokgung Palace",
+                country: "South Korea",
+                location: "South Korea",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Gyeongbokgung Palace is a renowned landmark located in South Korea. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'nseoultower568': {
+                title: "N Seoul Tower",
+                country: "South Korea",
+                location: "South Korea",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The N Seoul Tower is a renowned landmark located in South Korea. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            },
+            'potalapalace721': {
+                title: "Potala Palace",
+                country: "China",
+                location: "China",
+                year: 'Unknown',
+                height: 'Various',
+                desc: "The Potala Palace is a renowned landmark located in China. It is recognized globally as an important cultural and historical site, attracting visitors from all over the world."
+            }
+        };
+
+        const track = document.getElementById('track');
+        const items = document.querySelectorAll('.landmark-item');
+        const detailsPanel = document.getElementById('detailsPanel');
+        const closeBtn = document.getElementById('closeBtn');
+        const overlay = document.getElementById('overlay');
+        
+        let isActive = false;
+        let activeItem = null;
+        let currentTranslateX = 0;
+        let originalTransforms = new Map();
+
+        /* ==========================================================================
+           Step 2.5: Loading Screen Logic
+           ========================================================================== */
+        const loader = document.getElementById('loader');
+        const modelViewers = document.querySelectorAll('model-viewer');
+        let modelsLoaded = 0;
+
+        function hideLoader() {
+            if (loader.style.display !== 'none') {
+                loader.style.opacity = '0';
+                setTimeout(() => {
+                    loader.style.display = 'none';
+                    initScroll(); // Recalculate scroll in case layout changed
+                }, 600);
+            }
+        }
+
+        if (modelViewers.length > 0) {
+            modelViewers.forEach(model => {
+                model.addEventListener('load', () => {
+                    modelsLoaded++;
+                    if (modelsLoaded === modelViewers.length) {
+                        hideLoader();
+                    }
+                });
+            });
+            // Fallback timeout in case a model fails to load
+            setTimeout(hideLoader, 10000); 
+        } else {
+            window.addEventListener('load', hideLoader);
+        }
+
+        /* ==========================================================================
+           Step 3: The Sushi Conveyor Belt Scroll Math
+           ========================================================================== */
+           
+        function updateScroll() {
+            if (isActive) return; // Stop scrolling in the background if a card is open
+
+            const maxScrollY = document.body.scrollHeight - window.innerHeight;
+            const scrollPercentage = window.scrollY / maxScrollY;
+            
+            // Calculate how far the track needs to move left to show all items
+            const trackWidth = track.scrollWidth;
+            const windowWidth = window.innerWidth;
+            const maxTranslateX = trackWidth - windowWidth;
+            
+            currentTranslateX = -(scrollPercentage * maxTranslateX);
+            track.style.transform = `translateX(${currentTranslateX}px)`;
+        }
+
+        function initScroll() {
+            // Dynamically set body height to match horizontal scroll width for 1:1 scroll speed
+            document.body.style.height = `${track.scrollWidth}px`;
+            updateScroll();
+        }
+
+        window.addEventListener('scroll', () => {
+            requestAnimationFrame(updateScroll);
+        });
+
+        window.addEventListener('load', initScroll);
+        window.addEventListener('resize', initScroll);
+
+        /* ==========================================================================
+           Step 4: Click to Expand & Details Panel
+           ========================================================================== */
+           
+        items.forEach(item => {
+            item.addEventListener('click', (e) => {
+                if (isActive) return; 
+
+                isActive = true;
+                activeItem = item;
+                
+                // 1. Lock scroll & show dark overlay
+                document.body.classList.add('scroll-locked');
+                overlay.classList.add('visible');
+
+                // 2. Math to move the clicked item to the exact left-center of the screen
+                // Get stable screen coordinates by reading the track's un-hovered position
+                const itemRect = item.getBoundingClientRect();
+                const trackRect = track.getBoundingClientRect();
+                
+                // X coordinates are completely stable (hover only affects Y)
+                const baseItemLeft = itemRect.left;
+                const baseItemWidth = itemRect.width;
+                
+                // Y coordinates: use track's center since items are center-aligned (immune to hover)
+                const baseItemCenterY = trackRect.top + (trackRect.height / 2);
+                
+                const image = item.querySelector('.landmark-image');
+                // The image's un-hovered top coordinate on the screen
+                const baseItemTop = baseItemCenterY - (item.offsetHeight / 2);
+                const baseImageTop = baseItemTop + image.offsetTop;
+                const baseImageCenterY = baseImageTop + (image.offsetHeight / 2);
+
+                const viewportWidth = window.innerWidth;
+                const viewportHeight = window.innerHeight;
+
+                const targetX = (viewportWidth * 0.25) - (baseItemWidth / 2);
+                const moveX = targetX - baseItemLeft;
+
+                // Center Y perfectly on the image itself, ignoring the hidden text
+                const offsetY = baseImageCenterY - baseItemCenterY;
+                
+                // Calculate moveY so that the image center ends up at exactly 50% viewport height
+                // Note: The scale factor is 1.6
+                const moveY = (viewportHeight / 2) - baseItemCenterY - (offsetY * 1.6);
+
+                // Save where it originally was (it starts empty)
+                if (!originalTransforms.has(item)) {
+                    originalTransforms.set(item, item.style.transform || '');
+                }
+
+                // 3. Move and scale the item
+                item.classList.add('active');
+                item.style.transform = `translate(${moveX}px, ${moveY}px) scale(1.6)`;
+
+                // 4. Fill in the data for the right panel
+                const id = item.getAttribute('data-id');
+                const data = landmarkData[id];
+                
+                if (data) {
+                    document.getElementById('detailTitle').textContent = data.title;
+                    document.getElementById('detailCountry').textContent = data.country;
+                    document.getElementById('detailLocation').textContent = data.location;
+                    document.getElementById('detailYear').textContent = data.year;
+                    document.getElementById('detailHeight').textContent = data.height;
+                    document.getElementById('detailDesc').textContent = data.desc;
+                }
+
+                // 5. Slide in the panel
+                detailsPanel.classList.add('visible');
+            });
+        });
+
+        // Handle Close Button
+        closeBtn.addEventListener('click', () => {
+            if (!isActive || !activeItem) return;
+
+            detailsPanel.classList.remove('visible');
+            overlay.classList.remove('visible');
+
+            // Send item back to its spot on the belt
+            activeItem.style.transform = originalTransforms.get(activeItem) || '';
+            activeItem.classList.remove('active');
+
+            document.body.classList.remove('scroll-locked');
+            
+            isActive = false;
+            activeItem = null;
+        });
+        
+        // Optional: Click the background overlay to close
+        overlay.addEventListener('click', () => {
+            closeBtn.click();
+        });
+
+    </script>
+</body>
+</html>
