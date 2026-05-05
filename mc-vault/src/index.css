@@ -1,0 +1,38 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    background-color: #0b0b0b;
+    color: #dedede;
+    image-rendering: pixelated;
+  }
+}
+
+@layer components {
+  .mc-card {
+    border: 4px solid #333;
+    background: #2b2b2b;
+    box-shadow: inset -4px -4px #000, inset 4px 4px #555;
+    image-rendering: pixelated;
+  }
+  .mc-input {
+    border: 3px solid #000;
+    background: #000;
+    color: #fff;
+    padding: 8px;
+    font-family: 'Courier New', Courier, monospace;
+  }
+  .mc-btn {
+    border: 3px solid #555;
+    background: #333;
+    color: #fff;
+    padding: 8px 16px;
+    cursor: pointer;
+    box-shadow: inset -2px -2px #000, inset 2px 2px #555;
+  }
+  .mc-btn:active {
+    box-shadow: inset 2px 2px #000, inset -2px -2px #555;
+  }
+}

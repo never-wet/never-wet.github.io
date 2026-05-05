@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MC-Vault | Tool Suite</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/skinview3d@3.0.0/dist/skinview3d.bundle.js"></script>
+    <style>
+        body { background-color: #0b0b0b; color: #dedede; image-rendering: pixelated; }
+        .mc-card { border: 4px solid #333; background: #2b2b2b; box-shadow: inset -4px -4px #000, inset 4px 4px #555; }
+        .mc-input { border: 3px solid #000; background: #000; color: #fff; padding: 8px; width: 100%; font-family: monospace; }
+        .mc-btn { border: 3px solid #555; background: #333; color: #fff; padding: 8px 16px; cursor: pointer; box-shadow: inset -2px -2px #000, inset 2px 2px #555; width: 100%; font-weight: bold; }
+        .mc-btn:active { box-shadow: inset 2px 2px #000, inset -2px -2px #555; }
+    </style>
+</head>
+<body class="p-12">
+    <h1 class="text-4xl font-bold mb-8 uppercase tracking-widest text-emerald-400">MC-Vault</h1>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div class="space-y-8">
+            <!-- Server Status -->
+            <div class="mc-card p-8">
+                <h3 class="text-2xl font-bold mb-6 text-emerald-300 uppercase">Server Status</h3>
+                <input id="serverInput" class="mc-input mb-4" placeholder="e.g. mc.hypixel.net">
+                <button id="pingBtn" class="mc-btn">Ping Server</button>
+                <div id="statusResult" class="mt-6 p-4 border-2 border-black bg-black font-mono text-sm hidden"></div>
+            </div>
+            
+            <!-- Skin Editor -->
+            <div class="mc-card p-8">
+                <h3 class="text-2xl font-bold mb-6 text-emerald-300 uppercase">Skin Editor</h3>
+                <div class="flex flex-col items-center">
+                    <canvas id="editorCanvas" width="320" height="320" class="bg-black border-4 border-black cursor-crosshair"></canvas>
+                    <div class="mt-4 flex gap-4">
+                        <input type="color" id="colorPicker" class="w-12 h-12 rounded cursor-pointer">
+                        <button id="clearBtn" class="mc-btn !w-auto">Clear</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Color Converter -->
+        <div class="mc-card p-8">
+            <h3 class="text-2xl font-bold mb-6 text-emerald-300 uppercase">Color Converter</h3>
+            <input id="colorInput" class="mc-input mb-6" placeholder="Enter text with &a or §a codes">
+            <div id="colorResult" class="p-6 border-4 border-black bg-black min-h-[100px] font-mono text-2xl"></div>
+        </div>
+    </div>
+
+    <script>
+        // Skin Editor Logic
+        const canvas = document.getElementById('editorCanvas');
+        const ctx = canvas.getContext('2d');
+        const colorPicker = document.getElementById('colorPicker');
+        const clearBtn = document.getElementById('clearBtn');
+        const gridSize = 16;
+        const cellSize = canvas.width / gridSize;
+        let isDrawing = false;
+
+        // Initialize empty grid
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        function draw(e) {
+            if (!isDrawing) return;
+            const rect = canvas.getBoundingClientRect();
+            const x = Math.floor((e.clientX - rect.left) / cellSize);
+            const y = Math.floor((e.clientY - rect.top) / cellSize);
+            ctx.fillStyle = colorPicker.value;
+            ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
+        }
+
+        canvas.addEventListener('mousedown', (e) => { isDrawing = true; draw(e); });
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', () => isDrawing = false);
+        canvas.addEventListener('mouseleave', () => isDrawing = false);
+        clearBtn.addEventListener('click', () => {
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        });
+
+        // Skin Viewer Logic ...
+
+        function updateSkin(username) {
+            if (!username) return;
+            if (skinViewer) skinViewer.dispose();
+            
+            // mc-heads.net is very reliable for basic username-to-skin resolution.
+            const skinUrl = `https://mc-heads.net/skin/${username}`;
+            
+            skinViewer = new skinview3d.SkinViewer({
+                canvas: document.getElementById('skinCanvas'),
+                width: 300,
+                height: 300,
+                skin: skinUrl,
+            });
+            skinViewer.autoRotate = true;
+        }
+
+        document.getElementById('loadSkinBtn').addEventListener('click', () => updateSkin(skinInput.value));
+        skinInput.addEventListener('keypress', (e) => { if(e.key === 'Enter') updateSkin(skinInput.value); });
+        updateSkin('Steve');
+
+        // Color Converter Logic
+        const colorInput = document.getElementById('colorInput');
+        const colorResult = document.getElementById('colorResult');
+        const colors = {
+            '0': '#000000', '1': '#0000AA', '2': '#00AA00', '3': '#00AAAA',
+            '4': '#AA0000', '5': '#AA00AA', '6': '#FFAA00', '7': '#AAAAAA',
+            '8': '#555555', '9': '#5555FF', 'a': '#55FF55', 'b': '#55FFFF',
+            'c': '#FF5555', 'd': '#FF55FF', 'e': '#FFFF55', 'f': '#FFFFFF'
+        };
+
+        colorInput.addEventListener('input', (e) => {
+            const text = e.target.value;
+            let parts = text.split(/§|&/);
+            colorResult.innerHTML = '';
+            parts.forEach((part, index) => {
+                if (index === 0) {
+                    colorResult.appendChild(document.createTextNode(part));
+                } else {
+                    const colorCode = part[0];
+                    const content = part.substring(1);
+                    const span = document.createElement('span');
+                    span.style.color = colors[colorCode] || 'inherit';
+                    span.textContent = content;
+                    colorResult.appendChild(span);
+                }
+            });
+        });
+
+        // Server Status Logic
+        document.getElementById('pingBtn').addEventListener('click', async () => {
+            const host = document.getElementById('serverInput').value;
+            const resEl = document.getElementById('statusResult');
+            if(!host) return;
+            
+            resEl.classList.remove('hidden');
+            resEl.textContent = 'Pinging...';
+            
+            try {
+                // Note: This requires the backend API to be running
+                const res = await fetch('http://localhost:3000/api/ping?host=' + host);
+                const data = await res.json();
+                if(data.data) {
+                    resEl.innerHTML = `Players: ${data.data.players}/${data.data.maxPlayers}<br>MOTD: ${data.data.motd}`;
+                } else {
+                    resEl.textContent = 'Error: ' + (data.error || 'Unknown error');
+                }
+            } catch(e) {
+                resEl.textContent = 'Ping failed: Check if local API is running.';
+            }
+        });
+    </script>
+</body>
+</html>
