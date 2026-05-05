@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forever Terrarium - Three.js</title>
+    <style>
+        body { 
+            margin: 0; 
+            overflow: hidden; 
+            background-color: #121212; 
+            color: #e0e0e0; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+        }
+        #info { 
+            position: absolute; 
+            top: 20px; 
+            width: 100%; 
+            text-align: center; 
+            z-index: 100; 
+            pointer-events: none; /* Lets you click through the text to spin the jar */
+        }
+        h1 { margin: 0; font-size: 2rem; letter-spacing: 2px; }
+        p { margin-top: 5px; color: #888; }
+    </style>
+</head>
+<body>
+    <div id="info">
+        <h1>THE FOREVER TERRARIUM</h1>
+        <p>Click and drag to explore your zero-maintenance digital ecosystem.</p>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+    <script>
+        // 1. Scene Setup
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color('#121212');
+
+        // 2. Camera Setup
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(0, 2, 7);
+
+        // 3. Renderer Setup
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        document.body.appendChild(renderer.domElement);
+
+        // 4. Controls (Mouse interaction)
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        controls.autoRotate = true;       // Spins automatically
+        controls.autoRotateSpeed = 1.0;
+
+        // --- Terrarium Group ---
+        // Grouping everything makes it easier to move the whole jar if needed
+        const terrarium = new THREE.Group();
+        scene.add(terrarium);
+
+        // --- A. The Glass Jar ---
+        const jarGeo = new THREE.CylinderGeometry(1.5, 1.5, 4, 32);
+        // MeshPhysicalMaterial gives us advanced glass-like refraction and transparency
+        const jarMat = new THREE.MeshPhysicalMaterial({
+            color: 0xffffff,
+            transmission: 0.9,  // Glass transparency
+            opacity: 1,
+            metalness: 0,
+            roughness: 0.1,     // Smooth glass
+            ior: 1.5,           // Index of refraction
+            thickness: 0.1,
+            side: THREE.DoubleSide
+        });
+        const jar = new THREE.Mesh(jarGeo, jarMat);
+        terrarium.add(jar);
+
+        // --- B. The Soil Base ---
+        const soilGeo = new THREE.CylinderGeometry(1.45, 1.45, 0.8, 32);
+        const soilMat = new THREE.MeshStandardMaterial({ color: 0x3b2a1a, roughness: 1 });
+        const soil = new THREE.Mesh(soilGeo, soilMat);
+        soil.position.y = -1.5;
+        terrarium.add(soil);
+
+        // --- C. Activated Charcoal/Gravel Layer ---
+        const gravelGeo = new THREE.CylinderGeometry(1.46, 1.46, 0.2, 32);
+        const gravelMat = new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.9 });
+        const gravel = new THREE.Mesh(gravelGeo, gravelMat);
+        gravel.position.y = -1.9;
+        terrarium.add(gravel);
+
+        // --- D. The Plants (Abstract Geometric Moss) ---
+        const plantMat = new THREE.MeshStandardMaterial({ color: 0x4CAF50, roughness: 0.7 });
+        for(let i = 0; i < 6; i++) {
+            const plantGeo = new THREE.DodecahedronGeometry(0.25 + Math.random() * 0.2);
+            const plant = new THREE.Mesh(plantGeo, plantMat);
+            
+            // Randomly position them on top of the soil
+            const radius = Math.random() * 1.0;
+            const angle = Math.random() * Math.PI * 2;
+            plant.position.set(
+                Math.cos(angle) * radius,
+                -1.0, 
+                Math.sin(angle) * radius
+            );
+            plant.rotation.set(Math.random(), Math.random(), Math.random());
+            terrarium.add(plant);
+        }
+
+        // --- E. Small Decorative Rocks ---
+        const rockMat = new THREE.MeshStandardMaterial({ color: 0x888888, roughness: 0.9 });
+        for(let i = 0; i < 4; i++) {
+            const rockGeo = new THREE.IcosahedronGeometry(0.15 + Math.random() * 0.1);
+            const rock = new THREE.Mesh(rockGeo, rockMat);
+            
+            const radius = Math.random() * 1.2;
+            const angle = Math.random() * Math.PI * 2;
+            rock.position.set(
+                Math.cos(angle) * radius,
+                -1.05,
+                Math.sin(angle) * radius
+            );
+            terrarium.add(rock);
+        }
+
+        // --- F. The Cork Lid ---
+        const lidGeo = new THREE.CylinderGeometry(1.6, 1.5, 0.4, 32);
+        const lidMat = new THREE.MeshStandardMaterial({ color: 0x8b5a2b, roughness: 1 });
+        const lid = new THREE.Mesh(lidGeo, lidMat);
+        lid.position.y = 2;
+        terrarium.add(lid);
+
+        // --- 5. Lighting ---
+        // General ambient light
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+        scene.add(ambientLight);
+
+        // Mimics a desk lamp or the sun
+        const directionalLight = new THREE.DirectionalLight(0xfff5e6, 1.5);
+        directionalLight.position.set(5, 10, 7);
+        scene.add(directionalLight);
+
+        // A subtle inner glow for aesthetics
+        const pointLight = new THREE.PointLight(0xaaffaa, 0.8, 10);
+        pointLight.position.set(0, 0, 0);
+        terrarium.add(pointLight); 
+
+        // --- 6. Handle Window Resizing ---
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // --- 7. Animation Loop ---
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update(); // Needed for autoRotate and damping
+            renderer.render(scene, camera);
+        }
+        
+        animate();
+    </script>
+</body>
+</html>
