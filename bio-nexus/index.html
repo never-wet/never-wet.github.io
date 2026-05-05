@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bio-Nexus | 3D Anatomy</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+    <style>
+        body { margin: 0; overflow: hidden; background: #050505; }
+        #canvas-container { position: absolute; inset: 0; }
+    </style>
+</head>
+<body>
+    <div id="canvas-container"></div>
+    <div class="absolute top-8 left-8 text-white">
+        <h1 class="text-4xl font-light tracking-widest uppercase">Bio-Nexus</h1>
+        <p class="text-xs tracking-widest text-emerald-500 italic">Immersion: Anatomical Level 01</p>
+    </div>
+
+    <!-- Control Panel -->
+    <div class="absolute bottom-8 right-8 bg-black/60 backdrop-blur-md p-6 border border-white/10 rounded-lg text-white">
+        <h3 class="text-sm uppercase tracking-widest mb-4">Anatomy Controls</h3>
+        <div class="flex flex-col gap-2">
+            <button class="px-4 py-2 bg-white/10 hover:bg-emerald-600 transition-colors text-xs uppercase tracking-widest">Show Heart</button>
+            <button class="px-4 py-2 bg-white/10 hover:bg-emerald-600 transition-colors text-xs uppercase tracking-widest">Show Lungs</button>
+            <button class="px-4 py-2 bg-white/10 hover:bg-emerald-600 transition-colors text-xs uppercase tracking-widest">Show Intestines</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
+        const container = document.getElementById('canvas-container');
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        container.appendChild(renderer.domElement);
+
+        const controls = new OrbitControls(camera, renderer.domElement);
+        const loader = new GLTFLoader();
+        
+        // Add basic ambient lighting
+        scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+        const dirLight = new THREE.DirectionalLight(0xffffff, 1);
+        dirLight.position.set(5, 5, 5);
+        scene.add(dirLight);
+
+        // Function to create procedural human body
+        function createHumanBody() {
+            const group = new THREE.Group();
+            const material = new THREE.MeshPhongMaterial({ color: 0xcccccc });
+
+            // Head
+            const head = new THREE.Mesh(new THREE.SphereGeometry(0.3), material);
+            head.position.y = 1.8;
+            group.add(head);
+
+            // Torso
+            const torso = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.2, 1), material);
+            torso.position.y = 1.1;
+            group.add(torso);
+
+            // Arms
+            const armGeo = new THREE.CylinderGeometry(0.1, 0.1, 0.8);
+            const leftArm = new THREE.Mesh(armGeo, material);
+            leftArm.position.set(-0.5, 1.2, 0);
+            leftArm.rotation.z = Math.PI / 4;
+            group.add(leftArm);
+
+            const rightArm = new THREE.Mesh(armGeo, material);
+            rightArm.position.set(0.5, 1.2, 0);
+            rightArm.rotation.z = -Math.PI / 4;
+            group.add(rightArm);
+
+            // Legs
+            const legGeo = new THREE.CylinderGeometry(0.1, 0.1, 1);
+            const leftLeg = new THREE.Mesh(legGeo, material);
+            leftLeg.position.set(-0.2, 0.2, 0);
+            group.add(leftLeg);
+
+            const rightLeg = new THREE.Mesh(legGeo, material);
+            rightLeg.position.set(0.2, 0.2, 0);
+            group.add(rightLeg);
+
+            scene.add(group);
+        }
+
+        // Call human body generation
+        createHumanBody();
+
+        // Function to load model
+        function loadModel(path) {
+            loader.load(path, (gltf) => {
+                // Clear existing model (optional)
+                scene.add(gltf.scene);
+            }, undefined, (error) => {
+                console.error('An error happened', error);
+            });
+        }
+
+        camera.position.z = 5;
+
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>
