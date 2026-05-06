@@ -80,11 +80,38 @@
             transform-origin: center center;
             will-change: transform, opacity;
             
-            /* Explicitly removing any box-like styling */
             background: transparent;
             border: none;
             outline: none;
             box-shadow: none;
+        }
+
+        /* 3D Badge */
+        .landmark-item::after {
+            content: "3D INTERACTIVE";
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 215, 0, 0.2);
+            color: #FFD700;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.65rem;
+            letter-spacing: 1px;
+            font-weight: 700;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            opacity: 0.8;
+            transition: all 0.3s ease;
+            z-index: 2;
+        }
+
+        .landmark-item:hover::after {
+            background: rgba(255, 215, 0, 0.4);
+            opacity: 1;
+        }
+
+        .landmark-item.active::after {
+            display: none;
         }
 
         /* Slight float effect on hover */
@@ -98,13 +125,39 @@
             object-fit: contain;
             margin-bottom: 20px;
             transition: all 0.6s ease;
-            /* Added border radius just in case images aren't perfectly transparent yet */
             border-radius: 12px; 
+            background: radial-gradient(circle at center, rgba(255,255,255,0.05) 0%, transparent 70%);
+        }
+
+        /* Holographic Pedestal Look for models that haven't loaded yet */
+        model-viewer::part(poster) {
+            background: radial-gradient(circle at 50% 50%, rgba(255, 215, 0, 0.15) 0%, transparent 60%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        model-viewer::part(poster)::after {
+            content: "";
+            width: 120px;
+            height: 20px;
+            background: rgba(255, 215, 0, 0.2);
+            border-radius: 50%;
+            filter: blur(15px);
+            position: absolute;
+            bottom: 40px;
+            animation: pulse 3s infinite ease-in-out;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.2; }
+            50% { transform: scale(1.5); opacity: 0.5; }
         }
 
         /* Only apply CSS drop-shadow to actual images, not the 3D model canvas */
         img.landmark-image {
             filter: drop-shadow(0 15px 25px rgba(0,0,0,0.8));
+            background: radial-gradient(circle at center, rgba(255,255,255,0.03) 0%, transparent 70%);
         }
 
         model-viewer.landmark-image {
