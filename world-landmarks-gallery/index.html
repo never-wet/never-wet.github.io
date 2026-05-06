@@ -157,13 +157,24 @@
             background: linear-gradient(135deg, #1f1f1f 0%, #121212 100%);
             display: flex;
             flex-direction: column;
-            justify-content: center;
-            padding: 5vw;
+            padding: 80px 5vw 60px 5vw; /* Increased top padding for the button */
             box-sizing: border-box;
             transform: translateX(100%); /* Hidden by default off-screen */
             transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
             z-index: 20;
             border-left: 1px solid rgba(255, 255, 255, 0.1);
+            overflow-y: auto; /* Enable vertical scrolling */
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255,255,255,0.2) transparent;
+        }
+
+        .details-panel::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .details-panel::-webkit-scrollbar-thumb {
+            background-color: rgba(255,255,255,0.2);
+            border-radius: 10px;
         }
 
         .details-panel.visible {
@@ -171,19 +182,21 @@
         }
 
         .close-btn {
-            position: absolute;
-            top: 40px;
-            right: 40px;
-            background: transparent;
+            position: fixed; /* Keep it fixed at the top right of the viewport */
+            top: 30px;
+            right: 30px;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
             border: 2px solid rgba(255, 255, 255, 0.3);
             color: white;
-            font-size: 1rem;
-            padding: 10px 25px;
+            font-size: 0.9rem;
+            padding: 8px 20px;
             cursor: pointer;
             border-radius: 30px;
             transition: all 0.3s ease;
             text-transform: uppercase;
             letter-spacing: 2px;
+            z-index: 30;
         }
 
         .close-btn:hover {
