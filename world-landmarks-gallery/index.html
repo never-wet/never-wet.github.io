@@ -2961,6 +2961,9 @@
                 const modelViewer = item.querySelector('model-viewer');
                 if (modelViewer) {
                     modelViewer.dismissPoster();
+                    // Enable zoom and pan for the active model
+                    modelViewer.removeAttribute('disable-zoom');
+                    modelViewer.removeAttribute('disable-pan');
                 }
 
                 // 4. Fill in the data for the right panel
@@ -3009,6 +3012,12 @@
             overlay.classList.remove('visible');
 
             // Send item back to its spot on the belt
+            const modelViewer = activeItem.querySelector('model-viewer');
+            if (modelViewer) {
+                modelViewer.setAttribute('disable-zoom', '');
+                modelViewer.setAttribute('disable-pan', '');
+            }
+
             activeItem.style.transform = originalTransforms.get(activeItem) || '';
             activeItem.classList.remove('active');
 
