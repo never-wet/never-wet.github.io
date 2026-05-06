@@ -364,7 +364,7 @@
     <div class="gallery-container">
         <div class="track" id="track">
             <div class="landmark-item" data-id="eiffeltower774">
-                <model-viewer loading="lazy" reveal="manual" src="models/free__la_tour_eiffel.glb" alt="Eiffel Tower 3D Model" auto-rotate camera-controls disable-zoom disable-pan class="landmark-image" shadow-intensity="0" exposure="1" environment-image="neutral" camera-orbit="auto auto auto" style="background-color: transparent;" interaction-prompt="none"></model-viewer>
+                <model-viewer loading="eager" reveal="auto" src="models/free__la_tour_eiffel.glb" alt="Eiffel Tower 3D Model" auto-rotate camera-controls disable-zoom disable-pan class="landmark-image" shadow-intensity="0" exposure="1" environment-image="neutral" camera-orbit="auto auto auto" style="background-color: transparent;" interaction-prompt="none"></model-viewer>
                 <div class="landmark-info">
                     <h2 class="landmark-name">Eiffel Tower</h2>
                     <p class="landmark-country">France</p>
@@ -372,7 +372,7 @@
             </div>
 
             <div class="landmark-item" data-id="greatwallofchin192">
-                <model-viewer loading="lazy" reveal="manual" src="models/great_wall_survey.glb" alt="Great Wall of China 3D Model" auto-rotate camera-controls disable-zoom disable-pan class="landmark-image" shadow-intensity="0" exposure="1" environment-image="neutral" camera-orbit="auto auto auto" style="background-color: transparent;" interaction-prompt="none"></model-viewer>
+                <model-viewer loading="eager" reveal="auto" src="models/great_wall_survey.glb" alt="Great Wall of China 3D Model" auto-rotate camera-controls disable-zoom disable-pan class="landmark-image" shadow-intensity="0" exposure="1" environment-image="neutral" camera-orbit="auto auto auto" style="background-color: transparent;" interaction-prompt="none"></model-viewer>
                 <div class="landmark-info">
                     <h2 class="landmark-name">Great Wall of China</h2>
                     <p class="landmark-country">China</p>
@@ -380,7 +380,7 @@
             </div>
 
             <div class="landmark-item" data-id="colosseum59">
-                <model-viewer loading="lazy" reveal="manual" src="models/romes_colosseum.glb" alt="Colosseum 3D Model" auto-rotate camera-controls disable-zoom disable-pan class="landmark-image" shadow-intensity="0" exposure="1" environment-image="neutral" camera-orbit="auto auto auto" style="background-color: transparent;" interaction-prompt="none"></model-viewer>
+                <model-viewer loading="eager" reveal="auto" src="models/romes_colosseum.glb" alt="Colosseum 3D Model" auto-rotate camera-controls disable-zoom disable-pan class="landmark-image" shadow-intensity="0" exposure="1" environment-image="neutral" camera-orbit="auto auto auto" style="background-color: transparent;" interaction-prompt="none"></model-viewer>
                 <div class="landmark-info">
                     <h2 class="landmark-name">Colosseum</h2>
                     <p class="landmark-country">Italy</p>
@@ -388,7 +388,7 @@
             </div>
 
             <div class="landmark-item" data-id="tajmahal437">
-                <model-viewer loading="lazy" reveal="manual" src="models/taj_mahal_3d_model.glb" alt="Taj Mahal 3D Model" auto-rotate camera-controls disable-zoom disable-pan class="landmark-image" shadow-intensity="0" exposure="0.5" environment-image="neutral" camera-orbit="auto auto auto" style="background-color: transparent;" interaction-prompt="none"></model-viewer>
+                <model-viewer loading="eager" reveal="auto" src="models/taj_mahal_3d_model.glb" alt="Taj Mahal 3D Model" auto-rotate camera-controls disable-zoom disable-pan class="landmark-image" shadow-intensity="0" exposure="0.5" environment-image="neutral" camera-orbit="auto auto auto" style="background-color: transparent;" interaction-prompt="none"></model-viewer>
                 <div class="landmark-info">
                     <h2 class="landmark-name">Taj Mahal</h2>
                     <p class="landmark-country">India</p>
@@ -396,7 +396,7 @@
             </div>
 
             <div class="landmark-item" data-id="machupicchu66">
-                <model-viewer loading="lazy" reveal="manual" src="models/Machu_Picchu,_Peru.glb" alt="Machu Picchu 3D Model" auto-rotate camera-controls disable-zoom disable-pan class="landmark-image" shadow-intensity="0" exposure="1" environment-image="neutral" camera-orbit="auto auto auto" style="background-color: transparent;" interaction-prompt="none"></model-viewer>
+                <model-viewer loading="eager" reveal="auto" src="models/Machu_Picchu,_Peru.glb" alt="Machu Picchu 3D Model" auto-rotate camera-controls disable-zoom disable-pan class="landmark-image" shadow-intensity="0" exposure="1" environment-image="neutral" camera-orbit="auto auto auto" style="background-color: transparent;" interaction-prompt="none"></model-viewer>
                 <div class="landmark-info">
                     <h2 class="landmark-name">Machu Picchu</h2>
                     <p class="landmark-country">Peru</p>
@@ -404,7 +404,7 @@
             </div>
 
             <div class="landmark-item" data-id="statueofliberty670">
-                <model-viewer loading="lazy" reveal="manual" src="models/statue_of_liberty.glb" alt="Statue of Liberty 3D Model" auto-rotate camera-controls disable-zoom disable-pan class="landmark-image" shadow-intensity="0" exposure="1" environment-image="neutral" camera-orbit="auto auto auto" style="background-color: transparent;" interaction-prompt="none"></model-viewer>
+                <model-viewer loading="eager" reveal="auto" src="models/statue_of_liberty.glb" alt="Statue of Liberty 3D Model" auto-rotate camera-controls disable-zoom disable-pan class="landmark-image" shadow-intensity="0" exposure="1" environment-image="neutral" camera-orbit="auto auto auto" style="background-color: transparent;" interaction-prompt="none"></model-viewer>
                 <div class="landmark-info">
                     <h2 class="landmark-name">Statue of Liberty</h2>
                     <p class="landmark-country">United States</p>
@@ -2865,9 +2865,12 @@
         const visibilityObserver = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
-                    // We no longer dismiss the poster here!
-                    // This keeps the 8K models from loading while you scroll.
-                    // They will only load when you CLICK to expand.
+                    const modelViewer = entry.target.querySelector('model-viewer');
+                    if (modelViewer) {
+                        modelViewer.dismissPoster();
+                    }
+                    // Once load is triggered, we can stop observing
+                    visibilityObserver.unobserve(entry.target);
                 }
             });
         }, observerOptions);
