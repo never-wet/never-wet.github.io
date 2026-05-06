@@ -62,8 +62,7 @@
             gap: 8vw;
             padding: 0 50vw; /* Starts the first item in the middle of the screen */
             will-change: transform;
-            /* Smooth interpolation for the scroll movement */
-            transition: transform 0.1s linear; 
+            /* No transition here! requestAnimationFrame handles the smoothness */
             align-items: center;
         }
 
@@ -79,6 +78,7 @@
             cursor: pointer;
             transition: all 0.6s cubic-bezier(0.25, 1, 0.5, 1);
             transform-origin: center center;
+            will-change: transform, opacity;
             
             /* Explicitly removing any box-like styling */
             background: transparent;
@@ -311,7 +311,7 @@
     <div class="gallery-container">
         <div class="track" id="track">
             <div class="landmark-item" data-id="eiffeltower774">
-                <model-viewer src="models/free__la_tour_eiffel.glb" alt="Eiffel Tower 3D Model" auto-rotate camera-controls disable-zoom disable-pan class="landmark-image" shadow-intensity="1" exposure="1" environment-image="neutral" camera-orbit="auto auto auto" style="background-color: transparent;"></model-viewer>
+                <model-viewer loading="lazy" reveal="manual" src="models/free__la_tour_eiffel.glb" alt="Eiffel Tower 3D Model" auto-rotate camera-controls disable-zoom disable-pan class="landmark-image" shadow-intensity="1" exposure="1" environment-image="neutral" camera-orbit="auto auto auto" style="background-color: transparent;"></model-viewer>
                 <div class="landmark-info">
                     <h2 class="landmark-name">Eiffel Tower</h2>
                     <p class="landmark-country">France</p>
@@ -319,7 +319,7 @@
             </div>
 
             <div class="landmark-item" data-id="greatwallofchin192">
-                <model-viewer src="models/great_wall_survey.glb" alt="Great Wall of China 3D Model" auto-rotate camera-controls disable-zoom disable-pan class="landmark-image" shadow-intensity="1" exposure="1" environment-image="neutral" camera-orbit="auto auto auto" style="background-color: transparent;"></model-viewer>
+                <model-viewer loading="lazy" reveal="manual" src="models/great_wall_survey.glb" alt="Great Wall of China 3D Model" auto-rotate camera-controls disable-zoom disable-pan class="landmark-image" shadow-intensity="1" exposure="1" environment-image="neutral" camera-orbit="auto auto auto" style="background-color: transparent;"></model-viewer>
                 <div class="landmark-info">
                     <h2 class="landmark-name">Great Wall of China</h2>
                     <p class="landmark-country">China</p>
@@ -327,7 +327,7 @@
             </div>
 
             <div class="landmark-item" data-id="colosseum59">
-                <model-viewer src="models/romes_colosseum.glb" alt="Colosseum 3D Model" auto-rotate camera-controls disable-zoom disable-pan class="landmark-image" shadow-intensity="1" exposure="1" environment-image="neutral" camera-orbit="auto auto auto" style="background-color: transparent;"></model-viewer>
+                <model-viewer loading="lazy" reveal="manual" src="models/romes_colosseum.glb" alt="Colosseum 3D Model" auto-rotate camera-controls disable-zoom disable-pan class="landmark-image" shadow-intensity="1" exposure="1" environment-image="neutral" camera-orbit="auto auto auto" style="background-color: transparent;"></model-viewer>
                 <div class="landmark-info">
                     <h2 class="landmark-name">Colosseum</h2>
                     <p class="landmark-country">Italy</p>
@@ -335,7 +335,7 @@
             </div>
 
             <div class="landmark-item" data-id="tajmahal437">
-                <model-viewer src="models/taj_mahal_3d_model.glb" alt="Taj Mahal 3D Model" auto-rotate camera-controls disable-zoom disable-pan class="landmark-image" shadow-intensity="1" exposure="0.5" environment-image="neutral" camera-orbit="auto auto auto" style="background-color: transparent;"></model-viewer>
+                <model-viewer loading="lazy" reveal="manual" src="models/taj_mahal_3d_model.glb" alt="Taj Mahal 3D Model" auto-rotate camera-controls disable-zoom disable-pan class="landmark-image" shadow-intensity="1" exposure="0.5" environment-image="neutral" camera-orbit="auto auto auto" style="background-color: transparent;"></model-viewer>
                 <div class="landmark-info">
                     <h2 class="landmark-name">Taj Mahal</h2>
                     <p class="landmark-country">India</p>
@@ -343,7 +343,7 @@
             </div>
 
             <div class="landmark-item" data-id="machupicchu66">
-                <model-viewer src="models/Machu_Picchu,_Peru.glb" alt="Machu Picchu 3D Model" auto-rotate camera-controls disable-zoom disable-pan class="landmark-image" shadow-intensity="1" exposure="1" environment-image="neutral" camera-orbit="auto auto auto" style="background-color: transparent;"></model-viewer>
+                <model-viewer loading="lazy" reveal="manual" src="models/Machu_Picchu,_Peru.glb" alt="Machu Picchu 3D Model" auto-rotate camera-controls disable-zoom disable-pan class="landmark-image" shadow-intensity="1" exposure="1" environment-image="neutral" camera-orbit="auto auto auto" style="background-color: transparent;"></model-viewer>
                 <div class="landmark-info">
                     <h2 class="landmark-name">Machu Picchu</h2>
                     <p class="landmark-country">Peru</p>
@@ -2801,6 +2801,30 @@
         let originalTransforms = new Map();
 
         /* ==========================================================================
+           Step 2.2: Visibility Loading (Intersection Observer)
+           ========================================================================== */
+        const observerOptions = {
+            root: null,
+            rootMargin: '0px 200px 0px 200px', // Trigger before it enters horizontally
+            threshold: 0.01
+        };
+
+        const visibilityObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const modelViewer = entry.target.querySelector('model-viewer');
+                    if (modelViewer) {
+                        modelViewer.dismissPoster();
+                    }
+                    // Once load is triggered, we can stop observing
+                    visibilityObserver.unobserve(entry.target);
+                }
+            });
+        }, observerOptions);
+
+        items.forEach(item => visibilityObserver.observe(item));
+
+        /* ==========================================================================
            Step 2.5: Loading Screen Logic
            ========================================================================== */
         const loader = document.getElementById('loader');
@@ -2821,13 +2845,14 @@
             modelViewers.forEach(model => {
                 model.addEventListener('load', () => {
                     modelsLoaded++;
-                    if (modelsLoaded === modelViewers.length) {
+                    // Hide loader as soon as the first model (usually the one in view) is ready
+                    if (modelsLoaded >= 1) {
                         hideLoader();
                     }
                 });
             });
-            // Fallback timeout in case a model fails to load
-            setTimeout(hideLoader, 10000); 
+            // Fallback timeout
+            setTimeout(hideLoader, 3000); 
         } else {
             window.addEventListener('load', hideLoader);
         }
