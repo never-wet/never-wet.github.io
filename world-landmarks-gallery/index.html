@@ -10,7 +10,7 @@
            Step 1: Layout & Styling (Dark Mode Focus)
            ========================================================================== */
         
-        body {
+        html, body {
             margin: 0;
             padding: 0;
             background-color: #0a0a0a; /* Deep dark background */
@@ -20,12 +20,14 @@
             /* Height is 400vh to ensure there is plenty of room to scroll down */
             height: 400vh; 
             /* Hide scrollbar for Chrome, Safari and Opera */
-            -ms-overflow-style: none;  /* IE and Edge */
-            scrollbar-width: none;  /* Firefox */
+            -ms-overflow-style: none !important;  /* IE and Edge */
+            scrollbar-width: none !important;  /* Firefox */
         }
 
-        body::-webkit-scrollbar {
-            display: none;
+        html::-webkit-scrollbar, body::-webkit-scrollbar {
+            display: none !important;
+            width: 0 !important;
+            height: 0 !important;
         }
 
         /* Lock scroll when an item is clicked */
@@ -173,12 +175,14 @@
             overflow-y: auto; /* Enable vertical scrolling */
             
             /* Hide scrollbar for Chrome, Safari and Opera */
-            -ms-overflow-style: none;  /* IE and Edge */
-            scrollbar-width: none;  /* Firefox */
+            -ms-overflow-style: none !important;  /* IE and Edge */
+            scrollbar-width: none !important;  /* Firefox */
         }
 
         .details-panel::-webkit-scrollbar {
-            display: none;
+            display: none !important;
+            width: 0 !important;
+            height: 0 !important;
         }
 
         .details-panel.visible {
