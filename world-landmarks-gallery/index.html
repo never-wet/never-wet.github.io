@@ -2868,9 +2868,25 @@
            Step 4: Click to Expand & Details Panel
            ========================================================================== */
            
+        let startX, startY;
+
         items.forEach(item => {
-            item.addEventListener('click', (e) => {
+            // Track start position of a potential click/drag
+            item.addEventListener('mousedown', (e) => {
+                startX = e.clientX;
+                startY = e.clientY;
+            });
+
+            item.addEventListener('mouseup', (e) => {
                 if (isActive) return; 
+
+                // Calculate distance moved
+                const diffX = Math.abs(e.clientX - startX);
+                const diffY = Math.abs(e.clientY - startY);
+                const threshold = 5; // 5px threshold to distinguish click from drag
+
+                // If movement is greater than threshold, it's a drag (spinning the model)
+                if (diffX > threshold || diffY > threshold) return;
 
                 isActive = true;
                 activeItem = item;
