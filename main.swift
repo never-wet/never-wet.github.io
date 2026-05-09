@@ -3,7 +3,7 @@ import Foundation
 import FoundationNetworking // Required for networking on Windows/Linux Swift
 #endif
 
-let apiKey = "AIzaSyBZzNYNVRAKLNnY5cWt8AUvCvEeVSYD8A8"
+let apiKey = "YOUR_GEMINI_API"
 let urlString = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=\(apiKey)"
 guard let url = URL(string: urlString) else { fatalError("Invalid URL") }
 
