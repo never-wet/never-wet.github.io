@@ -1,0 +1,985 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>NEVER WET — Immersive Portal</title>
+  <meta name="description"
+    content="An immersive 3D portal into every Never Wet project — refractive WebGL centerpiece, draggable carousel, particle field and live launch index." />
+  <link rel="icon" type="image/x-icon" href="./favicon.ico" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Syne:wght@600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #05060a;
+      --fg: #f4f6fb;
+      --muted: rgba(244, 246, 251, 0.5);
+      --line: rgba(244, 246, 251, 0.12);
+      --ice: #8be9ff;
+      --pop: #ff5ed0;
+      --card: rgba(255, 255, 255, 0.03);
+      --ease: cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body { height: 100%; margin: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--fg);
+      font-family: "Space Grotesk", system-ui, sans-serif;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+      cursor: none;
+    }
+
+    @media (pointer: coarse) { body { cursor: auto; } }
+
+    ::selection { background: var(--ice); color: #000; }
+
+    ::-webkit-scrollbar { width: 0; height: 0; }
+
+    a { color: inherit; text-decoration: none; }
+
+    .mono {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 0.62rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .display { font-family: "Syne", sans-serif; letter-spacing: -0.02em; line-height: 0.9; }
+
+    /* ---------- Preloader ---------- */
+    #loader {
+      position: fixed; inset: 0; z-index: 9000; background: var(--bg);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+    }
+    #loader .pct {
+      font-family: "Syne", sans-serif; font-weight: 800;
+      font-size: clamp(5rem, 22vw, 18rem); line-height: 1;
+      font-variant-numeric: tabular-nums; letter-spacing: -0.05em;
+    }
+    #loader .pct b { color: var(--ice); }
+    #loader .bar { width: min(60vw, 420px); height: 1px; background: var(--line); margin-top: 1.4rem; overflow: hidden; }
+    #loader .bar i { display: block; height: 100%; width: 0%; background: var(--ice); }
+    #loader .lbl { margin-top: 1.2rem; }
+
+    /* ---------- Canvas / scene ---------- */
+    #scene { position: fixed; inset: 0; z-index: 0; }
+
+    .grain {
+      position: fixed; inset: 0; z-index: 1; pointer-events: none; opacity: 0.05;
+      background-image: radial-gradient(rgba(255, 255, 255, 0.6) 1px, transparent 1px);
+      background-size: 3px 3px; mix-blend-mode: overlay;
+    }
+
+    main { position: relative; z-index: 5; }
+
+    /* ---------- Cursor ---------- */
+    #cursor { position: fixed; top: 0; left: 0; z-index: 9999; pointer-events: none; transform: translate(-50%, -50%); }
+    #cursor .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--ice); }
+    #cursorRing {
+      position: fixed; top: 0; left: 0; z-index: 9998; pointer-events: none;
+      width: 42px; height: 42px; border: 1px solid rgba(244, 246, 251, 0.4); border-radius: 50%;
+      transform: translate(-50%, -50%); transition: width .35s var(--ease), height .35s var(--ease), background .35s var(--ease), border-color .35s var(--ease);
+      display: flex; align-items: center; justify-content: center;
+    }
+    #cursorRing .clabel {
+      font-family: "JetBrains Mono", monospace; font-size: 0.55rem; letter-spacing: 0.1em;
+      text-transform: uppercase; color: #000; opacity: 0; transition: opacity .3s ease;
+    }
+    body.hovering #cursorRing { width: 76px; height: 76px; background: var(--ice); border-color: var(--ice); }
+    body.hovering #cursorRing .clabel { opacity: 1; }
+    body.dragging #cursorRing { width: 90px; height: 90px; background: var(--pop); border-color: var(--pop); }
+
+    /* ---------- HUD ---------- */
+    .hud { position: fixed; z-index: 60; pointer-events: none; }
+    .hud .mono { display: block; line-height: 1.7; }
+    .hud-tl { top: 76px; left: 24px; }
+    .hud-tr { top: 76px; right: 24px; text-align: right; }
+    .hud-bl { bottom: 22px; left: 24px; }
+    .hud-br { bottom: 22px; right: 24px; text-align: right; }
+    .hud-frame { position: fixed; inset: 14px; z-index: 55; pointer-events: none; border: 1px solid var(--line); }
+    .hud-frame::before, .hud-frame::after {
+      content: ""; position: absolute; width: 10px; height: 10px; border: 1px solid var(--ice);
+    }
+    .hud-frame::before { top: -1px; left: -1px; border-right: 0; border-bottom: 0; }
+    .hud-frame::after { bottom: -1px; right: -1px; border-left: 0; border-top: 0; }
+
+    #scrollMeter { position: fixed; left: 0; top: 0; height: 2px; width: 0%; background: var(--ice); z-index: 70; box-shadow: 0 0 12px var(--ice); }
+
+    /* ---------- Header ---------- */
+    header.nav {
+      position: fixed; top: 22px; left: 24px; right: 24px; z-index: 65;
+      display: flex; justify-content: space-between; align-items: center; pointer-events: none;
+    }
+    header.nav > * { pointer-events: auto; }
+    .brand { display: flex; align-items: center; gap: 12px; font-family: "Syne", sans-serif; font-weight: 800; }
+    .brand .badge {
+      width: 34px; height: 34px; display: grid; place-items: center; border: 1px solid var(--line);
+      border-radius: 50%; font-size: 0.7rem; letter-spacing: 0.05em; color: var(--ice);
+    }
+    .navlinks { display: flex; gap: 8px; align-items: center; }
+
+    .pill {
+      display: inline-flex; align-items: center; gap: 8px; padding: 0.7rem 1.2rem; border-radius: 999px;
+      border: 1px solid var(--line); background: rgba(255, 255, 255, 0.02);
+      font-size: 0.66rem; letter-spacing: 0.18em; text-transform: uppercase; font-weight: 500;
+      transition: background .4s var(--ease), color .4s var(--ease), border-color .4s var(--ease);
+    }
+    .pill:hover { background: var(--fg); color: #000; border-color: var(--fg); }
+    .pill--ice:hover { background: var(--ice); border-color: var(--ice); }
+
+    @media (max-width: 720px) { .navlinks .pill.optional { display: none; } }
+
+    /* ---------- Hero ---------- */
+    #hero { min-height: 100vh; display: flex; flex-direction: column; justify-content: center; padding: 130px 6vw 90px; }
+    #hero .eyebrow { margin-bottom: 1.6rem; }
+    #hero h1 { font-family: "Syne", sans-serif; font-weight: 800; font-size: clamp(3rem, 13vw, 13rem); line-height: 0.84; letter-spacing: -0.04em; margin: 0; }
+    #hero h1 .em { color: var(--ice); }
+    .lineMask { overflow: hidden; display: block; }
+    .lineMask > span { display: block; transform: translateY(110%); }
+    #hero .sub {
+      max-width: 460px; margin-top: 2.2rem; color: var(--muted); font-size: 1.02rem; line-height: 1.65;
+    }
+    #hero .actions { margin-top: 2.6rem; display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
+    .scrollcue { position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 10px; }
+    .scrollcue i { width: 1px; height: 46px; background: linear-gradient(var(--ice), transparent); animation: drop 2s var(--ease) infinite; }
+    @keyframes drop { 0% { transform: scaleY(0); transform-origin: top; } 45% { transform: scaleY(1); transform-origin: top; } 55% { transform: scaleY(1); transform-origin: bottom; } 100% { transform: scaleY(0); transform-origin: bottom; } }
+
+    /* ---------- Section scaffolding ---------- */
+    section { position: relative; }
+    .wrap { max-width: 1340px; margin: 0 auto; padding: 0 6vw; }
+    .sec-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 2rem; margin-bottom: 3rem; border-bottom: 1px solid var(--line); padding-bottom: 1.4rem; flex-wrap: wrap; }
+    .sec-head h2 { font-family: "Syne", sans-serif; font-weight: 800; font-size: clamp(2rem, 6vw, 4.6rem); letter-spacing: -0.03em; margin: 0.6rem 0 0; line-height: 0.95; }
+
+    .reveal { opacity: 0; transform: translateY(40px); transition: opacity 1s var(--ease), transform 1s var(--ease); }
+    .reveal.in { opacity: 1; transform: none; }
+
+    /* ---------- Carousel (smooothy) ---------- */
+    #showcase { padding: 14vh 0 12vh; }
+    .stage { position: relative; height: 64vh; min-height: 460px; perspective: 1600px; touch-action: pan-y; }
+    .track { position: absolute; inset: 0; transform-style: preserve-3d; }
+    .slide {
+      position: absolute; top: 50%; left: 50%; width: 340px; height: 440px; margin: -220px 0 0 -170px;
+      transform-style: preserve-3d; will-change: transform; backface-visibility: hidden;
+    }
+    .slide .panel {
+      position: relative; width: 100%; height: 100%; border-radius: 18px; overflow: hidden;
+      border: 1px solid var(--line); background: linear-gradient(160deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.01));
+      backdrop-filter: blur(6px); display: flex; flex-direction: column; justify-content: space-between; padding: 24px;
+      box-shadow: 0 40px 80px -40px rgba(0, 0, 0, 0.8);
+    }
+    .slide .panel::before {
+      content: ""; position: absolute; inset: 0; opacity: 0.6; mix-blend-mode: screen;
+      background: radial-gradient(120% 80% at 30% 0%, var(--g1, #2a3550), transparent 60%),
+                  radial-gradient(120% 80% at 80% 110%, var(--g2, #101522), transparent 60%);
+    }
+    .slide .panel > * { position: relative; z-index: 2; }
+    .slide .idx { font-family: "JetBrains Mono", monospace; font-size: 0.7rem; color: var(--ice); letter-spacing: 0.2em; }
+    .slide .tag { margin-top: auto; }
+    .slide h3 { font-family: "Syne", sans-serif; font-weight: 800; font-size: 1.7rem; line-height: 1; margin: 0.4rem 0 0.8rem; letter-spacing: -0.02em; }
+    .slide p { font-size: 0.82rem; color: var(--muted); line-height: 1.5; margin: 0; max-height: 5.4em; overflow: hidden; }
+    .slide .launch { margin-top: 16px; display: inline-flex; align-items: center; gap: 8px; font-size: 0.6rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ice); opacity: 0; transition: opacity .4s ease; }
+    .slide.active .launch { opacity: 1; }
+    .stage-hint { text-align: center; margin-top: 2.4rem; }
+
+    /* ---------- Strings (string-tune) ---------- */
+    #frequency { padding: 8vh 0 10vh; }
+    #strings { width: 100%; height: 320px; display: block; cursor: none; }
+
+    /* ---------- Index grid (terminal) ---------- */
+    #index { padding: 6vh 0 16vh; }
+    .filters { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 2.2rem; }
+    .search { flex: 1; min-width: 220px; position: relative; }
+    .search input {
+      width: 100%; background: transparent; border: 0; border-bottom: 1px solid var(--line); color: var(--fg);
+      padding: 0.8rem 0.2rem; font-family: "JetBrains Mono", monospace; font-size: 0.85rem; outline: none;
+      transition: border-color .3s ease;
+    }
+    .search input:focus { border-color: var(--ice); }
+    .search input::placeholder { color: var(--muted); letter-spacing: 0.1em; }
+    .chip {
+      padding: 0.5rem 0.9rem; border: 1px solid var(--line); border-radius: 999px; font-family: "JetBrains Mono", monospace;
+      font-size: 0.6rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); background: transparent; transition: all .3s var(--ease);
+    }
+    .chip.on, .chip:hover { color: #000; background: var(--ice); border-color: var(--ice); }
+
+    .grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 12px; }
+    .item {
+      grid-column: span 4; min-height: 190px; padding: 22px; border: 1px solid var(--line); border-radius: 14px;
+      background: var(--card); display: flex; flex-direction: column; justify-content: space-between;
+      transition: border-color .4s var(--ease), background .4s var(--ease); will-change: transform; position: relative; overflow: hidden;
+    }
+    .item::after {
+      content: ""; position: absolute; left: 0; bottom: 0; height: 2px; width: 0; background: var(--ice); transition: width .5s var(--ease);
+    }
+    .item:hover { border-color: rgba(244, 246, 251, 0.35); background: rgba(255, 255, 255, 0.05); }
+    .item:hover::after { width: 100%; }
+    .item .arrow { position: absolute; top: 20px; right: 20px; opacity: 0; transform: translate(-6px, 6px); transition: all .4s var(--ease); color: var(--ice); }
+    .item:hover .arrow { opacity: 1; transform: none; }
+    .item h3 { font-family: "Syne", sans-serif; font-weight: 700; font-size: 1.3rem; margin: 0.6rem 0 0; letter-spacing: -0.01em; line-height: 1.05; }
+    .item .desc { color: var(--muted); font-size: 0.78rem; line-height: 1.5; margin-top: 0.7rem; max-height: 4.5em; overflow: hidden; }
+    .item.ext .badge-ext { color: var(--pop); }
+    @media (max-width: 1024px) { .item { grid-column: span 6; } }
+    @media (max-width: 640px) { .grid { grid-template-columns: 1fr; } .item { grid-column: span 1; } }
+    .empty { grid-column: 1 / -1; text-align: center; padding: 4rem 0; }
+
+    /* ---------- Footer ---------- */
+    footer { padding: 8vh 0 4vh; border-top: 1px solid var(--line); margin-top: 4vh; }
+    .foot-grid { display: flex; justify-content: space-between; align-items: flex-end; gap: 2rem; flex-wrap: wrap; }
+    footer h2 { font-family: "Syne", sans-serif; font-weight: 800; font-size: clamp(2.2rem, 8vw, 6rem); letter-spacing: -0.03em; margin: 0; line-height: 0.9; }
+    footer h2 a:hover { color: var(--ice); }
+
+    /* ---------- Page transition ---------- */
+    #transition { position: fixed; inset: 0; z-index: 9500; background: var(--ice); transform: translateY(100%); display: flex; align-items: center; justify-content: center; pointer-events: none; }
+    #transition .t-label { color: #000; font-family: "Syne", sans-serif; font-weight: 800; font-size: clamp(1.4rem, 5vw, 3rem); letter-spacing: -0.02em; opacity: 0; }
+
+    .noscript { padding: 3rem; text-align: center; }
+  </style>
+</head>
+
+<body>
+  <!-- Preloader -->
+  <div id="loader">
+    <div class="pct"><span id="pctNum">0</span><b>%</b></div>
+    <div class="bar"><i id="loadBar"></i></div>
+    <div class="mono lbl" id="loadLbl">Calibrating optics</div>
+  </div>
+
+  <!-- 3D scene -->
+  <canvas id="scene"></canvas>
+  <div class="grain"></div>
+
+  <!-- Cursor -->
+  <div id="cursor"><div class="dot"></div></div>
+  <div id="cursorRing"><span class="clabel" id="clabel">View</span></div>
+
+  <!-- HUD -->
+  <div class="hud-frame"></div>
+  <div id="scrollMeter"></div>
+  <div class="hud hud-tl"><span class="mono">NEVER//WET</span><span class="mono">EST · ARCHIVE</span></div>
+  <div class="hud hud-tr"><span class="mono" id="hudClock">--:--:--</span><span class="mono" id="hudCoord">00.00 / 00.00</span></div>
+  <div class="hud hud-bl"><span class="mono">WEBGL · ACTIVE</span><span class="mono" id="hudCount">000 NODES</span></div>
+  <div class="hud hud-br"><span class="mono" id="hudTicker">SYS · NOMINAL</span><span class="mono">LAT 00ms</span></div>
+
+  <!-- Nav -->
+  <header class="nav">
+    <a class="brand" href="#hero" data-cursor="Top">
+      <span class="badge">NW</span>
+      <span>NEVER&nbsp;WET</span>
+    </a>
+    <nav class="navlinks">
+      <a class="pill optional" href="#showcase" data-cursor="Browse">Showcase</a>
+      <a class="pill optional" href="#index" data-cursor="Index">Index</a>
+      <a class="pill pill--ice" href="https://junha2010.github.io/" target="_blank" rel="noopener" data-cursor="Open">Main Site ↗</a>
+    </nav>
+  </header>
+
+  <main>
+    <!-- HERO -->
+    <section id="hero">
+      <div class="mono eyebrow reveal">Vol. 01 — A living index of interactive work</div>
+      <h1 class="display">
+        <span class="lineMask"><span>BUILT</span></span>
+        <span class="lineMask"><span>TO BE <span class="em">FELT</span>.</span></span>
+      </h1>
+      <p class="sub reveal">
+        One immersive doorway into every Never Wet experiment — 3D worlds, AI labs, simulators, tools and games.
+        Drag, pluck, scroll, and launch.
+      </p>
+      <div class="actions reveal">
+        <a class="pill pill--ice" href="#showcase" data-cursor="Explore">Enter the Showcase</a>
+        <a class="pill" href="#index" data-cursor="Browse">Browse all <span id="heroCount">·</span></a>
+      </div>
+      <div class="scrollcue mono">SCROLL<i></i></div>
+    </section>
+
+    <!-- SHOWCASE / CAROUSEL -->
+    <section id="showcase">
+      <div class="wrap">
+        <div class="sec-head reveal">
+          <div>
+            <div class="mono">02 — Featured</div>
+            <h2 class="display">The Showcase</h2>
+          </div>
+          <div class="mono" style="text-align:right">DRAG · SCROLL · CLICK<br />TO NAVIGATE THE ARC</div>
+        </div>
+      </div>
+      <div class="stage" id="stage" data-cursor="Drag">
+        <div class="track" id="track"></div>
+      </div>
+      <div class="stage-hint mono reveal">← drag the arc · click the front card to launch →</div>
+    </section>
+
+    <!-- STRINGS / FREQUENCY -->
+    <section id="frequency">
+      <div class="wrap">
+        <div class="sec-head reveal">
+          <div>
+            <div class="mono">03 — Resonance</div>
+            <h2 class="display">Pluck the Signal</h2>
+          </div>
+          <div class="mono" style="text-align:right">DRAG ACROSS THE STRINGS</div>
+        </div>
+      </div>
+      <canvas id="strings" data-cursor="Pluck"></canvas>
+    </section>
+
+    <!-- INDEX -->
+    <section id="index">
+      <div class="wrap">
+        <div class="sec-head reveal">
+          <div>
+            <div class="mono">04 — Full Archive</div>
+            <h2 class="display">Every Launch Path</h2>
+          </div>
+          <div class="mono" id="indexMeta">000 PROJECTS</div>
+        </div>
+        <div class="filters reveal">
+          <div class="search" data-cursor="Type">
+            <input id="search" type="text" placeholder="search projects  /  press  /" autocomplete="off" />
+          </div>
+          <div id="chips"></div>
+        </div>
+        <div class="grid" id="grid"></div>
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer>
+      <div class="wrap foot-grid">
+        <div>
+          <div class="mono reveal" style="margin-bottom:1rem">05 — Connect</div>
+          <h2 class="display reveal">
+            <a href="https://junha2010.github.io/" target="_blank" rel="noopener" data-cursor="Open">LET'S GO ↗</a>
+          </h2>
+        </div>
+        <div class="mono reveal" style="text-align:right; line-height:1.9">
+          <a href="https://junha2010.github.io/" target="_blank" rel="noopener" data-cursor="Open">JUNHA2010.GITHUB.IO</a><br />
+          <a href="https://github.com/" target="_blank" rel="noopener" data-cursor="Open">GITHUB</a><br />
+          <span style="opacity:.4">© <span id="year"></span> NEVER WET</span>
+        </div>
+      </div>
+    </footer>
+  </main>
+
+  <!-- Page transition -->
+  <div id="transition"><span class="t-label" id="tLabel">Launching</span></div>
+
+  <noscript><div class="noscript">This portal needs JavaScript. <a href="./project-hub.html">Open the static hub instead →</a></div></noscript>
+
+  <!-- Libraries -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.18/dist/lenis.min.js"></script>
+
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+      }
+    }
+  </script>
+
+  <script type="module">
+    import * as THREE from "three";
+    import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
+    import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
+    import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
+    import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
+
+    /* Load project data; fall back gracefully if it ever fails. */
+    let projects = [];
+    try {
+      ({ projects } = await import("./igloo-home/projects.js"));
+    } catch (e) {
+      console.warn("projects.js failed to load", e);
+      projects = [{ title: "Project Hub", tag: "Index", description: "Full static project hub.", href: "./project-hub.html" }];
+    }
+
+    /* normalize ../ hrefs (projects.js is written relative to /igloo-home/) */
+    const normalizeHref = (h) => {
+      if (!h) return "#";
+      if (/^(https?:|mailto:|tel:)/i.test(h)) return h;
+      if (h.startsWith("../")) return "./" + h.slice(3);
+      if (h.startsWith("./")) return h;
+      return "./" + h;
+    };
+    projects = projects.map((p) => ({ ...p, url: normalizeHref(p.href), external: !!p.external || /^https?:/i.test(p.href || "") }));
+
+    const prefersReduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const isCoarse = matchMedia("(pointer: coarse)").matches;
+
+    /* ============================================================
+       CUSTOM CURSOR
+    ============================================================ */
+    const cursor = document.getElementById("cursor");
+    const ring = document.getElementById("cursorRing");
+    const clabel = document.getElementById("clabel");
+    const mouse = { x: innerWidth / 2, y: innerHeight / 2 };
+    const ringPos = { x: mouse.x, y: mouse.y };
+    const nmouse = { x: 0, y: 0 }; // -1..1 for scene parallax
+
+    if (!isCoarse) {
+      addEventListener("pointermove", (e) => {
+        mouse.x = e.clientX; mouse.y = e.clientY;
+        nmouse.x = (e.clientX / innerWidth) * 2 - 1;
+        nmouse.y = -((e.clientY / innerHeight) * 2 - 1);
+        cursor.style.transform = `translate(${e.clientX}px, ${e.clientY}px) translate(-50%,-50%)`;
+      }, { passive: true });
+
+      const ringRaf = () => {
+        ringPos.x += (mouse.x - ringPos.x) * 0.18;
+        ringPos.y += (mouse.y - ringPos.y) * 0.18;
+        ring.style.transform = `translate(${ringPos.x}px, ${ringPos.y}px) translate(-50%,-50%)`;
+        requestAnimationFrame(ringRaf);
+      };
+      ringRaf();
+
+      const bindHover = (el) => {
+        el.addEventListener("pointerenter", () => {
+          document.body.classList.add("hovering");
+          clabel.textContent = el.dataset.cursor || "View";
+        });
+        el.addEventListener("pointerleave", () => document.body.classList.remove("hovering"));
+      };
+      const wireCursor = () => document.querySelectorAll("[data-cursor]").forEach((el) => {
+        if (!el.__wired) { el.__wired = true; bindHover(el); }
+      });
+      wireCursor();
+      window.__wireCursor = wireCursor;
+    } else {
+      cursor.style.display = ring.style.display = "none";
+    }
+
+    /* ============================================================
+       MAGNETIC BUTTONS
+    ============================================================ */
+    if (!isCoarse) {
+      document.querySelectorAll(".pill, .badge").forEach((btn) => {
+        btn.addEventListener("pointermove", (e) => {
+          const r = btn.getBoundingClientRect();
+          gsap.to(btn, { x: (e.clientX - r.left - r.width / 2) * 0.35, y: (e.clientY - r.top - r.height / 2) * 0.5, duration: 0.5, ease: "power3.out" });
+        });
+        btn.addEventListener("pointerleave", () => gsap.to(btn, { x: 0, y: 0, duration: 0.7, ease: "elastic.out(1,0.3)" }));
+      });
+    }
+
+    /* ============================================================
+       THREE.JS SCENE — refractive ice core + particle field + bloom
+    ============================================================ */
+    let renderScene = () => {};
+    function initThree() {
+      const canvas = document.getElementById("scene");
+      const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: "high-performance" });
+      renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+      renderer.setSize(innerWidth, innerHeight);
+      renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      renderer.toneMappingExposure = 1.1;
+
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(38, innerWidth / innerHeight, 0.1, 100);
+      camera.position.set(0, 0, 7);
+
+      const pmrem = new THREE.PMREMGenerator(renderer);
+      scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+
+      const group = new THREE.Group();
+      scene.add(group);
+
+      // --- Ice core (refractive icosahedron, noise-displaced) ---
+      const geo = new THREE.IcosahedronGeometry(1.85, isCoarse ? 6 : 14);
+      const mat = new THREE.MeshPhysicalMaterial({
+        color: 0xbfe9ff, metalness: 0, roughness: 0.06,
+        transmission: 1, thickness: 1.6, ior: 1.35,
+        clearcoat: 1, clearcoatRoughness: 0.1,
+        iridescence: 0.6, iridescenceIOR: 1.3,
+        attenuationColor: new THREE.Color(0x8be9ff), attenuationDistance: 2.6,
+      });
+      const core = new THREE.Mesh(geo, mat);
+      group.add(core);
+
+      const pos = geo.attributes.position;
+      const base = new Float32Array(pos.array.length);
+      base.set(pos.array);
+      const tmp = new THREE.Vector3();
+
+      // simplex-ish value noise (cheap, dependency-free)
+      function noise3(x, y, z) {
+        return (
+          Math.sin(x * 1.7 + y * 0.3) * Math.cos(y * 1.3 - z * 0.7) +
+          Math.sin(z * 1.1 + x * 0.5) * 0.6
+        ) * 0.5;
+      }
+
+      // --- Wireframe halo shell ---
+      const shell = new THREE.Mesh(
+        new THREE.IcosahedronGeometry(2.7, 1),
+        new THREE.MeshBasicMaterial({ color: 0x8be9ff, wireframe: true, transparent: true, opacity: 0.12 })
+      );
+      group.add(shell);
+
+      // --- Particle field ---
+      const COUNT = isCoarse ? 1400 : 3200;
+      const pgeo = new THREE.BufferGeometry();
+      const parr = new Float32Array(COUNT * 3);
+      const prand = new Float32Array(COUNT);
+      for (let i = 0; i < COUNT; i++) {
+        const r = 4 + Math.random() * 9;
+        const th = Math.random() * Math.PI * 2;
+        const ph = Math.acos(2 * Math.random() - 1);
+        parr[i * 3] = r * Math.sin(ph) * Math.cos(th);
+        parr[i * 3 + 1] = r * Math.sin(ph) * Math.sin(th);
+        parr[i * 3 + 2] = r * Math.cos(ph);
+        prand[i] = Math.random();
+      }
+      pgeo.setAttribute("position", new THREE.BufferAttribute(parr, 3));
+      pgeo.setAttribute("arand", new THREE.BufferAttribute(prand, 1));
+      const pmat = new THREE.ShaderMaterial({
+        transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+        uniforms: { uTime: { value: 0 }, uColor: { value: new THREE.Color(0x8be9ff) }, uPop: { value: new THREE.Color(0xff5ed0) } },
+        vertexShader: `
+          attribute float arand; uniform float uTime; varying float vR;
+          void main(){
+            vR = arand;
+            vec3 p = position;
+            float t = uTime * (0.05 + arand * 0.12);
+            p.x += sin(t + arand*6.28)*0.6;
+            p.y += cos(t*0.8 + arand*6.28)*0.6;
+            vec4 mv = modelViewMatrix * vec4(p,1.0);
+            gl_PointSize = (12.0 * arand + 2.0) * (1.0 / -mv.z);
+            gl_Position = projectionMatrix * mv;
+          }`,
+        fragmentShader: `
+          uniform vec3 uColor; uniform vec3 uPop; varying float vR;
+          void main(){
+            vec2 c = gl_PointCoord - 0.5;
+            float d = smoothstep(0.5, 0.0, length(c));
+            vec3 col = mix(uColor, uPop, step(0.85, vR));
+            gl_FragColor = vec4(col, d * (0.35 + vR*0.5));
+          }`,
+      });
+      const points = new THREE.Points(pgeo, pmat);
+      scene.add(points);
+
+      // --- Post-processing bloom ---
+      const composer = new EffectComposer(renderer);
+      composer.addPass(new RenderPass(scene, camera));
+      const bloom = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 0.7, 0.6, 0.85);
+      composer.addPass(bloom);
+
+      const clock = new THREE.Clock();
+      let scrollT = 0; // 0..1 page progress
+      window.__setSceneScroll = (v) => { scrollT = v; };
+
+      const targetRot = { x: 0, y: 0 };
+      renderScene = function () {
+        const t = clock.getElapsedTime();
+        // displace core
+        const amp = 0.16 + scrollT * 0.12;
+        for (let i = 0; i < pos.count; i++) {
+          const ox = base[i * 3], oy = base[i * 3 + 1], oz = base[i * 3 + 2];
+          const n = noise3(ox * 0.9 + t * 0.25, oy * 0.9 + t * 0.2, oz * 0.9 + t * 0.18);
+          tmp.set(ox, oy, oz).normalize().multiplyScalar(n * amp);
+          pos.setXYZ(i, ox + tmp.x, oy + tmp.y, oz + tmp.z);
+        }
+        pos.needsUpdate = true;
+        geo.computeVertexNormals();
+
+        targetRot.y += ((nmouse.x * 0.5) - targetRot.y) * 0.05;
+        targetRot.x += ((-nmouse.y * 0.4) - targetRot.x) * 0.05;
+        group.rotation.y += 0.0016;
+        group.rotation.x = targetRot.x;
+        group.rotation.z = targetRot.y * 0.3;
+        shell.rotation.y -= 0.0024; shell.rotation.x += 0.0012;
+        points.rotation.y = t * 0.02;
+
+        // camera drift with scroll + mouse parallax
+        camera.position.x += ((nmouse.x * 0.6) - camera.position.x) * 0.04;
+        camera.position.y += ((nmouse.y * 0.4) + scrollT * 0.6 - camera.position.y) * 0.04;
+        group.position.y = -scrollT * 1.2;
+        group.scale.setScalar(1 - scrollT * 0.15);
+        camera.lookAt(0, group.position.y * 0.4, 0);
+
+        pmat.uniforms.uTime.value = t;
+        composer.render();
+      };
+
+      addEventListener("resize", () => {
+        camera.aspect = innerWidth / innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(innerWidth, innerHeight);
+        composer.setSize(innerWidth, innerHeight);
+      });
+    }
+    try { initThree(); } catch (e) { console.warn("Three init failed", e); document.getElementById("scene").style.display = "none"; }
+
+    /* ============================================================
+       CAROUSEL (smooothy-style draggable arc)
+    ============================================================ */
+    const featuredTitles = [
+      "Space Explorer", "Private Residence Scroll Journey", "Global Route Intelligence Map",
+      "Apex Hypercar Showcase", "Igloo Experience", "Particle Shape System",
+      "Omni-Science", "Galaxy Simulator", "ARCTIS / SIGNAL", "Project Atlas",
+    ];
+    const gradients = [
+      ["#1b3a5b", "#0a1626"], ["#3a2350", "#160c22"], ["#13403a", "#08201c"],
+      ["#4a1f2a", "#1c0c12"], ["#1f3550", "#0c1626"], ["#402a13", "#1c1208"],
+      ["#283a13", "#121c08"], ["#2a1340", "#120822"], ["#13344a", "#081a26"], ["#3a133a", "#220822"],
+    ];
+    let featured = featuredTitles.map((t) => projects.find((p) => p.title === t)).filter(Boolean);
+    if (featured.length < 6) featured = projects.slice(0, 10);
+
+    const track = document.getElementById("track");
+    const stage = document.getElementById("stage");
+    const slides = [];
+    const N = featured.length;
+    featured.forEach((p, i) => {
+      const el = document.createElement("div");
+      el.className = "slide";
+      const g = gradients[i % gradients.length];
+      el.innerHTML = `
+        <div class="panel" style="--g1:${g[0]};--g2:${g[1]}">
+          <div class="idx">${String(i + 1).padStart(2, "0")} / ${String(N).padStart(2, "0")}</div>
+          <div class="tag">
+            <div class="mono">${p.tag || "Project"}</div>
+            <h3>${p.title}</h3>
+            <p>${p.description || ""}</p>
+            <span class="launch">Launch ↗</span>
+          </div>
+        </div>`;
+      el.dataset.url = p.url;
+      el.dataset.title = p.title;
+      el.dataset.external = p.external ? "1" : "";
+      el.dataset.cursor = "Open";
+      track.appendChild(el);
+      slides.push(el);
+    });
+
+    const car = { offset: 0, target: 0, vel: 0, dragging: false, lastX: 0, moved: 0 };
+    const GAP = Math.min(330, innerWidth * 0.32); // horizontal spacing per card
+
+    function layoutCarousel() {
+      const skew = THREE_clamp(car.vel * 30, -14, 14); // velocity-driven elastic tilt
+      for (let i = 0; i < N; i++) {
+        let p = i - car.offset;
+        p = ((p % N) + N) % N;
+        if (p > N / 2) p -= N; // wrapped relative index, infinite
+        const ap = Math.abs(p);
+        const x = p * GAP;
+        const z = -ap * 150;
+        const rotY = THREE_clamp(-p * 22, -55, 55);
+        const scale = Math.max(0.55, 1 - ap * 0.13);
+        const el = slides[i];
+        el.style.transform =
+          `translate3d(${x}px, 0, ${z}px) rotateY(${rotY}deg) rotateZ(${skew * Math.sign(p || 1) * (ap < 0.5 ? 0 : 0.5)}deg) scale(${scale})`;
+        el.style.opacity = String(Math.max(0.0, 1 - ap * 0.38));
+        el.style.pointerEvents = ap < 1.2 ? "auto" : "none";
+        el.style.zIndex = String(100 - Math.round(ap * 10));
+        el.classList.toggle("active", ap < 0.5);
+      }
+    }
+    function THREE_clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+
+    function carRaf() {
+      if (!car.dragging) {
+        // snap to nearest with spring
+        car.target = Math.round(car.offset);
+        car.vel += (car.target - car.offset) * 0.008;
+        car.vel *= 0.86;
+        car.offset += car.vel;
+      } else {
+        car.vel *= 0.9;
+      }
+      layoutCarousel();
+      requestAnimationFrame(carRaf);
+    }
+    carRaf();
+
+    const dragSens = 0.0042;
+    stage.addEventListener("pointerdown", (e) => {
+      car.dragging = true; car.lastX = e.clientX; car.moved = 0;
+      document.body.classList.add("dragging");
+      stage.setPointerCapture(e.pointerId);
+    });
+    stage.addEventListener("pointermove", (e) => {
+      if (!car.dragging) return;
+      const dx = e.clientX - car.lastX;
+      car.lastX = e.clientX; car.moved += Math.abs(dx);
+      car.offset -= dx * dragSens;
+      car.vel = -dx * dragSens;
+    });
+    const endDrag = (e) => {
+      if (!car.dragging) return;
+      car.dragging = false;
+      document.body.classList.remove("dragging");
+      // click (not drag) on front card launches it
+      if (car.moved < 6) {
+        const el = e.target.closest(".slide");
+        if (el && el.classList.contains("active")) launch(el.dataset.url, el.dataset.title, el.dataset.external);
+      }
+    };
+    stage.addEventListener("pointerup", endDrag);
+    stage.addEventListener("pointercancel", endDrag);
+    stage.addEventListener("wheel", (e) => {
+      if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
+        e.preventDefault();
+        car.offset += e.deltaX * 0.004;
+        car.vel = e.deltaX * 0.004;
+      }
+    }, { passive: false });
+
+    /* ============================================================
+       STRINGS (string-tune-style pluck)
+    ============================================================ */
+    (function strings() {
+      const canvas = document.getElementById("strings");
+      const ctx = canvas.getContext("2d");
+      let W, H, dpr = Math.min(devicePixelRatio, 2);
+      const NSTR = 7;
+      const str = []; // each: {y, disp, vel, px}
+      function resize() {
+        W = canvas.clientWidth; H = 320;
+        canvas.width = W * dpr; canvas.height = H * dpr;
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        for (let i = 0; i < NSTR; i++) {
+          if (!str[i]) str[i] = { disp: 0, vel: 0, px: W / 2 };
+          str[i].y = (H / (NSTR + 1)) * (i + 1);
+        }
+      }
+      resize();
+      addEventListener("resize", resize);
+
+      let pointerY = -1;
+      canvas.addEventListener("pointermove", (e) => {
+        const r = canvas.getBoundingClientRect();
+        const my = e.clientY - r.top, mx = e.clientX - r.left;
+        for (const s of str) {
+          if (Math.abs(my - s.y) < 26) {
+            s.disp = THREE_clamp(my - s.y, -60, 60) * 0.9;
+            s.vel = 0; s.px = mx;
+          }
+        }
+        pointerY = my;
+      });
+      canvas.addEventListener("pointerleave", () => { pointerY = -1; });
+
+      function frame() {
+        ctx.clearRect(0, 0, W, H);
+        for (let i = 0; i < NSTR; i++) {
+          const s = str[i];
+          // spring back
+          s.vel += -s.disp * 0.08;
+          s.vel *= 0.94;
+          s.disp += s.vel;
+          const near = pointerY > -1 && Math.abs(pointerY - s.y) < 60;
+          ctx.beginPath();
+          ctx.moveTo(0, s.y);
+          ctx.quadraticCurveTo(s.px, s.y + s.disp, W, s.y);
+          const a = 0.18 + Math.min(0.6, Math.abs(s.disp) / 60) + (near ? 0.15 : 0);
+          ctx.strokeStyle = `rgba(139,233,255,${a})`;
+          ctx.lineWidth = 1 + Math.min(2, Math.abs(s.disp) / 30);
+          ctx.shadowColor = "rgba(139,233,255,0.7)";
+          ctx.shadowBlur = Math.min(18, Math.abs(s.disp));
+          ctx.stroke();
+          ctx.shadowBlur = 0;
+        }
+        requestAnimationFrame(frame);
+      }
+      frame();
+    })();
+
+    /* ============================================================
+       INDEX GRID + SEARCH + FILTER
+    ============================================================ */
+    const grid = document.getElementById("grid");
+    const searchEl = document.getElementById("search");
+    const chipsEl = document.getElementById("chips");
+    const indexMeta = document.getElementById("indexMeta");
+
+    document.getElementById("heroCount").textContent = projects.length;
+    document.getElementById("hudCount").textContent = String(projects.length).padStart(3, "0") + " NODES";
+    indexMeta.textContent = String(projects.length).padStart(3, "0") + " PROJECTS";
+
+    // derive simple categories from the first word of each tag
+    const cats = ["All", ...Array.from(new Set(projects.map((p) => (p.tag || "Misc").split(/[\/·]/)[0].trim()))).sort()];
+    let activeCat = "All", query = "";
+    cats.forEach((c) => {
+      const b = document.createElement("button");
+      b.className = "chip" + (c === "All" ? " on" : "");
+      b.textContent = c; b.dataset.cat = c; b.dataset.cursor = "Filter";
+      b.addEventListener("click", () => {
+        activeCat = c;
+        chipsEl.querySelectorAll(".chip").forEach((x) => x.classList.toggle("on", x.dataset.cat === c));
+        renderGrid();
+      });
+      chipsEl.appendChild(b);
+    });
+
+    function matchCat(p) { return activeCat === "All" || (p.tag || "").toLowerCase().startsWith(activeCat.toLowerCase()); }
+    function matchQuery(p) {
+      if (!query) return true;
+      return (p.title + " " + (p.tag || "") + " " + (p.description || "")).toLowerCase().includes(query);
+    }
+
+    function renderGrid() {
+      const list = projects.filter((p) => matchCat(p) && matchQuery(p));
+      grid.innerHTML = "";
+      if (!list.length) { grid.innerHTML = `<div class="empty mono">No projects match "${query}"</div>`; return; }
+      list.forEach((p, i) => {
+        const a = document.createElement("a");
+        a.className = "item reveal" + (p.external ? " ext" : "");
+        a.href = p.url;
+        a.dataset.cursor = p.external ? "Open ↗" : "Launch";
+        a.dataset.url = p.url; a.dataset.title = p.title; a.dataset.external = p.external ? "1" : "";
+        if (window.innerWidth > 1024 && i % 7 === 0) a.style.gridColumn = "span 6"; // occasional wide bento cell
+        a.innerHTML = `
+          <span class="arrow">↗</span>
+          <div class="mono ${p.external ? "badge-ext" : ""}">${p.external ? "EXTERNAL" : String(i + 1).padStart(3, "0")} · ${(p.tag || "").split(/[\/·]/)[0].trim()}</div>
+          <div>
+            <h3>${p.title}</h3>
+            <div class="desc">${p.description || ""}</div>
+          </div>
+          <div class="mono" style="opacity:.35">${p.tag || ""}</div>`;
+        a.addEventListener("click", (e) => { e.preventDefault(); launch(p.url, p.title, p.external); });
+        // tilt
+        if (!isCoarse) {
+          a.addEventListener("pointermove", (e) => {
+            const r = a.getBoundingClientRect();
+            const rx = ((e.clientY - r.top) / r.height - 0.5) * -8;
+            const ry = ((e.clientX - r.left) / r.width - 0.5) * 8;
+            a.style.transform = `perspective(900px) rotateX(${rx}deg) rotateY(${ry}deg) translateZ(6px)`;
+          });
+          a.addEventListener("pointerleave", () => { a.style.transform = ""; });
+        }
+        grid.appendChild(a);
+      });
+      if (window.__wireCursor) window.__wireCursor();
+      observeReveals();
+    }
+
+    let searchTimer;
+    searchEl.addEventListener("input", (e) => {
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(() => { query = e.target.value.trim().toLowerCase(); renderGrid(); }, 140);
+    });
+    addEventListener("keydown", (e) => {
+      if (e.key === "/" && document.activeElement !== searchEl) { e.preventDefault(); searchEl.focus(); }
+      if (e.key === "Escape" && document.activeElement === searchEl) { searchEl.value = ""; query = ""; renderGrid(); searchEl.blur(); }
+    });
+
+    /* ============================================================
+       PAGE TRANSITION + LAUNCH
+    ============================================================ */
+    const transition = document.getElementById("transition");
+    const tLabel = document.getElementById("tLabel");
+    function launch(url, title, external) {
+      if (!url || url === "#") return;
+      if (external) { window.open(url, "_blank", "noopener,noreferrer"); return; }
+      tLabel.textContent = title || "Launching";
+      const tl = gsap.timeline();
+      tl.set(transition, { y: "100%" })
+        .to(transition, { y: "0%", duration: 0.6, ease: "power3.inOut" })
+        .to(tLabel, { opacity: 1, duration: 0.25 }, "-=0.3")
+        .add(() => { window.location.href = url; }, "+=0.15");
+    }
+    // intercept in-page anchor + footer/nav links that point to projects handled above; smooth-scroll hash links
+    document.querySelectorAll('a[href^="#"]').forEach((a) => {
+      a.addEventListener("click", (e) => {
+        const id = a.getAttribute("href");
+        const target = document.querySelector(id);
+        if (target) { e.preventDefault(); lenis ? lenis.scrollTo(target, { offset: 0 }) : target.scrollIntoView({ behavior: "smooth" }); }
+      });
+    });
+
+    /* ============================================================
+       SCROLL (Lenis) + REVEALS + HUD
+    ============================================================ */
+    let lenis = null;
+    function observeReveals() {
+      const io = new IntersectionObserver((entries) => {
+        entries.forEach((en) => { if (en.isIntersecting) { en.target.classList.add("in"); io.unobserve(en.target); } });
+      }, { threshold: 0.12 });
+      document.querySelectorAll(".reveal:not(.in)").forEach((el) => io.observe(el));
+    }
+
+    function startScroll() {
+      if (typeof Lenis !== "undefined" && !prefersReduced) {
+        lenis = new Lenis({ duration: 1.3, lerp: 0.08, smoothWheel: true });
+        const raf = (t) => { lenis.raf(t); requestAnimationFrame(raf); };
+        requestAnimationFrame(raf);
+        lenis.on("scroll", ({ scroll, limit }) => {
+          const p = limit ? scroll / limit : 0;
+          document.getElementById("scrollMeter").style.width = (p * 100) + "%";
+          if (window.__setSceneScroll) window.__setSceneScroll(p);
+        });
+      } else {
+        addEventListener("scroll", () => {
+          const p = scrollY / (document.body.scrollHeight - innerHeight || 1);
+          document.getElementById("scrollMeter").style.width = (p * 100) + "%";
+          if (window.__setSceneScroll) window.__setSceneScroll(p);
+        }, { passive: true });
+      }
+    }
+
+    // HUD live data
+    document.getElementById("year").textContent = new Date().getFullYear();
+    const tickers = ["SYS · NOMINAL", "RENDER · GPU", "INDEX · SYNCED", "CACHE · WARM", "SIGNAL · CLEAR"];
+    let tk = 0;
+    setInterval(() => {
+      const d = new Date();
+      document.getElementById("hudClock").textContent = d.toTimeString().slice(0, 8);
+    }, 1000);
+    setInterval(() => { document.getElementById("hudTicker").textContent = tickers[tk++ % tickers.length]; }, 2600);
+    addEventListener("pointermove", (e) => {
+      document.getElementById("hudCoord").textContent =
+        (e.clientX / innerWidth * 100).toFixed(2) + " / " + (e.clientY / innerHeight * 100).toFixed(2);
+    }, { passive: true });
+
+    /* ============================================================
+       MASTER RENDER LOOP (throttled scene render)
+    ============================================================ */
+    (function loop() { renderScene(); requestAnimationFrame(loop); })();
+
+    /* ============================================================
+       PRELOADER → REVEAL
+    ============================================================ */
+    renderGrid();
+    startScroll();
+
+    const pctNum = document.getElementById("pctNum");
+    const loadBar = document.getElementById("loadBar");
+    const loadLbl = document.getElementById("loadLbl");
+    const lblStages = ["Calibrating optics", "Refracting light", "Seeding particles", "Indexing archive", "Ready"];
+    let pct = 0;
+    const tick = setInterval(() => {
+      pct = Math.min(100, pct + Math.random() * 9 + 3);
+      pctNum.textContent = Math.floor(pct);
+      loadBar.style.width = pct + "%";
+      loadLbl.textContent = lblStages[Math.min(lblStages.length - 1, Math.floor(pct / 25))];
+      if (pct >= 100) { clearInterval(tick); finish(); }
+    }, 120);
+
+    function finish() {
+      const loader = document.getElementById("loader");
+      const tl = gsap.timeline();
+      tl.to(loader, { yPercent: -100, duration: 1, ease: "power4.inOut", delay: 0.2, onComplete: () => loader.remove() })
+        .add(() => {
+          // hero line reveals
+          gsap.to("#hero .lineMask > span", { yPercent: 0, duration: 1.1, stagger: 0.12, ease: "power4.out" });
+          document.querySelectorAll("#hero .reveal").forEach((el) => el.classList.add("in"));
+        }, "-=0.5");
+      observeReveals();
+    }
+  </script>
+</body>
+
+</html>
