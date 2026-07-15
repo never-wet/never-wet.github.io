@@ -1,0 +1,604 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>NULLPOINT — Upgrade World</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --ink:#f7fbf8;
+      --muted:#a7b0ab;
+      --panel:rgba(14,18,16,.92);
+      --line:rgba(255,255,255,.18);
+      --green:#72e0ae;
+      --cyan:#6fcbe4;
+      --violet:#c29cf0;
+      --gold:#f4d56e;
+      --red:#ff737d;
+    }
+    * { box-sizing:border-box; }
+    html,body { width:100%; height:100%; margin:0; overflow:hidden; }
+    body {
+      color:var(--ink);
+      background:#07100c;
+      font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    }
+    button { font:inherit; }
+    .sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+
+    .viewport {
+      position:absolute;
+      inset:0;
+      overflow:hidden;
+      cursor:grab;
+      touch-action:none;
+      user-select:none;
+      background:
+        radial-gradient(circle at 50% 30%, rgba(69,129,91,.15), transparent 42%),
+        #07100c;
+    }
+    .viewport.dragging { cursor:grabbing; }
+    .world {
+      position:absolute;
+      width:3100px;
+      height:1540px;
+      transform-origin:0 0;
+      will-change:transform;
+    }
+    .water {
+      position:absolute;
+      inset:0;
+      background:
+        linear-gradient(135deg,rgba(255,255,255,.035) 25%,transparent 25%) 0 0/28px 28px,
+        linear-gradient(315deg,rgba(255,255,255,.025) 25%,transparent 25%) 0 0/28px 28px,
+        #0c3841;
+    }
+    .world-lines { position:absolute; inset:0; pointer-events:none; z-index:2; }
+
+    .baseplate {
+      position:absolute;
+      overflow:hidden;
+      border:3px solid rgba(255,255,255,.16);
+      border-radius:6px;
+      box-shadow:0 18px 42px rgba(0,0,0,.3), inset 0 0 70px rgba(0,0,0,.14);
+      z-index:1;
+    }
+    .baseplate::after {
+      content:"";
+      position:absolute;
+      inset:0;
+      pointer-events:none;
+      opacity:.35;
+      background-image:
+        linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),
+        linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px);
+      background-size:48px 48px;
+    }
+    .baseplate.core { background:#286b46; }
+    .baseplate.clicker { background:#174c3c; }
+    .baseplate.alpha { background:#23677a; }
+    .baseplate.omega { background:#5d407a; }
+    .baseplate.prestige { background:#626d72; }
+    .baseplate.evil { background:#7c2730; }
+    .baseplate.locked { display:none; }
+
+    .plate-heading {
+      position:absolute;
+      z-index:3;
+      top:24px;
+      left:28px;
+      max-width:380px;
+      pointer-events:none;
+      text-shadow:0 2px 0 rgba(0,0,0,.45);
+    }
+    .plate-heading span {
+      display:block;
+      color:rgba(255,255,255,.7);
+      font:900 .68rem ui-monospace,SFMono-Regular,Menlo,monospace;
+      letter-spacing:.16em;
+      text-transform:uppercase;
+    }
+    .plate-heading h2 { margin:5px 0 0; font-size:1.55rem; letter-spacing:-.035em; }
+    .plate-heading p { margin:5px 0 0; color:rgba(255,255,255,.7); font-size:.75rem; }
+    .plate-profit {
+      position:absolute;
+      z-index:3;
+      top:28px;
+      right:28px;
+      text-align:right;
+      pointer-events:none;
+    }
+    .plate-profit strong { display:block; font-size:.9rem; }
+    .plate-profit span { color:rgba(255,255,255,.72); font:800 .65rem ui-monospace,SFMono-Regular,Menlo,monospace; }
+
+    .upgrade-pad {
+      position:absolute;
+      z-index:4;
+      display:flex;
+      flex-direction:column;
+      width:190px;
+      min-height:84px;
+      padding:10px 12px;
+      border:3px solid rgba(255,255,255,.72);
+      border-radius:3px;
+      color:#13201a;
+      background:#e9efeb;
+      box-shadow:0 9px 0 rgba(0,0,0,.22);
+      text-align:left;
+      cursor:pointer;
+      transition:transform .12s ease,filter .12s ease,box-shadow .12s ease;
+    }
+    .upgrade-pad:hover:not(:disabled),.upgrade-pad:focus-visible:not(:disabled) {
+      transform:translateY(-3px);
+      filter:brightness(1.1);
+      box-shadow:0 12px 0 rgba(0,0,0,.22),0 0 18px rgba(255,255,255,.28);
+      outline:none;
+    }
+    .upgrade-pad.affordable {
+      border-color:#f4fff8;
+      background:#83e8b3;
+      box-shadow:0 9px 0 rgba(0,0,0,.22),0 0 22px rgba(114,224,174,.82);
+      animation:available-pulse 1.7s ease-in-out infinite;
+    }
+    @keyframes available-pulse {
+      0%,100% { box-shadow:0 9px 0 rgba(0,0,0,.22),0 0 14px rgba(114,224,174,.58); }
+      50% { box-shadow:0 9px 0 rgba(0,0,0,.22),0 0 30px rgba(114,224,174,1); }
+    }
+    .upgrade-pad.affordable::after {
+      content:"BUY NOW";
+      position:absolute;
+      top:-12px;
+      right:8px;
+      padding:3px 6px;
+      border:1px solid #e9fff2;
+      border-radius:4px;
+      color:#0e2b1d;
+      background:#baffd5;
+      font:950 .5rem ui-monospace,SFMono-Regular,Menlo,monospace;
+      letter-spacing:.06em;
+      pointer-events:none;
+    }
+    .upgrade-pad.maxed { border-color:#87d8f1; background:#bce9f4; cursor:default; }
+    .upgrade-pad.locked-pad {
+      border-color:rgba(255,255,255,.42);
+      background:rgba(211,220,215,.68);
+      opacity:.58;
+      filter:saturate(.3);
+      cursor:not-allowed;
+      box-shadow:0 7px 0 rgba(0,0,0,.16);
+    }
+    .upgrade-pad.area-opener { border-width:4px; background:#fff4ad; }
+    .upgrade-pad.reset-pad { width:226px; min-height:102px; border-color:#fff; background:#ffe978; }
+    .upgrade-pad.area-opener.affordable,
+    .upgrade-pad.reset-pad.affordable { border-color:#fffef0; background:#ffe36e; box-shadow:0 9px 0 rgba(0,0,0,.22),0 0 24px rgba(244,213,110,.8); animation:available-gold-pulse 1.7s ease-in-out infinite; }
+    @keyframes available-gold-pulse {
+      0%,100% { box-shadow:0 9px 0 rgba(0,0,0,.22),0 0 15px rgba(244,213,110,.6); }
+      50% { box-shadow:0 9px 0 rgba(0,0,0,.22),0 0 32px rgba(244,213,110,1); }
+    }
+    .baseplate.evil .upgrade-pad.reset-pad { background:#ff9ca3; }
+    .baseplate.omega .upgrade-pad { background:#e0c8f7; }
+    .baseplate.alpha .upgrade-pad { background:#bdebf4; }
+    .pad-top { display:flex; justify-content:space-between; gap:8px; color:#45504a; font:900 .58rem ui-monospace,SFMono-Regular,Menlo,monospace; letter-spacing:.06em; text-transform:uppercase; }
+    .upgrade-pad strong { display:block; margin-top:6px; font-size:.81rem; line-height:1.05; }
+    .pad-bottom { display:flex; justify-content:space-between; gap:8px; margin-top:auto; padding-top:7px; color:#344039; font:900 .58rem ui-monospace,SFMono-Regular,Menlo,monospace; }
+    .pad-bottom span:last-child { text-align:right; }
+
+    .hud-left,.hud-right,.world-controls,.click-dock,.toast {
+      position:absolute;
+      z-index:20;
+      border:1px solid var(--line);
+      background:var(--panel);
+      box-shadow:0 8px 24px rgba(0,0,0,.28);
+      backdrop-filter:blur(12px);
+    }
+    .hud-left { top:14px; left:14px; display:flex; gap:7px; padding:7px; border-radius:14px; }
+    .hud-right { top:14px; right:14px; display:flex; gap:12px; padding:9px 12px; border-radius:14px; }
+    .hud-resource { min-width:62px; }
+    .hud-resource span { display:block; color:var(--muted); font:800 .52rem ui-monospace,SFMono-Regular,Menlo,monospace; letter-spacing:.09em; }
+    .hud-resource strong { display:block; margin-top:2px; font-size:.75rem; }
+    .hud-resource.hidden { display:none; }
+    .hud-button {
+      min-width:38px;
+      height:38px;
+      border:1px solid var(--line);
+      border-radius:9px;
+      color:var(--ink);
+      background:rgba(255,255,255,.055);
+      cursor:pointer;
+      font-weight:900;
+    }
+    .hud-button:hover { border-color:var(--green); background:rgba(114,224,174,.12); }
+    .brand-button { min-width:118px; padding:0 12px; text-align:left; }
+    .brand-button small { display:block; color:var(--green); font:800 .48rem ui-monospace,SFMono-Regular,Menlo,monospace; letter-spacing:.1em; }
+    .brand-button strong { display:block; font-size:.72rem; }
+
+    .focus-hud {
+      position:absolute;
+      z-index:19;
+      top:15px;
+      left:50%;
+      min-width:360px;
+      transform:translateX(-50%);
+      text-align:center;
+      pointer-events:none;
+      text-shadow:0 2px 0 rgba(0,0,0,.75);
+    }
+    .focus-hud span { display:block; color:rgba(255,255,255,.72); font:900 .57rem ui-monospace,SFMono-Regular,Menlo,monospace; letter-spacing:.14em; text-transform:uppercase; }
+    .focus-hud strong { display:inline-block; margin-top:2px; font-size:1.6rem; letter-spacing:-.04em; }
+    .focus-hud em { margin-left:7px; color:var(--green); font-style:normal; font-weight:850; }
+
+    .world-controls { left:14px; bottom:14px; display:flex; gap:6px; padding:7px; border-radius:12px; }
+    .click-dock {
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      align-items:stretch;
+      gap:13px;
+      width:245px;
+      min-height:180px;
+      padding:20px 18px;
+      border:5px solid #159fe8;
+      border-radius:3px;
+      background:#64d8f1;
+      box-shadow:0 10px 0 rgba(0,0,0,.24),0 0 22px rgba(21,159,232,.35);
+    }
+    .click-dock.hidden { display:none; }
+    .click-button { width:100%; min-width:0; height:58px; border:2px solid #168bd0; border-radius:5px; color:#f6fdff; background:#51bdec; cursor:pointer; font-size:1.35rem; font-weight:950; text-shadow:0 2px 0 rgba(0,0,0,.2); }
+    .click-button:hover { background:#72d8f5; }
+    .click-button:active { transform:translateY(2px); }
+    .click-dock span { color:#f4fdff; font-size:.82rem; font-weight:950; text-align:center; white-space:nowrap; text-shadow:0 2px 0 rgba(0,0,0,.18); }
+    .map-hint { position:absolute; z-index:18; left:50%; bottom:16px; transform:translateX(-50%); color:rgba(255,255,255,.52); font-size:.63rem; pointer-events:none; }
+
+    .toast { left:50%; bottom:64px; min-width:280px; max-width:420px; padding:11px 14px; border-radius:10px; transform:translateX(-50%); animation:toast-in .2s ease; }
+    .toast strong,.toast span { display:block; }
+    .toast span { margin-top:2px; color:var(--muted); font-size:.7rem; }
+    @keyframes toast-in { from { opacity:0; transform:translate(-50%,8px); } }
+
+    dialog { width:min(520px,calc(100vw - 28px)); border:1px solid var(--line); border-radius:14px; color:var(--ink); background:#111713; box-shadow:0 28px 90px rgba(0,0,0,.55); }
+    dialog::backdrop { background:rgba(0,0,0,.7); }
+    .dialog-head { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:16px 18px; border-bottom:1px solid var(--line); }
+    .dialog-head h2 { margin:0; font-size:1rem; }
+    .dialog-body { padding:18px; color:var(--muted); font-size:.78rem; line-height:1.6; }
+    .dialog-body strong { color:var(--ink); }
+    .dialog-actions { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; margin-top:16px; }
+    .dialog-actions button { padding:10px; border:1px solid var(--line); border-radius:8px; color:var(--ink); background:rgba(255,255,255,.05); cursor:pointer; }
+    .dialog-actions .danger { color:var(--red); border-color:rgba(255,115,125,.4); }
+
+    @media (max-width:800px) {
+      .hud-right { display:none; }
+      .focus-hud { top:66px; min-width:260px; }
+      .focus-hud strong { font-size:1.2rem; }
+      .map-hint { display:none; }
+      .upgrade-pad { width:172px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="viewport" id="viewport" tabindex="0" aria-label="Draggable and zoomable upgrade world">
+    <div class="world" id="world">
+      <div class="water"></div>
+      <canvas class="world-lines" id="worldLines" width="3100" height="1540"></canvas>
+      <div id="areaLayer"></div>
+      <div id="upgradeLayer"></div>
+      <div class="click-dock hidden" id="clickDock">
+        <span id="clickCount">0 clicks</span>
+        <button class="click-button" id="clickButton" type="button">Click for +1 P$</button>
+      </div>
+    </div>
+  </main>
+
+  <div class="hud-left">
+    <button class="hud-button brand-button" id="homeButton" type="button"><small>UPGRADE WORLD</small><strong>NULLPOINT</strong></button>
+    <button class="hud-button" id="helpButton" type="button" aria-label="How to play">?</button>
+    <button class="hud-button" id="saveButton" type="button" aria-label="Save game">Save</button>
+  </div>
+
+  <div class="focus-hud" aria-live="polite">
+    <span id="focusArea">Main Baseplate</span>
+    <strong id="focusValue">0 P$</strong><em id="focusRate">+0 P$/s</em>
+  </div>
+
+  <div class="hud-right" aria-label="Currencies">
+    <div class="hud-resource"><span>POINTS</span><strong id="pValue">0 P$</strong></div>
+    <div class="hud-resource hidden" id="clicksCard"><span>CLICKS</span><strong id="clicksValue">0 C$</strong></div>
+    <div class="hud-resource hidden" id="ppCard"><span>PRESTIGE</span><strong id="ppValue">0 PP$</strong></div>
+    <div class="hud-resource hidden" id="epCard"><span>EVIL</span><strong id="epValue">0 EP$</strong></div>
+  </div>
+
+  <div class="world-controls" aria-label="Map controls">
+    <button class="hud-button" id="zoomOut" type="button" aria-label="Zoom out">−</button>
+    <button class="hud-button" id="zoomReset" type="button" aria-label="Center map">⌂</button>
+    <button class="hud-button" id="zoomIn" type="button" aria-label="Zoom in">+</button>
+  </div>
+
+  <div class="map-hint">Drag the ground to move · Scroll to zoom · Buy glowing pads</div>
+  <div id="toastLayer" aria-live="polite"></div>
+
+  <dialog id="helpDialog">
+    <div class="dialog-head"><h2>How to play</h2><button class="hud-button close-dialog" type="button">×</button></div>
+    <div class="dialog-body">
+      <p><strong>Start on the green Main Baseplate.</strong> Your free first upgrade produces P$ automatically.</p>
+      <p>Buy the next visible pad. Some gold pads open completely new colored baseplates. New-area pads deliberately have no long connector line.</p>
+      <p>Use the Clicker area for active income. Alpha and Omega add larger automatic generators. Prestige and Evil reset earlier progress for permanent currencies and multipliers.</p>
+      <p>Your progress saves in this browser and earns up to four hours of offline P$.</p>
+      <div class="dialog-actions">
+        <button id="exportButton" type="button">Copy save</button>
+        <button id="importButton" type="button">Import save</button>
+        <button class="danger" id="wipeButton" type="button">Erase progress</button>
+        <button class="close-dialog" type="button">Continue playing</button>
+      </div>
+    </div>
+  </dialog>
+
+  <script>
+  (() => {
+    "use strict";
+    const SAVE_KEY = "nullpoint-upgrade-world-v3";
+    const WORLD = { width:2520, height:1540 };
+    const AREAS = {
+      core:{name:"Main Baseplate",tag:"Points + progression",x:820,y:260,w:850,h:940,className:"core",currency:"p"},
+      clicker:{name:"Clicker Baseplate",tag:"Active income",x:45,y:260,w:700,h:750,className:"clicker",currency:"clicks"},
+      alpha:{name:"Alpha Baseplate",tag:"Fast generators",x:1740,y:120,w:560,h:620,className:"alpha",currency:"alpha"},
+      omega:{name:"Omega Baseplate",tag:"Extreme production",x:2340,y:120,w:610,h:620,className:"omega",currency:"omega"},
+      prestige:{name:"Prestige Baseplate",tag:"First reset layer",x:1740,y:790,w:560,h:630,className:"prestige",currency:"pp"},
+      evil:{name:"Evil Baseplate",tag:"Second reset layer",x:2340,y:790,w:610,h:630,className:"evil",currency:"ep"}
+    };
+
+    const defaultState = () => ({
+      version:3,p:0,clicks:0,pp:0,ep:0,
+      upgrades:{},
+      unlocks:{core:true,clicker:false,alpha:false,omega:false,prestige:false,evil:false},
+      stats:{totalP:0,totalPP:0,totalEP:0,clicks:0,prestiges:0,evilResets:0,area:{core:0,alpha:0,omega:0,clicker:0}},
+      savedAt:Date.now()
+    });
+    let state = defaultState();
+    let transform = {x:0,y:0,scale:.72};
+    let dragging = null;
+    let autoAccumulator = 0;
+    let lastTick = performance.now();
+
+    const level = id => Math.max(0,Number(state.upgrades[id])||0);
+    const safe = n => Number.isFinite(n) ? Math.max(0,Math.min(Number.MAX_VALUE,n)) : Number.MAX_VALUE;
+    const scaleCost = (base,growth) => owned => Math.ceil(base*Math.pow(growth,owned));
+    const fixedCost = values => owned => values[Math.min(owned,values.length-1)];
+    const UPGRADE_LIST = [
+      {id:"p-passive",area:"core",x:330,y:450,name:"Start Earning P$",max:10,currency:"p",cost:l=>l===0?0:Math.ceil(5*Math.pow(2.05,l-1)),effect:l=>"+"+(l*2)+" base P$/s",visible:()=>true},
+      {id:"p-mult",area:"core",x:115,y:300,name:"Multiply All P$ Income",max:5,currency:"p",cost:scaleCost(35,3),effect:l=>"×"+Math.pow(1.8,l).toFixed(2)+" P$",requires:()=>level("p-passive")>=1,after:"p-passive"},
+      {id:"p-growth",area:"core",x:565,y:300,name:"Make P$ Grow Faster",max:5,currency:"p",cost:scaleCost(25,2.8),effect:l=>"Base P$ ×"+Math.pow(1.35,l).toFixed(2),requires:()=>level("p-passive")>=1,after:"p-passive"},
+      {id:"open-clicker",area:"core",x:565,y:450,name:"Open Clicker Baseplate",max:1,currency:"p",cost:fixedCost([100]),effect:l=>l?"Clicker open":"New active-income area",requires:()=>level("p-mult")>=1&&level("p-growth")>=1,opens:"clicker"},
+      {id:"open-alpha",area:"core",x:330,y:650,name:"Open Alpha Baseplate",max:1,currency:"p",cost:fixedCost([350]),effect:l=>l?"Alpha open":"New generator area",requires:()=>level("p-mult")>=2,opens:"alpha"},
+      {id:"open-prestige",area:"clicker",x:390,y:565,name:"Open Prestige Baseplate",max:1,currency:"clicks",cost:fixedCost([1000]),effect:l=>l?"Prestige open":"Unlock PP$ resets",requires:()=>level("click-auto")>=1,after:"click-auto",opens:"prestige"},
+      {id:"open-omega",area:"core",x:585,y:650,name:"Open Omega Baseplate",max:1,currency:"p",cost:fixedCost([200000]),effect:l=>l?"Omega open":"New extreme generator area",requires:()=>level("alpha-balance")>=1,opens:"omega"},
+
+      {id:"click-power",area:"clicker",x:390,y:145,name:"More Clicks Per Click",max:10,currency:"clicks",cost:scaleCost(10,2),effect:l=>"+"+(1+l*5)+" C$/click",visible:()=>true},
+      {id:"click-mult",area:"clicker",x:390,y:285,name:"Multiply Click Income",max:5,currency:"clicks",cost:scaleCost(50,4),effect:l=>"Clicks ×"+Math.pow(2,l),requires:()=>level("click-power")>=1,after:"click-power"},
+      {id:"click-auto",area:"clicker",x:390,y:425,name:"Automatic Clicking",max:5,currency:"clicks",cost:scaleCost(250,5),effect:l=>l+" auto-clicks/s",requires:()=>level("click-mult")>=1,after:"click-mult"},
+
+      {id:"alpha-gen",area:"alpha",x:175,y:150,name:"Generate Alpha P$",max:10,currency:"p",cost:scaleCost(250,2.25),effect:l=>"+"+(l*35)+" P$/s",visible:()=>true},
+      {id:"alpha-mult",area:"alpha",x:175,y:290,name:"Multiply Alpha Income",max:5,currency:"p",cost:scaleCost(1800,5),effect:l=>"Alpha ×"+Math.pow(2.5,l).toFixed(2),requires:()=>level("alpha-gen")>=1,after:"alpha-gen"},
+      {id:"alpha-balance",area:"alpha",x:175,y:430,name:"Current P$ Boosts Alpha",max:2,currency:"p",cost:fixedCost([12000,300000]),effect:l=>l?"Balance bonus active":"No balance bonus",requires:()=>level("alpha-mult")>=1,after:"alpha-mult"},
+
+      {id:"omega-gen",area:"omega",x:200,y:150,name:"Generate Omega P$",max:10,currency:"p",cost:scaleCost(200000,3.1),effect:l=>"+"+(l*5000)+" P$/s",visible:()=>true},
+      {id:"omega-mult",area:"omega",x:200,y:290,name:"Multiply Omega Income",max:5,currency:"p",cost:scaleCost(2000000,9),effect:l=>"Omega ×"+Math.pow(8,l),requires:()=>level("omega-gen")>=1,after:"omega-gen"},
+      {id:"omega-power",area:"omega",x:200,y:430,name:"Raise All Income to a Power",max:2,currency:"p",cost:fixedCost([1e8,1e12]),effect:l=>"All income ^"+(1+l*.06).toFixed(2),requires:()=>level("omega-mult")>=1,after:"omega-mult"},
+
+      {id:"pp-boost",area:"prestige",x:65,y:275,name:"Double All P$ Income",max:5,currency:"pp",cost:scaleCost(1,3),effect:l=>"All P$ ×"+Math.pow(2,l),visible:()=>true},
+      {id:"pp-start",area:"prestige",x:305,y:275,name:"Start Resets With P$",max:5,currency:"pp",cost:scaleCost(2,4),effect:l=>l?"Start with "+format(50*Math.pow(100,l-1))+" P$":"Start with 0 P$",requires:()=>level("pp-boost")>=1,after:"pp-boost"},
+      {id:"pp-auto",area:"prestige",x:65,y:430,name:"Auto-Buy P$ Upgrades",max:3,currency:"pp",cost:scaleCost(4,5),effect:l=>l?l+" buys/s":"Disabled",requires:()=>level("pp-start")>=1,after:"pp-start"},
+      {id:"open-evil",area:"prestige",x:305,y:430,name:"Open Evil Baseplate",max:1,currency:"pp",cost:fixedCost([30]),effect:l=>l?"Evil open":"Unlock EP$ resets",requires:()=>level("pp-auto")>=1,opens:"evil"},
+
+      {id:"ep-boost",area:"evil",x:80,y:290,name:"Multiply All P$ by Five",max:5,currency:"ep",cost:scaleCost(1,3),effect:l=>"All P$ ×"+Math.pow(5,l),visible:()=>true},
+      {id:"ep-memory",area:"evil",x:320,y:290,name:"Keep Baseplates on Prestige",max:1,currency:"ep",cost:fixedCost([3]),effect:l=>l?"Baseplates remain open":"Baseplates reset",requires:()=>level("ep-boost")>=1,after:"ep-boost"},
+      {id:"ep-auto",area:"evil",x:200,y:445,name:"Faster Automatic Buying",max:5,currency:"ep",cost:scaleCost(5,4),effect:l=>"Auto-buy +"+(l*2)+"/s",requires:()=>level("ep-memory")>=1,after:"ep-memory"}
+    ];
+    const upgradeById = new Map(UPGRADE_LIST.map(u=>[u.id,u]));
+
+    const els = {
+      viewport:document.getElementById("viewport"),world:document.getElementById("world"),lines:document.getElementById("worldLines"),
+      areaLayer:document.getElementById("areaLayer"),upgradeLayer:document.getElementById("upgradeLayer"),
+      focusArea:document.getElementById("focusArea"),focusValue:document.getElementById("focusValue"),focusRate:document.getElementById("focusRate"),
+      p:document.getElementById("pValue"),clicks:document.getElementById("clicksValue"),clicksCard:document.getElementById("clicksCard"),pp:document.getElementById("ppValue"),ep:document.getElementById("epValue"),ppCard:document.getElementById("ppCard"),epCard:document.getElementById("epCard"),
+      clickDock:document.getElementById("clickDock"),clickButton:document.getElementById("clickButton"),clickCount:document.getElementById("clickCount"),toast:document.getElementById("toastLayer")
+    };
+
+    function format(value) {
+      value=Math.floor(safe(value));
+      if(value<1000) return value>=100?Math.floor(value).toLocaleString("en-US"):value>=10?value.toFixed(value%1?1:0):value.toFixed(value%1?2:0);
+      const s=["K","M","B","T","Qa","Qi","Sx","Sp","Oc","No","Dc"];
+      const t=Math.floor(Math.log10(value)/3);
+      if(t<=s.length){const n=value/Math.pow(1000,t);return n.toFixed(n>=100?0:n>=10?1:2)+s[t-1];}
+      return value.toExponential(2).replace("+","");
+    }
+    function areaRates() {
+      const core=level("p-passive")*2*Math.pow(1.8,level("p-mult"))*Math.pow(1.35,level("p-growth"));
+      const clicker=state.unlocks.clicker?getClickRate():0;
+      const alphaBase=state.unlocks.alpha?level("alpha-gen")*35*Math.pow(2.5,level("alpha-mult")):0;
+      const alpha=alphaBase*(1+Math.log10(Math.max(10,state.p+10))*.2*level("alpha-balance"));
+      const omega=state.unlocks.omega?level("omega-gen")*5000*Math.pow(8,level("omega-mult")):0;
+      const permanent=Math.pow(2,level("pp-boost"))*Math.pow(5,level("ep-boost"));
+      const power=1+level("omega-power")*.06;
+      const apply=v=>Math.floor(safe(Math.pow(v*permanent,power)));
+      return {core:apply(core),clicker:apply(clicker),alpha:apply(alpha),omega:apply(omega)};
+    }
+    function getPointRate(){const r=areaRates();return Math.floor(safe(r.core+r.alpha+r.omega));}
+    function getClickGain(){return Math.floor(safe((1+level("click-power")*5)*Math.pow(2,level("click-mult"))));}
+    function getClickRate(){return Math.floor(safe(getClickGain()*level("click-auto")));}
+    function prestigeGain(){return state.p<10000?0:Math.max(1,Math.floor(Math.pow(state.p/10000,.35)));}
+    function evilGain(){return state.pp<50?0:Math.max(1,Math.floor(Math.pow(state.pp/50,.5)));}
+    function startingP(){const l=level("pp-start");return l?50*Math.pow(100,l-1):0;}
+    function currencySymbol(key){return key==="p"?"P$":key==="clicks"?"C$":key==="pp"?"PP$":"EP$";}
+    function canSee(u){if(!state.unlocks[u.area])return false;if(u.visible)return u.visible();return !u.requires||u.requires();}
+
+    function renderAreas(){
+      els.areaLayer.replaceChildren();
+      Object.entries(AREAS).forEach(([id,a])=>{
+        if(!state.unlocks[id])return;
+        const plate=document.createElement("section");
+        plate.className="baseplate "+a.className;
+        plate.dataset.area=id;
+        Object.assign(plate.style,{left:a.x+"px",top:a.y+"px",width:a.w+"px",height:a.h+"px"});
+        const heading=document.createElement("div");heading.className="plate-heading";
+        heading.innerHTML="<span>"+a.tag+"</span><h2>"+a.name+"</h2><p>Buy the next visible pad to continue.</p>";
+        const profit=document.createElement("div");profit.className="plate-profit";profit.dataset.profit=id;
+        plate.append(heading,profit);els.areaLayer.appendChild(plate);
+      });
+    }
+    function renderUpgrades(){
+      els.upgradeLayer.replaceChildren();
+      UPGRADE_LIST.forEach(u=>{
+        if(!canSee(u))return;
+        const a=AREAS[u.area],owned=level(u.id),maxed=owned>=u.max,price=maxed?0:u.cost(owned),affordable=!maxed&&state[u.currency]>=price;
+        const b=document.createElement("button");b.type="button";b.className="upgrade-pad";
+        if(affordable)b.classList.add("affordable");if(maxed)b.classList.add("maxed");if(!affordable&&!maxed)b.classList.add("locked-pad");if(u.opens)b.classList.add("area-opener");
+        b.dataset.upgrade=u.id;b.disabled=maxed;
+        Object.assign(b.style,{left:(a.x+u.x)+"px",top:(a.y+u.y)+"px"});
+        b.innerHTML='<div class="pad-top"><span>LEVEL '+owned+' / '+u.max+'</span><span>'+(u.opens?'AREA':maxed?'✓':u.id.includes("mult")?'×':'+')+'</span></div><strong>'+u.name+'</strong><div class="pad-bottom"><span>'+(maxed?'MAXED':'COST '+format(price)+' '+currencySymbol(u.currency))+'</span><span>'+u.effect(owned)+'</span></div>';
+        b.setAttribute("aria-label",u.name+", level "+owned+" of "+u.max+(maxed?", maxed":", costs "+format(price)+" "+currencySymbol(u.currency)));
+        els.upgradeLayer.appendChild(b);
+      });
+      renderResetPads();
+      drawLines();
+    }
+    function refreshUpgradeStates(){
+      document.querySelectorAll(".upgrade-pad[data-upgrade]").forEach(b=>{
+        const u=upgradeById.get(b.dataset.upgrade);if(!u)return;
+        const owned=level(u.id),maxed=owned>=u.max,affordable=!maxed&&state[u.currency]>=u.cost(owned);
+        b.classList.toggle("affordable",affordable);
+        b.classList.toggle("locked-pad",!maxed&&!affordable);
+        b.classList.toggle("maxed",maxed);
+        b.disabled=maxed;
+      });
+    }
+    function renderResetPads(){
+      if(state.unlocks.prestige){
+        const a=AREAS.prestige,g=prestigeGain(),b=document.createElement("button");b.type="button";b.className="upgrade-pad reset-pad"+(g?" affordable":" locked-pad");b.disabled=!g;b.dataset.action="prestige";
+        Object.assign(b.style,{left:(a.x+167)+"px",top:(a.y+120)+"px"});
+        b.innerHTML='<div class="pad-top"><span>RESET LAYER 1</span><span>↻</span></div><strong>Prestige for '+format(g)+' PP$</strong><div class="pad-bottom"><span>NEED 10K P$</span><span>Permanent boosts</span></div>';els.upgradeLayer.appendChild(b);
+      }
+      if(state.unlocks.evil){
+        const a=AREAS.evil,g=evilGain(),b=document.createElement("button");b.type="button";b.className="upgrade-pad reset-pad"+(g?" affordable":" locked-pad");b.disabled=!g;b.dataset.action="evil";
+        Object.assign(b.style,{left:(a.x+190)+"px",top:(a.y+120)+"px"});
+        b.innerHTML='<div class="pad-top"><span>RESET LAYER 2</span><span>!</span></div><strong>Evil Reset for '+format(g)+' EP$</strong><div class="pad-bottom"><span>NEED 50 PP$</span><span>Stronger boosts</span></div>';els.upgradeLayer.appendChild(b);
+      }
+    }
+    function drawLines(){
+      const c=els.lines,ctx=c.getContext("2d");ctx.clearRect(0,0,c.width,c.height);ctx.lineCap="square";
+      UPGRADE_LIST.forEach(u=>{
+        if(!u.after||u.opens||!canSee(u))return;
+        const prev=upgradeById.get(u.after);if(!prev||prev.opens||!canSee(prev))return;
+        const a=AREAS[u.area],pa=AREAS[prev.area],padWidth=190,padHeight=84,gap=10;
+        const sourceX=pa.x+prev.x+padWidth/2,sourceY=pa.y+prev.y+padHeight/2;
+        const targetX=a.x+u.x+padWidth/2,targetY=a.y+u.y+padHeight/2;
+        const horizontal=Math.abs(targetX-sourceX)>=Math.abs(targetY-sourceY);
+        ctx.beginPath();
+        if(horizontal){
+          const toRight=targetX>sourceX;
+          const x1=sourceX+(toRight?padWidth/2+gap:-padWidth/2-gap);
+          const x2=targetX+(toRight?-padWidth/2-gap:padWidth/2+gap);
+          const middleX=x1+(x2-x1)/2;
+          ctx.moveTo(x1,sourceY);ctx.lineTo(middleX,sourceY);ctx.lineTo(middleX,targetY);ctx.lineTo(x2,targetY);
+        }else{
+          const down=targetY>sourceY;
+          const y1=sourceY+(down?padHeight/2+gap:-padHeight/2-gap);
+          const y2=targetY+(down?-padHeight/2-gap:padHeight/2+gap);
+          const middleY=y1+(y2-y1)/2;
+          ctx.moveTo(sourceX,y1);ctx.lineTo(sourceX,middleY);ctx.lineTo(targetX,middleY);ctx.lineTo(targetX,y2);
+        }
+        ctx.strokeStyle="rgba(7,16,12,.9)";ctx.lineWidth=10;ctx.stroke();
+        ctx.strokeStyle="rgba(255,255,255,.82)";ctx.lineWidth=4;ctx.stroke();
+      });
+    }
+    function updateProfits(){
+      const r=areaRates();
+      document.querySelectorAll("[data-profit]").forEach(el=>{
+        const id=el.dataset.profit;let top="",bottom="";
+        if(id==="core"){top=format(state.stats.area.core)+" P$ made";bottom="+"+format(r.core)+" P$/s";}
+        if(id==="clicker"){top=format(state.clicks)+" C$";bottom="+"+format(getClickRate())+" C$/s";}
+        if(id==="alpha"){top=format(state.stats.area.alpha)+" P$ made";bottom="+"+format(r.alpha)+" P$/s";}
+        if(id==="omega"){top=format(state.stats.area.omega)+" P$ made";bottom="+"+format(r.omega)+" P$/s";}
+        if(id==="prestige"){top=format(state.pp)+" PP$";bottom="Next reset +"+format(prestigeGain())+" PP$";}
+        if(id==="evil"){top=format(state.ep)+" EP$";bottom="Next reset +"+format(evilGain())+" EP$";}
+        el.innerHTML="<strong>"+top+"</strong><span>"+bottom+"</span>";
+      });
+    }
+    function updateHud(){
+      els.p.textContent=format(state.p)+" P$";els.clicks.textContent=format(state.clicks)+" C$";els.pp.textContent=format(state.pp)+" PP$";els.ep.textContent=format(state.ep)+" EP$";
+      els.clicksCard.classList.toggle("hidden",!state.unlocks.clicker);els.ppCard.classList.toggle("hidden",!state.unlocks.prestige);els.epCard.classList.toggle("hidden",!state.unlocks.evil);
+      els.clickDock.classList.toggle("hidden",!state.unlocks.clicker);Object.assign(els.clickDock.style,{left:(AREAS.clicker.x+30)+"px",top:(AREAS.clicker.y+170)+"px"});els.clickButton.textContent="Click!";els.clickCount.textContent=format(state.clicks)+" C$  ·  +"+format(getClickGain())+"/click  ·  +"+format(getClickRate())+"/s";
+      refreshUpgradeStates();updateProfits();updateFocusedArea();
+    }
+    function updateFocusedArea(){
+      const rect=els.viewport.getBoundingClientRect();const wx=(rect.width/2-transform.x)/transform.scale,wy=(rect.height/2-transform.y)/transform.scale;
+      let id="core";for(const [key,a] of Object.entries(AREAS)){if(state.unlocks[key]&&wx>=a.x&&wx<=a.x+a.w&&wy>=a.y&&wy<=a.y+a.h){id=key;break;}}
+      const a=AREAS[id],r=areaRates();els.focusArea.textContent=a.name;
+      if(id==="core"){els.focusValue.textContent=format(state.p)+" P$";els.focusRate.textContent="+"+format(getPointRate())+" P$/s";}
+      if(id==="clicker"){els.focusValue.textContent=format(state.clicks)+" C$";els.focusRate.textContent="+"+format(getClickRate())+" C$/s";}
+      if(id==="alpha"){els.focusValue.textContent=format(state.stats.area.alpha)+" P$ made";els.focusRate.textContent="+"+format(r.alpha)+" P$/s";}
+      if(id==="omega"){els.focusValue.textContent=format(state.stats.area.omega)+" P$ made";els.focusRate.textContent="+"+format(r.omega)+" P$/s";}
+      if(id==="prestige"){els.focusValue.textContent=format(state.pp)+" PP$";els.focusRate.textContent="reset +"+format(prestigeGain())+" PP$";}
+      if(id==="evil"){els.focusValue.textContent=format(state.ep)+" EP$";els.focusRate.textContent="reset +"+format(evilGain())+" EP$";}
+    }
+    function render(){renderAreas();renderUpgrades();updateHud();}
+
+    function buy(id,automatic=false){
+      const u=upgradeById.get(id);if(!u||!canSee(u))return false;const owned=level(id);if(owned>=u.max)return false;const price=u.cost(owned);if(state[u.currency]<price){if(!automatic)showToast("Not enough "+currencySymbol(u.currency),"Need "+format(price-state[u.currency])+" more "+currencySymbol(u.currency)+".");return false;}
+      state[u.currency]=safe(state[u.currency]-price);state.upgrades[id]=owned+1;
+      if(u.opens&&!state.unlocks[u.opens]){state.unlocks[u.opens]=true;showToast(AREAS[u.opens].name+" opened","A new colored baseplate appeared in the world.");if(!automatic)setTimeout(()=>focusArea(u.opens),120);}
+      if(!automatic)showToast(u.name,"Level "+(owned+1)+" of "+u.max+" purchased · "+u.effect(owned+1)+".");render();save();return true;
+    }
+    function doPrestige(){
+      const gain=prestigeGain();if(!gain)return;state.pp=safe(state.pp+gain);state.stats.totalPP=safe(state.stats.totalPP+gain);state.stats.prestiges++;
+      const keep=level("ep-memory")>0;state.p=startingP();state.clicks=0;
+      UPGRADE_LIST.filter(u=>["core","clicker","alpha","omega"].includes(u.area)).forEach(u=>delete state.upgrades[u.id]);state.upgrades["p-passive"]=0;
+      if(!keep){state.unlocks.clicker=false;state.unlocks.alpha=false;state.unlocks.omega=false;delete state.upgrades["open-clicker"];delete state.upgrades["open-alpha"];delete state.upgrades["open-omega"];}
+      showToast("Prestige complete","+"+format(gain)+" PP$. Earlier production was rebuilt.");render();save();focusArea("prestige");
+    }
+    function doEvil(){
+      const gain=evilGain();if(!gain)return;state.ep=safe(state.ep+gain);state.stats.totalEP=safe(state.stats.totalEP+gain);state.stats.evilResets++;
+      state.p=0;state.clicks=0;state.pp=0;UPGRADE_LIST.filter(u=>u.area!=="evil").forEach(u=>delete state.upgrades[u.id]);state.upgrades["p-passive"]=0;
+      state.unlocks={core:true,clicker:false,alpha:false,omega:false,prestige:false,evil:true};
+      showToast("Evil reset complete","+"+format(gain)+" EP$. Permanent Evil upgrades remain.");render();save();focusArea("evil");
+    }
+    function manualClick(){if(!state.unlocks.clicker)return;const gain=getClickGain();state.clicks=safe(state.clicks+gain);state.stats.area.clicker=safe(state.stats.area.clicker+gain);state.stats.clicks++;updateHud();}
+    function autoBuy(){
+      const count=level("pp-auto")+level("ep-auto")*2;if(!count)return;autoAccumulator+=count/10;let attempts=Math.min(10,Math.floor(autoAccumulator));if(attempts)autoAccumulator-=attempts;
+      while(attempts--){const candidates=UPGRADE_LIST.filter(u=>u.currency==="p"&&!u.opens&&canSee(u)&&level(u.id)<u.max&&state.p>=u.cost(level(u.id))).sort((a,b)=>a.cost(level(a.id))-b.cost(level(b.id)));if(!candidates.length)break;buy(candidates[0].id,true);}
+    }
+    function tick(seconds){
+      const r=areaRates();const pointGain=safe((r.core+r.alpha+r.omega)*seconds);const clickGain=safe(r.clicker*seconds);state.p=safe(state.p+pointGain);state.clicks=safe(state.clicks+clickGain);state.stats.totalP=safe(state.stats.totalP+pointGain);
+      state.stats.area.core=safe(state.stats.area.core+r.core*seconds);state.stats.area.clicker=safe(state.stats.area.clicker+clickGain);state.stats.area.alpha=safe(state.stats.area.alpha+r.alpha*seconds);state.stats.area.omega=safe(state.stats.area.omega+r.omega*seconds);autoBuy();
+    }
+    function loop(now){const dt=Math.min(.25,Math.max(0,(now-lastTick)/1000));lastTick=now;tick(dt);updateHud();requestAnimationFrame(loop);}
+
+    function applyTransform(){els.world.style.transform="translate("+transform.x+"px,"+transform.y+"px) scale("+transform.scale+")";updateFocusedArea();}
+    function centerWorld(){const r=els.viewport.getBoundingClientRect();transform.scale=Math.min(.78,Math.max(.52,(r.width-60)/1500));transform.x=r.width/2-(AREAS.core.x+AREAS.core.w/2)*transform.scale;transform.y=r.height/2-(AREAS.core.y+AREAS.core.h/2)*transform.scale;applyTransform();}
+    function focusArea(id){const a=AREAS[id],r=els.viewport.getBoundingClientRect();transform.scale=Math.max(.65,Math.min(1,r.width/(a.w+340)));transform.x=r.width/2-(a.x+a.w/2)*transform.scale;transform.y=r.height/2-(a.y+a.h/2)*transform.scale;applyTransform();}
+    function zoom(factor,cx,cy){const r=els.viewport.getBoundingClientRect(),x=cx??r.width/2,y=cy??r.height/2,wx=(x-transform.x)/transform.scale,wy=(y-transform.y)/transform.scale;transform.scale=Math.max(.38,Math.min(1.45,transform.scale*factor));transform.x=x-wx*transform.scale;transform.y=y-wy*transform.scale;applyTransform();}
+
+    function showToast(title,message){const t=document.createElement("div");t.className="toast";t.innerHTML="<strong>"+title+"</strong><span>"+message+"</span>";els.toast.replaceChildren(t);setTimeout(()=>t.remove(),3200);}
+    function normalize(raw){const fresh=defaultState();if(!raw||typeof raw!=="object")return fresh;["p","clicks","pp","ep"].forEach(k=>fresh[k]=safe(Number(raw[k])||0));fresh.upgrades=Object.assign({},raw.upgrades||{});fresh.upgrades["p-passive"]=Math.max(0,Number(fresh.upgrades["p-passive"])||0);fresh.unlocks=Object.assign(fresh.unlocks,raw.unlocks||{});fresh.stats=Object.assign(fresh.stats,raw.stats||{});fresh.stats.area=Object.assign({core:0,alpha:0,omega:0,clicker:0},raw.stats?.area||{});return fresh;}
+    function save(notify=false){state.savedAt=Date.now();try{localStorage.setItem(SAVE_KEY,JSON.stringify(state));if(notify)showToast("Game saved","Progress is stored in this browser.");}catch(e){if(notify)showToast("Save blocked","This browser could not store the game.");}}
+    function load(){try{const raw=localStorage.getItem(SAVE_KEY);if(!raw)return;state=normalize(JSON.parse(raw));const away=Math.min(14400,Math.max(0,(Date.now()-(state.savedAt||Date.now()))/1000));if(away>=10){tick(away);setTimeout(()=>showToast("Offline production","+"+format(getPointRate()*away)+" P$ over "+Math.floor(away/60)+" minutes."),400);}}catch(e){state=defaultState();}}
+
+    els.upgradeLayer.addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;if(b.dataset.upgrade)buy(b.dataset.upgrade);if(b.dataset.action==="prestige")doPrestige();if(b.dataset.action==="evil")doEvil();});
+    els.clickButton.addEventListener("click",manualClick);
+    els.viewport.addEventListener("pointerdown",e=>{if(e.target.closest("button"))return;dragging={id:e.pointerId,x:e.clientX,y:e.clientY,ox:transform.x,oy:transform.y};els.viewport.setPointerCapture(e.pointerId);els.viewport.classList.add("dragging");});
+    els.viewport.addEventListener("pointermove",e=>{if(!dragging||e.pointerId!==dragging.id)return;transform.x=dragging.ox+e.clientX-dragging.x;transform.y=dragging.oy+e.clientY-dragging.y;applyTransform();});
+    const endDrag=e=>{if(dragging&&e.pointerId===dragging.id){dragging=null;els.viewport.classList.remove("dragging");}};els.viewport.addEventListener("pointerup",endDrag);els.viewport.addEventListener("pointercancel",endDrag);
+    els.viewport.addEventListener("wheel",e=>{e.preventDefault();const r=els.viewport.getBoundingClientRect();zoom(e.deltaY<0?1.1:.9,e.clientX-r.left,e.clientY-r.top);},{passive:false});
+    document.getElementById("zoomIn").addEventListener("click",()=>zoom(1.15));document.getElementById("zoomOut").addEventListener("click",()=>zoom(.87));document.getElementById("zoomReset").addEventListener("click",centerWorld);document.getElementById("homeButton").addEventListener("click",()=>focusArea("core"));
+    const help=document.getElementById("helpDialog");document.getElementById("helpButton").addEventListener("click",()=>help.showModal());document.querySelectorAll(".close-dialog").forEach(b=>b.addEventListener("click",()=>help.close()));
+    document.getElementById("saveButton").addEventListener("click",()=>save(true));
+    document.getElementById("wipeButton").addEventListener("click",()=>{if(confirm("Erase every upgrade and currency?")){state=defaultState();localStorage.removeItem(SAVE_KEY);help.close();render();centerWorld();showToast("Progress erased","A new upgrade world has started.");}});
+    document.getElementById("exportButton").addEventListener("click",()=>{const text=btoa(unescape(encodeURIComponent(JSON.stringify(state))));navigator.clipboard?.writeText(text).then(()=>showToast("Save copied","Keep it somewhere safe.")).catch(()=>prompt("Copy your save:",text));});
+    document.getElementById("importButton").addEventListener("click",()=>{const text=prompt("Paste your save:");if(!text)return;try{state=normalize(JSON.parse(decodeURIComponent(escape(atob(text.trim())))));help.close();render();centerWorld();save();showToast("Save imported","Your upgrade world is active.");}catch(e){showToast("Import failed","That save text is not valid.");}});
+    document.addEventListener("keydown",e=>{if(e.code==="Space"&&!help.open&&!e.target.closest("button,input,textarea")){e.preventDefault();manualClick();}});
+    window.addEventListener("resize",centerWorld);window.addEventListener("beforeunload",()=>save());setInterval(()=>save(),5000);
+
+    window.NullpointWorld={getState:()=>JSON.parse(JSON.stringify(state)),buy,click:manualClick,prestige:doPrestige,evil:doEvil,simulate:s=>{tick(Math.max(0,Number(s)||0));render();return state.p;},focusArea};
+    load();render();centerWorld();requestAnimationFrame(loop);
+  })();
+  </script>
+</body>
+</html>
